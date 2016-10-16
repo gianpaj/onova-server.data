@@ -3,5 +3,5 @@ export default {
   MONGOOSE_DEBUG: true,
   jwtSecret: '***REMOVED***',
   db: 'mongodb://localhost/express-mongoose-es6-rest-api-development',
-  port: 3000
+  port: 4040
 };
