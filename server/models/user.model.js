@@ -3,6 +3,8 @@ import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 
+import validation from '../helpers/validation';
+
 /**
  * User Schema
  */
@@ -13,8 +15,14 @@ const UserSchema = new mongoose.Schema({
   },
   mobileNumber: {
     type: String,
+    trim: true,
     required: true,
-    match: [/^[1-9][0-9]{9}$/, 'The value of path {PATH} ({VALUE}) is not a valid mobile number.']
+    match: [validation.mobileNumber, 'Invalid mobile number.']
+  },
+  emailAddress: {
+    type: String,
+    required: true,
+    match: [validation.emailAddress, 'Invalid email address']
   },
   createdAt: {
     type: Date,

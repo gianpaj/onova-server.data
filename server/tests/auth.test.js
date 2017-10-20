@@ -9,12 +9,12 @@ chai.config.includeStack = true;
 
 describe('## Auth APIs', () => {
   const validUserCredentials = {
-    username: 'react',
+    emailAddress: 'react@example.com',
     password: 'express'
   };
 
   const invalidUserCredentials = {
-    username: 'react',
+    emailAddress: 'react@example.com',
     password: 'IDontKnow'
   };
 
@@ -42,7 +42,7 @@ describe('## Auth APIs', () => {
           expect(res.body).to.have.property('token');
           jwt.verify(res.body.token, config.jwtSecret, (err, decoded) => {
             expect(err).to.not.be.ok; // eslint-disable-line no-unused-expressions
-            expect(decoded.username).to.equal(validUserCredentials.username);
+            expect(decoded.emailAddress).to.equal(validUserCredentials.emailAddress);
             jwtToken = `Bearer ${res.body.token}`;
             done();
           });

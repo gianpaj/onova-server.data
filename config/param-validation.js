@@ -1,11 +1,14 @@
 import Joi from 'joi';
 
+import validation from '../server/helpers/validation';
+
 export default {
   // POST /api/users
   createUser: {
     body: {
       username: Joi.string().required(),
-      mobileNumber: Joi.string().regex(/^[1-9][0-9]{9}$/).required()
+      mobileNumber: Joi.string().regex(validation.mobileNumber),
+      emailAddress: Joi.string().regex(validation.emailAddress).required(),
     }
   },
 
@@ -13,7 +16,8 @@ export default {
   updateUser: {
     body: {
       username: Joi.string().required(),
-      mobileNumber: Joi.string().regex(/^[1-9][0-9]{9}$/).required()
+      mobileNumber: Joi.string().regex(validation.mobileNumber).required(),
+      emailAddress: Joi.string().regex(validation.emailAddress).required()
     },
     params: {
       userId: Joi.string().hex().required()
@@ -23,7 +27,7 @@ export default {
   // POST /api/auth/login
   login: {
     body: {
-      username: Joi.string().required(),
+      emailAddress: Joi.string().required(),
       password: Joi.string().required()
     }
   }

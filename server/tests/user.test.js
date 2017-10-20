@@ -19,8 +19,9 @@ after((done) => {
 
 describe('## User APIs', () => {
   let user = {
-    username: 'KK123',
-    mobileNumber: '1234567890'
+    username: 'angularperson',
+    emailAddress: 'angular@example.com',
+    mobileNumber: '1234567890' // optional
   };
 
   describe('# POST /api/users', () => {
@@ -31,6 +32,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.username).to.equal(user.username);
+          expect(res.body.emailAddress).to.equal(user.emailAddress);
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
           user = res.body;
           done();
@@ -46,6 +48,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.username).to.equal(user.username);
+          expect(res.body.emailAddress).to.equal(user.emailAddress);
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
           done();
         })
@@ -66,14 +69,15 @@ describe('## User APIs', () => {
 
   describe('# PUT /api/users/:userId', () => {
     it('should update user details', (done) => {
-      user.username = 'KK';
+      user.emailAddress = 'jose@gmail.com';
       request(app)
         .put(`/api/users/${user._id}`)
         .send(user)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.username).to.equal('KK');
+          expect(res.body.emailAddress).to.equal('jose@gmail.com');
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body.username).to.equal(user.username);
           done();
         })
         .catch(done);
@@ -111,8 +115,9 @@ describe('## User APIs', () => {
         .delete(`/api/users/${user._id}`)
         .expect(httpStatus.OK)
         .then((res) => {
-          expect(res.body.username).to.equal('KK');
+          expect(res.body.emailAddress).to.equal('jose@gmail.com');
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body.username).to.equal(user.username);
           done();
         })
         .catch(done);
