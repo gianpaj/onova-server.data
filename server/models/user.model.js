@@ -22,6 +22,7 @@ const UserSchema = new mongoose.Schema({
   emailAddress: {
     type: String,
     required: true,
+    unique: true,
     match: [validation.emailAddress, 'Invalid email address']
   },
   createdAt: {

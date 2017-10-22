@@ -1,4 +1,8 @@
+import jwt from 'jsonwebtoken';
+import httpStatus from 'http-status';
 import User from '../models/user.model';
+import APIError from '../helpers/APIError';
+import config from '../../config/config';
 
 /**
  * Load user and append to req.
@@ -84,9 +88,25 @@ function list(req, res, next) {
  */
 function remove(req, res, next) {
   const user = req.user;
-  user.remove()
-    .then(deletedUser => res.json(deletedUser))
-    .catch(e => next(e));
+  const token = req.headers.authorization.split(' ')[1];
+
+  // eslint-disable-next-line
+  jwt.verify(token, config.jwtSecret, (err, decoded) => {
+    if (err) {
+      console.error(err);
+      const APIerr = new APIError(err, httpStatus.INTERNAL_SERVER_ERROR, true);
+      return next(APIerr);
+    }
+    if (decoded.emailAddress === user.emailAddress) {
+      user.remove()
+      .then(deletedUser => res.json(deletedUser))
+      .catch(e => next(e));
+    } else {
+      console.error('Delete user not allowed for', user.emailAddress, 'by', decoded.emailAddress);
+      const APIerr = new APIError('Not allowed', httpStatus.FORBIDDEN, true);
+      return next(APIerr);
+    }
+  });
 }
 
 export default { load, get, create, update, list, remove };
