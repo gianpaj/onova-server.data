@@ -1,36 +1,42 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
+
+import User from '../models/user.model';
 import APIError from '../helpers/APIError';
 import config from '../../config/config';
 
-// sample user, used for authentication
-const user = {
-  emailAddress: 'react@example.com',
-  password: 'express'
-};
-
 /**
- * Returns jwt token if valid emailAddress and password is provided
+ * Returns jwt token if valid emailAddress and password are valid
  * @param req
  * @param res
  * @param next
  * @returns {*}
  */
 function login(req, res, next) {
-  // Ideally you'll fetch this from the db
-  // Idea here was to show how jwt works with simplicity
-  if (req.body.emailAddress === user.emailAddress && req.body.password === user.password) {
-    const token = jwt.sign({
-      emailAddress: user.emailAddress
-    }, config.jwtSecret);
-    return res.json({
-      token,
-      emailAddress: user.emailAddress
-    });
-  }
-
-  const err = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
-  return next(err);
+  // fetch user and test password verification
+  User.findOne({ emailAddress: req.body.emailAddress }, (err, user) => {
+    if (err) throw err;
+    if (user) {
+      user.comparePassword(req.body.password, user.password, (err, isMatch) => {
+        if (err) throw err;
+        if (isMatch) {
+          const token = jwt.sign({
+            emailAddress: user.emailAddress
+          }, config.jwtSecret);
+          return res.json({
+            token,
+            emailAddress: user.emailAddress
+          });
+        } else {
+          const APIerr = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
+          return next(APIerr);
+        }
+      });
+    } else {
+      const APIerr = new APIError('User not found', httpStatus.NOT_FOUND, true);
+      return next(APIerr);
+    }
+  });
 }
 
 /**

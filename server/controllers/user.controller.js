@@ -21,20 +21,28 @@ function load(req, res, next, id) {
  * @returns {User}
  */
 function get(req, res) {
-  return res.json(req.user);
+  const doc = {
+    _id: req.user._id,
+    username: req.user.username,
+    emailAddress: req.user.emailAddress,
+    mobileNumber: req.user.mobileNumber,
+  };
+  return res.json(doc);
 }
 
 /**
  * Create new user
- * @property {string} req.body.username - The username of user.
- * @property {string} req.body.mobileNumber - The mobileNumber of user (optional).
- * @property {string} req.body.emailAddress - The emailAddress of user.
+ * @property {string} req.body.username
+ * @property {string} req.body.mobileNumber - (optional)
+ * @property {string} req.body.emailAddress
+ * @property {string} req.body.password
  * @returns {User}
  */
 function create(req, res, next) {
   const doc = {
     username: req.body.username,
     emailAddress: req.body.emailAddress,
+    password: req.body.password,
   };
 
   if (req.body.mobileNumber) {
@@ -44,7 +52,15 @@ function create(req, res, next) {
   const user = new User(doc);
 
   user.save()
-    .then(savedUser => res.json(savedUser))
+    .then(savedUser => {
+      const user = {
+        _id: savedUser._id,
+        username: savedUser.username,
+        emailAddress: savedUser.emailAddress,
+        mobileNumber: savedUser.mobileNumber,
+      };
+      res.json(user);
+    })
     .catch(e => next(e));
 }
 

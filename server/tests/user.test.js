@@ -19,7 +19,13 @@ after((done) => {
   done();
 });
 
-describe('## User APIs', () => {
+before((done) => {
+  mongoose.connection.dropDatabase().then(() => {
+    done();
+  })
+});
+
+describe.only('## User APIs', () => {
   let user = {
     username: 'reactperson',
     emailAddress: 'react@example.com',
@@ -36,7 +42,26 @@ describe('## User APIs', () => {
 
   let jwtToken;
 
-  describe('# POST /api/auth/login', () => {
+  describe('# POST /api/users', () => {
+    it('should create a new user', (done) => {
+      request(app)
+        .post('/api/users')
+        .send(user)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body.username).to.equal(user.username);
+          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body.emailAddress).to.equal(user.emailAddress);
+          expect(res.body).to.not.have.property('password');
+          // get user '_id'
+          user = res.body;
+          // add password back into the object
+          user.password = 'express';
+          done();
+        })
+        .catch(done);
+    });
+
     it('should get valid JWT token', (done) => {
       request(app)
         .post('/api/auth/login')
@@ -55,23 +80,6 @@ describe('## User APIs', () => {
     });
   });
 
-  describe('# POST /api/users', () => {
-    it('should create a new user', (done) => {
-      request(app)
-        .post('/api/users')
-        .send(user)
-        .expect(httpStatus.OK)
-        .then((res) => {
-          expect(res.body.username).to.equal(user.username);
-          expect(res.body.emailAddress).to.equal(user.emailAddress);
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
-          user = res.body;
-          done();
-        })
-        .catch(done);
-    });
-  });
-
   describe('# GET /api/users/:userId', () => {
     it('should get user details', (done) => {
       request(app)
@@ -81,6 +89,7 @@ describe('## User APIs', () => {
           expect(res.body.username).to.equal(user.username);
           expect(res.body.emailAddress).to.equal(user.emailAddress);
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body).to.not.have.property('password');
           done();
         })
         .catch(done);

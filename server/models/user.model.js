@@ -1,9 +1,11 @@
 import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
-import APIError from '../helpers/APIError';
+import bcrypt from 'bcrypt';
 
+import APIError from '../helpers/APIError';
 import validation from '../helpers/validation';
+import config from '../../config/config';
 
 /**
  * User Schema
@@ -16,7 +18,6 @@ const UserSchema = new mongoose.Schema({
   mobileNumber: {
     type: String,
     trim: true,
-    required: true,
     match: [validation.mobileNumber, 'Invalid mobile number.']
   },
   emailAddress: {
@@ -25,9 +26,13 @@ const UserSchema = new mongoose.Schema({
     unique: true,
     match: [validation.emailAddress, 'Invalid email address']
   },
-  createdAt: {
+  dateCreated: {
     type: Date,
     default: Date.now
+  },
+  password: {
+    type: String,
+    required: true
   }
 });
 
@@ -42,6 +47,12 @@ const UserSchema = new mongoose.Schema({
  * Methods
  */
 UserSchema.method({
+  comparePassword: (candidatePassword, hash, cb) => {
+    bcrypt.compare(candidatePassword, hash, (err, isMatch) => {
+      if (err) return cb(err);
+      cb(null, isMatch);
+    });
+  }
 });
 
 /**
@@ -50,6 +61,7 @@ UserSchema.method({
 UserSchema.statics = {
   /**
    * Get user
+   *
    * @param {ObjectId} id - The objectId of user.
    * @returns {Promise<User, APIError>}
    */
@@ -66,19 +78,36 @@ UserSchema.statics = {
   },
 
   /**
-   * List users in descending order of 'createdAt' timestamp.
+   * List users in descending order of 'dateCreated' timestamp.
+   *
    * @param {number} skip - Number of users to be skipped.
    * @param {number} limit - Limit number of users to be returned.
    * @returns {Promise<User[]>}
    */
   list({ skip = 0, limit = 50 } = {}) {
     return this.find()
-      .sort({ createdAt: -1 })
+      .sort({ dateCreated: -1 })
       .skip(+skip)
       .limit(+limit)
       .exec();
   }
 };
+
+UserSchema.pre('save', function (next) {
+  const user = this;
+  const saltRounds = parseInt(config.saltRounds);
+
+  // only hash the password if it has been modified (or is new)
+  if (!user.isModified('password')) return next();
+  bcrypt.hash(user.password, saltRounds, (err, hash) => {
+    user.password = hash;
+    next();
+  });
+});
+
+
+UserSchema.index({ emailAddress: 1 });
+UserSchema.index({ username: 1 });
 
 /**
  * @typedef User
