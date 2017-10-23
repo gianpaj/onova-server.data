@@ -4,7 +4,7 @@
   "description": "A Boilerplate application for building REST APIs using express, mongoose in ES6 with code coverage",
   "author": "Kunal Kapadia <kunalkapadia12@gmail.com>",
   "main": "index.js",
-  "private": false,
+  "private": true,
   "engines": {
     "node": ">=4.8.0",
     "npm": ">=2.15.11",
@@ -25,7 +25,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:KunalKapadia/express-mongoose-es6-rest-api.git"
+    "url": "git@bitbucket.org:onova/server.data.git"
   },
   "keywords": [
     "express",
