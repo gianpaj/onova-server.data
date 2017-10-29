@@ -1,8 +1,10 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
+
 import User from '../models/user.model';
 import APIError from '../helpers/APIError';
 import config from '../../config/config';
+import mail from './mail.controller';
 
 /**
  * Load user and append to req.
@@ -43,6 +45,7 @@ function create(req, res, next) {
     username: req.body.username,
     emailAddress: req.body.emailAddress,
     password: req.body.password,
+    // accountStatus: 'notverified' (default)
   };
 
   if (req.body.mobileNumber) {
@@ -58,7 +61,9 @@ function create(req, res, next) {
         username: savedUser.username,
         emailAddress: savedUser.emailAddress,
         mobileNumber: savedUser.mobileNumber,
+        accountStatus: savedUser.accountStatus
       };
+      mail.sendVerificationEmail(savedUser.emailAddress, savedUser);
       res.json(user);
     })
     .catch(e => next(e));
@@ -78,6 +83,14 @@ function update(req, res, next) {
 
   if (req.body.mobileNumber) {
     user.mobileNumber = req.body.mobileNumber;
+  }
+
+  if (user.emailAddress != req.body.emailAddress) {
+    // resendEmailVerification
+    // which sents the accountStatus as 'notverified'
+    user.update({accountStatus: 'notverified'}).then(()=>{
+      console.log(`account ${user._ud} is awaiting for email verification`);
+    })
   }
 
   user.save()

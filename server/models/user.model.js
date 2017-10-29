@@ -33,6 +33,12 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true
+  },
+  accountStatus: {
+    type: String,
+    required: true,
+    default: 'notverified',
+    enum: ['verified', 'notverified', 'banned']
   }
 });
 

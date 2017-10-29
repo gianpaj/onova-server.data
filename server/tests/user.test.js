@@ -25,6 +25,7 @@ before((done) => {
   })
 });
 
+// describe('## User APIs', () => {
 describe.only('## User APIs', () => {
   let user = {
     username: 'reactperson',
@@ -52,6 +53,7 @@ describe.only('## User APIs', () => {
           expect(res.body.username).to.equal(user.username);
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
           expect(res.body.emailAddress).to.equal(user.emailAddress);
+          expect(res.body.accountStatus).to.equal('notverified');
           expect(res.body).to.not.have.property('password');
           // get user '_id'
           user = res.body;

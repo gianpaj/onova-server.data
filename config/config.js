@@ -21,7 +21,11 @@ const envVarsSchema = Joi.object({
   MONGO_HOST: Joi.string().required()
     .description('Mongo DB host url'),
   MONGO_PORT: Joi.number()
-    .default(27017)
+    .default(27017),
+  MJ_APIKEY_PUBLIC: Joi.string().required()
+    .description('Mailjet DB host url'),
+  MJ_APIKEY_PRIVATE: Joi.string().required()
+    .description('Mongo DB host url'),
 }).unknown()
   .required();
 
@@ -39,6 +43,10 @@ const config = {
   mongo: {
     host: envVars.MONGO_HOST,
     port: envVars.MONGO_PORT
+  },
+  mailjet: {
+    apikeyPublic: envVars.MJ_APIKEY_PUBLIC,
+    apikeyPrivate: envVars.MJ_APIKEY_PRIVATE
   }
 };
 
