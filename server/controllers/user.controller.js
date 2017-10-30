@@ -35,14 +35,16 @@ function get(req, res) {
 /**
  * Create new user
  * @property {string} req.body.username
- * @property {string} req.body.mobileNumber - (optional)
+ * @property {string} req.body.displayName
  * @property {string} req.body.emailAddress
- * @property {string} req.body.password
+ * @property {string} req.body.password - (salted and hashed)
+ * @property {string} req.body.mobileNumber - (optional)
  * @returns {User}
  */
 function create(req, res, next) {
   const doc = {
     username: req.body.username,
+    displayName: req.body.displayName,
     emailAddress: req.body.emailAddress,
     password: req.body.password,
     // accountStatus: 'notverified' (default)
@@ -75,19 +77,22 @@ function create(req, res, next) {
  * PUT /api/users/:userId
  *
  * @property {string} req.body.username
- * @property {string} req.body.mobileNumber - (optional)
- * @property {string} req.body.emailAddress
  * @property {string} req.body.displayName
+ * @property {string} req.body.emailAddress
+ * @property {string} req.body.mobileNumber - (optional)
  * @returns {User}
  */
 function update(req, res, next) {
   const user = req.user;
   user.username = req.body.username;
+  user.displayName = req.body.displayName;
   user.emailAddress = req.body.emailAddress;
 
   if (req.body.mobileNumber) {
     user.mobileNumber = req.body.mobileNumber;
   }
+
+  // update password
 
   if (user.emailAddress != req.body.emailAddress) {
     // resendEmailVerification

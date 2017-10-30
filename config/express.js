@@ -34,6 +34,10 @@ app.use(helmet());
 // enable CORS - Cross Origin Resource Sharing
 app.use(cors());
 
+// used for simple activation email confirmation page
+app.set('views', './server/views');
+app.set('view engine', 'pug')
+
 // enable detailed API logging in dev env
 if (config.env === 'development') {
   expressWinston.requestWhitelist.push('body');

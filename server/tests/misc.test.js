@@ -49,7 +49,9 @@ describe('## Misc', () => {
         .post('/api/users')
         .send({
           emailAddress: 'blah@gmail.com',
-          mobileNumber: '1234567890'
+          mobileNumber: '1234567890',
+          displayName: 'Elon Musk',
+          password: 'iwanttogotomars',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then((res) => {

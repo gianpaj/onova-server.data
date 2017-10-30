@@ -1,8 +1,8 @@
 {
-  "name": "express-mongoose-es6-rest-api",
-  "version": "2.0.0",
-  "description": "A Boilerplate application for building REST APIs using express, mongoose in ES6 with code coverage",
-  "author": "Kunal Kapadia <kunalkapadia12@gmail.com>",
+  "name": "onova.server.data",
+  "version": "0.0.1",
+  "description": "API Data server for mobile app",
+  "author": "Onova Team",
   "main": "index.js",
   "private": true,
   "engines": {
@@ -61,6 +61,7 @@
     "mongoose": "4.7.4",
     "morgan": "1.7.0",
     "node-mailjet": "^3.2.1",
+    "pug": "^2.0.0-rc.4",
     "winston": "2.3.0"
   },
   "devDependencies": {

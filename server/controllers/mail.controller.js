@@ -22,14 +22,10 @@ function sendVerificationEmail(emailTo, user) {
     resetToken: token
   })
   .then(verification => {
-    console.log(`verification token generated for ${user.emailAddress}`);
-
     const vars = {
-      confirmation_link: `https://app.onova.co/auth/activate/${token}`,
+      confirmation_link: `https://onova.co/api/auth/activate/${token}`,
       displayName: user.displayName
     }
-
-    console.log(`link: ${vars.confirmation_link}`);
 
     var request = mailjetClient
       .post("send", {'version': 'v3.1'})

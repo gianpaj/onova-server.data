@@ -3,8 +3,11 @@ import request from 'supertest-as-promised';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
 import chai, { expect } from 'chai';
+import crypto from 'crypto';
+
 import app from '../../index';
 import config from '../../config/config';
+import Verification from '../models/verification.model';
 
 chai.config.includeStack = true;
 
@@ -25,14 +28,13 @@ before((done) => {
   })
 });
 
-// describe('## User APIs', () => {
-describe.only('## User APIs', () => {
+describe('## User APIs', () => {
   let user = {
     username: 'reactperson',
     emailAddress: 'react@example.com',
     mobileNumber: '1234567890', // optional
     displayName: 'Johnny Bravo',
-    password: 'express'
+    password: 'expressos'
   };
 
   let anotherUser = {
@@ -43,10 +45,20 @@ describe.only('## User APIs', () => {
     password: 'express2'
   };
 
+
+  const invalidUserCredentials = {
+    emailAddress: 'react@example.com',
+    password: 'IDontKnow'
+  };
+
   let jwtToken;
 
-  describe('# POST /api/users', () => {
-    it('should create a new user', (done) => {
+  describe('# Create and verify email address', function () {
+    this.timeout(4000);
+
+    let activationToken;
+
+    it('# POST /api/users - should create a new user', (done) => {
       request(app)
         .post('/api/users')
         .send(user)
@@ -57,10 +69,58 @@ describe.only('## User APIs', () => {
           expect(res.body.emailAddress).to.equal(user.emailAddress);
           expect(res.body.accountStatus).to.equal('notverified');
           expect(res.body).to.not.have.property('password');
-          // get user '_id'
-          user = res.body;
-          // add password back into the object
-          user.password = 'express';
+
+          user._id = res.body._id;
+          done();
+        })
+        .catch(done);
+    });
+
+    it('# GET /api/auth/activate/:token (page) - should activate the user', (done) => {
+      Verification.findOne({user: user._id}).then(verDoc => {
+        activationToken = verDoc.resetToken;
+        request(app)
+          .get(`/api/auth/activate/${activationToken}`)
+          .expect(httpStatus.OK)
+          .then((res) => {
+            expect(res.text).to.contain('Account activated');
+            done();
+          })
+          .catch(done);
+      });
+    });
+
+    it('# GET /api/auth/activate/:token (page) - should not reactivate the user', (done) => {
+      request(app)
+        .get(`/api/auth/activate/${activationToken}`)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.text).to.contain('something wrong with the link you received');
+          done();
+        })
+        .catch(done);
+    });
+
+    it('# GET /api/auth/activate/:token (page) - an expired link should not work', (done) => {
+      request(app)
+        .get(`/api/auth/activate/e700760eb3d6fc65`)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.text).to.contain('something wrong with the link you received');
+          done();
+        })
+        .catch(done);
+    });
+  });
+
+  describe('# POST /api/auth/login', () => {
+    it('should return Authentication error', (done) => {
+      request(app)
+        .post('/api/auth/login')
+        .send(invalidUserCredentials)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Authentication error');
           done();
         })
         .catch(done);
@@ -192,6 +252,43 @@ describe.only('## User APIs', () => {
         .expect(httpStatus.FORBIDDEN)
         .then((res) => {
           expect(res.body.message).to.equal('Not allowed');
+          done();
+        })
+        .catch(done);
+    });
+  });
+
+  describe('# GET /api/auth/random-number', () => {
+    it('should fail to get random number because of missing Authorization', (done) => {
+      request(app)
+        .get('/api/auth/random-number')
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should fail to get random number because of wrong token', (done) => {
+      request(app)
+        .get('/api/auth/random-number')
+        .set('Authorization', 'Bearer inValidToken')
+        .expect(httpStatus.UNAUTHORIZED)
+        .then((res) => {
+          expect(res.body.message).to.equal('Unauthorized');
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should get a random number', (done) => {
+      request(app)
+        .get('/api/auth/random-number')
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body.num).to.be.a('number');
           done();
         })
         .catch(done);

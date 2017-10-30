@@ -28,7 +28,8 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     unique: true,
-    match: [validation.emailAddress, 'Invalid email address']
+    // validated at API level via 'joi' and 'isemail' npm packages
+    // match: [validation.emailAddress, 'Invalid email address']
   },
   dateCreated: {
     type: Date,

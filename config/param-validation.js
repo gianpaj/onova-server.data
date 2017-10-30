@@ -6,9 +6,11 @@ export default {
   // POST /api/users
   createUser: {
     body: {
-      username: Joi.string().required(),
+      username:     Joi.string().min(3).max(30).required(),
+      displayName:  Joi.string().min(3).max(30).required(),
       mobileNumber: Joi.string().regex(validation.mobileNumber),
-      emailAddress: Joi.string().regex(validation.emailAddress).required(),
+      emailAddress: Joi.string().email().required(),
+      password:     Joi.string().min(8).max(50).required(),
     }
   },
 
@@ -16,8 +18,9 @@ export default {
   updateUser: {
     body: {
       username: Joi.string().required(),
+      // displayName:  Joi.string().min(3).max(30).required(),
       mobileNumber: Joi.string().regex(validation.mobileNumber).required(),
-      emailAddress: Joi.string().regex(validation.emailAddress).required()
+      emailAddress: Joi.string().email().required()
     },
     params: {
       userId: Joi.string().hex().required()
@@ -29,6 +32,13 @@ export default {
     body: {
       emailAddress: Joi.string().required(),
       password: Joi.string().required()
+    }
+  },
+
+  // GET /api/auth/activate/:token
+  activate: {
+    params: {
+      token: Joi.string().hex().min(16).max(16).required()
     }
   }
 };
