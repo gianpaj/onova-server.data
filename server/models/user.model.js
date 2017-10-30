@@ -15,6 +15,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true
   },
+  displayName: {
+    type: String,
+    required: true
+  },
   mobileNumber: {
     type: String,
     trim: true,

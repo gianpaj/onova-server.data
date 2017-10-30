@@ -31,6 +31,7 @@ describe.only('## User APIs', () => {
     username: 'reactperson',
     emailAddress: 'react@example.com',
     mobileNumber: '1234567890', // optional
+    displayName: 'Johnny Bravo',
     password: 'express'
   };
 
@@ -38,6 +39,7 @@ describe.only('## User APIs', () => {
     username: 'angularperson',
     emailAddress: 'angular@example.com',
     mobileNumber: '1234567890', // optional
+    displayName: 'Mary Jane',
     password: 'express2'
   };
 

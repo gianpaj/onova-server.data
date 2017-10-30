@@ -12,7 +12,7 @@ import mail from './mail.controller';
 function load(req, res, next, id) {
   User.get(id)
     .then((user) => {
-      req.user = user; // eslint-disable-line no-param-reassign
+      req.user = user;
       return next();
     })
     .catch(e => next(e));
@@ -71,9 +71,13 @@ function create(req, res, next) {
 
 /**
  * Update existing user
- * @property {string} req.body.username - The username of user.
- * @property {string} req.body.mobileNumber - The mobileNumber of user (optional).
- * @property {string} req.body.emailAddress - The emailAddress of user.
+ *
+ * PUT /api/users/:userId
+ *
+ * @property {string} req.body.username
+ * @property {string} req.body.mobileNumber - (optional)
+ * @property {string} req.body.emailAddress
+ * @property {string} req.body.displayName
  * @returns {User}
  */
 function update(req, res, next) {
@@ -119,7 +123,6 @@ function remove(req, res, next) {
   const user = req.user;
   const token = req.headers.authorization.split(' ')[1];
 
-  // eslint-disable-next-line
   jwt.verify(token, config.jwtSecret, (err, decoded) => {
     if (err) {
       console.error(err);

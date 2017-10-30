@@ -4,7 +4,7 @@ import crypto from 'crypto';
 import Verification from '../models/verification.model';
 import config from '../../config/config';
 
-// mailjet.connect(MJ_APIKEY_PUBLIC, MJ_APIKEY_PRIVATE);
+const mailjetClient = mailjet.connect(config.mailjet.apikeyPublic, config.mailjet.apikeyPrivate);
 
 /**
  * Send email via Mailjet to verify the account
@@ -14,36 +14,50 @@ import config from '../../config/config';
 function sendVerificationEmail(emailTo, user) {
   const subject = 'Welcome to Onova - Verify your email address';
 
+  const token = crypto.randomBytes(8).toString('hex');
+
   // generate link
   Verification.create({
     user: user._id,
-    resetToken: crypto.randomBytes(8).toString('hex')
+    resetToken: token
   })
   .then(verification => {
     console.log(`verification token generated for ${user.emailAddress}`);
 
-    // var request = mailjet
-    //   .post("send")
-    //   .request({
-    //     "FromEmail": "noreply@onova.co",
-    //     "FromName": "Onova",
-    //     "Subject": subject,
-    //     "Recipients":[ { "Email": emailTo } ],
-    //     "Text-part": `Hi ${vars.user}\n`+
-    //         `Thanks for registering on Onova.\n`+
-    //         `Click this link to verify your email address: ${vars.link}.\n`+
-    //         `The link will expire in 24h.\n`
-    //   });
+    const vars = {
+      confirmation_link: `https://app.onova.co/auth/activate/${token}`,
+      displayName: user.displayName
+    }
 
-    // request
-    //   .then(res => {
-    //     console.log(res.body);
-    //     resolve(res.body);
-    //   })
-    //   .catch(err => {
-    //     console.log(err.statusCode);
-    //     reject(err);
-    //   });
+    console.log(`link: ${vars.confirmation_link}`);
+
+    var request = mailjetClient
+      .post("send", {'version': 'v3.1'})
+      .request({
+        "Messages":[
+          {
+            "From": {
+              "Email": "noreply@onova.co",
+              "Name": "Onova"
+            },
+            "To": [
+              { "Email": emailTo, "Name": vars.displayName }
+            ],
+            "Variables": vars,
+            "TemplateID": 241369,
+            "TemplateLanguage": true,
+            "Subject": subject
+          }
+        ]
+      });
+
+    request
+      .then(res => {
+        // console.log(res.body);
+      })
+      .catch(err => {
+        console.error(err.statusCode);
+      });
   })
   .catch(e => console.error(e));
 }
