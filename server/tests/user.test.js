@@ -76,6 +76,18 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
+    it('# POST /api/users - should not create a user with the same email address', (done) => {
+      request(app)
+        .post('/api/users')
+        .send(user)
+        .expect(httpStatus.BAD_REQUEST)
+        .then((res) => {
+          expect(res.body.message).to.equal('Account with that email address already exists.');
+          done();
+        })
+        .catch(done);
+    });
+
     it('# GET /api/auth/activate/:token (page) - should activate the user', (done) => {
       Verification.findOne({user: user._id}).then(verDoc => {
         activationToken = verDoc.resetToken;

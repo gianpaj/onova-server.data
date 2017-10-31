@@ -19,10 +19,10 @@ import config from '../../config/config';
 function login(req, res, next) {
   // fetch user and test password verification
   User.findOne({ emailAddress: req.body.emailAddress }, (err, user) => {
-    if (err) throw err;
+    if (err) { return next(err); }
     if (user) {
       user.comparePassword(req.body.password, user.password, (err, isMatch) => {
-        if (err) throw err;
+        if (err) { return next(err); }
         if (isMatch) {
           const token = jwt.sign({
             emailAddress: user.emailAddress

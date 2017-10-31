@@ -56,19 +56,26 @@ function create(req, res, next) {
 
   const user = new User(doc);
 
-  user.save()
-    .then(savedUser => {
-      const user = {
-        _id: savedUser._id,
-        username: savedUser.username,
-        emailAddress: savedUser.emailAddress,
-        mobileNumber: savedUser.mobileNumber,
-        accountStatus: savedUser.accountStatus
-      };
-      mail.sendVerificationEmail(savedUser.emailAddress, savedUser);
-      res.json(user);
-    })
-    .catch(e => next(e));
+  User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
+    if (err) { return next(err); }
+    if (existingUser) {
+      const APIerr = new APIError('Account with that email address already exists.', httpStatus.BAD_REQUEST, true);
+      return next(APIerr);
+    }
+    user.save()
+      .then(savedUser => {
+        const user = {
+          _id: savedUser._id,
+          username: savedUser.username,
+          emailAddress: savedUser.emailAddress,
+          mobileNumber: savedUser.mobileNumber,
+          accountStatus: savedUser.accountStatus
+        };
+        mail.sendVerificationEmail(savedUser.emailAddress, savedUser);
+        res.json(user);
+      })
+      .catch(e => next(e));
+  });
 }
 
 /**

@@ -58,6 +58,9 @@ const UserSchema = new mongoose.Schema({
  * Methods
  */
 UserSchema.method({
+  /**
+   * Helper method for validating user's password.
+   */
   comparePassword: (candidatePassword, hash, cb) => {
     bcrypt.compare(candidatePassword, hash, (err, isMatch) => {
       if (err) return cb(err);
@@ -104,6 +107,9 @@ UserSchema.statics = {
   }
 };
 
+/**
+ * Password hash middleware.
+ */
 UserSchema.pre('save', function (next) {
   const user = this;
   const saltRounds = parseInt(config.saltRounds);
@@ -111,13 +117,15 @@ UserSchema.pre('save', function (next) {
   // only hash the password if it has been modified (or is new)
   if (!user.isModified('password')) return next();
   bcrypt.hash(user.password, saltRounds, (err, hash) => {
+    if (err) { return next(err); }
+
     user.password = hash;
     next();
   });
 });
 
 
-UserSchema.index({ emailAddress: 1 });
+UserSchema.index({ emailAddress: 1, unique: true });
 UserSchema.index({ username: 1 });
 
 /**
