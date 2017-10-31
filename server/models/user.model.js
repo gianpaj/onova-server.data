@@ -31,10 +31,6 @@ const UserSchema = new mongoose.Schema({
     // validated at API level via 'joi' and 'isemail' npm packages
     // match: [validation.emailAddress, 'Invalid email address']
   },
-  dateCreated: {
-    type: Date,
-    default: Date.now
-  },
   password: {
     type: String,
     required: true
@@ -43,9 +39,10 @@ const UserSchema = new mongoose.Schema({
     type: String,
     required: true,
     default: 'notverified',
-    enum: ['verified', 'notverified', 'banned']
+    enum: ['verified', 'notverified', 'banned', 'deleted']
   }
-});
+  // assigns 'createdAt' and 'updatedAt' fields to your schema
+}, {  timestamps: 1 });
 
 /**
  * Add your
@@ -92,7 +89,7 @@ UserSchema.statics = {
   },
 
   /**
-   * List users in descending order of 'dateCreated' timestamp.
+   * List users in descending order of 'createdAt' timestamp.
    *
    * @param {number} skip - Number of users to be skipped.
    * @param {number} limit - Limit number of users to be returned.
@@ -100,7 +97,7 @@ UserSchema.statics = {
    */
   list({ skip = 0, limit = 50 } = {}) {
     return this.find()
-      .sort({ dateCreated: -1 })
+      .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
       .exec();
