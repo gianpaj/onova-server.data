@@ -1,5 +1,6 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
+import passport from 'passport';
 
 import User from '../models/user.model';
 import Verification from '../models/verification.model';
@@ -17,31 +18,31 @@ import config from '../../config/config';
  * @returns {*}
  */
 function login(req, res, next) {
-  // fetch user and test password verification
-  User.findOne({ emailAddress: req.body.emailAddress }, (err, user) => {
+  passport.authenticate('local', (err, user, info) => {
     if (err) { return next(err); }
-    if (user) {
-      user.comparePassword(req.body.password, user.password, (err, isMatch) => {
-        if (err) { return next(err); }
-        if (isMatch) {
-          const token = jwt.sign({
-            emailAddress: user.emailAddress
-          }, config.jwtSecret);
-          return res.json({
-            token,
-            emailAddress: user.emailAddress
-          });
-        } else {
-          const APIerr = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
-          return next(APIerr);
-        }
-      });
-    } else {
-      const APIerr = new APIError('User not found', httpStatus.NOT_FOUND, true);
+    if (!user) {
+      const APIerr = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
       return next(APIerr);
     }
+    //?
+    req.logIn(user, (err) => {
+      if (err) { return next(err); }
+      const payload = { _id: user._id, emailAddress: user.emailAddress };
+      return res.json({
+        token: `JWT ${generateToken(payload)}`,
+        user: payload
+      });
+    });
+  })(req, res, next);
+}
+
+// Generate JWT
+function generateToken(payload) {
+  return jwt.sign(payload, config.jwtSecret, {
+    // expiresIn: 604800 // in seconds
   });
 }
+
 
 /**
  * GET /api/auth/random-number - (Protected route)
@@ -53,6 +54,7 @@ function login(req, res, next) {
  * @returns {*}
  */
 function getRandomNumber(req, res) {
+  console.log('getrandom n');
   // req.user is assigned by jwt middleware if valid token is provided
   return res.json({
     user: req.user,

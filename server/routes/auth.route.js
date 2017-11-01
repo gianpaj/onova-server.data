@@ -1,9 +1,12 @@
 import express from 'express';
 import validate from 'express-validation';
-import expressJwt from 'express-jwt';
+import passport from 'passport';
+
 import paramValidation from '../../config/param-validation';
 import authCtrl from '../controllers/auth.controller';
 import config from '../../config/config';
+
+const requireAuth = passport.authenticate('jwt', { session: false });
 
 const router = express.Router(); // eslint-disable-line new-cap
 
@@ -17,9 +20,9 @@ router.route('/login')
 /**
  * GET /api/auth/random-number - (Protected route)
  *
- * Needs token returned by the above route as header. Authorization: Bearer {token} */
+ * Needs token returned by the above route as header. Authorization: JWT {token} */
 router.route('/random-number')
-  .get(expressJwt({ secret: config.jwtSecret }), authCtrl.getRandomNumber);
+  .get(requireAuth, authCtrl.getRandomNumber);
 
 /**
  * GET /api/auth/activate

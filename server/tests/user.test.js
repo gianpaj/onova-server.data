@@ -45,13 +45,13 @@ describe('## User APIs', () => {
     password: 'express2'
   };
 
-
   const invalidUserCredentials = {
     emailAddress: 'react@example.com',
     password: 'IDontKnow'
   };
 
   let jwtToken;
+  let anotherJwtToken;
 
   describe('# Create and verify email address', function () {
     this.timeout(4000);
@@ -145,10 +145,11 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body).to.have.property('token');
-          jwt.verify(res.body.token, config.jwtSecret, (err, decoded) => {
-            expect(err).to.not.be.ok; // eslint-disable-line no-unused-expressions
+          const token = res.body.token.split('JWT ')[1];
+          jwt.verify(token, config.jwtSecret, (err, decoded) => {
+            expect(err).to.not.be.ok;
             expect(decoded.emailAddress).to.equal(user.emailAddress);
-            jwtToken = `Bearer ${res.body.token}`;
+            jwtToken = res.body.token;
             done();
           });
         })
@@ -188,6 +189,7 @@ describe('## User APIs', () => {
       user.mobileNumber = '9876543212';
       request(app)
         .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.OK)
         .then((res) => {
@@ -251,20 +253,38 @@ describe('## User APIs', () => {
           expect(res.body.username).to.equal(anotherUser.username);
           expect(res.body.emailAddress).to.equal(anotherUser.emailAddress);
           expect(res.body.mobileNumber).to.equal(anotherUser.mobileNumber);
-          anotherUser = res.body;
+          anotherUser._id = res.body._id;
           done();
         })
         .catch(done);
     });
 
-    it('should not delete another user', (done) => {
+    it('first user should not delete another user', (done) => {
       request(app)
         .delete(`/api/users/${anotherUser._id}`)
         .set('Authorization', jwtToken)
-        .expect(httpStatus.FORBIDDEN)
-        .then((res) => {
-          expect(res.body.message).to.equal('Not allowed');
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(() => {
           done();
+        })
+        .catch(done);
+    });
+  });
+  describe('# POST /api/auth/login', () => {
+    it('should get another valid JWT token', (done) => {
+      request(app)
+        .post('/api/auth/login')
+        .send(anotherUser)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body).to.have.property('token');
+          const token = res.body.token.split('JWT ')[1];
+          jwt.verify(token, config.jwtSecret, (err, decoded) => {
+            expect(err).to.not.be.ok;
+            expect(decoded.emailAddress).to.equal(anotherUser.emailAddress);
+            anotherJwtToken = res.body.token;
+            done();
+          });
         })
         .catch(done);
     });
@@ -276,7 +296,6 @@ describe('## User APIs', () => {
         .get('/api/auth/random-number')
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
-          expect(res.body.message).to.equal('Unauthorized');
           done();
         })
         .catch(done);
@@ -285,10 +304,9 @@ describe('## User APIs', () => {
     it('should fail to get random number because of wrong token', (done) => {
       request(app)
         .get('/api/auth/random-number')
-        .set('Authorization', 'Bearer inValidToken')
+        .set('Authorization', 'JWT inValidToken')
         .expect(httpStatus.UNAUTHORIZED)
         .then((res) => {
-          expect(res.body.message).to.equal('Unauthorized');
           done();
         })
         .catch(done);
@@ -297,7 +315,7 @@ describe('## User APIs', () => {
     it('should get a random number', (done) => {
       request(app)
         .get('/api/auth/random-number')
-        .set('Authorization', jwtToken)
+        .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.num).to.be.a('number');
