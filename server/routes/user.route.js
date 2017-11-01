@@ -4,7 +4,6 @@ import passport from 'passport';
 
 import paramValidation from '../../config/param-validation';
 import userCtrl from '../controllers/user.controller';
-import config from '../../config/config';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 

@@ -58,13 +58,4 @@ function sendVerificationEmail(emailTo, user) {
   .catch(e => console.error(e));
 }
 
-/**
- * Generate password token t
- *
- * @returns {string}
- */
-function generatePassToken() {
-
-}
-
 export default { sendVerificationEmail };

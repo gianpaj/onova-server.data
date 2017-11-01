@@ -74,10 +74,13 @@ UserSchema.statics = {
     return this.findById(id)
       .exec()
       .then((user) => {
-        if (user) {
-          return user;
+        if (!user) {
+          return Promise.reject();
         }
-        const err = new APIError('No such user exists!', httpStatus.NOT_FOUND);
+        return user;
+      })
+      .catch(e =>{
+        const err = new APIError('Invalid user', httpStatus.BAD_REQUEST);
         return Promise.reject(err);
       });
   },

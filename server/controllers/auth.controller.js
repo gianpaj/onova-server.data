@@ -27,7 +27,11 @@ function login(req, res, next) {
     //?
     req.logIn(user, (err) => {
       if (err) { return next(err); }
-      const payload = { _id: user._id, emailAddress: user.emailAddress };
+      const payload = {
+        _id: user._id,
+        emailAddress: user.emailAddress,
+        accountStatus: user.accountStatus
+      };
       return res.json({
         token: `JWT ${generateToken(payload)}`,
         user: payload
@@ -54,8 +58,7 @@ function generateToken(payload) {
  * @returns {*}
  */
 function getRandomNumber(req, res) {
-  console.log('getrandom n');
-  // req.user is assigned by jwt middleware if valid token is provided
+  // req.user is assigned by 'passport-jwt' middleware if a valid token is provided
   return res.json({
     user: req.user,
     num: Math.random() * 100
@@ -105,4 +108,4 @@ function activate(req, res) {
 
 }
 
-export default { login, getRandomNumber, activate };
+export default { login, getRandomNumber, activate, generateToken };

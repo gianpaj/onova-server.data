@@ -62,15 +62,16 @@ describe('## User APIs', () => {
       request(app)
         .post('/api/users')
         .send(user)
-        .expect(httpStatus.OK)
+        .expect(httpStatus.CREATED)
         .then((res) => {
-          expect(res.body.username).to.equal(user.username);
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
-          expect(res.body.emailAddress).to.equal(user.emailAddress);
-          expect(res.body.accountStatus).to.equal('notverified');
-          expect(res.body).to.not.have.property('password');
+          const resUser = res.body.user;
+          expect(resUser._id).to.a('string');
+          expect(resUser.emailAddress).to.equal(user.emailAddress);
+          expect(resUser.accountStatus).to.equal('notverified');
+          expect(resUser).to.not.have.property('password');
+          expect(res.body.token).to.be.a('string');
 
-          user._id = res.body._id;
+          user._id = resUser._id;
           done();
         })
         .catch(done);
@@ -175,9 +176,9 @@ describe('## User APIs', () => {
     it('should report error with message - Not found, when user does not exists', (done) => {
       request(app)
         .get('/api/users/56c787ccc67fc16ccc1a5e92')
-        .expect(httpStatus.NOT_FOUND)
+        .expect(httpStatus.BAD_REQUEST)
         .then((res) => {
-          expect(res.body.message).to.equal('Not Found');
+          expect(res.body.message).to.equal('Bad Request');
           done();
         })
         .catch(done);
@@ -243,17 +244,14 @@ describe('## User APIs', () => {
     });
   });
 
-  describe('# POST /api/users', () => {
-    it('should create another new user', (done) => {
+  describe('# POST /api/users/:userId', () => {
+    before(done => {
       request(app)
         .post('/api/users')
         .send(anotherUser)
-        .expect(httpStatus.OK)
+        .expect(httpStatus.CREATED)
         .then((res) => {
-          expect(res.body.username).to.equal(anotherUser.username);
-          expect(res.body.emailAddress).to.equal(anotherUser.emailAddress);
-          expect(res.body.mobileNumber).to.equal(anotherUser.mobileNumber);
-          anotherUser._id = res.body._id;
+          anotherUser._id = res.body.user._id;
           done();
         })
         .catch(done);
@@ -269,7 +267,20 @@ describe('## User APIs', () => {
         })
         .catch(done);
     });
+
+    it('should get error when deleting invalid user', (done) => {
+      request(app)
+        .delete(`/api/users/59f91cac9b4645049289f6f`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then((res) => {
+          expect(res.body.message).to.equal('Bad Request');
+          done();
+        })
+        .catch(done);
+    });
   });
+
   describe('# POST /api/auth/login', () => {
     it('should get another valid JWT token', (done) => {
       request(app)

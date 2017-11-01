@@ -33,12 +33,12 @@ describe('## Misc', () => {
   });
 
   describe('# Error Handling', () => {
-    it('should handle mongoose CastError - Cast to ObjectId failed', (done) => {
+    it('should handle mongoose CastError as Bad Request', (done) => {
       request(app)
         .get('/api/users/56z787zzz67fc')
-        .expect(httpStatus.INTERNAL_SERVER_ERROR)
+        .expect(httpStatus.BAD_REQUEST)
         .then((res) => {
-          expect(res.body.message).to.equal('Internal Server Error');
+          expect(res.body.message).to.equal('Bad Request');
           done();
         })
         .catch(done);

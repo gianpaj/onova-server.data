@@ -5,11 +5,13 @@ import User from '../models/user.model';
 import APIError from '../helpers/APIError';
 import config from '../../config/config';
 import mail from './mail.controller';
+import { generateToken } from '../controllers/auth.controller';
 
 /**
  * Load user and append to req.
  */
 function load(req, res, next, id) {
+  // use static method from UserSchema
   User.get(id)
     .then((user) => {
       req.user = user;
@@ -44,8 +46,8 @@ function get(req, res) {
 function create(req, res, next) {
   const doc = {
     username: req.body.username,
-    displayName: req.body.displayName,
     emailAddress: req.body.emailAddress,
+    displayName: req.body.displayName,
     password: req.body.password,
     // accountStatus: 'notverified' (default)
   };
@@ -64,15 +66,17 @@ function create(req, res, next) {
     }
     user.save()
       .then(savedUser => {
-        const user = {
+        mail.sendVerificationEmail(savedUser.emailAddress, savedUser);
+
+        const payload = {
           _id: savedUser._id,
-          username: savedUser.username,
           emailAddress: savedUser.emailAddress,
-          mobileNumber: savedUser.mobileNumber,
           accountStatus: savedUser.accountStatus
         };
-        mail.sendVerificationEmail(savedUser.emailAddress, savedUser);
-        res.json(user);
+        res.status(201).json({
+          token: `JWT ${generateToken(payload)}`,
+          user: payload
+        });
       })
       .catch(e => next(e));
   });
@@ -132,7 +136,9 @@ function list(req, res, next) {
  * @returns {User}
  */
 function remove(req, res, next) {
-  req.user.remove()
+  const user = req.user;
+
+  user.remove()
     .then(deletedUser => res.json(deletedUser))
     .catch(e => next(e));
 }
