@@ -1,5 +1,7 @@
 {
   "files.exclude": {
-    "**/dist": true
-  }
+    "**/flow-typed": true,
+    "**/lib": true
+  },
+  "javascript.validate.enable": false
 }
