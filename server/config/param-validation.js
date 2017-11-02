@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-import validation from '../server/helpers/validation';
+import validation from '../helpers/validation';
 
 export default {
   // POST /api/users

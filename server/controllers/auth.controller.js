@@ -5,7 +5,7 @@ import passport from 'passport';
 import User from '../models/user.model';
 import Verification from '../models/verification.model';
 import APIError from '../helpers/APIError';
-import config from '../../config/config';
+import config from '../config/config';
 
 /**
  * POST /api/auth/login

@@ -5,7 +5,7 @@ import bcrypt from 'bcrypt';
 
 import APIError from '../helpers/APIError';
 import validation from '../helpers/validation';
-import config from '../../config/config';
+import config from '../config/config';
 
 /**
  * User Schema

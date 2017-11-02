@@ -5,8 +5,8 @@ import jwt from 'jsonwebtoken';
 import chai, { expect } from 'chai';
 import crypto from 'crypto';
 
-import app from '../../index';
-import config from '../../config/config';
+import app from '../index';
+import config from '../config/config';
 import Verification from '../models/verification.model';
 
 chai.config.includeStack = true;

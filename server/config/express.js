@@ -12,9 +12,9 @@ import helmet from 'helmet';
 import passport from 'passport';
 
 import winstonInstance from './winston';
-import routes from '../server/routes/index.route';
+import routes from '../routes/index.route';
 import config from './config';
-import APIError from '../server/helpers/APIError';
+import APIError from '../helpers/APIError';
 
 
 /**

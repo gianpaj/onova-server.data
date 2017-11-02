@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 
 import User from '../models/user.model';
 import APIError from '../helpers/APIError';
-import config from '../../config/config';
+import config from '../config/config';
 import mail from './mail.controller';
 import { generateToken } from '../controllers/auth.controller';
 

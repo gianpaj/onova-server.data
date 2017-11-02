@@ -2,7 +2,7 @@ import mailjet from 'node-mailjet';
 import crypto from 'crypto';
 
 import Verification from '../models/verification.model';
-import config from '../../config/config';
+import config from '../config/config';
 
 const mailjetClient = mailjet.connect(config.mailjet.apikeyPublic, config.mailjet.apikeyPrivate);
 

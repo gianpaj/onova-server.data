@@ -2,7 +2,7 @@ import { Strategy, ExtractJwt } from 'passport-jwt';
 import LocalStrategy from 'passport-local';
 import passport from 'passport';
 
-import User from '../server/models/user.model';
+import User from '../models/user.model';
 import config from './config';
 
 passport.serializeUser((user, done) => {
