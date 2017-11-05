@@ -7,7 +7,7 @@ import User from '../models/user.model';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
 import mail from './mail.controller';
-import { generateToken } from '../controllers/auth.controller';
+import authCtrl from './auth.controller';
 
 /**
  * Load user and append to req.
@@ -76,7 +76,7 @@ function create(req, res, next) {
           accountStatus: savedUser.accountStatus
         };
         res.status(201).json({
-          token: `JWT ${generateToken(payload)}`,
+          token: `JWT ${authCtrl.generateToken(payload)}`,
           user: payload
         });
       })

@@ -90,7 +90,11 @@ describe('## User APIs', () => {
     });
 
     it('# GET /api/auth/activate/:token (page) - should activate the user', (done) => {
-      Verification.findOne({user: user._id}).then(verDoc => {
+      Verification.findOne({user: user._id}, (err, verDoc) => {
+        if(err) { return done(err); }
+        if (!verDoc) {
+          return done('no verification token found');
+        }
         activationToken = verDoc.resetToken;
         request(app)
           .get(`/api/auth/activate/${activationToken}`)

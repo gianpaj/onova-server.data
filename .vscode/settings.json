@@ -1,7 +1,8 @@
 {
   "files.exclude": {
     "**/flow-typed": true,
-    "**/lib": true
+    "**/lib": true,
+    "**/yarn.lock": true
   },
   "javascript.validate.enable": false
 }
