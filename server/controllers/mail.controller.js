@@ -13,7 +13,7 @@ const mailjetClient = mailjet.connect(config.mailjet.apikeyPublic, config.mailje
  *
  * @param {string} emailTo
  */
-function sendVerificationEmail(emailTo, user) {
+function sendVerificationEmail(emailTo: string, user: Object): void {
   const subject = 'Welcome to Onova - Verify your email address';
 
   const token = crypto.randomBytes(8).toString('hex');

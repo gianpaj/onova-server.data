@@ -2,6 +2,7 @@
 
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
+import type {$Request, NextFunction} from 'express'
 
 import User from '../models/user.model';
 import APIError from '../helpers/APIError';
@@ -12,7 +13,7 @@ import authCtrl from './auth.controller';
 /**
  * Load user and append to req.
  */
-function load(req, res, next, id) {
+function load(req: $Request, res: $Response, next: NextFunction, id: number) {
   // use static method from UserSchema
   User.get(id)
     .then((user) => {
@@ -26,7 +27,7 @@ function load(req, res, next, id) {
  * Get user
  * @returns {User}
  */
-function get(req, res) {
+function get(req: $Request, res: $Response) {
   const doc = {
     _id: req.user._id,
     username: req.user.username,
@@ -45,8 +46,8 @@ function get(req, res) {
  * @property {string} req.body.mobileNumber - (optional)
  * @returns {User}
  */
-function create(req, res, next) {
-  const doc = {
+function create(req: $Request, res: $Response, next: NextFunction) {
+  const doc: Object = {
     username: req.body.username,
     emailAddress: req.body.emailAddress,
     displayName: req.body.displayName,
@@ -91,7 +92,7 @@ function create(req, res, next) {
  * @property {string} req.body.mobileNumber - (optional)
  * @returns {User}
  */
-function update(req, res, next) {
+function update(req: $Request, res: $Response, next: NextFunction) {
   const user = req.user;
   user.username = req.body.username;
   user.displayName = req.body.displayName;
@@ -120,7 +121,7 @@ function update(req, res, next) {
  * @property {number} req.query.limit - Limit number of users to be returned.
  * @returns {User[]}
  */
-function list(req, res, next) {
+function list(req: $Request, res: $Response, next: NextFunction) {
   const { limit = 50, skip = 0 } = req.query;
   User.list({ limit, skip })
     .then(users => res.json(users))
@@ -131,7 +132,7 @@ function list(req, res, next) {
  * Delete user.
  * @returns {User}
  */
-function remove(req, res, next) {
+function remove(req: $Request, res: $Response, next: NextFunction) {
   const user = req.user;
 
   user.remove()
