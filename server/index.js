@@ -17,11 +17,15 @@ mongoose.Promise = Promise;
 let mongoUri = config.mongo.host;
 
 if (config.env == 'test') {
-  mongoUri='mongodb://localhost/onova-data-test';
+  mongoUri = 'mongodb://localhost/onova-data-test';
 }
 
-mongoose.connect(mongoUri, { server: { socketOptions: { keepAlive: 1 } } });
-mongoose.connection.on('error', () => {
+const promise = mongoose.connect(mongoUri, {
+  useMongoClient: true,
+  keepAlive: 1,
+  socketTimeoutMS: 1000
+});
+promise.on('error', () => {
   throw new Error(`unable to connect to database: ${mongoUri}`);
 });
 

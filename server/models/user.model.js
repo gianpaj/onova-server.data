@@ -119,7 +119,7 @@ UserSchema.pre('save', function (next) {
 });
 
 
-UserSchema.index({ emailAddress: 1, unique: true });
+UserSchema.index({ emailAddress: 1}, { unique: true });
 UserSchema.index({ username: 1 });
 
 /**
