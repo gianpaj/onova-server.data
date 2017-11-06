@@ -42,7 +42,7 @@ const UserSchema = new mongoose.Schema({
     enum: ['verified', 'notverified', 'banned', 'deleted']
   }
   // assigns 'createdAt' and 'updatedAt' fields to your schema
-}, {  timestamps: 1 });
+}, { timestamps: true } );
 
 /**
  * Add your
