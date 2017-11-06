@@ -45,6 +45,13 @@ describe('## User APIs', () => {
     password: 'express2'
   };
 
+  let thirdUser = {
+    username: 'thirdwheel',
+    emailAddress: 'thirdwheel@example.com',
+    displayName: 'Tercero Jane',
+    password: 'express3'
+  };
+
   const invalidUserCredentials = {
     emailAddress: 'react@example.com',
     password: 'IDontKnow'
@@ -66,12 +73,32 @@ describe('## User APIs', () => {
         .then((res) => {
           const resUser = res.body.user;
           expect(resUser._id).to.a('string');
+          expect(resUser.username).to.equal(user.username);
           expect(resUser.emailAddress).to.equal(user.emailAddress);
           expect(resUser.accountStatus).to.equal('notverified');
           expect(resUser).to.not.have.property('password');
           expect(res.body.token).to.be.a('string');
 
           user._id = resUser._id;
+          done();
+        })
+        .catch(done);
+    });
+
+    it('# POST /api/users - should create a new user without mobile num', (done) => {
+      request(app)
+        .post('/api/users')
+        .send(thirdUser)
+        .expect(httpStatus.CREATED)
+        .then((res) => {
+          const resUser = res.body.user;
+          expect(resUser._id).to.a('string');
+          expect(resUser.username).to.equal(thirdUser.username);
+          expect(resUser.emailAddress).to.equal(thirdUser.emailAddress);
+          expect(resUser.accountStatus).to.equal('notverified');
+          expect(resUser).to.not.have.property('password');
+          expect(res.body.token).to.be.a('string');
+
           done();
         })
         .catch(done);
@@ -199,8 +226,26 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then((res) => {
           expect(res.body.emailAddress).to.equal(user.emailAddress);
-          expect(res.body.mobileNumber).to.equal('9876543212');
+          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
           expect(res.body.username).to.equal(user.username);
+          expect(res.body.accountStatus).to.equal('verified');
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should update user email and unverify it', (done) => {
+      user.emailAddress = 'newemail@example.com';
+      request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send(user)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body.emailAddress).to.equal(user.emailAddress);
+          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
+          expect(res.body.username).to.equal(user.username);
+          expect(res.body.accountStatus).to.equal('notverified');
           done();
         })
         .catch(done);

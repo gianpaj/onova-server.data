@@ -1,3 +1,5 @@
+// @flow
+
 import mailjet from 'node-mailjet';
 import crypto from 'crypto';
 
@@ -48,14 +50,68 @@ function sendVerificationEmail(emailTo, user) {
       });
 
     request
-      .then(res => {
+      // .then(res => {
         // console.log(res.body);
-      })
+      // })
       .catch(err => {
-        console.error(err.statusCode);
+        console.error(err.ErrorMessage);
       });
   })
   .catch(e => console.error(e));
 }
 
-export default { sendVerificationEmail };
+/**
+ * Send email via Mailjet to re-verify the account
+ *
+ * @param {string} emailTo
+ */
+function resendVerificationEmail(emailTo: string, user: Object): void {
+  const subject = 'Verify your new email address';
+
+  const token = crypto.randomBytes(8).toString('hex');
+
+  // generate link
+  Verification.create({
+    user: user._id,
+    resetToken: token
+  })
+  .then(verification => {
+    const vars = {
+      confirmation_link: `https://onova.co/api/auth/activate/${token}`,
+      displayName: user.displayName
+    }
+
+    var request = mailjetClient
+      .post("send", {'version': 'v3.1'})
+      .request({
+        "Messages":[
+          {
+            "From": {
+              "Email": "noreply@onova.co",
+              "Name": "Onova"
+            },
+            "To": [
+              { "Email": emailTo, "Name": vars.displayName }
+            ],
+            "Variables": vars,
+            "Subject": subject,
+            "TemplateLanguage": true,
+            "TextPart": "Hi {{var:displayName}},\n\nPlease verify your new email address.\n\nClick here to confirm it: {{var:confirmation_link}}.\n\nCheers, The Onova Team.",
+            "HTMLPart": "Hi {{var:displayName}},<p>Please verify your new email address.</p><p>Click here to confirm it: {{var:confirmation_link}}</p><p>Cheers, The Onova Team.</p>",
+
+          }
+        ]
+      });
+
+    request
+      .then(res => {
+        // console.log(res.body);
+      })
+      .catch(err => {
+        console.error(err.ErrorMessage);
+      });
+  })
+  .catch(e => console.error(e));
+}
+
+export default { sendVerificationEmail, resendVerificationEmail };

@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 import User from '../models/user.model';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
-import mail from './mail.controller';
+import mailCtrl from './mail.controller';
 import authCtrl from './auth.controller';
 
 /**
@@ -68,13 +68,9 @@ function create(req, res, next) {
     }
     user.save()
       .then(savedUser => {
-        mail.sendVerificationEmail(savedUser.emailAddress, savedUser);
+        mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
 
-        const payload = {
-          _id: savedUser._id,
-          emailAddress: savedUser.emailAddress,
-          accountStatus: savedUser.accountStatus
-        };
+        const payload = prepareUserJson(savedUser);
         res.status(201).json({
           token: `JWT ${authCtrl.generateToken(payload)}`,
           user: payload
@@ -99,7 +95,6 @@ function update(req, res, next) {
   const user = req.user;
   user.username = req.body.username;
   user.displayName = req.body.displayName;
-  user.emailAddress = req.body.emailAddress;
 
   if (req.body.mobileNumber) {
     user.mobileNumber = req.body.mobileNumber;
@@ -108,11 +103,10 @@ function update(req, res, next) {
   // update password
 
   if (user.emailAddress != req.body.emailAddress) {
-    // resendEmailVerification
-    // which sents the accountStatus as 'notverified'
-    user.update({accountStatus: 'notverified'}).then(()=>{
-      console.log(`account ${user._ud} is awaiting for email verification`);
-    })
+    user.emailAddress = req.body.emailAddress;
+    mailCtrl.resendVerificationEmail(user.emailAddress, user);
+    user.accountStatus = 'notverified';
+    console.debug(`account ${user._ud} is awaiting for email verification`);
   }
 
   user.save()
@@ -143,6 +137,20 @@ function remove(req, res, next) {
   user.remove()
     .then(deletedUser => res.json(deletedUser))
     .catch(e => next(e));
+}
+
+/**
+ * Limit number of fields send back for user
+ * (private)
+ */
+function prepareUserJson(user: Object): Object {
+  const json = {
+    _id: user._id,
+    username: user.username,
+    emailAddress: user.emailAddress,
+    accountStatus: user.accountStatus
+  };
+  return json;
 }
 
 export default { load, get, create, update, list, remove };
