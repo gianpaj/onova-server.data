@@ -17,10 +17,11 @@ export default {
   // UPDATE /api/users/:userId
   updateUser: {
     body: {
-      username: Joi.string().required(),
+      username:     Joi.string().min(3).max(30).required(),
       // displayName:  Joi.string().min(3).max(30).required(),
-      mobileNumber: Joi.string().regex(validation.mobileNumber).required(),
-      emailAddress: Joi.string().email().required()
+      mobileNumber: Joi.string().regex(validation.mobileNumber),
+      emailAddress: Joi.string().email().required(),
+      password:     Joi.string().min(8).max(50),
     },
     params: {
       userId: Joi.string().hex().required()

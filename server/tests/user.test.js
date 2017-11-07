@@ -353,6 +353,21 @@ describe('## User APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then((res) => {
           expect(res.body.message).to.equal('Account with that email address already exists.');
+          // reset the email
+          user.emailAddress = 'newemail@example.com';
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should update a user password', (done) => {
+      user.password = 'secure123';
+      request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send(user)
+        .expect(httpStatus.OK)
+        .then(() => {
           done();
         })
         .catch(done);

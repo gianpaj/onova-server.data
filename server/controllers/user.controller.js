@@ -89,6 +89,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
  * @property {string} req.body.username
  * @property {string} req.body.displayName
  * @property {string} req.body.emailAddress
+ * @property {string} req.body.password - (optional)
  * @property {string} req.body.mobileNumber - (optional)
  * @returns {User}
  */
@@ -101,7 +102,10 @@ function update(req: $Request, res: $Response, next: NextFunction) {
     user.mobileNumber = req.body.mobileNumber;
   }
 
-  // update password
+  // update password (automatically hashed on save)
+  if (req.body.password) {
+    user.password = req.body.password;
+  }
 
   // updating email address
   if (user.emailAddress != req.body.emailAddress) {
@@ -115,12 +119,17 @@ function update(req: $Request, res: $Response, next: NextFunction) {
       mailCtrl.resendVerificationEmail(user.emailAddress, user);
       user.accountStatus = 'notverified';
       console.debug(`account ${user._id} is awaiting for email verification`);
-    });
-  }
 
-  user.save()
+      // save user with new email address only if there is no duplicate key error
+      user.save()
+      .then(savedUser => res.json(savedUser))
+      .catch(e => next(e));
+    });
+  } else {
+    user.save()
     .then(savedUser => res.json(savedUser))
     .catch(e => next(e));
+  }
 }
 
 /**
