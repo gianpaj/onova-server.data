@@ -8,6 +8,7 @@ import crypto from 'crypto';
 import app from '../index';
 import config from '../config/config';
 import Verification from '../models/verification.model';
+import User from '../models/user.model';
 
 chai.config.includeStack = true;
 
@@ -428,4 +429,18 @@ describe('## User APIs', () => {
         .catch(done);
     });
   });
+
+  describe('# POST /api/auth/reset', () => {
+    it('should request a password reset email', (done) => {
+      request(app)
+        .post('/api/auth/reset')
+        .send({ emailAddress: anotherUser.emailAddress })
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body.message).to.equal('Password reset email sent.');
+          done();
+        })
+        .catch(done);
+    });
+  })
 });

@@ -31,7 +31,7 @@ export default {
   // POST /api/auth/login
   login: {
     body: {
-      emailAddress: Joi.string().required(),
+      emailAddress: Joi.string().email().required(),
       password: Joi.string().required()
     }
   },
@@ -39,7 +39,14 @@ export default {
   // GET /api/auth/activate/:token
   activate: {
     params: {
-      token: Joi.string().hex().min(16).max(16).required()
+      token: Joi.string().hex().length(16).required()
+    }
+  },
+
+  // POST /api/auth/reset
+  reset: {
+    body: {
+      emailAddress: Joi.string().email().required(),
     }
   }
 };

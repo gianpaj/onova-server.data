@@ -4,6 +4,7 @@ import passport from 'passport';
 
 import User from '../models/user.model';
 import Verification from '../models/verification.model';
+import mailCtrl from './mail.controller';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
 
@@ -105,7 +106,67 @@ function activate(req, res) {
       }
       return res.render('activation', data);
     });
+}
+
+
+/**
+ * GET /api/auth/reset/:token
+ *
+ * @param {any} req
+ * @param {any} res
+ * @returns {*}
+ */
+function resetPage(req, res) {
+  const token = req.params.token;
+
+  Verification.findOne({resetToken: token})
+    .populate('user')
+    .exec((err, verDoc) => {
+      let data;
+      if (err) throw err;
+      if (!verDoc || !verDoc.user) {
+        data = {
+          heading: 'There was an issue resetting your password',
+          paragragh: 'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or if email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.'
+        }
+      } else {
+        data = {
+          heading: 'Enter your new password',
+          paragragh: 'Please enter your password twice'
+        }
+      }
+      return res.render('pass-reset', data);
+    }
+  );
+}
+
+/**
+ * POST /api/auth/reset/:token - submit form
+ *
+ * @param {any} req
+ * @param {any} res
+ * @returns {*}
+ */
+function resetFormSubmit(req, res) {
 
 }
 
-export default { login, getRandomNumber, activate, generateToken };
+/**
+ * POST /api/auth/reset
+ *
+ * Send email via Mailjet to reset the account's password
+ */
+function requestPassReset(req, res) {
+  User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
+    if (err) { return next(err); }
+    if (!existingUser) {
+      console.log('attempted to reset a user`s password with no results:', req.body.emailAddress);
+      return res.json({ message: 'Password reset email sent.' });
+    }
+    mailCtrl.sendResetEmail(req.body.emailAddress, existingUser);
+
+    res.json({ message: 'Password reset email sent.' });
+  });
+}
+
+export default { login, getRandomNumber, activate, generateToken, requestPassReset, resetPage, resetFormSubmit };
