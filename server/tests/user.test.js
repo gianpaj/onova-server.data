@@ -330,6 +330,35 @@ describe('## User APIs', () => {
     });
   });
 
+  describe('# PUT /api/users/:userId', () => {
+    before(done => {
+      request(app)
+        .post('/api/users')
+        .send(user)
+        .expect(httpStatus.CREATED)
+        .then((res) => {
+          user._id = res.body.user._id;
+          jwtToken = res.body.token;
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should not update an user email to an existing one', (done) => {
+      user.emailAddress = anotherUser.emailAddress;
+      request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send(user)
+        .expect(httpStatus.BAD_REQUEST)
+        .then((res) => {
+          expect(res.body.message).to.equal('Account with that email address already exists.');
+          done();
+        })
+        .catch(done);
+    });
+  });
+
   describe('# POST /api/auth/login', () => {
     it('should get another valid JWT token', (done) => {
       request(app)

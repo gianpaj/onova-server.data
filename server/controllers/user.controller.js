@@ -13,7 +13,7 @@ import authCtrl from './auth.controller';
 /**
  * Load user and append to req.
  */
-function load(req: $Request, res: $Response, next: NextFunction, id: number) {
+function load(req: $Request, res: $Response, next: NextFunction, id: string) {
   // use static method from UserSchema
   User.get(id)
     .then((user) => {
@@ -103,11 +103,19 @@ function update(req: $Request, res: $Response, next: NextFunction) {
 
   // update password
 
+  // updating email address
   if (user.emailAddress != req.body.emailAddress) {
     user.emailAddress = req.body.emailAddress;
-    mailCtrl.resendVerificationEmail(user.emailAddress, user);
-    user.accountStatus = 'notverified';
-    console.debug(`account ${user._ud} is awaiting for email verification`);
+    User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
+      if (err) { return next(err); }
+      if (existingUser) {
+        const APIerr = new APIError('Account with that email address already exists.', httpStatus.BAD_REQUEST, true);
+        return next(APIerr);
+      }
+      mailCtrl.resendVerificationEmail(user.emailAddress, user);
+      user.accountStatus = 'notverified';
+      console.debug(`account ${user._id} is awaiting for email verification`);
+    });
   }
 
   user.save()
