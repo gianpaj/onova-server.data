@@ -118,6 +118,16 @@ UserSchema.pre('save', function (next) {
   });
 });
 
+// Never return 'password' and '__v' fields in the JSON representation
+// Note that this doesn't effect `toObject`
+UserSchema.set('toJSON', {
+  getters: true,
+  transform: (doc, ret, options) => {
+    delete ret.password;
+    delete ret.__v;
+    return ret;
+  }
+})
 
 UserSchema.index({ emailAddress: 1}, { unique: true });
 UserSchema.index({ username: 1 });
