@@ -31,25 +31,25 @@ before((done) => {
 
 describe('## User APIs', () => {
   let user = {
-    username: 'reactperson',
-    emailAddress: 'react@example.com',
+    username: 'firstperson',
+    emailAddress: 'first@example.com',
     mobileNumber: '1234567890', // optional
-    displayName: 'Johnny Bravo',
+    displayName: 'first user',
     password: 'expressos'
   };
 
   let anotherUser = {
-    username: 'angularperson',
-    emailAddress: 'angular@example.com',
+    username: 'anotherperson',
+    emailAddress: 'another@example.com',
     mobileNumber: '1234567890', // optional
-    displayName: 'Mary Jane',
+    displayName: 'another user',
     password: 'express2'
   };
 
   let thirdUser = {
     username: 'thirdwheel',
     emailAddress: 'thirdwheel@example.com',
-    displayName: 'Tercero Jane',
+    displayName: 'third user',
     password: 'express3'
   };
 
@@ -60,11 +60,9 @@ describe('## User APIs', () => {
 
   let jwtToken;
   let anotherJwtToken;
+  let activationToken;
 
   describe('# Create and verify email address', function () {
-    this.timeout(4000);
-
-    let activationToken;
 
     it('# POST /api/users - should create a new user', (done) => {
       request(app)

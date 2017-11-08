@@ -22,6 +22,7 @@ function login(req, res, next) {
   passport.authenticate('local', (err, user, info) => {
     if (err) { return next(err); }
     if (!user) {
+      console.debug(info);
       const APIerr = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
       return next(APIerr);
     }
@@ -79,18 +80,16 @@ function activate(req, res) {
   Verification.findOne({resetToken: token})
     .populate('user')
     .exec((err, verDoc) => {
-      let data;
+      let data = {
+        title: 'Onova - Email confirmation'
+      };
       if (err) throw err;
       if (!verDoc || !verDoc.user) {
-        data = {
-          heading: 'There was an issue activating your account',
-          paragragh: 'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or if email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.'
-        }
+        data.heading = 'There was an issue activating your account',
+        data.paragraph = 'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.'
       } else if (verDoc.user.accountStatus == 'notverified') {
-        data = {
-          heading: 'Account activated!',
-          paragragh: `Hi five ${verDoc.user.displayName}! Your account is now activated (${verDoc.user.emailAddress}).`
-        };
+        data.heading = 'Account activated!',
+        data.paragraph = `Hi five ${verDoc.user.displayName}! Your account is now activated (${verDoc.user.emailAddress}).`
 
         //if token exists, activate user
         verDoc.user.accountStatus = 'verified';
@@ -99,10 +98,8 @@ function activate(req, res) {
         verDoc.remove();
 
       } else if (verDoc.user.accountStatus == 'verified') {
-        data = {
-          heading: 'Account is already activated!',
-          paragragh: `Double hi five ${verDoc.user.displayName}! Your account is already activated (${verDoc.user.emailAddress}).`
-        };
+        data.heading = 'Account is already activated!',
+        data.paragraph = `Double hi five ${verDoc.user.displayName}! Your account is already activated (${verDoc.user.emailAddress}).`
       }
       return res.render('activation', data);
     });
@@ -122,18 +119,18 @@ function resetPage(req, res) {
   Verification.findOne({resetToken: token})
     .populate('user')
     .exec((err, verDoc) => {
-      let data;
+      let data = {
+        title: 'Onova - Password reset',
+        show_form: true
+      };
       if (err) throw err;
       if (!verDoc || !verDoc.user) {
-        data = {
-          heading: 'There was an issue resetting your password',
-          paragragh: 'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or if email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.'
-        }
+        data.heading = 'There was an issue resetting your password';
+        data.paragraph = 'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
+        data.show_form = false;
       } else {
-        data = {
-          heading: 'Enter your new password',
-          paragragh: 'Please enter your password twice'
-        }
+        data.heading = 'Enter your new password';
+        data.paragraph = 'Please enter your password twice:';
       }
       return res.render('pass-reset', data);
     }
