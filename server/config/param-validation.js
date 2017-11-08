@@ -44,9 +44,17 @@ export default {
   },
 
   // POST /api/auth/reset
-  reset: {
+  requestReset: {
     body: {
       emailAddress: Joi.string().email().required(),
+    }
+  },
+
+  // POST /api/auth/reset/:token
+  resetForm: {
+    body: {
+      password:       Joi.string().min(8).max(50).required(),
+      passwordagain:  Joi.string().min(8).max(50).required(),
     }
   }
 };

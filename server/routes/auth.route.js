@@ -32,7 +32,7 @@ router.route('/random-number')
  * Activate user after clicking on email verification link
  */
 router.route('/activate/:token')
-  .get(validate(paramValidation.activate), authCtrl.activate)
+  .get(validate(paramValidation.activate), authCtrl.activate);
 
 /**
  * POST /api/auth/reset
@@ -40,13 +40,13 @@ router.route('/activate/:token')
  * Request password reset by email
  */
 router.route('/reset')
-  .post(validate(paramValidation.reset), authCtrl.requestPassReset)
+  .post(validate(paramValidation.requestReset), authCtrl.requestPassReset);
 
 router.route('/reset/:token')
   /** GET /api/auth/reset/:token - Render page to change password */
   .get(authCtrl.resetPage)
 
   /** POST /api/auth/reset/:token - Change user password */
-  .post(validate(paramValidation.reset), authCtrl.resetFormSubmit)
+  .post(validate(paramValidation.resetForm), authCtrl.resetFormSubmit);
 
 export default router;

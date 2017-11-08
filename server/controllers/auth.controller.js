@@ -148,7 +148,39 @@ function resetPage(req, res) {
  * @returns {*}
  */
 function resetFormSubmit(req, res) {
+  let data = {
+    title: 'Onova - Password reset',
+    heading: 'Enter your new password',
+    show_form: false
+  };
+  if (req.body.password != req.body.passwordagain) {
+    data.paragraph = '<div class="alert alert-danger" role="alert">Your passwords did not match.</div>';
+    data.show_form = true;
+    return res.render('pass-reset', data);
+  } else {
+    const token = req.params.token;
 
+    Verification.findOne({resetToken: token})
+      .populate('user')
+      .exec((err, verDoc) => {
+        if (err) throw err;
+        if (!verDoc || !verDoc.user) {
+          data.heading = 'There was an issue resetting your password';
+          return res.render('pass-reset', data);
+        } else {
+          data.heading = '';
+          data.paragraph = 'Hi five! Your password has been updated.';
+
+          verDoc.user.password = req.body.password;
+
+          verDoc.user.save((err) => {
+            if (err) { return next(err); }
+            verDoc.remove();
+            return res.render('pass-reset', data);
+          });
+        }
+      });
+  }
 }
 
 /**

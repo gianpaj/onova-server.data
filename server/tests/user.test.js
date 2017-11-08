@@ -430,8 +430,8 @@ describe('## User APIs', () => {
     });
   });
 
-  describe('# POST /api/auth/reset', () => {
-    it('should request a password reset email', (done) => {
+  describe('Password reset', () => {
+    it('# POST /api/auth/reset - should request a password reset via email', (done) => {
       request(app)
         .post('/api/auth/reset')
         .send({ emailAddress: anotherUser.emailAddress })
@@ -442,5 +442,40 @@ describe('## User APIs', () => {
         })
         .catch(done);
     });
+
+    it('# POST /api/auth/reset/:token (page) - should reset the user`s password', (done) => {
+      User.findOne({ emailAddress: anotherUser.emailAddress }, (err, existingUser) => {
+        if (err) { return done(err); }
+
+        Verification.findOne({ user: existingUser._id }, (err, verDoc) => {
+          if (err) { return done(err); }
+          if (!verDoc) {
+            return done('no verification token found');
+          }
+          request(app)
+            .post(`/api/auth/reset/${verDoc.resetToken}`)
+            .send({ password: 'americano', passwordagain: 'americano' })
+            .expect(httpStatus.OK)
+            .then((res) => {
+              expect(res.text).to.contain('Your password has been updated');
+              anotherUser.password = 'americano';
+              done();
   })
+            .catch(done);
+        });
+      });
+    });
+
+    it('# POST /api/auth/login - should authenticate again', (done) => {
+      request(app)
+        .post('/api/auth/login')
+        .send(anotherUser)
+        .expect(httpStatus.OK)
+        .then((res) => {
+          expect(res.body).to.have.property('token');
+          done();
+        })
+        .catch(done);
+    });
+  });
 });

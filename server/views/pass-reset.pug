@@ -1,6 +1,41 @@
-html
-  head
-    title='Onova - Password reset'
-  body
-    h1= heading
-    p= paragragh
+extends layout.pug
+
+block styles
+  style.
+    form {
+      max-width: 330px;
+      padding: 15px;
+      margin: 0 auto;
+    }
+    form h2 {
+      margin-bottom: 10px;
+    }
+    form .form-control {
+      position: relative;
+      box-sizing: border-box;
+      height: auto;
+      padding: 10px;
+      font-size: 16px;
+    }
+    form .form-control:focus {
+      z-index: 2;
+    }
+    form input[name="password"] {
+      margin-bottom: -1px;
+      border-bottom-right-radius: 0;
+      border-bottom-left-radius: 0;
+    }
+    form input[name="passwordagain"] {
+      margin-bottom: 10px;
+      border-top-left-radius: 0;
+      border-top-right-radius: 0;
+    }
+
+block content
+  form(action="", method="post")
+    h2= heading
+    p !{paragraph}
+    if show_form
+      input.form-control(type="password", name="password", minlength=8, maxlength=50, placeholder="Password", required, autofocus, autocomplete="new-password")
+      input.form-control(type="password", name="passwordagain", minlength=8, maxlength=50, placeholder="Password again", required, autocomplete="new-password")
+      button.btn.btn-primary.btn-block(type="submit") Save
