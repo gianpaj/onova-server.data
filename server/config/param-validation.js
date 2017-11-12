@@ -52,6 +52,9 @@ export default {
 
   // POST /api/auth/reset/:token
   resetForm: {
+    params: {
+      token: Joi.string().hex().length(16).required()
+    },
     body: {
       password:       Joi.string().min(8).max(50).required(),
       passwordagain:  Joi.string().min(8).max(50).required(),

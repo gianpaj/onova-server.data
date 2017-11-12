@@ -61,6 +61,7 @@ describe('## User APIs', () => {
   let jwtToken;
   let anotherJwtToken;
   let activationToken;
+  let resetToken;
 
   describe('# Create and verify email address', function () {
 
@@ -450,6 +451,7 @@ describe('## User APIs', () => {
           if (!verDoc) {
             return done('no verification token found');
           }
+          resetToken = verDoc.resetToken;
           request(app)
             .post(`/api/auth/reset/${verDoc.resetToken}`)
             .send({ password: 'americano', passwordagain: 'americano' })
@@ -462,6 +464,30 @@ describe('## User APIs', () => {
             .catch(done);
         });
       });
+    });
+
+    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', (done) => {
+      request(app)
+      .post(`/api/auth/reset/${resetToken}`)
+      .send({ password: 'americano', passwordagain: 'americano' })
+      .expect(httpStatus.BAD_REQUEST)
+      .then((res) => {
+        expect(res.text).to.contain('There was an issue resetting your password');
+        done();
+      })
+      .catch(done);
+    });
+
+    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', (done) => {
+      request(app)
+      .post(`/api/auth/reset/12343375d1`)
+      .send({ password: 'americano', passwordagain: 'americano' })
+      .expect(httpStatus.BAD_REQUEST)
+      .then((res) => {
+        expect(res.body.message).to.equal('"token" length must be 16 characters long');
+        done();
+      })
+      .catch(done);
     });
 
     it('# POST /api/auth/login - should authenticate again', (done) => {

@@ -163,7 +163,7 @@ function resetFormSubmit(req, res) {
         if (err) throw err;
         if (!verDoc || !verDoc.user) {
           data.heading = 'There was an issue resetting your password';
-          return res.render('pass-reset', data);
+          return res.status(400).render('pass-reset', data);
         } else {
           data.heading = '';
           data.paragraph = 'Hi five! Your password has been updated.';
