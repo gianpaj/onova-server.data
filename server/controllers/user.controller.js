@@ -40,7 +40,6 @@ function get(req: $Request, res: $Response) {
 /**
  * Create new user
  * @property {string} req.body.username
- * @property {string} req.body.displayName
  * @property {string} req.body.emailAddress
  * @property {string} req.body.password - (salted and hashed)
  * @property {string} req.body.mobileNumber - (optional)
@@ -48,10 +47,10 @@ function get(req: $Request, res: $Response) {
  */
 function create(req: $Request, res: $Response, next: NextFunction) {
   const doc: Object = {
-    username: req.body.username,
+    username:     req.body.username,
     emailAddress: req.body.emailAddress,
-    displayName: req.body.displayName,
-    password: req.body.password,
+    // displayName:  req.body.displayName,
+    password:     req.body.password,
     // accountStatus: 'notverified' (default)
   };
 
@@ -61,10 +60,15 @@ function create(req: $Request, res: $Response, next: NextFunction) {
 
   const user = new User(doc);
 
-  User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
+  User.findOne({
+    $or: [
+      { emailAddress: req.body.emailAddress },
+      { username:     req.body.username }
+    ]
+  }, (err, existingUser) => {
     if (err) { return next(err); }
     if (existingUser) {
-      const APIerr = new APIError('Account with that email address already exists.', httpStatus.BAD_REQUEST, true);
+      const APIerr = new APIError('An account with the same email address or username exists.', httpStatus.BAD_REQUEST, true);
       return next(APIerr);
     }
     user.save()
@@ -72,7 +76,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
         mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
 
         const payload = prepareUserJson(savedUser);
-        res.status(201).json({
+        return res.status(201).json({
           token: `JWT ${authCtrl.generateToken(payload)}`,
           user: payload
         });
@@ -95,41 +99,61 @@ function create(req: $Request, res: $Response, next: NextFunction) {
  */
 function update(req: $Request, res: $Response, next: NextFunction) {
   const user = req.user;
-  user.username = req.body.username;
   user.displayName = req.body.displayName;
 
   if (req.body.mobileNumber) {
     user.mobileNumber = req.body.mobileNumber;
   }
 
-  // update password (automatically hashed on save)
+  // update password (automatically hashed on save())
   if (req.body.password) {
     user.password = req.body.password;
   }
 
+  let Promises = [];
+
   // updating email address
   if (user.emailAddress != req.body.emailAddress) {
     user.emailAddress = req.body.emailAddress;
-    User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
-      if (err) { return next(err); }
-      if (existingUser) {
-        const APIerr = new APIError('Account with that email address already exists.', httpStatus.BAD_REQUEST, true);
-        return next(APIerr);
-      }
-      mailCtrl.resendVerificationEmail(user.emailAddress, user);
-      user.accountStatus = 'notverified';
-      console.debug(`account ${user._id} is awaiting for email verification`);
-
-      // save user with new email address only if there is no duplicate key error
-      user.save()
-      .then(savedUser => res.json(savedUser))
-      .catch(e => next(e));
-    });
-  } else {
-    user.save()
-    .then(savedUser => res.json(savedUser))
-    .catch(e => next(e));
+    Promises.push(new Promise((resolve, reject) => {
+        User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
+        if (err) { return reject(err); }
+        if (existingUser) {
+          const APIerr = new APIError('An account with the same email address exists.', httpStatus.BAD_REQUEST, true);
+          return reject(APIerr);
+        }
+        mailCtrl.resendVerificationEmail(user.emailAddress, user);
+        user.accountStatus = 'notverified';
+        console.debug(`account ${user._id} is awaiting for email verification`);
+        // save user with new email address only if there is no duplicate key error
+        resolve();
+      })
+    }));
   }
+  // updating username
+  if (user.username != req.body.username) {
+    user.username = req.body.username;
+    Promises.push(new Promise((resolve, reject) => {
+      User.findOne({ username: req.body.username }, (err, existingUser) => {
+        if (err) { return reject(err); }
+        if (existingUser) {
+          const APIerr = new APIError('An account with the same username exists.', httpStatus.BAD_REQUEST, true);
+          return reject(APIerr);
+        }
+        resolve();
+      });
+    }));
+  }
+  return Promise.all(Promises)
+    .then(() =>
+      user.save())
+    .then((savedUser) =>
+      res.json(savedUser))
+    .then(() =>
+      console.debug(`Username: ${user.username} saved.`))
+    .catch(error => {
+      return next(error);
+    });
 }
 
 /**

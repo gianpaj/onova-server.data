@@ -23,7 +23,7 @@ if (config.env == 'test') {
 const promise = mongoose.connect(mongoUri, {
   useMongoClient: true,
   keepAlive: 1,
-  socketTimeoutMS: 1000
+  // socketTimeoutMS: 1000
 });
 promise.on('error', () => {
   throw new Error(`unable to connect to database: ${mongoUri}`);

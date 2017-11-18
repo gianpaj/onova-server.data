@@ -13,11 +13,12 @@ import config from '../config/config';
 const UserSchema = new mongoose.Schema({
   username: {
     type: String,
+    unique: true,
     required: true
   },
   displayName: {
     type: String,
-    required: true
+    // required: true
   },
   mobileNumber: {
     type: String,
@@ -130,7 +131,7 @@ UserSchema.set('toJSON', {
 })
 
 UserSchema.index({ emailAddress: 1}, { unique: true });
-UserSchema.index({ username: 1 });
+UserSchema.index({ username: 1}, { unique: true });
 
 /**
  * @typedef User

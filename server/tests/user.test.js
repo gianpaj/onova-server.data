@@ -34,7 +34,7 @@ describe('## User APIs', () => {
     username: 'firstperson',
     emailAddress: 'first@example.com',
     mobileNumber: '1234567890', // optional
-    displayName: 'first user',
+    // displayName: 'first user',
     password: 'expressos'
   };
 
@@ -110,7 +110,7 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
         .then((res) => {
-          expect(res.body.message).to.equal('Account with that email address already exists.');
+          expect(res.body.message).to.equal('An account with the same email address or username exists.');
           done();
         })
         .catch(done);
@@ -352,9 +352,25 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
         .then((res) => {
-          expect(res.body.message).to.equal('Account with that email address already exists.');
+          expect(res.body.message).to.equal('An account with the same email address exists.');
           // reset the email
           user.emailAddress = 'newemail@example.com';
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should not update an user\'s username to an existing one', (done) => {
+      user.username = anotherUser.username;
+      request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send(user)
+        .expect(httpStatus.BAD_REQUEST)
+        .then((res) => {
+          expect(res.body.message).to.equal('An account with the same username exists.');
+          // reset the email
+          user.username = 'firstperson';
           done();
         })
         .catch(done);
