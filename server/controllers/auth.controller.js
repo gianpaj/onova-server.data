@@ -189,7 +189,7 @@ function requestPassReset(req, res) {
   User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
     if (err) { return next(err); }
     if (!existingUser) {
-      console.log('attempted to reset a user`s password with no results:', req.body.emailAddress);
+      console.log('attempted to reset a user\'s password with no results:', req.body.emailAddress);
       return res.json({ message: 'Password reset email sent.' });
     }
     mailCtrl.sendResetEmail(req.body.emailAddress, existingUser);

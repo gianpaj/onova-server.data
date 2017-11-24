@@ -4,5 +4,11 @@
   ],
   "plugins": [
     "flowtype"
-  ]
+  ],
+  "env": {
+    "node": true
+  },
+  "rules": {
+    "no-unused-vars": 1
+  }
 }

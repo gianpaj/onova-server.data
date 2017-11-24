@@ -1,12 +1,10 @@
 // @flow
 
-import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import type {$Request, NextFunction} from 'express'
 
 import User from '../models/user.model';
 import APIError from '../helpers/APIError';
-import config from '../config/config';
 import mailCtrl from './mail.controller';
 import authCtrl from './auth.controller';
 

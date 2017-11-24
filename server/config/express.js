@@ -20,7 +20,7 @@ import APIError from '../helpers/APIError';
 /**
  * API keys and Passport configuration.
  */
-const passportConfig = require('./passport');
+require('./passport');
 
 const app = express();
 

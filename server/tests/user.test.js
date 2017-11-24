@@ -3,7 +3,6 @@ import request from 'supertest-as-promised';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
 import chai, { expect } from 'chai';
-import crypto from 'crypto';
 
 import app from '../index';
 import config from '../config/config';
@@ -415,7 +414,7 @@ describe('## User APIs', () => {
       request(app)
         .get('/api/auth/random-number')
         .expect(httpStatus.UNAUTHORIZED)
-        .then((res) => {
+        .then(() => {
           done();
         })
         .catch(done);
@@ -426,7 +425,7 @@ describe('## User APIs', () => {
         .get('/api/auth/random-number')
         .set('Authorization', 'JWT inValidToken')
         .expect(httpStatus.UNAUTHORIZED)
-        .then((res) => {
+        .then(() => {
           done();
         })
         .catch(done);

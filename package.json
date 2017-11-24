@@ -6,9 +6,9 @@
   "main": "index.js",
   "private": true,
   "engines": {
-    "node": ">=6.0.1",
-    "npm": ">=5.3.0",
-    "yarn": ">=0.27.5"
+    "node": ">=8.9",
+    "npm": ">=5.5.0",
+    "yarn": ">=1.0.0"
   },
   "scripts": {
     "start": "yarn dev:start",
@@ -26,7 +26,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git@bitbucket.org:onova/server.data.git"
+    "url": "https://bitbucket.org/onova/server.data.git"
   },
   "dependencies": {
     "bcrypt": "1.0.3",
@@ -64,12 +64,12 @@
     "commitizen": "^2.9.2",
     "coveralls": "^2.11.6",
     "cross-env": "^3.2.3",
-    "eslint": "^3.17.1",
+    "eslint": "^4.11.0",
     "eslint-config-airbnb-base": "7.1.0",
-    "eslint-plugin-flowtype": "2.39.1",
-    "eslint-plugin-import": "1.16.0",
+    "eslint-plugin-flowtype": "~2.39.1",
+    "eslint-plugin-import": "~2.8.0",
     "eslint-watch": "2.1.14",
-    "flow-bin": "0.57.3",
+    "flow-bin": "~0.59.0",
     "husky": "^0.13.1",
     "istanbul": "1.1.0-alpha.1",
     "mocha": "3.2.0",

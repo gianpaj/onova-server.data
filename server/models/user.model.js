@@ -80,7 +80,7 @@ UserSchema.statics = {
         }
         return user;
       })
-      .catch(e =>{
+      .catch(() =>{
         const err = new APIError('Invalid user', httpStatus.BAD_REQUEST);
         return Promise.reject(err);
       });
@@ -123,7 +123,7 @@ UserSchema.pre('save', function (next) {
 // Note that this doesn't effect `toObject`
 UserSchema.set('toJSON', {
   getters: true,
-  transform: (doc, ret, options) => {
+  transform: (doc, ret) => {
     delete ret.password;
     delete ret.__v;
     return ret;
