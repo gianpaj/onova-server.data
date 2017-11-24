@@ -8,6 +8,9 @@ const router = express.Router(); // eslint-disable-line new-cap
 router.get('/health-check', (req, res) =>
   res.send('OK')
 );
+router.get('/health-check/json', (req, res) =>
+  res.json({ ok: true })
+);
 
 // mount user routes at /users
 router.use('/users', userRoutes);
