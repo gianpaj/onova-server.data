@@ -11,24 +11,24 @@ const router = express.Router(); // eslint-disable-line new-cap
 
 router
   .route('/')
-  /** GET /api/users - Get list of users */
+  // GET /api/users - Get list of users
   .get(userCtrl.list)
 
-  /** POST /api/users - Create new user */
+  // POST /api/users - Create new user
   .post(validate(paramValidation.createUser), userCtrl.create);
 
 router
   .route('/:userId')
-  /** GET /api/users/:userId - Get user */
+  // GET /api/users/:userId - Get user
   .get(userCtrl.get)
 
-  /** PUT /api/users/:userId - Update user */
+  // PUT /api/users/:userId - Update user - Protected route
   .put(validate(paramValidation.updateUser), requireAuth, userCtrl.update)
 
-  /** DELETE /api/users/:userId - Delete user - Protected route */
+  // DELETE /api/users/:userId - Delete user - Protected route
   .delete(requireAuth, userCtrl.remove);
 
-/** Load user when API with userId route parameter is hit */
+// Load user when API with userId route parameter is hit
 router.param('userId', userCtrl.load);
 
 export default router;

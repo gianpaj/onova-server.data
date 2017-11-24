@@ -6,7 +6,10 @@ import crypto from 'crypto';
 import Verification from '../models/verification.model';
 import config from '../config/config';
 
-const mailjetClient = mailjet.connect(config.mailjet.apikeyPublic, config.mailjet.apikeyPrivate);
+const mailjetClient = mailjet.connect(
+  config.mailjet.apikeyPublic,
+  config.mailjet.apikeyPrivate
+);
 
 /**
  * Send email via Mailjet to verify the account
@@ -19,13 +22,13 @@ function sendVerificationEmail(emailTo: string, user: Object): void {
   // generate link
   Verification.create({
     user: user._id,
-    resetToken: token
+    resetToken: token,
   })
-  .then(verification => {
+    .then(() => {
     const vars = {
       confirmation_link: `https://onova.co/api/auth/activate/${token}`,
-      displayName: user.displayName
-    }
+        displayName: user.displayName,
+      };
 
     var request = mailjetClient
       .post("send", {'version': 'v3.1'})
@@ -69,47 +72,46 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
   // generate link
   Verification.create({
     user: user._id,
-    resetToken: token
+    resetToken: token,
   })
-  .then(verification => {
+    .then(() => {
     const vars = {
       confirmation_link: `https://onova.co/api/auth/activate/${token}`,
-      displayName: user.displayName
-    }
+        displayName: user.displayName,
+      };
 
-    var request = mailjetClient
-      .post("send", {'version': 'v3.1'})
-      .request({
-        "Messages":[
-          {
-            "From": {
-              "Email": "noreply@onova.co",
-              "Name": "Onova"
-            },
-            "To": [
-              { "Email": emailTo, "Name": vars.displayName }
-            ],
-            "Variables": vars,
-            "Subject": subject,
-            "TemplateLanguage": true,
-            "TextPart": "Hi {{var:displayName}},\n\nPlease verify your new email address.\n\nClick here to confirm it: {{var:confirmation_link}}.\n\nCheers, The Onova Team.",
-            "HTMLPart": "Hi {{var:displayName}},<p>Please verify your new email address.</p><p>Click here to confirm it: {{var:confirmation_link}}</p><p>Cheers, The Onova Team.</p>",
+      // var request = mailjetClient
+      //   .post("send", {'version': 'v3.1'})
+      //   .request({
+      //     "Messages":[
+      //       {
+      //         "From": {
+      //           "Email": "noreply@onova.co",
+      //           "Name": "Onova"
+      //         },
+      //         "To": [
+      //           { "Email": emailTo, "Name": vars.displayName }
+      //         ],
+      //         "Variables": vars,
+      //         "Subject": subject,
+      //         "TemplateLanguage": true,
+      //         "TextPart": "Hi {{var:displayName}},\n\nPlease verify your new email address.\n\nClick here to confirm it: {{var:confirmation_link}}.\n\nCheers, The Onova Team.",
+      //         "HTMLPart": "Hi {{var:displayName}},<p>Please verify your new email address.</p><p>Click here to confirm it: {{var:confirmation_link}}</p><p>Cheers, The Onova Team.</p>",
+      //       }
+      //     ],
+      //     "SandboxMode": true
+      //   });
 
-          }
-        ]
-      });
-
-    request
-      .then(res => {
-        // console.log(res.body);
-      })
-      .catch(err => {
-        console.error(err.ErrorMessage);
-      });
+      // request
+      //   .then(res => {
+      //     // console.log(res.body);
+      //   })
+      //   .catch(err => {
+      //     console.error(err.ErrorMessage);
+      //   });
   })
   .catch(e => console.error(e));
 }
-
 
 /**
  * Send email via Mailjet to reset the account's password
@@ -122,13 +124,13 @@ function sendResetEmail(emailTo: string, user: Object): void {
   // generate link
   Verification.create({
     user: user._id,
-    resetToken: token
+    resetToken: token,
   })
   .then(verification => {
     const vars = {
       reset_link: `https://onova.co/api/auth/reset/${token}`,
-      displayName: user.displayName
-    }
+        displayName: user.displayName,
+      };
 
     var request = mailjetClient
       .post("send", {'version': 'v3.1'})
@@ -163,4 +165,8 @@ function sendResetEmail(emailTo: string, user: Object): void {
   .catch(e => console.error(e));
 }
 
-export default { sendVerificationEmail, resendVerificationEmail, sendResetEmail };
+export default {
+  sendVerificationEmail,
+  resendVerificationEmail,
+  sendResetEmail,
+};

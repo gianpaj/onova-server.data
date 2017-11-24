@@ -14,7 +14,7 @@ chai.config.includeStack = true;
 /**
  * root level hooks
  */
-after((done) => {
+after(done => {
   // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
   mongoose.models = {};
   mongoose.modelSchemas = {};
@@ -22,10 +22,10 @@ after((done) => {
   done();
 });
 
-before((done) => {
+before(done => {
   mongoose.connection.dropDatabase().then(() => {
     done();
-  })
+  });
 });
 
 describe('## User APIs', () => {
@@ -62,14 +62,13 @@ describe('## User APIs', () => {
   let activationToken;
   let resetToken;
 
-  describe('# Create and verify email address', function () {
-
-    it('# POST /api/users - should create a new user', (done) => {
+  describe('# Create and verify email address', function() {
+    it('# POST /api/users - should create a new user', done => {
       request(app)
         .post('/api/users')
         .send(user)
         .expect(httpStatus.CREATED)
-        .then((res) => {
+        .then(res => {
           const resUser = res.body.user;
           expect(resUser._id).to.a('string');
           expect(resUser.username).to.equal(user.username);
@@ -84,12 +83,12 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('# POST /api/users - should create a new user without mobile num', (done) => {
+    it('# POST /api/users - should create a new user without mobile num', done => {
       request(app)
         .post('/api/users')
         .send(thirdUser)
         .expect(httpStatus.CREATED)
-        .then((res) => {
+        .then(res => {
           const resUser = res.body.user;
           expect(resUser._id).to.a('string');
           expect(resUser.username).to.equal(thirdUser.username);
@@ -103,21 +102,25 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('# POST /api/users - should not create a user with the same email address', (done) => {
+    it('# POST /api/users - should not create a user with the same email address', done => {
       request(app)
         .post('/api/users')
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
-        .then((res) => {
-          expect(res.body.message).to.equal('An account with the same email address or username exists.');
+        .then(res => {
+          expect(res.body.message).to.equal(
+            'An account with the same email address or username exists.'
+          );
           done();
         })
         .catch(done);
     });
 
-    it('# GET /api/auth/activate/:token (page) - should activate the user', (done) => {
-      Verification.findOne({user: user._id}, (err, verDoc) => {
-        if(err) { return done(err); }
+    it('# GET /api/auth/activate/:token (page) - should activate the user', done => {
+      Verification.findOne({ user: user._id }, (err, verDoc) => {
+        if (err) {
+          return done(err);
+        }
         if (!verDoc) {
           return done('no verification token found');
         }
@@ -125,7 +128,7 @@ describe('## User APIs', () => {
         request(app)
           .get(`/api/auth/activate/${activationToken}`)
           .expect(httpStatus.OK)
-          .then((res) => {
+          .then(res => {
             expect(res.text).to.contain('Account activated');
             done();
           })
@@ -133,23 +136,27 @@ describe('## User APIs', () => {
       });
     });
 
-    it('# GET /api/auth/activate/:token (page) - should not reactivate the user', (done) => {
+    it('# GET /api/auth/activate/:token (page) - should not reactivate the user', done => {
       request(app)
         .get(`/api/auth/activate/${activationToken}`)
         .expect(httpStatus.OK)
-        .then((res) => {
-          expect(res.text).to.contain('something wrong with the link you received');
+        .then(res => {
+          expect(res.text).to.contain(
+            'something wrong with the link you received'
+          );
           done();
         })
         .catch(done);
     });
 
-    it('# GET /api/auth/activate/:token (page) - an expired link should not work', (done) => {
+    it('# GET /api/auth/activate/:token (page) - an expired link should not work', done => {
       request(app)
         .get(`/api/auth/activate/e700760eb3d6fc65`)
         .expect(httpStatus.OK)
-        .then((res) => {
-          expect(res.text).to.contain('something wrong with the link you received');
+        .then(res => {
+          expect(res.text).to.contain(
+            'something wrong with the link you received'
+          );
           done();
         })
         .catch(done);
@@ -157,24 +164,24 @@ describe('## User APIs', () => {
   });
 
   describe('# POST /api/auth/login', () => {
-    it('should return Authentication error', (done) => {
+    it('should return Authentication error', done => {
       request(app)
         .post('/api/auth/login')
         .send(invalidUserCredentials)
         .expect(httpStatus.UNAUTHORIZED)
-        .then((res) => {
+        .then(res => {
           expect(res.body.message).to.equal('Authentication error');
           done();
         })
         .catch(done);
     });
 
-    it('should get valid JWT token', (done) => {
+    it('should get valid JWT token', done => {
       request(app)
         .post('/api/auth/login')
         .send(user)
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body).to.have.property('token');
           const token = res.body.token.split('JWT ')[1];
           jwt.verify(token, config.jwtSecret, (err, decoded) => {
@@ -189,11 +196,11 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/:userId', () => {
-    it('should get user details', (done) => {
+    it('should get user details', done => {
       request(app)
         .get(`/api/users/${user._id}`)
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body.username).to.equal(user.username);
           expect(res.body.emailAddress).to.equal(user.emailAddress);
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
@@ -203,11 +210,11 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should report error with message - Not found, when user does not exists', (done) => {
+    it('should report error with message - Not found, when user does not exists', done => {
       request(app)
         .get('/api/users/56c787ccc67fc16ccc1a5e92')
         .expect(httpStatus.BAD_REQUEST)
-        .then((res) => {
+        .then(res => {
           expect(res.body.message).to.equal('Bad Request');
           done();
         })
@@ -216,14 +223,14 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
-    it('should update user details', (done) => {
+    it('should update user details', done => {
       user.mobileNumber = '9876543212';
       request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body.emailAddress).to.equal(user.emailAddress);
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
           expect(res.body.username).to.equal(user.username);
@@ -233,14 +240,14 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should update user email and unverify it', (done) => {
+    it('should update user email and unverify it', done => {
       user.emailAddress = 'newemail@example.com';
       request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body.emailAddress).to.equal(user.emailAddress);
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
           expect(res.body.username).to.equal(user.username);
@@ -252,23 +259,23 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/', () => {
-    it('should get all users', (done) => {
+    it('should get all users', done => {
       request(app)
         .get('/api/users')
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body).to.be.an('array');
           done();
         })
         .catch(done);
     });
 
-    it('should get all users (with limit and skip)', (done) => {
+    it('should get all users (with limit and skip)', done => {
       request(app)
         .get('/api/users')
         .query({ limit: 10, skip: 1 })
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body).to.be.an('array');
           done();
         })
@@ -277,12 +284,12 @@ describe('## User APIs', () => {
   });
 
   describe('# DELETE /api/users/', () => {
-    it('should delete user', (done) => {
+    it('should delete user', done => {
       request(app)
         .delete(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body.emailAddress).to.equal(user.emailAddress);
           expect(res.body.mobileNumber).to.equal(user.mobileNumber);
           expect(res.body.username).to.equal(user.username);
@@ -298,14 +305,14 @@ describe('## User APIs', () => {
         .post('/api/users')
         .send(anotherUser)
         .expect(httpStatus.CREATED)
-        .then((res) => {
+        .then(res => {
           anotherUser._id = res.body.user._id;
           done();
         })
         .catch(done);
     });
 
-    it('first user should not delete another user', (done) => {
+    it('first user should not delete another user', done => {
       request(app)
         .delete(`/api/users/${anotherUser._id}`)
         .set('Authorization', jwtToken)
@@ -316,12 +323,12 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should get error when deleting invalid user', (done) => {
+    it('should get error when deleting invalid user', done => {
       request(app)
         .delete(`/api/users/59f91cac9b4645049289f6f`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then((res) => {
+        .then(res => {
           expect(res.body.message).to.equal('Bad Request');
           done();
         })
@@ -335,7 +342,7 @@ describe('## User APIs', () => {
         .post('/api/users')
         .send(user)
         .expect(httpStatus.CREATED)
-        .then((res) => {
+        .then(res => {
           user._id = res.body.user._id;
           jwtToken = res.body.token;
           done();
@@ -343,15 +350,17 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should not update an user email to an existing one', (done) => {
+    it('should not update an user email to an existing one', done => {
       user.emailAddress = anotherUser.emailAddress;
       request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
-        .then((res) => {
-          expect(res.body.message).to.equal('An account with the same email address exists.');
+        .then(res => {
+          expect(res.body.message).to.equal(
+            'An account with the same email address exists.'
+          );
           // reset the email
           user.emailAddress = 'newemail@example.com';
           done();
@@ -359,15 +368,17 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should not update an user\'s username to an existing one', (done) => {
+    it("should not update an user's username to an existing one", done => {
       user.username = anotherUser.username;
       request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
-        .then((res) => {
-          expect(res.body.message).to.equal('An account with the same username exists.');
+        .then(res => {
+          expect(res.body.message).to.equal(
+            'An account with the same username exists.'
+          );
           // reset the email
           user.username = 'firstperson';
           done();
@@ -375,7 +386,7 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should update a user password', (done) => {
+    it('should update a user password', done => {
       user.password = 'secure123';
       request(app)
         .put(`/api/users/${user._id}`)
@@ -390,12 +401,12 @@ describe('## User APIs', () => {
   });
 
   describe('# POST /api/auth/login', () => {
-    it('should get another valid JWT token', (done) => {
+    it('should get another valid JWT token', done => {
       request(app)
         .post('/api/auth/login')
         .send(anotherUser)
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body).to.have.property('token');
           const token = res.body.token.split('JWT ')[1];
           jwt.verify(token, config.jwtSecret, (err, decoded) => {
@@ -410,7 +421,7 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/auth/random-number', () => {
-    it('should fail to get random number because of missing Authorization', (done) => {
+    it('should fail to get random number because of missing Authorization', done => {
       request(app)
         .get('/api/auth/random-number')
         .expect(httpStatus.UNAUTHORIZED)
@@ -420,7 +431,7 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should fail to get random number because of wrong token', (done) => {
+    it('should fail to get random number because of wrong token', done => {
       request(app)
         .get('/api/auth/random-number')
         .set('Authorization', 'JWT inValidToken')
@@ -431,12 +442,12 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should get a random number', (done) => {
+    it('should get a random number', done => {
       request(app)
         .get('/api/auth/random-number')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body.num).to.be.a('number');
           done();
         })
@@ -445,72 +456,83 @@ describe('## User APIs', () => {
   });
 
   describe('Password reset', () => {
-    it('# POST /api/auth/reset - should request a password reset via email', (done) => {
+    it('# POST /api/auth/reset - should request a password reset via email', done => {
       request(app)
         .post('/api/auth/reset')
         .send({ emailAddress: anotherUser.emailAddress })
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body.message).to.equal('Password reset email sent.');
           done();
         })
         .catch(done);
     });
 
-    it('# POST /api/auth/reset/:token (page) - should reset the user`s password', (done) => {
-      User.findOne({ emailAddress: anotherUser.emailAddress }, (err, existingUser) => {
-        if (err) { return done(err); }
-
-        Verification.findOne({ user: existingUser._id }, (err, verDoc) => {
-          if (err) { return done(err); }
-          if (!verDoc) {
-            return done('no verification token found');
+    it('# POST /api/auth/reset/:token (page) - should reset the user`s password', done => {
+      User.findOne(
+        { emailAddress: anotherUser.emailAddress },
+        (err, existingUser) => {
+          if (err) {
+            return done(err);
           }
-          resetToken = verDoc.resetToken;
-          request(app)
-            .post(`/api/auth/reset/${verDoc.resetToken}`)
-            .send({ password: 'americano', passwordagain: 'americano' })
-            .expect(httpStatus.OK)
-            .then((res) => {
-              expect(res.text).to.contain('Your password has been updated');
-              anotherUser.password = 'americano';
-              done();
-  })
-            .catch(done);
-        });
-      });
+
+          Verification.findOne({ user: existingUser._id }, (err, verDoc) => {
+            if (err) {
+              return done(err);
+            }
+            if (!verDoc) {
+              return done('no verification token found');
+            }
+            resetToken = verDoc.resetToken;
+            request(app)
+              .post(`/api/auth/reset/${verDoc.resetToken}`)
+              .send({ password: 'americano', passwordagain: 'americano' })
+              .expect(httpStatus.OK)
+              .then(res => {
+                expect(res.text).to.contain('Your password has been updated');
+                anotherUser.password = 'americano';
+                done();
+              })
+              .catch(done);
+          });
+        }
+      );
     });
 
-    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', (done) => {
+    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', done => {
       request(app)
-      .post(`/api/auth/reset/${resetToken}`)
-      .send({ password: 'americano', passwordagain: 'americano' })
-      .expect(httpStatus.BAD_REQUEST)
-      .then((res) => {
-        expect(res.text).to.contain('There was an issue resetting your password');
-        done();
-      })
-      .catch(done);
+        .post(`/api/auth/reset/${resetToken}`)
+        .send({ password: 'americano', passwordagain: 'americano' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.text).to.contain(
+            'There was an issue resetting your password'
+          );
+          done();
+        })
+        .catch(done);
     });
 
-    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', (done) => {
+    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', done => {
       request(app)
-      .post(`/api/auth/reset/12343375d1`)
-      .send({ password: 'americano', passwordagain: 'americano' })
-      .expect(httpStatus.BAD_REQUEST)
-      .then((res) => {
-        expect(res.body.message).to.equal('"token" length must be 16 characters long');
-        done();
-      })
-      .catch(done);
+        .post(`/api/auth/reset/12343375d1`)
+        .send({ password: 'americano', passwordagain: 'americano' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).to.equal(
+            '"token" length must be 16 characters long'
+          );
+          done();
+        })
+        .catch(done);
     });
 
-    it('# POST /api/auth/login - should authenticate again', (done) => {
+    it('# POST /api/auth/login - should authenticate again', done => {
       request(app)
         .post('/api/auth/login')
         .send(anotherUser)
         .expect(httpStatus.OK)
-        .then((res) => {
+        .then(res => {
           expect(res.body).to.have.property('token');
           done();
         })
