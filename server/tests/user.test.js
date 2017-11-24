@@ -34,7 +34,7 @@ describe('## User APIs', () => {
     emailAddress: 'first@example.com',
     mobileNumber: '1234567890', // optional
     // displayName: 'first user',
-    password: 'expressos'
+    password: 'expressos',
   };
 
   let anotherUser = {
@@ -42,19 +42,19 @@ describe('## User APIs', () => {
     emailAddress: 'another@example.com',
     mobileNumber: '1234567890', // optional
     displayName: 'another user',
-    password: 'express2'
+    password: 'express2',
   };
 
   let thirdUser = {
     username: 'thirdwheel',
     emailAddress: 'thirdwheel@example.com',
     displayName: 'third user',
-    password: 'express3'
+    password: 'express3',
   };
 
   const invalidUserCredentials = {
     emailAddress: 'react@example.com',
-    password: 'IDontKnow'
+    password: 'IDontKnow',
   };
 
   let jwtToken;

@@ -10,40 +10,43 @@ import config from '../config/config';
 /**
  * User Schema
  */
-const UserSchema = new mongoose.Schema({
-  username: {
-    type: String,
-    unique: true,
-    required: true
+const UserSchema = new mongoose.Schema(
+  {
+    username: {
+      type: String,
+      unique: true,
+      required: true,
+    },
+    displayName: {
+      type: String,
+      // required: true
+    },
+    mobileNumber: {
+      type: String,
+      trim: true,
+      match: [validation.mobileNumber, 'Invalid mobile number.'],
+    },
+    emailAddress: {
+      type: String,
+      required: true,
+      unique: true,
+      // validated at API level via 'joi' and 'isemail' npm packages
+      // match: [validation.emailAddress, 'Invalid email address']
+    },
+    password: {
+      type: String,
+      required: true,
+    },
+    accountStatus: {
+      type: String,
+      required: true,
+      default: 'notverified',
+      enum: ['verified', 'notverified', 'banned', 'deleted'],
+    },
+    // assigns 'createdAt' and 'updatedAt' fields to your schema
   },
-  displayName: {
-    type: String,
-    // required: true
-  },
-  mobileNumber: {
-    type: String,
-    trim: true,
-    match: [validation.mobileNumber, 'Invalid mobile number.']
-  },
-  emailAddress: {
-    type: String,
-    required: true,
-    unique: true,
-    // validated at API level via 'joi' and 'isemail' npm packages
-    // match: [validation.emailAddress, 'Invalid email address']
-  },
-  password: {
-    type: String,
-    required: true
-  },
-  accountStatus: {
-    type: String,
-    required: true,
-    default: 'notverified',
-    enum: ['verified', 'notverified', 'banned', 'deleted']
-  }
-  // assigns 'createdAt' and 'updatedAt' fields to your schema
-}, { timestamps: true } );
+  { timestamps: true }
+);
 
 /**
  * Add your
@@ -55,7 +58,7 @@ const UserSchema = new mongoose.Schema({
 /**
  * Helper method for validating user's password.
  */
-UserSchema.methods.comparePassword = function (candidatePassword, cb) {
+UserSchema.methods.comparePassword = function(candidatePassword, cb) {
   bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
     cb(err, isMatch);
   });
@@ -74,13 +77,13 @@ UserSchema.statics = {
   get(id) {
     return this.findById(id)
       .exec()
-      .then((user) => {
+      .then(user => {
         if (!user) {
           return Promise.reject();
         }
         return user;
       })
-      .catch(() =>{
+      .catch(() => {
         const err = new APIError('Invalid user', httpStatus.BAD_REQUEST);
         return Promise.reject(err);
       });
@@ -99,20 +102,22 @@ UserSchema.statics = {
       .skip(+skip)
       .limit(+limit)
       .exec();
-  }
+  },
 };
 
 /**
  * Password hash middleware.
  */
-UserSchema.pre('save', function (next) {
+UserSchema.pre('save', function(next) {
   const user = this;
   const saltRounds = parseInt(config.saltRounds);
 
   // only hash the password if it has been modified (or is new)
   if (!user.isModified('password')) return next();
   bcrypt.hash(user.password, saltRounds, (err, hash) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
 
     user.password = hash;
     next();
@@ -127,11 +132,11 @@ UserSchema.set('toJSON', {
     delete ret.password;
     delete ret.__v;
     return ret;
-  }
-})
+  },
+});
 
-UserSchema.index({ emailAddress: 1}, { unique: true });
-UserSchema.index({ username: 1}, { unique: true });
+UserSchema.index({ emailAddress: 1 }, { unique: true });
+UserSchema.index({ username: 1 }, { unique: true });
 
 /**
  * @typedef User

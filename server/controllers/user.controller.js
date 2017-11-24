@@ -1,7 +1,7 @@
 // @flow
 
 import httpStatus from 'http-status';
-import type {$Request, NextFunction} from 'express'
+import type { $Request, NextFunction } from 'express';
 
 import User from '../models/user.model';
 import APIError from '../helpers/APIError';
@@ -14,7 +14,7 @@ import authCtrl from './auth.controller';
 function load(req: $Request, res: $Response, next: NextFunction, id: string) {
   // use static method from UserSchema
   User.get(id)
-    .then((user) => {
+    .then(user => {
       req.user = user;
       return next();
     })
@@ -45,10 +45,10 @@ function get(req: $Request, res: $Response) {
  */
 function create(req: $Request, res: $Response, next: NextFunction) {
   const doc: Object = {
-    username:     req.body.username,
+    username: req.body.username,
     emailAddress: req.body.emailAddress,
     // displayName:  req.body.displayName,
-    password:     req.body.password,
+    password: req.body.password,
     // accountStatus: 'notverified' (default)
   };
 
@@ -58,29 +58,39 @@ function create(req: $Request, res: $Response, next: NextFunction) {
 
   const user = new User(doc);
 
-  User.findOne({
-    $or: [
-      { emailAddress: req.body.emailAddress },
-      { username:     req.body.username }
-    ]
-  }, (err, existingUser) => {
-    if (err) { return next(err); }
-    if (existingUser) {
-      const APIerr = new APIError('An account with the same email address or username exists.', httpStatus.BAD_REQUEST, true);
-      return next(APIerr);
-    }
-    user.save()
-      .then(savedUser => {
-        mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
+  User.findOne(
+    {
+      $or: [
+        { emailAddress: req.body.emailAddress },
+        { username: req.body.username },
+      ],
+    },
+    (err, existingUser) => {
+      if (err) {
+        return next(err);
+      }
+      if (existingUser) {
+        const APIerr = new APIError(
+          'An account with the same email address or username exists.',
+          httpStatus.BAD_REQUEST,
+          true
+        );
+        return next(APIerr);
+      }
+      user
+        .save()
+        .then(savedUser => {
+          mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
 
-        const payload = prepareUserJson(savedUser);
-        return res.status(201).json({
-          token: `JWT ${authCtrl.generateToken(payload)}`,
-          user: payload
-        });
-      })
-      .catch(e => next(e));
-  });
+          const payload = prepareUserJson(savedUser);
+          return res.status(201).json({
+            token: `JWT ${authCtrl.generateToken(payload)}`,
+            user: payload,
+          });
+        })
+        .catch(e => next(e));
+    }
+  );
 }
 
 /**
@@ -113,42 +123,60 @@ function update(req: $Request, res: $Response, next: NextFunction) {
   // updating email address
   if (user.emailAddress != req.body.emailAddress) {
     user.emailAddress = req.body.emailAddress;
-    Promises.push(new Promise((resolve, reject) => {
-        User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
-        if (err) { return reject(err); }
-        if (existingUser) {
-          const APIerr = new APIError('An account with the same email address exists.', httpStatus.BAD_REQUEST, true);
-          return reject(APIerr);
-        }
-        mailCtrl.resendVerificationEmail(user.emailAddress, user);
-        user.accountStatus = 'notverified';
-        console.debug(`account ${user._id} is awaiting for email verification`);
-        // save user with new email address only if there is no duplicate key error
-        resolve();
+    Promises.push(
+      new Promise((resolve, reject) => {
+        User.findOne(
+          { emailAddress: req.body.emailAddress },
+          (err, existingUser) => {
+            if (err) {
+              return reject(err);
+            }
+            if (existingUser) {
+              const APIerr = new APIError(
+                'An account with the same email address exists.',
+                httpStatus.BAD_REQUEST,
+                true
+              );
+              return reject(APIerr);
+            }
+            mailCtrl.resendVerificationEmail(user.emailAddress, user);
+            user.accountStatus = 'notverified';
+            console.debug(
+              `account ${user._id} is awaiting for email verification`
+            );
+            // save user with new email address only if there is no duplicate key error
+            resolve();
+          }
+        );
       })
-    }));
+    );
   }
   // updating username
   if (user.username != req.body.username) {
     user.username = req.body.username;
-    Promises.push(new Promise((resolve, reject) => {
-      User.findOne({ username: req.body.username }, (err, existingUser) => {
-        if (err) { return reject(err); }
-        if (existingUser) {
-          const APIerr = new APIError('An account with the same username exists.', httpStatus.BAD_REQUEST, true);
-          return reject(APIerr);
-        }
-        resolve();
-      });
-    }));
+    Promises.push(
+      new Promise((resolve, reject) => {
+        User.findOne({ username: req.body.username }, (err, existingUser) => {
+          if (err) {
+            return reject(err);
+          }
+          if (existingUser) {
+            const APIerr = new APIError(
+              'An account with the same username exists.',
+              httpStatus.BAD_REQUEST,
+              true
+            );
+            return reject(APIerr);
+          }
+          resolve();
+        });
+      })
+    );
   }
   return Promise.all(Promises)
-    .then(() =>
-      user.save())
-    .then((savedUser) =>
-      res.json(savedUser))
-    .then(() =>
-      console.debug(`Username: ${user.username} saved.`))
+    .then(() => user.save())
+    .then(savedUser => res.json(savedUser))
+    .then(() => console.debug(`Username: ${user.username} saved.`))
     .catch(error => {
       return next(error);
     });
@@ -174,7 +202,8 @@ function list(req: $Request, res: $Response, next: NextFunction) {
 function remove(req: $Request, res: $Response, next: NextFunction) {
   const user = req.user;
 
-  user.remove()
+  user
+    .remove()
     .then(deletedUser => res.json(deletedUser))
     .catch(e => next(e));
 }
@@ -188,7 +217,7 @@ function prepareUserJson(user: Object): Object {
     _id: user._id,
     username: user.username,
     emailAddress: user.emailAddress,
-    accountStatus: user.accountStatus
+    accountStatus: user.accountStatus,
   };
   return json;
 }

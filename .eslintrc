@@ -1,14 +1,28 @@
 {
+  "parser": "babel-eslint",
   "extends": [
-    "plugin:flowtype/recommended"
+    "plugin:flowtype/recommended",
+    "prettier",
+    "prettier/flowtype"
   ],
   "plugins": [
-    "flowtype"
+    "flowtype",
+    "prettier"
   ],
   "env": {
     "node": true
   },
   "rules": {
-    "no-unused-vars": 1
+    "no-unused-vars": 1,
+    "prettier/prettier": [
+      "error",
+      {
+        "tabWidth": 2,
+        "printWidth": 80,
+        "singleQuote": true,
+        "jsxBracketSameLine": true,
+        "trailingComma": "es5"
+      }
+    ]
   }
 }
