@@ -25,7 +25,7 @@ coverage
 
 node_modules
 
-flow-typed
+# flow-typed
 
 # .env
 .env

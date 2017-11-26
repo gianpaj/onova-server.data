@@ -32,8 +32,8 @@ function sendVerificationEmail(
     resetToken: token,
   })
     .then(() => {
-    const vars = {
-      confirmation_link: `https://onova.co/api/auth/activate/${token}`,
+      const vars = {
+        confirmation_link: `https://onova.co/api/auth/activate/${token}`,
         displayName: user.displayName,
       };
 
