@@ -34,6 +34,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(compress());
 app.use(methodOverride());
+// app.use(expressValidator({
+//   customValidators: {
+//       isValidId: function(value) {
+//           return shortid.isValid(value);
+//       }
+//   }
+// }));
 
 app.use(passport.initialize());
 
@@ -53,8 +60,8 @@ if (config.env === 'development') {
   expressWinston.responseWhitelist.push('body');
   app.use(
     expressWinston.logger({
-    winstonInstance,
-    meta: true, // optional: log meta data about request (defaults to true)
+      winstonInstance,
+      meta: true, // optional: log meta data about request (defaults to true)
       msg:
         'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
       colorStatus: true, // Color the status code (default green, 3XX cyan, 4XX yellow, 5XX red).

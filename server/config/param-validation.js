@@ -112,7 +112,7 @@ export default {
         .max(300)
         .required(),
       seller: Joi.string()
-        // .min(3)
+        .regex(/^[0-9a-fA-F]{24}$/)
         .length(24)
         .required(),
       price: Joi.number().required(),

@@ -22,23 +22,31 @@ import config from '../config/config';
  */
 function login(req, res, next) {
   passport.authenticate('local', (err, user, info) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     if (!user) {
       console.debug(info);
-      const APIerr = new APIError('Authentication error', httpStatus.UNAUTHORIZED, true);
+      const APIerr = new APIError(
+        'Authentication error',
+        httpStatus.UNAUTHORIZED,
+        true
+      );
       return next(APIerr);
     }
     //?
-    req.logIn(user, (err) => {
-      if (err) { return next(err); }
+    req.logIn(user, err => {
+      if (err) {
+        return next(err);
+      }
       const payload = {
         _id: user._id,
         emailAddress: user.emailAddress,
-        accountStatus: user.accountStatus
+        accountStatus: user.accountStatus,
       };
       return res.json({
         token: `JWT ${generateToken(payload)}`,
-        user: payload
+        user: payload,
       });
     });
   })(req, res, next);
@@ -78,29 +86,33 @@ function getRandomNumber(req, res) {
 function activate(req, res) {
   const token = req.params.token;
 
-  Verification.findOne({resetToken: token})
+  Verification.findOne({ resetToken: token })
     .populate('user')
     .exec((err, verDoc) => {
       let data = {
-        title: 'Onova - Email confirmation'
+        title: 'Onova - Email confirmation',
       };
       if (err) throw err;
       if (!verDoc || !verDoc.user) {
-        data.heading = 'There was an issue activating your account',
-        data.paragraph = 'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.'
+        (data.heading = 'There was an issue activating your account'),
+          (data.paragraph =
+            'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.');
       } else if (verDoc.user.accountStatus == 'notverified') {
-        data.heading = 'Account activated!',
-        data.paragraph = `Hi five ${verDoc.user.displayName}! Your account is now activated (${verDoc.user.emailAddress}).`
+        (data.heading = 'Account activated!'),
+          (data.paragraph = `Hi five ${
+            verDoc.user.displayName
+          }! Your account is now activated (${verDoc.user.emailAddress}).`);
 
         //if token exists, activate user
         verDoc.user.accountStatus = 'verified';
         verDoc.user.save();
 
         verDoc.remove();
-
       } else if (verDoc.user.accountStatus == 'verified') {
-        data.heading = 'Account is already activated!',
-        data.paragraph = `Double hi five ${verDoc.user.displayName}! Your account is already activated (${verDoc.user.emailAddress}).`
+        (data.heading = 'Account is already activated!'),
+          (data.paragraph = `Double hi five ${
+            verDoc.user.displayName
+          }! Your account is already activated (${verDoc.user.emailAddress}).`);
       }
       return res.render('activation', data);
     });
@@ -116,7 +128,7 @@ function activate(req, res) {
 function resetPage(req, res) {
   const token = req.params.token;
 
-  Verification.findOne({resetToken: token})
+  Verification.findOne({ resetToken: token })
     .populate('user')
     .exec((err, verDoc) => {
       let data = {
@@ -158,7 +170,7 @@ function resetFormSubmit(req, res) {
   } else {
     const token = req.params.token;
 
-    Verification.findOne({resetToken: token})
+    Verification.findOne({ resetToken: token })
       .populate('user')
       .exec((err, verDoc) => {
         if (err) throw err;
@@ -172,7 +184,9 @@ function resetFormSubmit(req, res) {
           verDoc.user.password = req.body.password;
 
           verDoc.user.save(err => {
-            if (err) { return next(err); }
+            if (err) {
+              return next(err);
+            }
             verDoc.remove();
             return res.render('pass-reset', data);
           });
@@ -188,9 +202,14 @@ function resetFormSubmit(req, res) {
  */
 function requestPassReset(req, res) {
   User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
-    if (err) { return next(err); }
+    if (err) {
+      return next(err);
+    }
     if (!existingUser) {
-      console.log('attempted to reset a user\'s password with no results:', req.body.emailAddress);
+      console.log(
+        "attempted to reset a user's password with no results:",
+        req.body.emailAddress
+      );
       return res.json({ message: 'Password reset email sent.' });
     }
     mailCtrl.sendResetEmail(req.body.emailAddress, existingUser);

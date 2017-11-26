@@ -20,6 +20,7 @@
     "lint": "esw *.js server config --color",
     "test": "cross-env NODE_ENV=test mocha --ui bdd --reporter spec --colors --compilers js:babel-core/register server/tests --recursive",
     "test:watch": "yarn test --watch",
+    "test:watch:nodemon": "nodemon --watch . --exec 'yarn test || true'",
     "test:coverage": "cross-env NODE_ENV=test istanbul cover _mocha -- --ui bdd --reporter spec --colors --compilers js:babel-core/register server/tests --recursive",
     "test:check-coverage": "yarn test:coverage && istanbul check-coverage",
     "report-coverage": "coveralls < ./coverage/lcov.info"

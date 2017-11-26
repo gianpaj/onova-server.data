@@ -22,13 +22,23 @@ after(done => {
   done();
 });
 
-before(done => {
-  mongoose.connection.dropDatabase().then(() => {
-    done();
-  });
-});
-
 describe('## User APIs', () => {
+  before(done => {
+    // mongoose.connection.dropDatabase().then(done);
+    const collections = [User.collection];
+
+    var todo = collections.length;
+    if (!todo) return done();
+
+    // for (let collection in collections) {
+    // Object.entries(collections).forEach(collection => {
+    collections.forEach(collection => {
+      collection.remove({}, { safe: true }, () => {
+        if (--todo === 0) done();
+      });
+    });
+  });
+
   let user = {
     username: 'firstperson',
     emailAddress: 'first@example.com',

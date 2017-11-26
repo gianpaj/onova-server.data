@@ -12,24 +12,23 @@ import Product from '../models/product.model';
 
 chai.config.includeStack = true;
 
-/**
- * root level hooks
- */
-after(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
+describe('## Product APIs', () => {
+  before(done => {
+    // mongoose.connection.dropDatabase().then(done);
+    const collections = [Product.collection, User.collection];
 
-before(done => {
-  mongoose.connection.dropDatabase().then(() => {
-    done();
+    var todo = collections.length;
+    if (!todo) return done();
+
+    // for (let collection in collections) {
+    // Object.entries(collections).forEach(collection => {
+    collections.forEach(collection => {
+      collection.remove({}, { safe: true }, () => {
+        if (--todo === 0) done();
+      });
+    });
   });
-});
 
-describe.only('## Product APIs', () => {
   let user = {
     username: 'firstperson',
     emailAddress: 'first@example.com',
