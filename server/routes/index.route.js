@@ -1,5 +1,6 @@
 import express from 'express';
 import userRoutes from './user.route';
+import productRoutes from './product.route';
 import authRoutes from './auth.route';
 
 const router = express.Router(); // eslint-disable-line new-cap
@@ -12,6 +13,9 @@ router.get('/health-check/json', (req, res) => res.json({ ok: true }));
 
 // mount user routes at /users
 router.use('/users', userRoutes);
+
+// mount user routes at /product
+router.use('/products', productRoutes);
 
 // mount auth routes at /auth
 router.use('/auth', authRoutes);

@@ -60,4 +60,31 @@ export default {
       passwordagain:  Joi.string().min(8).max(50).required(),
     }
   }
+  },
+
+  // POST /api/products
+  createProduct: {
+    body: {
+      // photoURIs: Joi.array()
+      //   .items(Joi.string())
+      //   .required(),
+      categoryIds: Joi.array()
+        .items(Joi.number())
+        .required(),
+      typeIds: Joi.array()
+        .items(Joi.number())
+        .required(),
+      tags: Joi.array().items(Joi.string().length(24)), // optional
+      description: Joi.string()
+        .min(7)
+        .max(300)
+        .required(),
+      seller: Joi.string()
+        // .min(3)
+        .length(24)
+        .required(),
+      price: Joi.number().required(),
+      currency: Joi.string().valid('UAH'), // 'UAH' by default
+    },
+  },
 };
