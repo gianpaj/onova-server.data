@@ -14,14 +14,11 @@ chai.config.includeStack = true;
 
 describe('## Product APIs', () => {
   before(done => {
-    // mongoose.connection.dropDatabase().then(done);
     const collections = [Product.collection, User.collection];
 
     var todo = collections.length;
     if (!todo) return done();
 
-    // for (let collection in collections) {
-    // Object.entries(collections).forEach(collection => {
     collections.forEach(collection => {
       collection.remove({}, { safe: true }, () => {
         if (--todo === 0) done();

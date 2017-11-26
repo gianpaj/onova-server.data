@@ -30,8 +30,6 @@ describe('## User APIs', () => {
     var todo = collections.length;
     if (!todo) return done();
 
-    // for (let collection in collections) {
-    // Object.entries(collections).forEach(collection => {
     collections.forEach(collection => {
       collection.remove({}, { safe: true }, () => {
         if (--todo === 0) done();
@@ -43,7 +41,6 @@ describe('## User APIs', () => {
     username: 'firstperson',
     emailAddress: 'first@example.com',
     mobileNumber: '1234567890', // optional
-    // displayName: 'first user',
     password: 'expressos',
   };
 
@@ -51,14 +48,12 @@ describe('## User APIs', () => {
     username: 'anotherperson',
     emailAddress: 'another@example.com',
     mobileNumber: '1234567890', // optional
-    displayName: 'another user',
     password: 'express2',
   };
 
   let thirdUser = {
     username: 'thirdwheel',
     emailAddress: 'thirdwheel@example.com',
-    displayName: 'third user',
     password: 'express3',
   };
 
@@ -67,6 +62,8 @@ describe('## User APIs', () => {
     password: 'IDontKnow',
   };
 
+  let userId;
+  let anotherUserId;
   let jwtToken;
   let anotherJwtToken;
   let activationToken;
@@ -87,7 +84,7 @@ describe('## User APIs', () => {
           expect(resUser).to.not.have.property('password');
           expect(res.body.token).to.be.a('string');
 
-          user._id = resUser._id;
+          userId = resUser._id;
           done();
         })
         .catch(done);
@@ -127,7 +124,7 @@ describe('## User APIs', () => {
     });
 
     it('# GET /api/auth/activate/:token (page) - should activate the user', done => {
-      Verification.findOne({ user: user._id }, (err, verDoc) => {
+      Verification.findOne({ user: userId }, (err, verDoc) => {
         if (err) {
           return done(err);
         }
@@ -189,7 +186,10 @@ describe('## User APIs', () => {
     it('should get valid JWT token', done => {
       request(app)
         .post('/api/auth/login')
-        .send(user)
+        .send({
+          emailAddress: user.emailAddress,
+          password: user.password,
+        })
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).to.have.property('token');
@@ -208,7 +208,7 @@ describe('## User APIs', () => {
   describe('# GET /api/users/:userId', () => {
     it('should get user details', done => {
       request(app)
-        .get(`/api/users/${user._id}`)
+        .get(`/api/users/${userId}`)
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.username).to.equal(user.username);
@@ -236,7 +236,7 @@ describe('## User APIs', () => {
     it('should update user details', done => {
       user.mobileNumber = '9876543212';
       request(app)
-        .put(`/api/users/${user._id}`)
+        .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.OK)
@@ -253,7 +253,7 @@ describe('## User APIs', () => {
     it('should update user email and unverify it', done => {
       user.emailAddress = 'newemail@example.com';
       request(app)
-        .put(`/api/users/${user._id}`)
+        .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.OK)
@@ -296,7 +296,7 @@ describe('## User APIs', () => {
   describe('# DELETE /api/users/', () => {
     it('should delete user', done => {
       request(app)
-        .delete(`/api/users/${user._id}`)
+        .delete(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(res => {
@@ -316,7 +316,7 @@ describe('## User APIs', () => {
         .send(anotherUser)
         .expect(httpStatus.CREATED)
         .then(res => {
-          anotherUser._id = res.body.user._id;
+          anotherUserId = res.body.user._id;
           done();
         })
         .catch(done);
@@ -324,7 +324,7 @@ describe('## User APIs', () => {
 
     it('first user should not delete another user', done => {
       request(app)
-        .delete(`/api/users/${anotherUser._id}`)
+        .delete(`/api/users/${anotherUserId}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.UNAUTHORIZED)
         .then(() => done())
@@ -351,7 +351,7 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.CREATED)
         .then(res => {
-          user._id = res.body.user._id;
+          userId = res.body.user._id;
           jwtToken = res.body.token;
           done();
         })
@@ -361,7 +361,7 @@ describe('## User APIs', () => {
     it('should not update an user email to an existing one', done => {
       user.emailAddress = anotherUser.emailAddress;
       request(app)
-        .put(`/api/users/${user._id}`)
+        .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
@@ -379,7 +379,7 @@ describe('## User APIs', () => {
     it("should not update an user's username to an existing one", done => {
       user.username = anotherUser.username;
       request(app)
-        .put(`/api/users/${user._id}`)
+        .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
@@ -397,7 +397,7 @@ describe('## User APIs', () => {
     it('should update a user password', done => {
       user.password = 'secure123';
       request(app)
-        .put(`/api/users/${user._id}`)
+        .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.OK)
@@ -410,7 +410,10 @@ describe('## User APIs', () => {
     it('should get another valid JWT token', done => {
       request(app)
         .post('/api/auth/login')
-        .send(anotherUser)
+        .send({
+          emailAddress: anotherUser.emailAddress,
+          password: anotherUser.password,
+        })
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).to.have.property('token');
@@ -532,7 +535,10 @@ describe('## User APIs', () => {
     it('# POST /api/auth/login - should authenticate again', done => {
       request(app)
         .post('/api/auth/login')
-        .send(anotherUser)
+        .send({
+          emailAddress: anotherUser.emailAddress,
+          password: anotherUser.password,
+        })
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).to.have.property('token');

@@ -6,6 +6,9 @@ import app from '../index';
 
 chai.config.includeStack = true;
 
+// clear screen
+process.stdout.write('\x1Bc');
+
 describe('## Misc', () => {
   describe('# GET /api/health-check', () => {
     it('should return OK', done => {
@@ -66,7 +69,6 @@ describe('## Misc', () => {
         .send({
           emailAddress: 'blah@gmail.com',
           mobileNumber: '1234567890',
-          displayName: 'Elon Musk',
           password: 'iwanttogotomars',
         })
         .expect(httpStatus.BAD_REQUEST)
