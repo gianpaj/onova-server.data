@@ -1,19 +1,20 @@
 import Joi from 'joi';
+import validate from 'express-validation';
 
-import validation from '../helpers/validation';
-
-const strictChecking = {
+// assign options
+validate.options({
   allowUnknownBody: false,
   allowUnknownHeaders: false,
   allowUnknownQuery: false,
   allowUnknownParams: false,
   allowUnknownCookies: false,
-};
+});
+
+import validation from '../helpers/validation';
 
 export default {
   // POST /api/users
   createUser: {
-    options: strictChecking,
     body: {
       username: Joi.string()
         .min(3)
@@ -33,7 +34,6 @@ export default {
 
   // UPDATE /api/users/:userId
   updateUser: {
-    options: strictChecking,
     body: {
       username: Joi.string()
         .min(3)
@@ -57,7 +57,6 @@ export default {
 
   // POST /api/auth/login
   login: {
-    options: strictChecking,
     body: {
       emailAddress: Joi.string()
         .email()
@@ -68,7 +67,6 @@ export default {
 
   // GET /api/auth/activate/:token
   activate: {
-    options: strictChecking,
     params: {
       token: Joi.string()
         .hex()
@@ -79,7 +77,6 @@ export default {
 
   // POST /api/auth/reset
   requestReset: {
-    options: strictChecking,
     body: {
       emailAddress: Joi.string()
         .email()
@@ -89,7 +86,6 @@ export default {
 
   // POST /api/auth/reset/:token
   resetForm: {
-    options: strictChecking,
     params: {
       token: Joi.string()
         .hex()
@@ -110,7 +106,6 @@ export default {
 
   // POST /api/products
   createProduct: {
-    options: strictChecking,
     body: {
       // photoURIs: Joi.array()
       //   .items(Joi.string())

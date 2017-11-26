@@ -17,7 +17,6 @@ router
 
   // POST /api/products - Create new product
   .post(
-    // upload.single('photos'),
     upload.array('photos', 5),
     validate(paramValidation.createProduct),
     productCtrl.create
