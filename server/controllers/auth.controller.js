@@ -1,3 +1,5 @@
+// @flow
+
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import passport from 'passport';
@@ -49,7 +51,6 @@ function generateToken(payload) {
   });
 }
 
-
 /**
  * GET /api/auth/random-number - (Protected route)
  *
@@ -63,7 +64,7 @@ function getRandomNumber(req, res) {
   // req.user is assigned by 'passport-jwt' middleware if a valid token is provided
   return res.json({
     user: req.user,
-    num: Math.random() * 100
+    num: Math.random() * 100,
   });
 }
 
@@ -105,7 +106,6 @@ function activate(req, res) {
     });
 }
 
-
 /**
  * GET /api/auth/reset/:token
  *
@@ -121,20 +121,20 @@ function resetPage(req, res) {
     .exec((err, verDoc) => {
       let data = {
         title: 'Onova - Password reset',
-        show_form: true
+        show_form: true,
       };
       if (err) throw err;
       if (!verDoc || !verDoc.user) {
         data.heading = 'There was an issue resetting your password';
-        data.paragraph = 'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
+        data.paragraph =
+          'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
         data.show_form = false;
       } else {
         data.heading = 'Enter your new password';
         data.paragraph = 'Please enter your password twice:';
       }
       return res.render('pass-reset', data);
-    }
-  );
+    });
 }
 
 /**
@@ -148,10 +148,11 @@ function resetFormSubmit(req, res) {
   let data = {
     title: 'Onova - Password reset',
     heading: 'Enter your new password',
-    show_form: false
+    show_form: false,
   };
   if (req.body.password != req.body.passwordagain) {
-    data.paragraph = '<div class="alert alert-danger" role="alert">Your passwords did not match.</div>';
+    data.paragraph =
+      '<div class="alert alert-danger" role="alert">Your passwords did not match.</div>';
     data.show_form = true;
     return res.render('pass-reset', data);
   } else {
@@ -170,7 +171,7 @@ function resetFormSubmit(req, res) {
 
           verDoc.user.password = req.body.password;
 
-          verDoc.user.save((err) => {
+          verDoc.user.save(err => {
             if (err) { return next(err); }
             verDoc.remove();
             return res.render('pass-reset', data);
@@ -198,4 +199,12 @@ function requestPassReset(req, res) {
   });
 }
 
-export default { login, getRandomNumber, activate, generateToken, requestPassReset, resetPage, resetFormSubmit };
+export default {
+  login,
+  getRandomNumber,
+  activate,
+  generateToken,
+  requestPassReset,
+  resetPage,
+  resetFormSubmit,
+};

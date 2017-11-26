@@ -1,5 +1,6 @@
 // @flow
 
+import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import type { $Request, NextFunction } from 'express';
 
@@ -9,7 +10,7 @@ import mailCtrl from './mail.controller';
 import authCtrl from './auth.controller';
 
 /**
- * Load user and append to req.
+ * Load user and append to req. object
  */
 function load(req: $Request, res: $Response, next: NextFunction, id: string) {
   // use static method from UserSchema
@@ -23,7 +24,10 @@ function load(req: $Request, res: $Response, next: NextFunction, id: string) {
 
 /**
  * Get user
- * @returns {User}
+ *
+ * GET /api/users/:userId
+ *
+ * @property {string} req.params.userId
  */
 function get(req: $Request, res: $Response) {
   const doc = {
@@ -37,11 +41,13 @@ function get(req: $Request, res: $Response) {
 
 /**
  * Create new user
+ *
+ * POST /api/users
+ *
  * @property {string} req.body.username
  * @property {string} req.body.emailAddress
  * @property {string} req.body.password - (salted and hashed)
  * @property {string} req.body.mobileNumber - (optional)
- * @returns {User}
  */
 function create(req: $Request, res: $Response, next: NextFunction) {
   const doc: Object = {
@@ -82,19 +88,19 @@ function create(req: $Request, res: $Response, next: NextFunction) {
         .then(savedUser => {
           mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
 
-          const payload = prepareUserJson(savedUser);
-          return res.status(201).json({
-            token: `JWT ${authCtrl.generateToken(payload)}`,
-            user: payload,
-          });
-        })
+              const payload = prepareUserJson(savedUser);
+              return res.status(201).json({
+                token: `JWT ${authCtrl.generateToken(payload)}`,
+                user: payload,
+              });
+            })
         .catch(e => next(e));
     }
   );
 }
 
 /**
- * Update existing user
+ * Update existing user - Protected route
  *
  * PUT /api/users/:userId
  *
@@ -103,7 +109,6 @@ function create(req: $Request, res: $Response, next: NextFunction) {
  * @property {string} req.body.emailAddress
  * @property {string} req.body.password - (optional)
  * @property {string} req.body.mobileNumber - (optional)
- * @returns {User}
  */
 function update(req: $Request, res: $Response, next: NextFunction) {
   const user = req.user;
@@ -183,21 +188,27 @@ function update(req: $Request, res: $Response, next: NextFunction) {
 }
 
 /**
- * Get user list.
+ * Get list of users.
+ *
+ * GET /api/users
+ *
  * @property {number} req.query.skip - Number of users to be skipped.
  * @property {number} req.query.limit - Limit number of users to be returned.
- * @returns {User[]}
  */
 function list(req: $Request, res: $Response, next: NextFunction) {
   const { limit = 50, skip = 0 } = req.query;
+  // use static method from UserSchema
   User.list({ limit, skip })
     .then(users => res.json(users))
     .catch(e => next(e));
 }
 
 /**
- * Delete user.
- * @returns {User}
+ * Delete user - Protected route
+ *
+ * DELETE /api/users/:userId
+ *
+ * @property {string} req.params.userId
  */
 function remove(req: $Request, res: $Response, next: NextFunction) {
   const user = req.user;
