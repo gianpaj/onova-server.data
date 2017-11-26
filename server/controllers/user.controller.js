@@ -85,15 +85,17 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       }
       user
         .save()
-        .then(savedUser => {
-          mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
-
+        .then((savedUser: mongoose.Document) => {
+          return mailCtrl
+            .sendVerificationEmail(savedUser.emailAddress, savedUser)
+            .then(() => {
               const payload = prepareUserJson(savedUser);
               return res.status(201).json({
                 token: `JWT ${authCtrl.generateToken(payload)}`,
                 user: payload,
               });
-            })
+            });
+        })
         .catch(e => next(e));
     }
   );

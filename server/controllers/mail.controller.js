@@ -27,7 +27,7 @@ function sendVerificationEmail(
   const token = crypto.randomBytes(8).toString('hex');
 
   // generate link
-  Verification.create({
+  return Verification.create({
     user: user._id,
     resetToken: token,
   })
