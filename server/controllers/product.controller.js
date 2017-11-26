@@ -1,7 +1,8 @@
 // @flow
+import APIError from '../helpers/APIError';
+import type { $Request, NextFunction } from 'express';
 
 import Product from '../models/product.model';
-import type { $Request, NextFunction } from 'express';
 
 /**
  * Load user and append to req.
@@ -66,6 +67,11 @@ function create(req: $Request, res: $Response, next: NextFunction) {
   };
 
   // req.files is array of `photos` files
+  if (req.files.length < 1) {
+    const APIerr = new APIError('Product image(s) are required', 400, true);
+    return next(APIerr);
+  }
+
   console.log(req.files);
   console.log(req.body);
 

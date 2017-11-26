@@ -10,7 +10,7 @@ import Verification from '../models/verification.model';
 import User from '../models/user.model';
 import Product from '../models/product.model';
 
-chai.config.includeStack = true;
+chai.config.containStack = true;
 
 describe('## Product APIs', () => {
   before(done => {
@@ -83,7 +83,7 @@ describe('## Product APIs', () => {
   });
 
   describe('# POST /api/products', () => {
-    it('# Create product', done => {
+    it('should create product', done => {
       request(app)
         .post('/api/products')
         .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
@@ -93,6 +93,40 @@ describe('## Product APIs', () => {
         .then(res => {
           console.log(res.body);
           // expect(res.body.product.description).to.equal(product.description);
+          done();
+        })
+        // .catch(error => {
+        //   throw error;
+        // });
+        .catch(done);
+    });
+
+    it('should not create product with wrong file uploaded', done => {
+      request(app)
+        .post('/api/products')
+        .attach('photos', path.join(__dirname, 'misc.test.js'))
+        .field(product)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          // console.log(res.body);
+          expect(res.body.message).to.contain(
+            'File upload only supports the following filetypes'
+          );
+          done();
+        })
+        // .catch(error => {
+        //   throw error;
+        // });
+        .catch(done);
+    });
+
+    it('should not create product without uploading a photo', done => {
+      request(app)
+        .post('/api/products')
+        .field(product)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).to.equal('Product image(s) are required');
           done();
         })
         // .catch(error => {
