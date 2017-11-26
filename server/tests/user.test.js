@@ -1,5 +1,5 @@
 import mongoose from 'mongoose';
-import request from 'supertest-as-promised';
+import request from 'supertest';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
 import chai, { expect } from 'chai';
@@ -317,9 +317,7 @@ describe('## User APIs', () => {
         .delete(`/api/users/${anotherUser._id}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.UNAUTHORIZED)
-        .then(() => {
-          done();
-        })
+        .then(() => done())
         .catch(done);
     });
 
@@ -393,9 +391,7 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.OK)
-        .then(() => {
-          done();
-        })
+        .then(() => done())
         .catch(done);
     });
   });
@@ -425,9 +421,7 @@ describe('## User APIs', () => {
       request(app)
         .get('/api/auth/random-number')
         .expect(httpStatus.UNAUTHORIZED)
-        .then(() => {
-          done();
-        })
+        .then(() => done())
         .catch(done);
     });
 
@@ -436,9 +430,7 @@ describe('## User APIs', () => {
         .get('/api/auth/random-number')
         .set('Authorization', 'JWT inValidToken')
         .expect(httpStatus.UNAUTHORIZED)
-        .then(() => {
-          done();
-        })
+        .then(() => done())
         .catch(done);
     });
 
