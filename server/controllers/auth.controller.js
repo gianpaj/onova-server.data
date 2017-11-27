@@ -46,7 +46,7 @@ function login(req, res, next) {
       };
       return res.json({
         token: `JWT ${generateToken(payload)}`,
-        user: payload,
+        data: payload,
       });
     });
   })(req, res, next);
@@ -71,7 +71,7 @@ function generateToken(payload) {
 function getRandomNumber(req, res) {
   // req.user is assigned by 'passport-jwt' middleware if a valid token is provided
   return res.json({
-    user: req.user,
+    data: req.user,
     num: Math.random() * 100,
   });
 }

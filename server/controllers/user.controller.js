@@ -92,7 +92,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
               const payload = _prepareUserJson(savedUser);
               return res.status(201).json({
                 token: `JWT ${authCtrl.generateToken(payload)}`,
-                user: payload,
+                data: payload,
               });
             });
         })

@@ -76,7 +76,7 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.CREATED)
         .then(res => {
-          const resUser = res.body.user;
+          const resUser = res.body.data;
           expect(resUser._id).to.a('string');
           expect(resUser.username).to.equal(user.username);
           expect(resUser.emailAddress).to.equal(user.emailAddress);
@@ -96,7 +96,7 @@ describe('## User APIs', () => {
         .send(thirdUser)
         .expect(httpStatus.CREATED)
         .then(res => {
-          const resUser = res.body.user;
+          const resUser = res.body.data;
           expect(resUser._id).to.a('string');
           expect(resUser.username).to.equal(thirdUser.username);
           expect(resUser.emailAddress).to.equal(thirdUser.emailAddress);
@@ -330,7 +330,7 @@ describe('## User APIs', () => {
         .send(anotherUser)
         .expect(httpStatus.CREATED)
         .then(res => {
-          anotherUserId = res.body.user._id;
+          anotherUserId = res.body.data._id;
           done();
         })
         .catch(done);
@@ -365,7 +365,7 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.CREATED)
         .then(res => {
-          userId = res.body.user._id;
+          userId = res.body.data._id;
           jwtToken = res.body.token;
           done();
         })
