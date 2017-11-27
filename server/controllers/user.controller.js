@@ -78,8 +78,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       if (existingUser) {
         const APIerr = new APIError(
           'An account with the same email address or username exists.',
-          httpStatus.BAD_REQUEST,
-          true
+          httpStatus.BAD_REQUEST
         );
         return next(APIerr);
       }
@@ -141,8 +140,7 @@ function update(req: $Request, res: $Response, next: NextFunction) {
             if (existingUser) {
               const APIerr = new APIError(
                 'An account with the same email address exists.',
-                httpStatus.BAD_REQUEST,
-                true
+                httpStatus.BAD_REQUEST
               );
               return reject(APIerr);
             }
@@ -170,8 +168,7 @@ function update(req: $Request, res: $Response, next: NextFunction) {
           if (existingUser) {
             const APIerr = new APIError(
               'An account with the same username exists.',
-              httpStatus.BAD_REQUEST,
-              true
+              httpStatus.BAD_REQUEST
             );
             return reject(APIerr);
           }

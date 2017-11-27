@@ -27,8 +27,7 @@ function login(req, res, next) {
       console.debug(info);
       const APIerr = new APIError(
         'Authentication error',
-        httpStatus.UNAUTHORIZED,
-        true
+        httpStatus.UNAUTHORIZED
       );
       return next(APIerr);
     }

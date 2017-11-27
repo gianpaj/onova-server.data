@@ -27,8 +27,7 @@ const upload = multer({
     const APIerr = new APIError(
       // prettier-ignore
       `Error: File upload only supports the following filetypes -  ${filetypes}`,
-      httpStatus.BAD_REQUEST,
-      true
+      httpStatus.BAD_REQUEST
     );
     return cb(APIerr);
   },

@@ -70,7 +70,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
 
   // req.files is array of `photos` files
   if (req.files.length < 1) {
-    const APIerr = new APIError('Product image(s) are required', 400, true);
+    const APIerr = new APIError('Product image(s) are required', 400);
     return next(APIerr);
   }
 
@@ -88,13 +88,12 @@ function create(req: $Request, res: $Response, next: NextFunction) {
   User.findById(req.body.seller)
     .then(seller => {
       if (!seller) {
-        throw new APIError('Seller not found', 400, true);
+        throw new APIError('Seller not found', 400);
       }
       if (seller.accountStatus !== 'verified') {
         throw new APIError(
           'Please verify your account before creating a listing',
-          400,
-          true
+          400
         );
       }
       doc.seller = seller._id;
@@ -106,7 +105,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
         .then(savedProduct => savedProduct)
     .catch(err => {
           console.error(err);
-          throw new APIError('Error creating Product', 400, true);
+          throw new APIError('Error creating Product', 400);
     });
     })
     .then(savedProduct => {

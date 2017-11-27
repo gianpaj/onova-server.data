@@ -52,12 +52,12 @@ describe('## Misc', () => {
   });
 
   describe('# Error Handling', () => {
-    it('should handle mongoose CastError as Bad Request', done => {
+    it('should handle Invalid user', done => {
       request(app)
         .get('/api/users/56z787zzz67fc')
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal('Bad Request');
+          expect(res.body.message).to.equal('Invalid user');
           done();
         })
         .catch(done);

@@ -234,12 +234,12 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should report error with message - Not found, when user does not exists', done => {
+    it('should report error with message - When user does not exists', done => {
       request(app)
         .get('/api/users/56c787ccc67fc16ccc1a5e92')
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal('Bad Request');
+          expect(res.body.message).to.equal('Invalid user');
           done();
         })
         .catch(done);
@@ -351,7 +351,7 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal('Bad Request');
+          expect(res.body.message).to.equal('Invalid user');
           done();
         })
         .catch(done);

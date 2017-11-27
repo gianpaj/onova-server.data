@@ -29,7 +29,7 @@ class APIError extends ExtendableError {
   constructor(
     message,
     status = httpStatus.INTERNAL_SERVER_ERROR,
-    isPublic = false
+    isPublic = true
   ) {
     super(message, status, isPublic);
   }
