@@ -48,7 +48,7 @@ router
 router
   .route('/:uuid')
   // GET /api/products/:uuid - Get product
-  .get(productCtrl.get)
+  .get(validate(paramValidation.getProduct), productCtrl.get)
 
 //   // PUT /api/products/:uuid - Update product
 //   .put(requireAuth, productCtrl.update)
@@ -57,6 +57,6 @@ router
 //   .delete(requireAuth, productCtrl.remove);
 
 // Load product when API with uuid route parameter is hit
-// router.param('uuid', productCtrl.load);
+router.param('uuid', productCtrl.load);
 
 export default router;

@@ -150,4 +150,39 @@ describe('## Product APIs', () => {
         .catch(done);
     });
   });
+
+  describe('# GET /api/products/:uuid', () => {
+    it('should get an existing product', done => {
+      request(app)
+        .get(`/api/products/${productUuid}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(p.description).to.equal(product.description);
+          expect(p.seller._id).to.equal(product.seller);
+          expect(p.status).to.equal('forsale');
+          expect(p.currency).to.equal('UAH');
+          expect(p.likes).to.be.an('array').that.is.empty;
+          expect(p.comments).to.be.an('array').that.is.empty;
+          expect(p.tags).to.be.an('array').that.is.empty;
+          expect(p.typeIds.sort()).to.deep.equal([1, 2, 3]);
+          expect(p.categoryIds.sort()).to.deep.equal([1, 2, 3]);
+          expect(p.photoURIs).to.have.lengthOf(2);
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should not get an non valid product', done => {
+      request(app)
+        .get('/api/products/SkveMe9lz')
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          console.log(res.body);
+          expect(res.body.message).to.equal('Invalid product');
+          done();
+        })
+        .catch(done);
+    });
+  });
 });

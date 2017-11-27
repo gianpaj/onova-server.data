@@ -22,25 +22,14 @@ function load(req: $Request, res: $Response, next: NextFunction, uuid: string) {
 
 /**
  * GET /api/products/:uuid - Get product
+ *
+ * @property {string} req.params.uuid  - The unique id (shortid) of product.
  */
 function get(req: $Request, res: $Response) {
-  const p = req.product;
-  const doc = {
-    uuid: p.uuid,
-    photoURIs: p.photoURIs,
-    categoryIds: p.categoryIds,
-    typeIds: p.typeIds,
-    // tags: p.tags, //populated?
-    description: p.description,
-    // seller: p.seller, //populated?
-    // comments: p.comments, //populated?
-    likesCount: p.likes.lenght,
-    price: p.price,
-    currency: p.currency,
-    status: p.status,
-    createdAt: p.createdAt,
-  };
-  return res.json(doc);
+  const doc = _prepareProductJson(req.product);
+  doc.createdAt = req.product.createdAt;
+
+  return res.json({ data: doc });
 }
 
 /**
@@ -103,10 +92,10 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       return product
         .save()
         .then(savedProduct => savedProduct)
-    .catch(err => {
+        .catch(err => {
           console.error(err);
           throw new APIError('Error creating Product', 400);
-    });
+        });
     })
     .then(savedProduct => {
       return res.status(201).json({ data: _prepareProductJson(savedProduct) });

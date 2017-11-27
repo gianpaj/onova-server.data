@@ -137,4 +137,13 @@ export default {
       currency: Joi.string().valid('UAH'), // 'UAH' by default
     },
   },
+
+  getProduct: {
+    params: {
+      uuid: Joi.string()
+        // shortid
+        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .required(),
+    },
+  },
 };
