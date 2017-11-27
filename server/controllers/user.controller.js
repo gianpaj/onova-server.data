@@ -89,7 +89,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
           return mailCtrl
             .sendVerificationEmail(savedUser.emailAddress, savedUser)
             .then(() => {
-              const payload = prepareUserJson(savedUser);
+              const payload = _prepareUserJson(savedUser);
               return res.status(201).json({
                 token: `JWT ${authCtrl.generateToken(payload)}`,
                 user: payload,
@@ -222,10 +222,10 @@ function remove(req: $Request, res: $Response, next: NextFunction) {
 }
 
 /**
- * Limit number of fields send back for user
+ * Limit number of fields send back for a user
  * (private)
  */
-function prepareUserJson(user: Object): Object {
+function _prepareUserJson(user: Object): Object {
   const json = {
     _id: user._id,
     username: user.username,

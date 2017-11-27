@@ -123,6 +123,20 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
+    it('# POST /api/users - should not create a user with a short password', done => {
+      request(app)
+        .post('/api/users')
+        .send({ ...user, password: '123' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).to.equal(
+            '"password" length must be at least 8 characters long'
+          );
+          done();
+        })
+        .catch(done);
+    });
+
     it('# GET /api/auth/activate/:token (page) - should activate the user', done => {
       Verification.findOne({ user: userId }, (err, verDoc) => {
         if (err) {
