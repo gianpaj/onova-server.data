@@ -17,7 +17,7 @@ import passport from 'passport';
 import winstonInstance from './winston';
 import routes from '../routes/index.route';
 import config from './config';
-import APIError, { ExtendableError } from '../helpers/APIError';
+import APIError from '../helpers/APIError';
 
 /**
  * API keys and Passport configuration.
@@ -69,22 +69,20 @@ if (config.env === 'development') {
 app.use('/api', routes);
 
 // if error is not an instanceOf APIError, convert it.
-app.use(
-  (err: ExtendableError, req: $Request, res: $Response, next: NextFunction) => {
-    if (err instanceof expressValidation.ValidationError) {
-      // validation error contains errors which is an array of error each containing message[]
-      const unifiedErrorMessage = err.errors
-        .map(error => error.messages.join('. '))
-        .join(' and ');
-      const error = new APIError(unifiedErrorMessage, err.status, true);
-      return next(error);
-    } else if (!(err instanceof APIError)) {
-      const apiError = new APIError(err.message, err.status, err.isPublic);
-      return next(apiError);
-    }
-    return next(err);
+app.use((err: any, req: $Request, res: $Response, next: NextFunction) => {
+  if (err instanceof expressValidation.ValidationError) {
+    // validation error contains errors which is an array of error each containing message[]
+    const unifiedErrorMessage = err.errors
+      .map(error => error.messages.join('. '))
+      .join(' and ');
+    const error = new APIError(unifiedErrorMessage, err.status, true);
+    return next(error);
+  } else if (!(err instanceof APIError)) {
+    const apiError = new APIError(err.message, err.status, err.isPublic);
+    return next(apiError);
   }
-);
+  return next(err);
+});
 
 // catch 404 and forward to error handler
 app.use((req: $Request, res: $Response, next: NextFunction) => {
@@ -103,12 +101,11 @@ if (config.env !== 'test') {
 
 // error handler, send stacktrace only during development
 // eslint-disable-next-line no-unused-vars
-app.use(
-  (err: ExtendableError, req: $Request, res: $Response, next: NextFunction) =>
-    res.status(err.status).json({
-      message: err.isPublic ? err.message : httpStatus[err.status],
-      stack: config.env === 'development' ? err.stack : {},
-    })
+app.use((err: any, req: $Request, res: $Response, next: NextFunction) =>
+  res.status(err.status).json({
+    message: err.isPublic ? err.message : httpStatus[err.status],
+    stack: config.env === 'development' ? err.stack : {},
+  })
 );
 
 export default app;

@@ -1,7 +1,7 @@
 // @flow
 
 import httpStatus from 'http-status';
-import type { $Request, NextFunction } from 'express';
+import type { $Request, $Response, NextFunction } from 'express';
 
 import APIError from '../helpers/APIError';
 import User, { UserDoc } from '../models/user.model';
@@ -71,7 +71,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
         { username: req.body.username },
       ],
     },
-    (err, existingUser) => {
+    (err, existingUser: UserDoc) => {
       if (err) {
         return next(err);
       }

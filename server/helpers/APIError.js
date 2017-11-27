@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 /**
  * @extends Error
  */
-export class ExtendableError extends Error {
+class ExtendableError extends Error {
   constructor(message, status, isPublic) {
     super(message);
     this.name = this.constructor.name;
@@ -11,7 +11,7 @@ export class ExtendableError extends Error {
     this.status = status;
     this.isPublic = isPublic;
     this.isOperational = true; // This is required since bluebird 4 doesn't append it anymore.
-    Error.captureStackTrace(this, this.constructor.name);
+    Error.captureStackTrace(this, ExtendableError);
   }
 }
 
@@ -19,7 +19,7 @@ export class ExtendableError extends Error {
  * Class representing an API error.
  * @extends ExtendableError
  */
-export class APIError extends ExtendableError {
+class APIError extends ExtendableError {
   /**
    * Creates an API error.
    * @param {string} message - Error message.
@@ -34,3 +34,5 @@ export class APIError extends ExtendableError {
     super(message, status, isPublic);
   }
 }
+
+export default APIError;
