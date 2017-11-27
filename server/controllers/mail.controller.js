@@ -1,10 +1,10 @@
 // @flow
 
-import mongoose from 'mongoose';
 import mailjet from 'node-mailjet';
 import crypto from 'crypto';
 
 import Verification from '../models/verification.model';
+import UserDoc from '../models/user.model';
 import config from '../config/config';
 
 const mailjetClient = mailjet.connect(
@@ -16,12 +16,9 @@ const mailjetClient = mailjet.connect(
  * Send email via Mailjet to verify the account
  *
  * @param {string} emailTo
- * @param {mongoose.Document} user
+ * @param {User} user
  */
-function sendVerificationEmail(
-  emailTo: string,
-  user: mongoose.Document
-): Promise<any> {
+function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
   const subject = 'Welcome to Onova - Verify your email address';
 
   const token = crypto.randomBytes(8).toString('hex');

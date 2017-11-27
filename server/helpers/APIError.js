@@ -3,7 +3,7 @@ import httpStatus from 'http-status';
 /**
  * @extends Error
  */
-class ExtendableError extends Error {
+export class ExtendableError extends Error {
   constructor(message, status, isPublic) {
     super(message);
     this.name = this.constructor.name;
@@ -19,7 +19,7 @@ class ExtendableError extends Error {
  * Class representing an API error.
  * @extends ExtendableError
  */
-class APIError extends ExtendableError {
+export class APIError extends ExtendableError {
   /**
    * Creates an API error.
    * @param {string} message - Error message.
@@ -34,5 +34,3 @@ class APIError extends ExtendableError {
     super(message, status, isPublic);
   }
 }
-
-export default APIError;

@@ -1,4 +1,7 @@
+// @flow
+
 import express from 'express';
+import type { $Request, $Response, NextFunction } from 'express';
 import logger from 'morgan';
 import bodyParser from 'body-parser';
 import cookieParser from 'cookie-parser';
@@ -14,7 +17,7 @@ import passport from 'passport';
 import winstonInstance from './winston';
 import routes from '../routes/index.route';
 import config from './config';
-import APIError from '../helpers/APIError';
+import APIError, { ExtendableError } from '../helpers/APIError';
 
 /**
  * API keys and Passport configuration.
@@ -34,13 +37,6 @@ app.use(bodyParser.urlencoded({ extended: true }));
 app.use(cookieParser());
 app.use(compress());
 app.use(methodOverride());
-// app.use(expressValidator({
-//   customValidators: {
-//       isValidId: function(value) {
-//           return shortid.isValid(value);
-//       }
-//   }
-// }));
 
 app.use(passport.initialize());
 
@@ -73,23 +69,25 @@ if (config.env === 'development') {
 app.use('/api', routes);
 
 // if error is not an instanceOf APIError, convert it.
-app.use((err, req, res, next) => {
-  if (err instanceof expressValidation.ValidationError) {
-    // validation error contains errors which is an array of error each containing message[]
-    const unifiedErrorMessage = err.errors
-      .map(error => error.messages.join('. '))
-      .join(' and ');
-    const error = new APIError(unifiedErrorMessage, err.status, true);
-    return next(error);
-  } else if (!(err instanceof APIError)) {
-    const apiError = new APIError(err.message, err.status, err.isPublic);
-    return next(apiError);
+app.use(
+  (err: ExtendableError, req: $Request, res: $Response, next: NextFunction) => {
+    if (err instanceof expressValidation.ValidationError) {
+      // validation error contains errors which is an array of error each containing message[]
+      const unifiedErrorMessage = err.errors
+        .map(error => error.messages.join('. '))
+        .join(' and ');
+      const error = new APIError(unifiedErrorMessage, err.status, true);
+      return next(error);
+    } else if (!(err instanceof APIError)) {
+      const apiError = new APIError(err.message, err.status, err.isPublic);
+      return next(apiError);
+    }
+    return next(err);
   }
-  return next(err);
-});
+);
 
 // catch 404 and forward to error handler
-app.use((req, res, next) => {
+app.use((req: $Request, res: $Response, next: NextFunction) => {
   const err = new APIError('API not found', httpStatus.NOT_FOUND);
   return next(err);
 });
@@ -105,11 +103,12 @@ if (config.env !== 'test') {
 
 // error handler, send stacktrace only during development
 // eslint-disable-next-line no-unused-vars
-app.use((err, req, res, next) =>
-  res.status(err.status).json({
-    message: err.isPublic ? err.message : httpStatus[err.status],
-    stack: config.env === 'development' ? err.stack : {},
-  })
+app.use(
+  (err: ExtendableError, req: $Request, res: $Response, next: NextFunction) =>
+    res.status(err.status).json({
+      message: err.isPublic ? err.message : httpStatus[err.status],
+      stack: config.env === 'development' ? err.stack : {},
+    })
 );
 
 export default app;

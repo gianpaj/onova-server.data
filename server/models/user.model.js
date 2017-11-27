@@ -1,3 +1,5 @@
+// @flow
+
 import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
@@ -30,8 +32,8 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      // validated at API level via 'joi' and 'isemail' npm packages
-      // match: [validation.emailAddress, 'Invalid email address']
+      set: (v: string) => v.toLowerCase().trim(),
+      // validated at API level via 'Joi' and 'isEmail' npm packages
     },
     password: {
       type: String,
@@ -47,6 +49,16 @@ const UserSchema = new mongoose.Schema(
   },
   { timestamps: true }
 );
+
+export class UserDoc /*:: extends Mongoose$Document */ {
+  username: string;
+  displayName: ?string;
+  mobileNumber: string;
+  emailAddress: string;
+  accountStatus: string;
+}
+
+UserSchema.loadClass(UserDoc);
 
 /**
  * Add your

@@ -1,4 +1,5 @@
 // @flow
+
 import APIError from '../helpers/APIError';
 import type { $Request, NextFunction } from 'express';
 
@@ -8,11 +9,12 @@ import User from '../models/user.model';
 /**
  * Load user and append to req.
  */
-function load(req: $Request, res: $Response, next: NextFunction, id: string) {
+function load(req: $Request, res: $Response, next: NextFunction, uuid: string) {
   // use static method from ProductSchema
-  Product.get(id)
-    .then(user => {
-      req.user = user;
+  // flow-disable-next-line
+  Product.get(uuid)
+    .then(product => {
+      req.product = product;
       return next();
     })
     .catch(e => next(e));

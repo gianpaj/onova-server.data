@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 import chai, { expect } from 'chai';
@@ -44,6 +43,8 @@ describe('## Product APIs', () => {
     price: 10099, // 100.99 UAH
   };
 
+  let productUuid;
+
   before(done => {
     // create user (seller)
     request(app)
@@ -51,7 +52,7 @@ describe('## Product APIs', () => {
       .send(user)
       .expect(httpStatus.CREATED)
       .then(res => {
-        const resUser = res.body.user;
+        const resUser = res.body.data;
         expect(resUser._id).to.a('string');
         expect(resUser.username).to.equal(user.username);
         expect(resUser.emailAddress).to.equal(user.emailAddress);

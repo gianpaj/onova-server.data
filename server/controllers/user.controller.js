@@ -1,21 +1,21 @@
 // @flow
 
-import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import type { $Request, NextFunction } from 'express';
 
-import User from '../models/user.model';
 import APIError from '../helpers/APIError';
-import mailCtrl from './mail.controller';
+import User, { UserDoc } from '../models/user.model';
 import authCtrl from './auth.controller';
+import mailCtrl from './mail.controller';
 
 /**
  * Load user and append to req. object
  */
 function load(req: $Request, res: $Response, next: NextFunction, id: string) {
   // use static method from UserSchema
+  // flow-disable-next-line
   User.get(id)
-    .then(user => {
+    .then((user: UserDoc) => {
       req.user = user;
       return next();
     })
@@ -25,7 +25,7 @@ function load(req: $Request, res: $Response, next: NextFunction, id: string) {
 /**
  * Get user
  *
- * GET /api/users/:userId
+ * GET /api/users/:userId - ObjectId
  *
  * @property {string} req.params.userId
  */
@@ -85,7 +85,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       }
       user
         .save()
-        .then((savedUser: mongoose.Document) => {
+        .then((savedUser: UserDoc) => {
           return mailCtrl
             .sendVerificationEmail(savedUser.emailAddress, savedUser)
             .then(() => {
@@ -200,6 +200,7 @@ function update(req: $Request, res: $Response, next: NextFunction) {
 function list(req: $Request, res: $Response, next: NextFunction) {
   const { limit = 50, skip = 0 } = req.query;
   // use static method from UserSchema
+  // flow-disable-next-line
   User.list({ limit, skip })
     .then(users => res.json(users))
     .catch(e => next(e));
@@ -225,7 +226,7 @@ function remove(req: $Request, res: $Response, next: NextFunction) {
  * Limit number of fields send back for a user
  * (private)
  */
-function _prepareUserJson(user: Object): Object {
+function _prepareUserJson(user: UserDoc): Object {
   const json = {
     _id: user._id,
     username: user.username,
