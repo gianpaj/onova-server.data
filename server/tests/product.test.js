@@ -93,7 +93,18 @@ describe('## Product APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           console.log(res.body);
-          // expect(res.body.product.description).to.equal(product.description);
+          const p = res.body.data;
+          expect(p.description).to.equal(product.description);
+          expect(p.seller).to.equal(product.seller);
+          expect(p.status).to.equal('forsale');
+          expect(p.currency).to.equal('UAH');
+          expect(p.likes).to.be.an('array').that.is.empty;
+          expect(p.comments).to.be.an('array').that.is.empty;
+          expect(p.tags).to.be.an('array').that.is.empty;
+          expect(p.typeIds.sort()).to.deep.equal([1, 2, 3]);
+          expect(p.categoryIds.sort()).to.deep.equal([1, 2, 3]);
+          expect(p.photoURIs).to.have.lengthOf(2);
+          productUuid = p.uuid;
           done();
         })
         .catch(done);
@@ -127,10 +138,9 @@ describe('## Product APIs', () => {
     });
 
     it('should not create product without a valid seller', done => {
-      product.seller = '5a1b50bfa4c57109cf583235';
       request(app)
         .post('/api/products')
-        .field(product)
+        .field({ ...product, seller: '5a1b50bfa4c57109cf583235' })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
