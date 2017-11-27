@@ -95,9 +95,6 @@ describe('## Product APIs', () => {
           // expect(res.body.product.description).to.equal(product.description);
           done();
         })
-        // .catch(error => {
-        //   throw error;
-        // });
         .catch(done);
     });
 
@@ -108,15 +105,11 @@ describe('## Product APIs', () => {
         .field(product)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          // console.log(res.body);
           expect(res.body.message).to.contain(
             'File upload only supports the following filetypes'
           );
           done();
         })
-        // .catch(error => {
-        //   throw error;
-        // });
         .catch(done);
     });
 
@@ -129,9 +122,20 @@ describe('## Product APIs', () => {
           expect(res.body.message).to.equal('Product image(s) are required');
           done();
         })
-        // .catch(error => {
-        //   throw error;
-        // });
+        .catch(done);
+    });
+
+    it('should not create product without a valid seller', done => {
+      product.seller = '5a1b50bfa4c57109cf583235';
+      request(app)
+        .post('/api/products')
+        .field(product)
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).to.equal('Seller not found');
+          done();
+        })
         .catch(done);
     });
   });

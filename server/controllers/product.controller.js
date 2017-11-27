@@ -3,6 +3,7 @@ import APIError from '../helpers/APIError';
 import type { $Request, NextFunction } from 'express';
 
 import Product from '../models/product.model';
+import User from '../models/user.model';
 
 /**
  * Load user and append to req.
@@ -79,16 +80,27 @@ function create(req: $Request, res: $Response, next: NextFunction) {
     doc.tags = req.body.tags;
   }
 
+  User.findById(doc.seller)
+    .then(seller => {
+      if (!seller) {
+        throw new APIError('Seller not found', 400, true);
+      }
+      if (seller.accountStatus !== 'verified') {
+        throw new APIError(
+          'Please verify your account before creating a listing',
+          400,
+          true
+        );
+      }
+    })
+    .then(() => {
+      res.status(201).json({ ok: true });
+    })
+    .catch(err => {
+      return next(err);
+    });
+
   // const product = new Product(doc);
-
-  // const APIerr = new APIError(
-  //   'An account with the same email address or username exists.',
-  //   httpStatus.BAD_REQUEST,
-  //   true
-  // );
-  // return next(APIerr);
-
-  res.status(201).json({ ok: true });
 
   // product
   //   .save()

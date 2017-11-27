@@ -111,10 +111,18 @@ export default {
       //   .items(Joi.string())
       //   .required(),
       categoryIds: Joi.array()
-        .items(Joi.number())
+        .items(
+          Joi.number()
+            .min(0)
+            .max(5)
+        )
         .required(),
       typeIds: Joi.array()
-        .items(Joi.number())
+        .items(
+          Joi.number()
+            .min(0)
+            .max(5)
+        )
         .required(),
       tags: Joi.array().items(Joi.string().length(24)), // optional
       description: Joi.string()
