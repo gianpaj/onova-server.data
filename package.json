@@ -18,9 +18,7 @@
     "prod:start": "cross-env NODE_ENV=production pm2 start lib --name server.data",
     "prod:stop": "pm2 delete server.data",
     "lint": "esw *.js server config --color",
-    "test": "cross-env NODE_ENV=test mocha --ui bdd --reporter spec --colors --require babel-core/register server/tests --recursive",
-    "test:watch": "yarn test --watch",
-    "test:watch:nodemon": "nodemon --watch . --exec 'yarn test || true'",
+    "test": "jest --forceExit",
     "test:coverage": "cross-env NODE_ENV=test istanbul cover _mocha -- --ui bdd --reporter spec --colors --require babel-core/register server/tests --recursive",
     "test:check-coverage": "yarn test:coverage && istanbul check-coverage",
     "report-coverage": "coveralls < ./coverage/lcov.info"
@@ -88,6 +86,5 @@
     "commitizen": {
       "path": "./node_modules/cz-conventional-changelog"
     }
-  },
   }
 }
