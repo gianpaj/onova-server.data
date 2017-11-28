@@ -87,7 +87,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       return product
         .save()
         .then(savedProduct => savedProduct)
-        .catch(err => {
+        .catch(() => {
           throw new APIError('Error creating Product', 400);
         });
     })

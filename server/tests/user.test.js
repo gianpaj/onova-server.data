@@ -2,14 +2,11 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
-import chai, { expect } from 'chai';
 
 import app from '../index';
 import config from '../config/config';
 import Verification from '../models/verification.model';
 import User from '../models/user.model';
-
-chai.config.includeStack = true;
 
 /**
  * root level hooks
@@ -115,7 +112,9 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe('An account with the same email address or username exists.');
+          expect(res.body.message).toBe(
+            'An account with the same email address or username exists.'
+          );
           done();
         })
         .catch(done);
@@ -127,7 +126,9 @@ describe('## User APIs', () => {
         .send({ ...user, password: '123' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe('"password" length must be at least 8 characters long');
+          expect(res.body.message).toBe(
+            '"password" length must be at least 8 characters long'
+          );
           done();
         })
         .catch(done);
@@ -158,7 +159,9 @@ describe('## User APIs', () => {
         .get(`/api/auth/activate/${activationToken}`)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.text).toContain('something wrong with the link you received');
+          expect(res.text).toContain(
+            'something wrong with the link you received'
+          );
           done();
         })
         .catch(done);
@@ -169,7 +172,9 @@ describe('## User APIs', () => {
         .get(`/api/auth/activate/e700760eb3d6fc65`)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.text).toContain('something wrong with the link you received');
+          expect(res.text).toContain(
+            'something wrong with the link you received'
+          );
           done();
         })
         .catch(done);
@@ -372,7 +377,9 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe('An account with the same email address exists.');
+          expect(res.body.message).toBe(
+            'An account with the same email address exists.'
+          );
           // reset the email
           user.emailAddress = 'newemail@example.com';
           done();
@@ -388,7 +395,9 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe('An account with the same username exists.');
+          expect(res.body.message).toBe(
+            'An account with the same username exists.'
+          );
           // reset the email
           user.username = 'firstperson';
           done();
@@ -512,7 +521,9 @@ describe('## User APIs', () => {
         .send({ password: 'americano', passwordagain: 'americano' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.text).toContain('There was an issue resetting your password');
+          expect(res.text).toContain(
+            'There was an issue resetting your password'
+          );
           done();
         })
         .catch(done);
@@ -524,7 +535,9 @@ describe('## User APIs', () => {
         .send({ password: 'americano', passwordagain: 'americano' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe('"token" length must be 16 characters long');
+          expect(res.body.message).toBe(
+            '"token" length must be 16 characters long'
+          );
           done();
         })
         .catch(done);

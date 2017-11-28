@@ -3,9 +3,6 @@ import httpStatus from 'http-status';
 
 import app from '../index';
 
-// clear screen
-process.stdout.write('\x1Bc');
-
 describe('## Misc', () => {
   describe('# GET /api/health-check', () => {
     it('should return OK', async () => {

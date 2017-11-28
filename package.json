@@ -19,9 +19,7 @@
     "prod:stop": "pm2 delete server.data",
     "lint": "esw *.js server config --color",
     "test": "cross-env NODE_ENV=test jest --forceExit",
-    "test:coverage": "cross-env NODE_ENV=test istanbul cover _mocha -- --ui bdd --reporter spec --colors --require babel-core/register server/tests --recursive",
-    "test:check-coverage": "yarn test:coverage && istanbul check-coverage",
-    "report-coverage": "coveralls < ./coverage/lcov.info"
+    "test:watch": "yarn test --watch"
   },
   "repository": {
     "type": "git",
@@ -62,9 +60,7 @@
     "babel-plugin-transform-object-rest-spread": "6.26.0",
     "babel-preset-env": "1.6.1",
     "babel-preset-flow": "^6.23.0",
-    "chai": "^4.1.2",
     "commitizen": "^2.9.2",
-    "coveralls": "^2.11.6",
     "cross-env": "^5.1.1",
     "eslint": "^4.11.0",
     "eslint-config-prettier": "2.8.0",
@@ -73,9 +69,7 @@
     "eslint-plugin-prettier": "2.3.1",
     "eslint-watch": "3.1.3",
     "flow-bin": "~0.59.0",
-    "istanbul": "1.1.0-alpha.1",
     "jest": "21.2.1",
-    "mocha": "4.0.1",
     "nodemon": "1.12.1",
     "pm2": "2.7.2",
     "prettier": "1.8.2",
