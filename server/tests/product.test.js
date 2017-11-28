@@ -92,18 +92,32 @@ describe('## Product APIs', () => {
         .field(product)
         .expect(httpStatus.CREATED)
         .then(res => {
-          console.log(res.body);
           const p = res.body.data;
+          expect(p.categoryIds.sort()).to.deep.equal([1, 2, 3]);
+          expect(p.comments).to.be.an('array').that.is.empty;
+          expect(p.currency).to.equal('UAH');
           expect(p.description).to.equal(product.description);
+          expect(p.likes).to.be.an('array').that.is.empty;
+          expect(p.photoURIs).to.have.lengthOf(2);
+          expect(p.price).to.equal('10099.00');
           expect(p.seller).to.equal(product.seller);
           expect(p.status).to.equal('forsale');
-          expect(p.currency).to.equal('UAH');
-          expect(p.likes).to.be.an('array').that.is.empty;
-          expect(p.comments).to.be.an('array').that.is.empty;
           expect(p.tags).to.be.an('array').that.is.empty;
           expect(p.typeIds.sort()).to.deep.equal([1, 2, 3]);
-          expect(p.categoryIds.sort()).to.deep.equal([1, 2, 3]);
-          expect(p.photoURIs).to.have.lengthOf(2);
+          expect(p).to.have.all.keys(
+            'categoryIds',
+            'comments',
+            'currency',
+            'description',
+            'likes',
+            'photoURIs',
+            'price',
+            'seller',
+            'status',
+            'tags',
+            'typeIds',
+            'uuid'
+          );
           productUuid = p.uuid;
           done();
         })
@@ -178,7 +192,6 @@ describe('## Product APIs', () => {
         .get('/api/products/SkveMe9lz')
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          console.log(res.body);
           expect(res.body.message).to.equal('Invalid product');
           done();
         })

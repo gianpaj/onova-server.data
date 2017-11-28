@@ -3,8 +3,8 @@
 import APIError from '../helpers/APIError';
 import type { $Request, NextFunction } from 'express';
 
-import Product from '../models/product.model';
-import User from '../models/user.model';
+import Product, { ProductDoc } from '../models/product.model';
+import User, { UserDoc } from '../models/user.model';
 
 /**
  * Load user and append to req.
@@ -13,7 +13,7 @@ function load(req: $Request, res: $Response, next: NextFunction, uuid: string) {
   // use static method from ProductSchema
   // flow-disable-next-line
   Product.get(uuid)
-    .then(product => {
+    .then((product: ProductDoc) => {
       req.product = product;
       return next();
     })
@@ -46,16 +46,20 @@ function get(req: $Request, res: $Response) {
  * @property {string} req.body.typeIds
  */
 function create(req: $Request, res: $Response, next: NextFunction) {
-  const doc: Object = {
+  const product = new Product({
     categoryIds: req.body.categoryIds,
     // currency: req.body.currency, // 'UAH' by default
     description: req.body.description,
     price: req.body.price,
-    // seller: req.body.seller, // need ref
     // status: req.body.status, // 'forsale' by default
     // tags: req.body.tags, // optional
     typeIds: req.body.typeIds,
-  };
+  });
+
+  // @todo create tag documents
+  if (req.body.tags) {
+    product.tags = req.body.tags;
+  }
 
   // req.files is array of `photos` files
   if (req.files.length < 1) {
@@ -64,18 +68,12 @@ function create(req: $Request, res: $Response, next: NextFunction) {
   }
 
   // console.log(req.files);
-  // console.log(req.body);
-
-  // @todo create tag documents
-  if (req.body.tags) {
-    doc.tags = req.body.tags;
-  }
-
   // @todo upload images
-  doc.photoURIs = ['a', 'b'];
+  product.photoURIs = ['a', 'b'];
 
   User.findById(req.body.seller)
-    .then(seller => {
+    // UserDoc?
+    .then((seller: any) => {
       if (!seller) {
         throw new APIError('Seller not found', 400);
       }
@@ -85,15 +83,12 @@ function create(req: $Request, res: $Response, next: NextFunction) {
           400
         );
       }
-      doc.seller = seller._id;
-
-      const product = new Product(doc);
+      product.seller = seller._id;
 
       return product
         .save()
         .then(savedProduct => savedProduct)
         .catch(err => {
-          console.error(err);
           throw new APIError('Error creating Product', 400);
         });
     })

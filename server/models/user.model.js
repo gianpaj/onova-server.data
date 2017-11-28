@@ -86,10 +86,10 @@ UserSchema.statics = {
    * @param {ObjectId} id - The objectId of user.
    * @returns {Promise<User, APIError>}
    */
-  get(id) {
+  get(id: string) {
     return this.findById(id)
       .exec()
-      .then(user => {
+      .then((user: UserDoc) => {
         if (!user) {
           return Promise.reject();
         }
