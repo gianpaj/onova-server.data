@@ -14,7 +14,7 @@ chai.config.includeStack = true;
 /**
  * root level hooks
  */
-after(done => {
+afterAll(done => {
   // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
   mongoose.models = {};
   mongoose.modelSchemas = {};
@@ -23,7 +23,7 @@ after(done => {
 });
 
 describe('## User APIs', () => {
-  before(done => {
+  beforeAll(done => {
     // mongoose.connection.dropDatabase().then(done);
     const collections = [User.collection];
 
@@ -324,7 +324,7 @@ describe('## User APIs', () => {
   });
 
   describe('# POST /api/users/:userId', () => {
-    before(done => {
+    beforeAll(done => {
       request(app)
         .post('/api/users')
         .send(anotherUser)
@@ -359,7 +359,7 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
-    before(done => {
+    beforeAll(done => {
       request(app)
         .post('/api/users')
         .send(user)

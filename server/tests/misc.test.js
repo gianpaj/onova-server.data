@@ -8,7 +8,7 @@ process.stdout.write('\x1Bc');
 
 describe('## Misc', () => {
   describe('# GET /api/health-check', () => {
-    test('should return OK', async () => {
+    it('should return OK', async () => {
       return request(app)
         .get('/api/health-check')
         .expect(httpStatus.OK)

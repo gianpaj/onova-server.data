@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import passport from 'passport';
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import User from '../models/user.model';
 import Verification from '../models/verification.model';
@@ -24,7 +25,7 @@ function login(req, res, next) {
       return next(err);
     }
     if (!user) {
-      console.debug(info);
+      debug(info);
       const APIerr = new APIError(
         'Authentication error',
         httpStatus.UNAUTHORIZED

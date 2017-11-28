@@ -2,6 +2,7 @@
 
 import httpStatus from 'http-status';
 import type { $Request, $Response, NextFunction } from 'express';
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
 import User, { UserDoc } from '../models/user.model';
@@ -146,7 +147,7 @@ function update(req: $Request, res: $Response, next: NextFunction) {
             }
             mailCtrl.resendVerificationEmail(user.emailAddress, user);
             user.accountStatus = 'notverified';
-            console.debug(
+            debug(
               `account ${user._id} is awaiting for email verification`
             );
             // save user with new email address only if there is no duplicate key error
@@ -180,7 +181,7 @@ function update(req: $Request, res: $Response, next: NextFunction) {
   return Promise.all(Promises)
     .then(() => user.save())
     .then(savedUser => res.json(savedUser))
-    .then(() => console.debug(`Username: ${user.username} saved.`))
+    .then(() => debug(`Username: ${user.username} saved.`))
     .catch(error => {
       return next(error);
     });

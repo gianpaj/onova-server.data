@@ -1,6 +1,5 @@
 import request from 'supertest';
 import httpStatus from 'http-status';
-import chai, { expect } from 'chai';
 import path from 'path';
 
 import app from '../index';
@@ -9,10 +8,8 @@ import Verification from '../models/verification.model';
 import User from '../models/user.model';
 import Product from '../models/product.model';
 
-chai.config.containStack = true;
-
 describe('## Product APIs', () => {
-  before(done => {
+  beforeAll(done => {
     const collections = [Product.collection, User.collection];
 
     var todo = collections.length;
@@ -45,7 +42,7 @@ describe('## Product APIs', () => {
 
   let productUuid;
 
-  before(done => {
+  beforeAll(done => {
     // create user (seller)
     request(app)
       .post('/api/users')
@@ -53,12 +50,12 @@ describe('## Product APIs', () => {
       .expect(httpStatus.CREATED)
       .then(res => {
         const resUser = res.body.data;
-        expect(resUser._id).to.a('string');
-        expect(resUser.username).to.equal(user.username);
-        expect(resUser.emailAddress).to.equal(user.emailAddress);
-        expect(resUser.accountStatus).to.equal('notverified');
-        expect(resUser).to.not.have.property('password');
-        expect(res.body.token).to.be.a('string');
+        expect(typeof resUser._id).toBe('string');
+        expect(resUser.username).toBe(user.username);
+        expect(resUser.emailAddress).toBe(user.emailAddress);
+        expect(resUser.accountStatus).toBe('notverified');
+        expect(resUser).not.toHaveProperty('password');
+        expect(typeof res.body.token).toBe('string');
 
         user._id = resUser._id;
         product.seller = resUser._id;
@@ -76,16 +73,15 @@ describe('## Product APIs', () => {
           .get(`/api/auth/activate/${activationToken}`)
           .expect(httpStatus.OK)
           .then(res => {
-            expect(res.text).to.contain('Account activated');
+            expect(res.text).toContain('Account activated');
             done();
           });
-      })
-      .catch(done);
+      });
   });
 
   describe('# POST /api/products', () => {
-    it('should create product', done => {
-      request(app)
+    it('should create product', async () => {
+      return request(app)
         .post('/api/products')
         .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
@@ -93,109 +89,105 @@ describe('## Product APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           const p = res.body.data;
-          expect(p.categoryIds.sort()).to.deep.equal([1, 2, 3]);
-          expect(p.comments).to.be.an('array').that.is.empty;
-          expect(p.currency).to.equal('UAH');
-          expect(p.description).to.equal(product.description);
-          expect(p.likes).to.be.an('array').that.is.empty;
-          expect(p.photoURIs).to.have.lengthOf(2);
-          expect(p.price).to.equal('100.99');
-          expect(p.seller).to.equal(product.seller);
-          expect(p.status).to.equal('forsale');
-          expect(p.tags).to.be.an('array').that.is.empty;
-          expect(p.typeIds.sort()).to.deep.equal([1, 2, 3]);
-          expect(p).to.have.all.keys(
-            'categoryIds',
-            'comments',
-            'currency',
-            'description',
-            'likes',
-            'photoURIs',
-            'price',
-            'seller',
-            'status',
-            'tags',
-            'typeIds',
-            'uuid'
+          expect(p.categoryIds.sort()).toEqual([1, 2, 3]);
+          expect(Array.isArray(p.comments));
+          expect(p.comments).toEqual(expect.arrayContaining([]));
+          expect(p.currency).toBe('UAH');
+          expect(p.description).toBe(product.description);
+          expect(Array.isArray(p.likes));
+          expect(p.likes).toEqual(expect.arrayContaining([]));
+          expect(p.photoURIs).toHaveLength(2);
+          expect(p.price).toBe('100.99');
+          expect(p.seller).toBe(product.seller);
+          expect(p.status).toBe('forsale');
+          expect(Array.isArray(p.tags));
+          expect(p.tags).toEqual(expect.arrayContaining([]));
+          expect(p.typeIds.sort()).toEqual([1, 2, 3]);
+          expect(Object.keys(p).sort()).toEqual(
+            [
+              'categoryIds',
+              'comments',
+              'currency',
+              'description',
+              'likes',
+              'photoURIs',
+              'price',
+              'seller',
+              'status',
+              'tags',
+              'typeIds',
+              'uuid',
+            ].sort()
           );
           productUuid = p.uuid;
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('should not create product with wrong file uploaded', done => {
-      request(app)
+    it('should not create product with wrong file uploaded', async () => {
+      return request(app)
         .post('/api/products')
         .attach('photos', path.join(__dirname, 'misc.test.js'))
         .field(product)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.contain(
+          expect(res.body.message).toContain(
             'File upload only supports the following filetypes'
           );
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('should not create product without uploading a photo', done => {
-      request(app)
+    it('should not create product without uploading a photo', async () => {
+      return request(app)
         .post('/api/products')
         .field(product)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal('Product image(s) are required');
-          done();
-        })
-        .catch(done);
+          expect(res.body.message).toBe('Product image(s) are required');
+        });
     });
 
-    it('should not create product without a valid seller', done => {
-      request(app)
+    it('should not create product without a valid seller', async () => {
+      return request(app)
         .post('/api/products')
         .field({ ...product, seller: '5a1b50bfa4c57109cf583235' })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal('Seller not found');
-          done();
-        })
-        .catch(done);
+          expect(res.body.message).toBe('Seller not found');
+        });
     });
   });
 
   describe('# GET /api/products/:uuid', () => {
-    it('should get an existing product', done => {
-      request(app)
+    it('should get an existing product', async () => {
+      return request(app)
         .get(`/api/products/${productUuid}`)
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
-          expect(p.description).to.equal(product.description);
-          expect(p.seller._id).to.equal(product.seller);
-          expect(p.status).to.equal('forsale');
-          expect(p.currency).to.equal('UAH');
-          expect(p.likes).to.be.an('array').that.is.empty;
-          expect(p.comments).to.be.an('array').that.is.empty;
-          expect(p.tags).to.be.an('array').that.is.empty;
-          expect(p.typeIds.sort()).to.deep.equal([1, 2, 3]);
-          expect(p.categoryIds.sort()).to.deep.equal([1, 2, 3]);
-          expect(p.photoURIs).to.have.lengthOf(2);
-          done();
-        })
-        .catch(done);
+          expect(p.description).toBe(product.description);
+          expect(p.seller._id).toBe(product.seller);
+          expect(p.status).toBe('forsale');
+          expect(p.currency).toBe('UAH');
+          expect(Array.isArray(p.likes));
+          expect(p.likes).toEqual(expect.arrayContaining([]));
+          expect(Array.isArray(p.comments));
+          expect(p.comments).toEqual(expect.arrayContaining([]));
+          expect(Array.isArray(p.tags));
+          expect(p.tags).toEqual(expect.arrayContaining([]));
+          expect(p.typeIds.sort()).toEqual([1, 2, 3]);
+          expect(p.categoryIds.sort()).toEqual([1, 2, 3]);
+          expect(p.photoURIs).toHaveLength(2);
+        });
     });
 
-    it('should not get an non valid product', done => {
-      request(app)
+    it('should not get an non valid product', async () => {
+      return request(app)
         .get('/api/products/SkveMe9lz')
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal('Invalid product');
-          done();
-        })
-        .catch(done);
+          expect(res.body.message).toBe('Invalid product');
+        });
     });
   });
 });
