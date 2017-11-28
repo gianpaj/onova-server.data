@@ -51,6 +51,8 @@ const UserSchema = new mongoose.Schema(
 );
 
 export class UserDoc /*:: extends Mongoose$Document */ {
+  // MongoId?
+  _id: any;
   username: string;
   displayName: ?string;
   mobileNumber: string;

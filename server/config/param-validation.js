@@ -133,7 +133,9 @@ export default {
         .regex(/^[0-9a-fA-F]{24}$/)
         .length(24)
         .required(),
-      price: Joi.number().required(),
+      price: Joi.string()
+        .regex(/^\d+(\.\d{2})?$/)
+        .required(),
       currency: Joi.string().valid('UAH'), // 'UAH' by default
     },
   },

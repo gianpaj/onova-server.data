@@ -37,13 +37,13 @@ function get(req: $Request, res: $Response) {
  *
  * POST /api/products
  *
- * @property {string} req.body.categoryIds
+ * @property {Array<number>} req.body.categoryIds
  * @property {string} req.body.currency - (optional) 'UAH' by default
  * @property {string} req.body.description
  * @property {string} req.body.price
- * @property {string} req.body.seller
+ * @property {MongoId} req.body.seller
  * @property {string} req.body.tags - (optional)
- * @property {string} req.body.typeIds
+ * @property {Array<number>} req.body.typeIds
  */
 function create(req: $Request, res: $Response, next: NextFunction) {
   const product = new Product({
@@ -72,8 +72,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
   product.photoURIs = ['a', 'b'];
 
   User.findById(req.body.seller)
-    // UserDoc?
-    .then((seller: any) => {
+    .then(seller => {
       if (!seller) {
         throw new APIError('Seller not found', 400);
       }

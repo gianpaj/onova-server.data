@@ -40,7 +40,7 @@ describe('## Product APIs', () => {
     // tags: 'tags', //optional
     description: 'nice boots',
     // seller comes after the user is created
-    price: 10099, // 100.99 UAH
+    price: '100.99', // UAH by default - if no decimal points .00 will be added
   };
 
   let productUuid;
@@ -99,7 +99,7 @@ describe('## Product APIs', () => {
           expect(p.description).to.equal(product.description);
           expect(p.likes).to.be.an('array').that.is.empty;
           expect(p.photoURIs).to.have.lengthOf(2);
-          expect(p.price).to.equal('10099.00');
+          expect(p.price).to.equal('100.99');
           expect(p.seller).to.equal(product.seller);
           expect(p.status).to.equal('forsale');
           expect(p.tags).to.be.an('array').that.is.empty;
