@@ -77,12 +77,12 @@ describe('## User APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           const resUser = res.body.data;
-          expect(resUser._id).to.a('string');
-          expect(resUser.username).to.equal(user.username);
-          expect(resUser.emailAddress).to.equal(user.emailAddress);
-          expect(resUser.accountStatus).to.equal('notverified');
-          expect(resUser).to.not.have.property('password');
-          expect(res.body.token).to.be.a('string');
+          expect(typeof resUser._id).toBe('string');
+          expect(resUser.username).toBe(user.username);
+          expect(resUser.emailAddress).toBe(user.emailAddress);
+          expect(resUser.accountStatus).toBe('notverified');
+          expect(resUser).not.toHaveProperty('password');
+          expect(typeof res.body.token).toBe('string');
 
           userId = resUser._id;
           done();
@@ -97,12 +97,12 @@ describe('## User APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           const resUser = res.body.data;
-          expect(resUser._id).to.a('string');
-          expect(resUser.username).to.equal(thirdUser.username);
-          expect(resUser.emailAddress).to.equal(thirdUser.emailAddress);
-          expect(resUser.accountStatus).to.equal('notverified');
-          expect(resUser).to.not.have.property('password');
-          expect(res.body.token).to.be.a('string');
+          expect(typeof resUser._id).toBe('string');
+          expect(resUser.username).toBe(thirdUser.username);
+          expect(resUser.emailAddress).toBe(thirdUser.emailAddress);
+          expect(resUser.accountStatus).toBe('notverified');
+          expect(resUser).not.toHaveProperty('password');
+          expect(typeof res.body.token).toBe('string');
 
           done();
         })
@@ -115,9 +115,7 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal(
-            'An account with the same email address or username exists.'
-          );
+          expect(res.body.message).toBe('An account with the same email address or username exists.');
           done();
         })
         .catch(done);
@@ -129,9 +127,7 @@ describe('## User APIs', () => {
         .send({ ...user, password: '123' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal(
-            '"password" length must be at least 8 characters long'
-          );
+          expect(res.body.message).toBe('"password" length must be at least 8 characters long');
           done();
         })
         .catch(done);
@@ -150,7 +146,7 @@ describe('## User APIs', () => {
           .get(`/api/auth/activate/${activationToken}`)
           .expect(httpStatus.OK)
           .then(res => {
-            expect(res.text).to.contain('Account activated');
+            expect(res.text).toContain('Account activated');
             done();
           })
           .catch(done);
@@ -162,9 +158,7 @@ describe('## User APIs', () => {
         .get(`/api/auth/activate/${activationToken}`)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.text).to.contain(
-            'something wrong with the link you received'
-          );
+          expect(res.text).toContain('something wrong with the link you received');
           done();
         })
         .catch(done);
@@ -175,9 +169,7 @@ describe('## User APIs', () => {
         .get(`/api/auth/activate/e700760eb3d6fc65`)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.text).to.contain(
-            'something wrong with the link you received'
-          );
+          expect(res.text).toContain('something wrong with the link you received');
           done();
         })
         .catch(done);
@@ -191,7 +183,7 @@ describe('## User APIs', () => {
         .send(invalidUserCredentials)
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
-          expect(res.body.message).to.equal('Authentication error');
+          expect(res.body.message).toBe('Authentication error');
           done();
         })
         .catch(done);
@@ -206,11 +198,11 @@ describe('## User APIs', () => {
         })
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body).to.have.property('token');
+          expect(res.body).toHaveProperty('token');
           const token = res.body.token.split('JWT ')[1];
           jwt.verify(token, config.jwtSecret, (err, decoded) => {
-            expect(err).to.not.be.ok;
-            expect(decoded.emailAddress).to.equal(user.emailAddress);
+            expect(err).toBeFalsy();
+            expect(decoded.emailAddress).toBe(user.emailAddress);
             jwtToken = res.body.token;
             done();
           });
@@ -225,10 +217,10 @@ describe('## User APIs', () => {
         .get(`/api/users/${userId}`)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.username).to.equal(user.username);
-          expect(res.body.emailAddress).to.equal(user.emailAddress);
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
-          expect(res.body).to.not.have.property('password');
+          expect(res.body.username).toBe(user.username);
+          expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(res.body).not.toHaveProperty('password');
           done();
         })
         .catch(done);
@@ -239,7 +231,7 @@ describe('## User APIs', () => {
         .get('/api/users/56c787ccc67fc16ccc1a5e92')
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal('Invalid user');
+          expect(res.body.message).toBe('Invalid user');
           done();
         })
         .catch(done);
@@ -255,10 +247,10 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.emailAddress).to.equal(user.emailAddress);
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
-          expect(res.body.username).to.equal(user.username);
-          expect(res.body.accountStatus).to.equal('verified');
+          expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(res.body.username).toBe(user.username);
+          expect(res.body.accountStatus).toBe('verified');
           done();
         })
         .catch(done);
@@ -272,10 +264,10 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.emailAddress).to.equal(user.emailAddress);
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
-          expect(res.body.username).to.equal(user.username);
-          expect(res.body.accountStatus).to.equal('notverified');
+          expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(res.body.username).toBe(user.username);
+          expect(res.body.accountStatus).toBe('notverified');
           done();
         })
         .catch(done);
@@ -288,7 +280,7 @@ describe('## User APIs', () => {
         .get('/api/users')
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body).to.be.an('array');
+          expect(Array.isArray(res.body)).toBe(true);
           done();
         })
         .catch(done);
@@ -300,7 +292,7 @@ describe('## User APIs', () => {
         .query({ limit: 10, skip: 1 })
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body).to.be.an('array');
+          expect(Array.isArray(res.body)).toBe(true);
           done();
         })
         .catch(done);
@@ -314,9 +306,9 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.emailAddress).to.equal(user.emailAddress);
-          expect(res.body.mobileNumber).to.equal(user.mobileNumber);
-          expect(res.body.username).to.equal(user.username);
+          expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(res.body.username).toBe(user.username);
           done();
         })
         .catch(done);
@@ -351,7 +343,7 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal('Invalid user');
+          expect(res.body.message).toBe('Invalid user');
           done();
         })
         .catch(done);
@@ -380,9 +372,7 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal(
-            'An account with the same email address exists.'
-          );
+          expect(res.body.message).toBe('An account with the same email address exists.');
           // reset the email
           user.emailAddress = 'newemail@example.com';
           done();
@@ -398,9 +388,7 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal(
-            'An account with the same username exists.'
-          );
+          expect(res.body.message).toBe('An account with the same username exists.');
           // reset the email
           user.username = 'firstperson';
           done();
@@ -430,11 +418,11 @@ describe('## User APIs', () => {
         })
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body).to.have.property('token');
+          expect(res.body).toHaveProperty('token');
           const token = res.body.token.split('JWT ')[1];
           jwt.verify(token, config.jwtSecret, (err, decoded) => {
-            expect(err).to.not.be.ok;
-            expect(decoded.emailAddress).to.equal(anotherUser.emailAddress);
+            expect(err).toBeFalsy();
+            expect(decoded.emailAddress).toBe(anotherUser.emailAddress);
             anotherJwtToken = res.body.token;
             done();
           });
@@ -467,7 +455,7 @@ describe('## User APIs', () => {
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.num).to.be.a('number');
+          expect(typeof res.body.num).toBe('number');
           done();
         })
         .catch(done);
@@ -481,7 +469,7 @@ describe('## User APIs', () => {
         .send({ emailAddress: anotherUser.emailAddress })
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.message).to.equal('Password reset email sent.');
+          expect(res.body.message).toBe('Password reset email sent.');
           done();
         })
         .catch(done);
@@ -508,7 +496,7 @@ describe('## User APIs', () => {
               .send({ password: 'americano', passwordagain: 'americano' })
               .expect(httpStatus.OK)
               .then(res => {
-                expect(res.text).to.contain('Your password has been updated');
+                expect(res.text).toContain('Your password has been updated');
                 anotherUser.password = 'americano';
                 done();
               })
@@ -524,9 +512,7 @@ describe('## User APIs', () => {
         .send({ password: 'americano', passwordagain: 'americano' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.text).to.contain(
-            'There was an issue resetting your password'
-          );
+          expect(res.text).toContain('There was an issue resetting your password');
           done();
         })
         .catch(done);
@@ -538,9 +524,7 @@ describe('## User APIs', () => {
         .send({ password: 'americano', passwordagain: 'americano' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).to.equal(
-            '"token" length must be 16 characters long'
-          );
+          expect(res.body.message).toBe('"token" length must be 16 characters long');
           done();
         })
         .catch(done);
@@ -555,7 +539,7 @@ describe('## User APIs', () => {
         })
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body).to.have.property('token');
+          expect(res.body).toHaveProperty('token');
           done();
         })
         .catch(done);
