@@ -18,8 +18,9 @@
     "prod:start": "cross-env NODE_ENV=production pm2 start lib --name server.data",
     "prod:stop": "pm2 delete server.data",
     "lint": "esw *.js server config --color",
-    "test": "cross-env NODE_ENV=test jest --forceExit",
-    "test:watch": "yarn test --watch"
+    "test": "cross-env NODE_ENV=test jest server/tests --verbose --forceExit",
+    "test:watch": "yarn test --watch",
+    "test:coverage": "jest --coverage --forceExit"
   },
   "repository": {
     "type": "git",
