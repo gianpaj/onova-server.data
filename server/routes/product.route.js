@@ -36,7 +36,7 @@ const upload = multer({
 router
   .route('/')
   // GET /api/products - Get list of products 'forsale'
-  // .get(productCtrl.list)
+  .get(productCtrl.list)
 
   // POST /api/products - Create new product
   .post(

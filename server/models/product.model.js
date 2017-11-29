@@ -129,14 +129,23 @@ ProductSchema.statics = {
    *
    * @param {number} skip - Number of products to be skipped.
    * @param {number} limit - Limit number of products to be returned.
-   * @returns {Promise<Product[]>}
+   * @returns {Promise<ProductDoc[]>}
    */
-  list({ skip = 0, limit = 50 } = {}) {
-    return this.find()
+  list({ skip = 0, limit = 50 } = {}): Promise<ProductDoc[]> {
+    return this.find({ status: 'forsale' })
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
-      .exec();
+      .then((products: ProductDoc[]) => {
+        if (!products) {
+          return Promise.reject();
+        }
+        return products;
+      })
+      .catch(() => {
+        const err = new APIError('Invalid products', httpStatus.BAD_REQUEST);
+        return Promise.reject(err);
+      });
   },
 };
 
@@ -150,6 +159,8 @@ ProductSchema.pre('save', function(next) {
 ProductSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
+    delete ret._id;
+    delete ret.id;
     delete ret.__v;
     return ret;
   },

@@ -4,7 +4,7 @@ import APIError from '../helpers/APIError';
 import type { $Request, NextFunction } from 'express';
 
 import Product, { ProductDoc } from '../models/product.model';
-import User, { UserDoc } from '../models/user.model';
+import User from '../models/user.model';
 
 /**
  * Load user and append to req.
@@ -26,10 +26,7 @@ function load(req: $Request, res: $Response, next: NextFunction, uuid: string) {
  * @property {string} req.params.uuid  - The unique id (shortid) of product.
  */
 function get(req: $Request, res: $Response) {
-  const doc = _prepareProductJson(req.product);
-  doc.createdAt = req.product.createdAt;
-
-  return res.json({ data: doc });
+  return res.json({ data: req.product });
 }
 
 /**
@@ -92,27 +89,29 @@ function create(req: $Request, res: $Response, next: NextFunction) {
         });
     })
     .then(savedProduct => {
-      return res.status(201).json({ data: _prepareProductJson(savedProduct) });
+      return res.status(201).json({ data: savedProduct });
     })
     .catch(e => next(e));
 }
 
-const lol = {
-  /**
-   * ProductController.list()
-   */
-  list: function(req, res) {
-    Product.find(function(err, Products) {
-      if (err) {
-        return res.status(500).json({
-          message: 'Error when getting Product.',
-          error: err,
-        });
-      }
-      return res.json(Products);
-    });
-  },
+/**
+ * Get list of users.
+ *
+ * GET /api/users
+ *
+ * @property {number} req.query.skip - Number of users to be skipped.
+ * @property {number} req.query.limit - Limit number of users to be returned.
+ */
+function list(req: $Request, res: $Response, next: NextFunction) {
+  const { limit = 50, skip = 0 } = req.query;
+  // use static method from UserSchema
+  // flow-disable-next-line
+  Product.list({ limit, skip })
+    .then(products => res.json({ data: products }))
+    .catch(e => next(e));
+}
 
+const lol = {
   /**
    * ProductController.update()
    */
@@ -176,33 +175,11 @@ const lol = {
   },
 };
 
-/**
- * Limit number of fields send back for a product
- * (private)
- */
-function _prepareProductJson(p: Object): Object {
-  const json = {
-    categoryIds: p.categoryIds,
-    comments: p.comments,
-    currency: p.currency,
-    description: p.description,
-    likes: p.likes,
-    photoURIs: p.photoURIs,
-    price: p.price,
-    seller: p.seller,
-    status: p.status,
-    tags: p.tags,
-    typeIds: p.typeIds,
-    uuid: p.uuid,
-  };
-  return json;
-}
-
 export default {
   load,
   get,
   create,
   // update,
-  // list,
+  list,
   // remove,
 };
