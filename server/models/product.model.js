@@ -37,10 +37,8 @@ var ProductSchema = new Schema(
       required: true,
     },
     price: {
-      type: Number,
+      type: Schema.Types.Decimal128,
       required: true,
-      get: getPrice,
-      set: setPrice,
     },
     seller: {
       type: Schema.Types.ObjectId,
@@ -70,14 +68,6 @@ var ProductSchema = new Schema(
   // assigns 'createdAt' and 'updatedAt' fields to your schema
   { timestamps: true }
 );
-
-function getPrice(num) {
-  return (num / 100).toFixed(2);
-}
-
-function setPrice(num) {
-  return num * 100;
-}
 
 export class ProductDoc /*:: extends Mongoose$Document */ {
   categoryIds: Array<Number>;
@@ -159,6 +149,7 @@ ProductSchema.pre('save', function(next) {
 ProductSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
+    ret.price = ret.price.$numberDecimal;
     delete ret._id;
     delete ret.id;
     delete ret.__v;

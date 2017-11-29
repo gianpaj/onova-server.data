@@ -54,7 +54,7 @@ describe('## Product APIs', () => {
     // tags: 'tags', //optional
     description: 'nice boots',
     // seller comes after the user is created
-    price: '100.99', // UAH by default - if no decimal points .00 will be added
+    price: '100.99', // if no decimal points .00 will be added
   };
 
   let anotherProduct = {
@@ -121,7 +121,7 @@ describe('## Product APIs', () => {
           expect(Array.isArray(p.likes));
           expect(p.likes).toEqual(expect.arrayContaining([]));
           expect(p.photoURIs).toHaveLength(2);
-          expect(p.price).toBe('100.99');
+          expect(p.price).toBe(product.price);
           expect(p.seller).toBe(product.seller);
           expect(p.status).toBe('forsale');
           expect(Array.isArray(p.tags));
