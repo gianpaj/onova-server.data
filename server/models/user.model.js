@@ -18,6 +18,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       unique: true,
       required: true,
+      set: (v: string) => v.toLowerCase().trim(),
     },
     displayName: {
       type: String,

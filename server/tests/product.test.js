@@ -58,7 +58,7 @@ describe('## Product APIs', () => {
   };
 
   let anotherProduct = {
-    categoryIds: [1, 3], // @todo fix if only one category
+    categoryIds: [1],
     typeIds: [1, 3],
     description: 'nice jacket',
     price: '230.99',

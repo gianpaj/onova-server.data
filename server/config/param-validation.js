@@ -111,20 +111,30 @@ export default {
       //   .items(Joi.string())
       //   .required(),
       categoryIds: Joi.array()
+        .unique()
+        .max(5)
         .items(
           Joi.number()
             .min(0)
             .max(5)
         )
+        .single()
         .required(),
       typeIds: Joi.array()
+        .unique()
+        .max(5)
         .items(
           Joi.number()
             .min(0)
             .max(5)
         )
+        .single()
         .required(),
-      tags: Joi.array().items(Joi.string().length(24)), // optional
+      tags: Joi.array() // optional
+        .unique()
+        .max(30)
+        .items(Joi.string().length(24))
+        .single(),
       description: Joi.string()
         .min(7)
         .max(300)
