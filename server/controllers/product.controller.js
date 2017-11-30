@@ -9,7 +9,7 @@ import Tag from '../models/tag.model';
 import User from '../models/user.model';
 
 /**
- * Load product and append to req.
+ * Load a product and append to req.
  */
 function load(req: $Request, res: $Response, next: NextFunction, uuid: string) {
   // use static method from ProductSchema
@@ -113,10 +113,10 @@ function create(req: $Request, res: $Response, next: NextFunction) {
  */
 function list(req: $Request, res: $Response, next: NextFunction) {
   const { limit = 50, skip = 0, tags } = req.query;
-  let query = null;
+  let query = { status: 'forsale' };
 
   if (tags) {
-    query = { tags: { $in: tags } };
+    query = { ...query, tags: { $in: tags } };
   }
 
   // use static method from ProductSchema
@@ -124,6 +124,34 @@ function list(req: $Request, res: $Response, next: NextFunction) {
   Product.list({ query, limit, skip })
     .then(products => res.json({ data: products }))
     .catch(e => next(e));
+}
+
+/**
+ * Remove a product - marking the 'status' as 'deleted'
+ *
+ * GET /api/products/:uuid
+ *
+ * @property {string} req.query.uuid
+ */
+function remove(req: $Request, res: $Response, next: NextFunction) {
+  var uuid = req.params.uuid;
+  Product.findOneAndUpdate(
+    { uuid: uuid, status: 'forsale' },
+    { status: 'deleted' }
+  )
+    .then(product => {
+      if (!product) {
+        throw new APIError('Product not found', 400);
+      }
+
+      // TODO: delete images from GSC
+
+      return res.status(204).json();
+    })
+    .catch(() => {
+      const e = new APIError('Error deleting Product', 400);
+      next(e);
+    });
 }
 
 const lol = {
@@ -172,22 +200,6 @@ const lol = {
       });
     });
   },
-
-  /**
-   * ProductController.remove()
-   */
-  remove: function(req, res) {
-    var id = req.params.id;
-    Product.findByIdAndRemove(id, function(err, Product) {
-      if (err) {
-        return res.status(500).json({
-          message: 'Error when deleting the Product.',
-          error: err,
-        });
-      }
-      return res.status(204).json();
-    });
-  },
 };
 
 export default {
@@ -196,5 +208,5 @@ export default {
   create,
   // update,
   list,
-  // remove,
+  remove,
 };

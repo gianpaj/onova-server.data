@@ -82,6 +82,7 @@ describe('## Product APIs', () => {
   };
 
   let productUuid;
+  let jwtToken;
 
   beforeAll(done => {
     // create user (seller)
@@ -118,7 +119,20 @@ describe('## Product APIs', () => {
           .expect(httpStatus.OK)
           .then(res => {
             expect(res.text).toContain('Account activated');
-            done();
+          })
+          .then(() => {
+            return request(app)
+              .post('/api/auth/login')
+              .send({
+                emailAddress: user.emailAddress,
+                password: user.password,
+              })
+              .expect(httpStatus.OK)
+              .then(res => {
+                expect(res.body).toHaveProperty('token');
+                jwtToken = res.body.token;
+                done();
+              });
           });
       });
   });
@@ -187,6 +201,20 @@ describe('## Product APIs', () => {
     });
 
     it('should not create product with an invalid tag', async () => {
+      return request(app)
+        .post('/api/products')
+        .field({ ...badProduct, seller: product.seller })
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain(
+            'fails to match the required pattern'
+          );
+        });
+    });
+
+    it('should not create product with another invalid tag', async () => {
+      badProduct.tags = ['my pony'];
       return request(app)
         .post('/api/products')
         .field({ ...badProduct, seller: product.seller })
@@ -310,6 +338,40 @@ describe('## Product APIs', () => {
           expect(Array.isArray(p));
           expect(p.length).toBe(1);
           expect(p[0].description).toBe(product.description);
+        });
+    });
+  });
+
+  describe('# DELETE /api/products/:uuid', () => {
+    it('should delete an existing product', async () => {
+      return request(app)
+        .delete(`/api/products/${productUuid}`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.NO_CONTENT)
+        .then(res => {
+          expect(res.body).toMatchObject({});
+        });
+    });
+
+    it('should get all remaining products', async () => {
+      return request(app)
+        .get(`/api/products/`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(Array.isArray(p));
+          expect(p.length).toBe(2);
+          expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
+        });
+    });
+
+    it('should not delete a deleted product', async () => {
+      return request(app)
+        .delete(`/api/products/${productUuid}`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body).toMatchObject({});
         });
     });
   });

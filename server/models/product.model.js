@@ -126,9 +126,7 @@ ProductSchema.statics = {
    * @param {number} limit - Limit number of products to be returned.
    * @returns {Promise<ProductDoc[]>}
    */
-  list(
-    { query = { status: 'forsale' }, skip = 0, limit = 50 } = {}
-  ): Promise<ProductDoc[]> {
+  list({ query = {}, skip = 0, limit = 50 } = {}): Promise<ProductDoc[]> {
     return this.find(query)
       .sort({ createdAt: -1 })
       .skip(+skip)

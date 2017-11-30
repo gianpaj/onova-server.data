@@ -53,8 +53,8 @@ router
 //   // PUT /api/products/:uuid - Update product
 //   .put(requireAuth, productCtrl.update)
 
-//   // DELETE /api/products/:uuid - Delete product - Protected route
-//   .delete(requireAuth, productCtrl.remove);
+  // DELETE /api/products/:uuid - Delete product - Protected route
+  .delete(requireAuth, productCtrl.remove);
 
 // Load product when API with uuid route parameter is hit
 router.param('uuid', productCtrl.load);
