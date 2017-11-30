@@ -76,7 +76,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
   // TODO: upload images
   product.photoURIs = ['a', 'b'];
 
-  User.findById(req.body.seller)
+  User.findById(req.user._id)
     .then(seller => {
       if (!seller) {
         throw new APIError('Seller not found', 400);
@@ -87,7 +87,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
           400
         );
       }
-      product.seller = seller._id;
+      product.seller = req.user._id;
 
       return product
         .save()

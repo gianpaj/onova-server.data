@@ -108,7 +108,6 @@ describe('## Product APIs', () => {
         expect(typeof res.body.token).toBe('string');
 
         user._id = resUser._id;
-        product.seller = resUser._id;
       })
       .then(() => {
         return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
@@ -206,7 +205,7 @@ describe('## Product APIs', () => {
           expect(p.likes).toHaveLength(0);
           expect(p.photoURIs).toHaveLength(2);
           expect(p.price).toBe(product.price);
-          expect(p.seller).toBe(product.seller);
+          expect(p.seller).toBe(user._id);
           expect(p.status).toBe('forsale');
           expect(Array.isArray(p.tags));
           expect(p.tags).toEqual(product.tags);
@@ -241,23 +240,11 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not create product with an invalid seller', async () => {
-      return request(app)
-        .post('/api/products')
-        .set('Authorization', jwtToken)
-        .field({ ...product, seller: '5a1b50bfa4c57109cf583235' })
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
-        .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Seller not found');
-        });
-    });
-
     it('should not create product with an invalid tag', async () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field({ ...badProduct, seller: product.seller })
+        .field(badProduct)
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -272,7 +259,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field({ ...badProduct, seller: product.seller })
+        .field(badProduct)
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -291,7 +278,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(p.description).toBe(product.description);
-          expect(p.seller._id).toBe(product.seller);
+          expect(p.seller._id).toBe(user._id);
           expect(p.seller.username).toBe(user.username);
           expect(p.status).toBe('forsale');
           expect(p.currency).toBe('UAH');
@@ -319,8 +306,6 @@ describe('## Product APIs', () => {
 
   describe('# GET /api/products/', () => {
     beforeAll(done => {
-      anotherProduct.seller = product.seller;
-      thirdProduct.seller = product.seller;
       request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -440,7 +425,7 @@ describe('## Product APIs', () => {
           .post('/api/products')
           .set('Authorization', anotherJwtToken)
           .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-          .field({ ...anotherProduct, seller: anotherUser._id })
+          .field(anotherProduct)
           .expect(httpStatus.CREATED)
           .then(res => {
             anotherProductUuid = res.body.data.uuid;
