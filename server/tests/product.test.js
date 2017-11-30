@@ -445,4 +445,36 @@ describe('## Product APIs', () => {
       });
     });
   });
+
+  describe('# UPDATE /api/products/:uuid', () => {
+    it('should update the description, price, categoryIds and typeIds', async () => {
+      product.description = 'amazing boots';
+      product.price = '9.99';
+      product.categoryIds = [3];
+      product.typeIds = [3];
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send(product)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.data.description).toBe(product.description);
+          expect(res.body.data.price).toBe(product.price);
+          expect(res.body.data.categoryIds).toEqual(product.categoryIds);
+          expect(res.body.data.typeIds).toEqual(product.typeIds);
+        });
+    });
+
+    it('should update the tags', async () => {
+      product.tags = ['amazing', 'yolo'];
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send(product)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.data.tags).toEqual(product.tags);
+        });
+    });
+  });
 });

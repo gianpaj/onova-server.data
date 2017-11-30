@@ -150,7 +150,7 @@ export default {
     },
   },
 
-  getProduct: {
+  productUUIDParam: {
     params: {
       uuid: Joi.string()
         // shortid
@@ -176,15 +176,6 @@ export default {
             .max(30)
         )
         .max(10),
-    },
-  },
-
-  deleteProduct: {
-    params: {
-      uuid: Joi.string()
-        // shortid
-        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
-        .required(),
     },
   },
 };

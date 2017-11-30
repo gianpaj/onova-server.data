@@ -50,14 +50,18 @@ router
 router
   .route('/:uuid')
   // GET /api/products/:uuid - Get product
-  .get(validate(paramValidation.getProduct), productCtrl.get)
+  .get(validate(paramValidation.productUUIDParam), productCtrl.get)
 
-  //   // PUT /api/products/:uuid - Update product
-  //   .put(requireAuth, productCtrl.update)
+  // PUT /api/products/:uuid - Update product
+  .put(
+    validate(paramValidation.productUUIDParam),
+    requireAuth,
+    productCtrl.update
+  )
 
   // DELETE /api/products/:uuid - Delete product - Protected route
   .delete(
-    validate(paramValidation.deleteProduct),
+    validate(paramValidation.productUUIDParam),
     requireAuth,
     productCtrl.remove
   );

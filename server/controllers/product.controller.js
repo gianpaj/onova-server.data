@@ -158,65 +158,73 @@ function remove(req: $Request, res: $Response, next: NextFunction) {
     })
     .catch(err => {
       if (!err instanceof APIError) {
-        err = new APIError('Error deleting Product', 400);
+        err = new APIError('Error deleting Product', 500);
       }
       next(err);
     });
 }
 
-const lol = {
-  /**
-   * ProductController.update()
-   */
-  update: function(req, res) {
-    var id = req.params.id;
-    Product.findOne({ _id: id }, function(err, Product) {
-      if (err) {
-        return res.status(500).json({
-          message: 'Error when getting Product',
-          error: err,
-        });
+/**
+ * Update a product
+ *
+ * GET /api/products/:uuid
+ *
+ * @property {string} req.query.uuid
+ */
+function update(req: $Request, res: $Response, next: NextFunction) {
+  const uuid = req.params.uuid;
+  Product.findOne({ uuid: uuid })
+    .then(foundProduct => {
+      if (!foundProduct) {
+        throw new APIError('Product not found', 400);
       }
-      if (!Product) {
-        return res.status(404).json({
-          error: { message: 'No such Product' },
+
+      // create Tag documents
+      if (req.body.tags) {
+        req.body.tags.forEach(tag => {
+          Tag.findOneAndUpdate({ _id: tag }, { _id: tag }, { upsert: true })
+            .then(() => {})
+            .catch(err => {
+              console.log('error saving tags', err);
+            });
         });
       }
 
-      Product.photoURIs = req.body.photoURIs
-        ? req.body.photoURIs
-        : Product.photoURIs;
-      Product.categoryIds = req.body.categoryIds
+      // foundProduct.photoURIs = req.body.photoURIs
+      //   ? req.body.photoURIs
+      //   : foundProduct.photoURIs;
+      foundProduct.categoryIds = req.body.categoryIds
         ? req.body.categoryIds
-        : Product.categoryIds;
-      Product.typeIds = req.body.typeIds ? req.body.typeIds : Product.typeIds;
-      Product.tags = req.body.tags ? req.body.tags : Product.tags;
-      Product.description = req.body.description
+        : foundProduct.categoryIds;
+      foundProduct.typeIds = req.body.typeIds
+        ? req.body.typeIds
+        : foundProduct.typeIds;
+      foundProduct.tags = req.body.tags ? req.body.tags : foundProduct.tags;
+      foundProduct.description = req.body.description
         ? req.body.description
-        : Product.description;
-      Product.seller = req.body.seller ? req.body.seller : Product.seller;
-      Product.status = req.body.status ? req.body.status : Product.status;
-      Product.price = req.body.price ? req.body.price : Product.price;
+        : foundProduct.description;
+      // foundProduct.status = req.body.status
+      //   ? req.body.status
+      //   : foundProduct.status;
+      foundProduct.price = req.body.price ? req.body.price : foundProduct.price;
 
-      Product.save(function(err, Product) {
-        if (err) {
-          return res.status(500).json({
-            message: 'Error when updating Product.',
-            error: err,
-          });
-        }
-
-        return res.json(Product);
+      return foundProduct.save().then(product => {
+        return res.json({ data: product });
       });
+    })
+    .catch(err => {
+      if (!err instanceof APIError) {
+        err = new APIError('Error updating Product', 500);
+      }
+      next(err);
     });
-  },
-};
+}
 
 export default {
   load,
   get,
   create,
-  // update,
+  update,
   list,
   remove,
 };
