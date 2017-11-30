@@ -6,6 +6,7 @@ import app from '../index';
 
 import Verification from '../models/verification.model';
 import User from '../models/user.model';
+import Tag from '../models/tag.model';
 import Product from '../models/product.model';
 
 // should only return these fields
@@ -28,7 +29,7 @@ const productFields = [
 
 describe('## Product APIs', () => {
   beforeAll(done => {
-    const collections = [Product.collection, User.collection];
+    const collections = [Product.collection, Tag.collection, User.collection];
 
     var todo = collections.length;
     if (!todo) return done();
@@ -51,7 +52,7 @@ describe('## Product APIs', () => {
   let product = {
     categoryIds: [1, 2, 3],
     typeIds: [1, 2, 3],
-    // tags: 'tags', //optional
+    tags: ['winter', 'spring'], // optional
     description: 'nice boots',
     // seller comes after the user is created
     price: '100.99', // if no decimal points .00 will be added
@@ -61,6 +62,14 @@ describe('## Product APIs', () => {
     categoryIds: [1],
     typeIds: [1, 3],
     description: 'nice jacket',
+    price: '230.99',
+  };
+
+  let thirdProduct = {
+    categoryIds: [2],
+    typeIds: [1, 3],
+    tags: ['winter'],
+    description: 'nice scarf',
     price: '230.99',
   };
 
@@ -83,6 +92,9 @@ describe('## Product APIs', () => {
 
         user._id = resUser._id;
         product.seller = resUser._id;
+      })
+      .then(() => {
+        return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
       })
       .then(() => {
         return Verification.findOne({ user: user._id }).then(verDoc => {
@@ -125,7 +137,7 @@ describe('## Product APIs', () => {
           expect(p.seller).toBe(product.seller);
           expect(p.status).toBe('forsale');
           expect(Array.isArray(p.tags));
-          expect(p.tags).toEqual(expect.arrayContaining([]));
+          // expect(p.tags).toEqual(expect.arrayContaining([]));
           expect(p.typeIds.sort()).toEqual([1, 2, 3]);
           expect(Object.keys(p).sort()).toEqual(productFields.sort());
           productUuid = p.uuid;
@@ -155,7 +167,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not create product without a valid seller', async () => {
+    it('should not create product with an invalid seller', async () => {
       return request(app)
         .post('/api/products')
         .field({ ...product, seller: '5a1b50bfa4c57109cf583235' })
@@ -176,6 +188,7 @@ describe('## Product APIs', () => {
           const p = res.body.data;
           expect(p.description).toBe(product.description);
           expect(p.seller._id).toBe(product.seller);
+          expect(p.seller.username).toBe(user.username);
           expect(p.status).toBe('forsale');
           expect(p.currency).toBe('UAH');
           expect(Array.isArray(p.likes));
@@ -203,6 +216,7 @@ describe('## Product APIs', () => {
   describe('# GET /api/products/', () => {
     beforeAll(done => {
       anotherProduct.seller = product.seller;
+      thirdProduct.seller = product.seller;
       request(app)
         .post('/api/products')
         .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
@@ -210,18 +224,28 @@ describe('## Product APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           expect(typeof res.body.data).toBe('object');
-          done();
+        })
+        .then(() => {
+          request(app)
+            .post('/api/products')
+            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+            .field(thirdProduct)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              expect(typeof res.body.data).toBe('object');
+              done();
+            });
         });
     });
 
-    it('should get 2 products', async () => {
+    it('should get all products', async () => {
       return request(app)
         .get(`/api/products/`)
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p.length).toBe(2);
+          expect(p.length).toBe(3);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
@@ -234,19 +258,33 @@ describe('## Product APIs', () => {
           const p = res.body.data;
           expect(Array.isArray(p));
           expect(p.length).toBe(1);
-          expect(p[0].description).toBe(anotherProduct.description);
+          expect(p[0].description).toBe(thirdProduct.description);
         });
     });
 
     it('should get only the first product', async () => {
       return request(app)
-        .get(`/api/products/?limit=1?&skip=1`)
+        .get(`/api/products/?limit=1&skip=2`)
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
           expect(p.length).toBe(1);
           expect(p[0].description).toBe(product.description);
+        });
+    });
+  });
+
+  describe('# GET /api/products/?tags=', () => {
+    it('should find all winter products', async () => {
+      return request(app)
+        .get(`/api/products/?tags=winter`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(Array.isArray(p));
+          expect(p.length).toBe(2);
+          expect(p[1].description).toBe(product.description);
         });
     });
   });

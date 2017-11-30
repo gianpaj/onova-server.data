@@ -1,13 +1,15 @@
 // @flow
 
-import APIError from '../helpers/APIError';
+import httpStatus from 'http-status';
 import type { $Request, NextFunction } from 'express';
 
+import APIError from '../helpers/APIError';
 import Product, { ProductDoc } from '../models/product.model';
+import Tag from '../models/tag.model';
 import User from '../models/user.model';
 
 /**
- * Load user and append to req.
+ * Load product and append to req.
  */
 function load(req: $Request, res: $Response, next: NextFunction, uuid: string) {
   // use static method from ProductSchema
@@ -49,13 +51,19 @@ function create(req: $Request, res: $Response, next: NextFunction) {
     description: req.body.description,
     price: req.body.price,
     // status: req.body.status, // 'forsale' by default
-    // tags: req.body.tags, // optional
+    tags: req.body.tags, // optional field
     typeIds: req.body.typeIds,
   });
 
-  // @todo create tag documents
+  // create Tag documents
   if (req.body.tags) {
-    product.tags = req.body.tags;
+    req.body.tags.forEach(tag => {
+      Tag.findOneAndUpdate({ _id: tag }, { _id: tag }, { upsert: true })
+        .then(() => {})
+        .catch(err => {
+          console.log('error saving tags', err);
+        });
+    });
   }
 
   // req.files is array of `photos` files
@@ -65,7 +73,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
   }
 
   // console.log(req.files);
-  // @todo upload images
+  // TODO: upload images
   product.photoURIs = ['a', 'b'];
 
   User.findById(req.body.seller)
@@ -95,18 +103,25 @@ function create(req: $Request, res: $Response, next: NextFunction) {
 }
 
 /**
- * Get list of users.
+ * Get list of products.
  *
- * GET /api/users
+ * GET /api/products
  *
- * @property {number} req.query.skip - Number of users to be skipped.
- * @property {number} req.query.limit - Limit number of users to be returned.
+ * @property {number} req.query.skip - Number of products to be skipped.
+ * @property {number} req.query.limit - Limit number of products to be returned.
+ * @property {array<string>|string} req.query.tags
  */
 function list(req: $Request, res: $Response, next: NextFunction) {
-  const { limit = 50, skip = 0 } = req.query;
-  // use static method from UserSchema
+  const { limit = 50, skip = 0, tags } = req.query;
+  let query = null;
+
+  if (tags) {
+    query = { tags: { $in: tags } };
+  }
+
+  // use static method from ProductSchema
   // flow-disable-next-line
-  Product.list({ limit, skip })
+  Product.list({ query, limit, skip })
     .then(products => res.json({ data: products }))
     .catch(e => next(e));
 }

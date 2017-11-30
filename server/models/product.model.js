@@ -52,7 +52,7 @@ var ProductSchema = new Schema(
       enum: ['forsale', 'reserved', 'sold', 'banned', 'deleted'],
     },
     tags: {
-      type: [Schema.Types.ObjectId],
+      type: [String],
       ref: 'Tag',
       // max number of 30 tags per product (see param-validation.js)
     },
@@ -66,8 +66,12 @@ var ProductSchema = new Schema(
     },
     // soldAt: Date,
   },
-  // assigns 'createdAt' and 'updatedAt' fields to your schema
-  { timestamps: true }
+  {
+    // assigns 'createdAt' and 'updatedAt' fields to your schema
+    timestamps: true,
+    toJSON: { virtuals: true },
+    toObject: { virtuals: true },
+  }
 );
 
 export class ProductDoc /*:: extends Mongoose$Document */ {
@@ -80,7 +84,7 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   price: number;
   seller: string;
   status: string;
-  tags: Array<MongoId>;
+  tags: Array<string>;
   typeIds: Array<Number>;
   uuid: string;
 }
@@ -122,8 +126,10 @@ ProductSchema.statics = {
    * @param {number} limit - Limit number of products to be returned.
    * @returns {Promise<ProductDoc[]>}
    */
-  list({ skip = 0, limit = 50 } = {}): Promise<ProductDoc[]> {
-    return this.find({ status: 'forsale' })
+  list(
+    { query = { status: 'forsale' }, skip = 0, limit = 50 } = {}
+  ): Promise<ProductDoc[]> {
+    return this.find(query)
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)

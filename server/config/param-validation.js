@@ -130,10 +130,14 @@ export default {
         )
         .single()
         .required(),
-      tags: Joi.array() // optional
-        .unique()
+      tags: Joi.array() // optional,
         .max(30)
-        .items(Joi.string().length(24))
+        .items(
+          Joi.string()
+            .regex(/^[a-zA-Z]{3,30}$/)
+            .min(3)
+            .max(30)
+        )
         .single(),
       description: Joi.string()
         .min(7)
@@ -156,6 +160,26 @@ export default {
         // shortid
         .regex(/^[a-zA-Z0-9_-]{7,14}$/)
         .required(),
+    },
+  },
+
+  getProducts: {
+    query: {
+      limit: Joi.number()
+        .min(1)
+        .max(50),
+      skip: Joi.number()
+        .min(1)
+        .max(50),
+      tags: Joi.array()
+        .single()
+        .items(
+          Joi.string()
+            .regex(/^[a-zA-Z]{3,30}$/)
+            .min(3)
+            .max(30)
+        )
+        .max(10),
     },
   },
 };
