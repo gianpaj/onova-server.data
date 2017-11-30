@@ -4,10 +4,7 @@ import mongoose from 'mongoose';
 
 var TagSchema = new mongoose.Schema(
   {
-    _id: {
-      type: String,
-      set: (v: string) => v.toLowerCase().trim(),
-    },
+    _id: String,
   },
   {
     // assigns 'createdAt' and 'updatedAt' fields to the schema

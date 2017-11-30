@@ -130,7 +130,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
     user: user._id,
     resetToken: token,
   })
-  .then(verification => {
+    .then(() => {
     const vars = {
       reset_link: `https://onova.co/api/auth/reset/${token}`,
         displayName: user.displayName,

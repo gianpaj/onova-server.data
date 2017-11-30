@@ -30,7 +30,7 @@ var ProductSchema = new Schema(
     },
     likes: {
       type: [Schema.Types.ObjectId],
-      ref: 'Like',
+      ref: 'User',
     },
     photoURIs: {
       type: [String],
@@ -157,8 +157,8 @@ ProductSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
     ret.price = ret.price.$numberDecimal;
-    delete ret._id;
     delete ret.id;
+    delete ret._id;
     delete ret.__v;
     return ret;
   },
@@ -166,7 +166,7 @@ ProductSchema.set('toJSON', {
 
 ProductSchema.index({ status: 1, createdAt: 1 });
 // ProductSchema.index({ status: 1, categoryIds: 1 });
-// ProductSchema.index({ status: 1, typeIds: 1 });
+ProductSchema.index({ status: 1, tags: 1 });
 ProductSchema.index({ seller: 1 });
 // ProductSchema.index({ uuid: 1 }, { unique: true }); // created by `unique` schema setting above
 

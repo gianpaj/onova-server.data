@@ -36,26 +36,26 @@ describe('## User APIs', () => {
 
   let user = {
     username: 'firstperson',
-    emailAddress: 'first@example.com',
+    emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
     password: 'expressos',
   };
 
   let anotherUser = {
     username: 'anotherperson',
-    emailAddress: 'another@example.com',
+    emailAddress: 'gianpa+test2@gmail.com',
     mobileNumber: '1234567890', // optional
     password: 'express2',
   };
 
   let thirdUser = {
     username: 'thirdwheel',
-    emailAddress: 'thirdwheel@example.com',
+    emailAddress: 'gianpa+thirdwheel@gmail.com',
     password: 'express3',
   };
 
   const invalidUserCredentials = {
-    emailAddress: 'react@example.com',
+    emailAddress: 'gianpa-react@gmail.com',
     password: 'IDontKnow',
   };
 

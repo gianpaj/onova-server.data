@@ -43,7 +43,7 @@ describe('## Product APIs', () => {
 
   let user = {
     username: 'firstperson',
-    emailAddress: 'first@example.com',
+    emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
     // displayName: 'first user',
     password: 'expressos',
@@ -52,7 +52,7 @@ describe('## Product APIs', () => {
   let product = {
     categoryIds: [1, 2, 3],
     typeIds: [1, 2, 3],
-    tags: ['winter', 'spring'], // optional
+    tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     // seller comes after the user is created
     price: '100.99', // if no decimal points .00 will be added
@@ -68,9 +68,17 @@ describe('## Product APIs', () => {
   let thirdProduct = {
     categoryIds: [2],
     typeIds: [1, 3],
-    tags: ['winter'],
+    tags: ['WINTER'],
     description: 'nice scarf',
-    price: '230.99',
+    price: '30',
+  };
+
+  let badProduct = {
+    categoryIds: [2],
+    typeIds: [1, 3],
+    tags: ['lol@'],
+    description: 'nice API',
+    price: '290.00',
   };
 
   let productUuid;
@@ -127,17 +135,17 @@ describe('## Product APIs', () => {
           const p = res.body.data;
           expect(p.categoryIds.sort()).toEqual([1, 2, 3]);
           expect(Array.isArray(p.comments));
-          expect(p.comments).toEqual(expect.arrayContaining([]));
+          expect(p.comments).toHaveLength(0);
           expect(p.currency).toBe('UAH');
           expect(p.description).toBe(product.description);
           expect(Array.isArray(p.likes));
-          expect(p.likes).toEqual(expect.arrayContaining([]));
+          expect(p.likes).toHaveLength(0);
           expect(p.photoURIs).toHaveLength(2);
           expect(p.price).toBe(product.price);
           expect(p.seller).toBe(product.seller);
           expect(p.status).toBe('forsale');
           expect(Array.isArray(p.tags));
-          // expect(p.tags).toEqual(expect.arrayContaining([]));
+          expect(p.tags).toEqual(product.tags);
           expect(p.typeIds.sort()).toEqual([1, 2, 3]);
           expect(Object.keys(p).sort()).toEqual(productFields.sort());
           productUuid = p.uuid;
@@ -177,6 +185,19 @@ describe('## Product APIs', () => {
           expect(res.body.message).toBe('Seller not found');
         });
     });
+
+    it('should not create product with an invalid tag', async () => {
+      return request(app)
+        .post('/api/products')
+        .field({ ...badProduct, seller: product.seller })
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain(
+            'fails to match the required pattern'
+          );
+        });
+    });
   });
 
   describe('# GET /api/products/:uuid', () => {
@@ -192,11 +213,11 @@ describe('## Product APIs', () => {
           expect(p.status).toBe('forsale');
           expect(p.currency).toBe('UAH');
           expect(Array.isArray(p.likes));
-          expect(p.likes).toEqual(expect.arrayContaining([]));
+          expect(p.likes).toHaveLength(0);
           expect(Array.isArray(p.comments));
-          expect(p.comments).toEqual(expect.arrayContaining([]));
+          expect(p.comments).toHaveLength(0);
           expect(Array.isArray(p.tags));
-          expect(p.tags).toEqual(expect.arrayContaining([]));
+          expect(p.tags).toHaveLength(2);
           expect(p.typeIds.sort()).toEqual([1, 2, 3]);
           expect(p.categoryIds.sort()).toEqual([1, 2, 3]);
           expect(p.photoURIs).toHaveLength(2);
@@ -232,6 +253,10 @@ describe('## Product APIs', () => {
             .field(thirdProduct)
             .expect(httpStatus.CREATED)
             .then(res => {
+              expect(res.body.data.tags).toEqual(
+                expect.arrayContaining(thirdProduct.tags)
+              );
+              expect(res.body.data.tags).toHaveLength(1);
               expect(typeof res.body.data).toBe('object');
               done();
             });
@@ -283,8 +308,8 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p.length).toBe(2);
-          expect(p[1].description).toBe(product.description);
+          expect(p.length).toBe(1);
+          expect(p[0].description).toBe(product.description);
         });
     });
   });

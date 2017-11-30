@@ -134,7 +134,7 @@ export default {
         .max(30)
         .items(
           Joi.string()
-            .regex(/^[a-zA-Z]{3,30}$/)
+            .regex(/^(\b[a-z][a-z0-9]*)$/i)
             .min(3)
             .max(30)
         )
@@ -175,7 +175,7 @@ export default {
         .single()
         .items(
           Joi.string()
-            .regex(/^[a-zA-Z]{3,30}$/)
+            .regex(/^(\b[a-z][a-z0-9]*)$/i)
             .min(3)
             .max(30)
         )
