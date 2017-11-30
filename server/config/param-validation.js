@@ -182,4 +182,13 @@ export default {
         .max(10),
     },
   },
+
+  deleteProduct: {
+    params: {
+      uuid: Joi.string()
+        // shortid
+        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .required(),
+    },
+  },
 };

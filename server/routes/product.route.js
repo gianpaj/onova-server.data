@@ -11,6 +11,7 @@ import productCtrl from '../controllers/product.controller';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router(); // eslint-disable-line new-cap
+
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
@@ -42,6 +43,7 @@ router
   .post(
     upload.array('photos', 6),
     validate(paramValidation.createProduct),
+    requireAuth,
     productCtrl.create
   );
 
@@ -50,11 +52,15 @@ router
   // GET /api/products/:uuid - Get product
   .get(validate(paramValidation.getProduct), productCtrl.get)
 
-//   // PUT /api/products/:uuid - Update product
-//   .put(requireAuth, productCtrl.update)
+  //   // PUT /api/products/:uuid - Update product
+  //   .put(requireAuth, productCtrl.update)
 
   // DELETE /api/products/:uuid - Delete product - Protected route
-  .delete(requireAuth, productCtrl.remove);
+  .delete(
+    validate(paramValidation.deleteProduct),
+    requireAuth,
+    productCtrl.remove
+  );
 
 // Load product when API with uuid route parameter is hit
 router.param('uuid', productCtrl.load);

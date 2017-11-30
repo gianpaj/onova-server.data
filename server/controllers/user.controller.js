@@ -147,9 +147,7 @@ function update(req: $Request, res: $Response, next: NextFunction) {
             }
             mailCtrl.resendVerificationEmail(user.emailAddress, user);
             user.accountStatus = 'notverified';
-            debug(
-              `account ${user._id} is awaiting for email verification`
-            );
+            debug(`account ${user._id} is awaiting for email verification`);
             // save user with new email address only if there is no duplicate key error
             resolve();
           }

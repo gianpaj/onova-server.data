@@ -14,23 +14,22 @@ const router = express.Router(); // eslint-disable-line new-cap
  *
  * Returns token if correct username and password is provided
  */
-router.route('/login')
-  .post(validate(paramValidation.login), authCtrl.login);
+router.route('/login').post(validate(paramValidation.login), authCtrl.login);
 
 /**
  * GET /api/auth/random-number - (Protected route)
  *
  * Needs token returned by the above route as header. Authorization: JWT {token}
  */
-router.route('/random-number')
-  .get(requireAuth, authCtrl.getRandomNumber);
+router.route('/random-number').get(requireAuth, authCtrl.getRandomNumber);
 
 /**
  * GET /api/auth/activate/:token
  *
  * Activate user after clicking on email verification link
  */
-router.route('/activate/:token')
+router
+  .route('/activate/:token')
   .get(validate(paramValidation.activate), authCtrl.activate);
 
 /**
@@ -38,10 +37,12 @@ router.route('/activate/:token')
  *
  * Request password reset by email
  */
-router.route('/reset')
+router
+  .route('/reset')
   .post(validate(paramValidation.requestReset), authCtrl.requestPassReset);
 
-router.route('/reset/:token')
+router
+  .route('/reset/:token')
   /** GET /api/auth/reset/:token - Render page to change password */
   .get(authCtrl.resetPage)
 

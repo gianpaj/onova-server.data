@@ -135,6 +135,7 @@ function list(req: $Request, res: $Response, next: NextFunction) {
  */
 function remove(req: $Request, res: $Response, next: NextFunction) {
   var uuid = req.params.uuid;
+
   Product.findOneAndUpdate(
     { uuid: uuid, status: 'forsale' },
     { status: 'deleted' }
@@ -144,13 +145,22 @@ function remove(req: $Request, res: $Response, next: NextFunction) {
         throw new APIError('Product not found', 400);
       }
 
+      const uid = JSON.stringify(req.user.id);
+      const sellerid = JSON.stringify(product.seller);
+
+      if (uid !== sellerid) {
+        throw new APIError('Unauthorized', 401);
+      }
+
       // TODO: delete images from GSC
 
       return res.status(204).json();
     })
-    .catch(() => {
-      const e = new APIError('Error deleting Product', 400);
-      next(e);
+    .catch(err => {
+      if (!err instanceof APIError) {
+        err = new APIError('Error deleting Product', 400);
+      }
+      next(err);
     });
 }
 

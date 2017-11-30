@@ -49,6 +49,13 @@ describe('## Product APIs', () => {
     password: 'expressos',
   };
 
+  let anotherUser = {
+    username: 'anotherperson',
+    emailAddress: 'gianpa+test2@gmail.com',
+    mobileNumber: '1234567890', // optional
+    password: 'express2',
+  };
+
   let product = {
     categoryIds: [1, 2, 3],
     typeIds: [1, 2, 3],
@@ -83,6 +90,7 @@ describe('## Product APIs', () => {
 
   let productUuid;
   let jwtToken;
+  let anotherJwtToken;
 
   beforeAll(done => {
     // create user (seller)
@@ -119,18 +127,59 @@ describe('## Product APIs', () => {
           .expect(httpStatus.OK)
           .then(res => {
             expect(res.text).toContain('Account activated');
+          });
+      })
+      .then(() => {
+        return request(app)
+          .post('/api/auth/login')
+          .send({
+            emailAddress: user.emailAddress,
+            password: user.password,
+          })
+          .expect(httpStatus.OK)
+          .then(res => {
+            expect(res.body).toHaveProperty('token');
+            jwtToken = res.body.token;
+          });
+      })
+      .then(() => {
+        return request(app)
+          .post('/api/users')
+          .send(anotherUser)
+          .expect(httpStatus.CREATED)
+          .then(res => {
+            expect(res.body.data.emailAddress).toBe(anotherUser.emailAddress);
+            anotherUser._id = res.body.data._id;
+          })
+          .then(() => {
+            return Verification.findOne({ user: anotherUser._id }).then(
+              verDoc => {
+                if (!verDoc) {
+                  return done('no verification token found');
+                }
+                return verDoc.resetToken;
+              }
+            );
+          })
+          .then(activationToken => {
+            return request(app)
+              .get(`/api/auth/activate/${activationToken}`)
+              .expect(httpStatus.OK)
+              .then(res => {
+                expect(res.text).toContain('Account activated');
+              });
           })
           .then(() => {
             return request(app)
               .post('/api/auth/login')
               .send({
-                emailAddress: user.emailAddress,
-                password: user.password,
+                emailAddress: anotherUser.emailAddress,
+                password: anotherUser.password,
               })
               .expect(httpStatus.OK)
               .then(res => {
                 expect(res.body).toHaveProperty('token');
-                jwtToken = res.body.token;
+                anotherJwtToken = res.body.token;
                 done();
               });
           });
@@ -141,6 +190,7 @@ describe('## Product APIs', () => {
     it('should create product', async () => {
       return request(app)
         .post('/api/products')
+        .set('Authorization', jwtToken)
         .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .field(product)
@@ -169,6 +219,7 @@ describe('## Product APIs', () => {
     it('should not create product with wrong file uploaded', async () => {
       return request(app)
         .post('/api/products')
+        .set('Authorization', jwtToken)
         .attach('photos', path.join(__dirname, 'misc.test.js'))
         .field(product)
         .expect(httpStatus.BAD_REQUEST)
@@ -182,6 +233,7 @@ describe('## Product APIs', () => {
     it('should not create product without uploading a photo', async () => {
       return request(app)
         .post('/api/products')
+        .set('Authorization', jwtToken)
         .field(product)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -192,6 +244,7 @@ describe('## Product APIs', () => {
     it('should not create product with an invalid seller', async () => {
       return request(app)
         .post('/api/products')
+        .set('Authorization', jwtToken)
         .field({ ...product, seller: '5a1b50bfa4c57109cf583235' })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
@@ -203,6 +256,7 @@ describe('## Product APIs', () => {
     it('should not create product with an invalid tag', async () => {
       return request(app)
         .post('/api/products')
+        .set('Authorization', jwtToken)
         .field({ ...badProduct, seller: product.seller })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
@@ -217,6 +271,7 @@ describe('## Product APIs', () => {
       badProduct.tags = ['my pony'];
       return request(app)
         .post('/api/products')
+        .set('Authorization', jwtToken)
         .field({ ...badProduct, seller: product.seller })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
@@ -268,6 +323,7 @@ describe('## Product APIs', () => {
       thirdProduct.seller = product.seller;
       request(app)
         .post('/api/products')
+        .set('Authorization', jwtToken)
         .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
         .field(anotherProduct)
         .expect(httpStatus.CREATED)
@@ -277,6 +333,7 @@ describe('## Product APIs', () => {
         .then(() => {
           request(app)
             .post('/api/products')
+            .set('Authorization', jwtToken)
             .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
             .field(thirdProduct)
             .expect(httpStatus.CREATED)
@@ -373,6 +430,34 @@ describe('## Product APIs', () => {
         .then(res => {
           expect(res.body).toMatchObject({});
         });
+    });
+
+    describe('delete', () => {
+      let anotherProductUuid;
+
+      beforeAll(done => {
+        request(app)
+          .post('/api/products')
+          .set('Authorization', anotherJwtToken)
+          .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+          .field({ ...anotherProduct, seller: anotherUser._id })
+          .expect(httpStatus.CREATED)
+          .then(res => {
+            anotherProductUuid = res.body.data.uuid;
+            expect(typeof res.body.data).toBe('object');
+            done();
+          });
+      });
+
+      it('should not delete a product which is not mine', async () => {
+        return request(app)
+          .delete(`/api/products/${anotherProductUuid}`)
+          .set('Authorization', jwtToken)
+          .expect(httpStatus.UNAUTHORIZED)
+          .then(res => {
+            expect(res.body.message).toBe('Unauthorized');
+          });
+      });
     });
   });
 });

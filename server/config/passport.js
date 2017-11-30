@@ -5,6 +5,7 @@ import passport from 'passport';
 import User from '../models/user.model';
 import config from './config';
 
+// Configure Passport authenticated session persistence.
 passport.serializeUser((user, done) => {
   done(null, user.id);
 });
@@ -54,8 +55,8 @@ const jwtOptions = {
 
 // Setting up JWT login strategy
 passport.use(
-  new Strategy(jwtOptions, function(jwt_payload, done) {
-    User.findById(jwt_payload._id, function(err, user) {
+  new Strategy(jwtOptions, (jwt_payload, done) => {
+    User.findById(jwt_payload._id, (err, user) => {
       if (err) {
         return done(err, false);
       }
