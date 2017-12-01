@@ -1,12 +1,26 @@
 // @flow
 
-import httpStatus from 'http-status';
+import shortid from 'shortid';
 import type { $Request, NextFunction } from 'express';
+import Storage from '@google-cloud/storage';
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
 import Product, { ProductDoc } from '../models/product.model';
 import Tag from '../models/tag.model';
 import User from '../models/user.model';
+import config from '../config/config';
+
+// const CLOUD_BUCKET = 'assets.onova.co';
+const CLOUD_BUCKET = 'staging.onova-183307.appspot.com';
+// const CLOUD_BUCKET = require('../givebox.shared/config').CLOUD_BUCKET;
+
+const storage = Storage({
+  // Service account key: 'storage-data-server'
+  // id '3a339323d16ab4189e140a740f2381496686e235'
+  keyFilename: 'Onova-3a339323d16a.json',
+});
+const bucket = storage.bucket(CLOUD_BUCKET);
 
 /**
  * Load a product and append to req.
@@ -53,6 +67,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
     // status: req.body.status, // 'forsale' by default
     tags: req.body.tags, // optional field
     typeIds: req.body.typeIds,
+    uuid: shortid.generate(), // needed here for photos' filenames
   });
 
   // create Tag documents
@@ -72,10 +87,6 @@ function create(req: $Request, res: $Response, next: NextFunction) {
     return next(APIerr);
   }
 
-  // console.log(req.files);
-  // TODO: upload images
-  product.photoURIs = ['a', 'b'];
-
   User.findById(req.user._id)
     .then(seller => {
       if (!seller) {
@@ -88,6 +99,45 @@ function create(req: $Request, res: $Response, next: NextFunction) {
         );
       }
       product.seller = req.user._id;
+
+      product.photoURIs = [];
+
+      req.files.forEach((image, i) => {
+        if (config.env !== 'test') return;
+
+        const gcsname = `products/${product.uuid}-${i + 1}.jpg`;
+        const file = bucket.file(gcsname);
+
+        const stream = file.createWriteStream({
+          metadata: {
+            contentType: image.mimetype,
+          },
+        });
+
+        stream.on('error', err => {
+          console.log('Error uploading image', err);
+        });
+
+        stream.on('finish', () => {
+          file.makePublic().then(() => {
+            const cloudStoragePublicUrl = `https://${CLOUD_BUCKET}/${gcsname}`;
+            debug('Saved image as', cloudStoragePublicUrl);
+
+            product.photoURIs.push(cloudStoragePublicUrl);
+
+            product
+              .save()
+              .then(() => {
+                debug('photoURI updated for product:', product.uuid);
+              })
+              .catch(() => {
+                throw new APIError('Error creating Product', 400);
+              });
+          });
+        });
+
+        stream.end(image.buffer);
+      });
 
       return product
         .save()

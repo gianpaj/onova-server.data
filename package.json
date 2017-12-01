@@ -18,7 +18,7 @@
     "prod:start": "cross-env NODE_ENV=production pm2 start lib --name server.data",
     "prod:stop": "pm2 delete server.data",
     "lint": "esw *.js server config --color",
-    "test": "cross-env NODE_ENV=test jest --verbose --forceExit",
+    "test": "cross-env NODE_ENV=test jest --verbose --runInBand --forceExit",
     "test:watch": "yarn test --watch",
     "test:coverage": "jest --coverage --forceExit"
   },
@@ -27,6 +27,7 @@
     "url": "https://bitbucket.org/onova/server.data.git"
   },
   "dependencies": {
+    "@google-cloud/storage": "1.5.0",
     "bcrypt": "1.0.3",
     "bluebird": "3.5.1",
     "body-parser": "1.18.2",

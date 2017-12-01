@@ -34,7 +34,7 @@ var ProductSchema = new Schema(
     },
     photoURIs: {
       type: [String],
-      required: true,
+      // required: true, // added async after the images are uploaded to GSC
     },
     price: {
       type: Schema.Types.Decimal128,
