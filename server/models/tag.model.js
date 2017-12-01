@@ -12,11 +12,12 @@ var TagSchema = new mongoose.Schema(
   }
 );
 
-// export class TagDoc /*:: extends Mongoose$Document */ {
-//   _id: string;
-// }
+export class TagDoc /*:: extends Mongoose$Document */ {
+  // flow-disable-next-line
+  _id: string;
+}
 
-// TagSchema.loadClass(TagDoc);
+TagSchema.loadClass(TagDoc);
 
 // Never return '__v' field in the JSON representation
 // Note that this doesn't effect `toObject`

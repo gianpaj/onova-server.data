@@ -9,6 +9,8 @@ import User from '../models/user.model';
 import Tag from '../models/tag.model';
 import Product from '../models/product.model';
 
+jest.mock('@google-cloud/storage');
+
 // should only return these fields
 const productFields = [
   'categoryIds',
@@ -94,7 +96,7 @@ describe('## Product APIs', () => {
   let anotherProductUuid;
 
   beforeAll(done => {
-    // create user (seller)
+    // create 2 users/sellers
     request(app)
       .post('/api/users')
       .send(user)

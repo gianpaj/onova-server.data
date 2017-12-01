@@ -25,7 +25,8 @@ coverage
 
 node_modules
 
-# flow-typed
+# Google Storage credentials
+Onova-3a339323d16a.json
 
 # .env
 .env
