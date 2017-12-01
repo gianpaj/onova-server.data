@@ -9,7 +9,7 @@ import User from '../models/user.model';
 import Tag from '../models/tag.model';
 import Product from '../models/product.model';
 
-// jest.mock('@google-cloud/storage');
+jest.mock('@google-cloud/storage');
 
 // should only return these fields
 const productFields = [

@@ -18,9 +18,9 @@
     "prod:start": "cross-env NODE_ENV=production pm2 start lib --name server.data",
     "prod:stop": "pm2 delete server.data",
     "lint": "esw *.js server config --color",
-    "test": "cross-env NODE_ENV=test jest --verbose --runInBand --forceExit",
+    "test": "cross-env NODE_ENV=test jest --runInBand",
     "test:watch": "yarn test --watch",
-    "test:coverage": "jest --coverage --forceExit"
+    "test:coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
@@ -85,6 +85,8 @@
     }
   },
   "jest": {
+    "verbose": true,
+    "forceExit": true,
     "transform": {
       ".js": "<rootDir>/node_modules/babel-jest"
     }

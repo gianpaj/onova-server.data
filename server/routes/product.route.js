@@ -25,6 +25,9 @@ function isAuthorized(req, res, next) {
 
 const upload = multer({
   storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB limit
+  },
   fileFilter: (req, file, cb) => {
     const filetypes = /jpg|jpeg|png/;
     const mimetype = filetypes.test(file.mimetype);
