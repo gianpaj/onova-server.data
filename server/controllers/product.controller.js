@@ -103,7 +103,7 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       product.photoURIs = [];
 
       req.files.forEach((image, i) => {
-        if (config.env !== 'test') return;
+        if (config.env == 'test') return;
 
         const gcsname = `products/${product.uuid}-${i + 1}.jpg`;
         const file = bucket.file(gcsname);
