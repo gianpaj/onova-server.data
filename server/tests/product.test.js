@@ -91,6 +91,7 @@ describe('## Product APIs', () => {
   let productUuid;
   let jwtToken;
   let anotherJwtToken;
+  let anotherProductUuid;
 
   beforeAll(done => {
     // create user (seller)
@@ -417,9 +418,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    describe('delete', () => {
-      let anotherProductUuid;
-
+    describe('deleting another product', () => {
       beforeAll(done => {
         request(app)
           .post('/api/products')
@@ -474,6 +473,16 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.data.tags).toEqual(product.tags);
+        });
+    });
+
+    it('should not update a product which is not mine', async () => {
+      return request(app)
+        .put(`/api/products/${anotherProductUuid}`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(res => {
+          expect(res.body.message).toBe('Unauthorized');
         });
     });
   });

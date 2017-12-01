@@ -136,30 +136,20 @@ function list(req: $Request, res: $Response, next: NextFunction) {
 function remove(req: $Request, res: $Response, next: NextFunction) {
   var uuid = req.params.uuid;
 
+  if (req.product.status !== 'forsale') {
+    // item could be already sold or deleted, etc.
+    throw new APIError('Product not found', 400);
+  }
+
+  // TODO: delete images from GSC
+
   Product.findOneAndUpdate(
     { uuid: uuid, status: 'forsale' },
     { status: 'deleted' }
   )
-    .then(product => {
-      if (!product) {
-        throw new APIError('Product not found', 400);
-      }
-
-      const uid = JSON.stringify(req.user.id);
-      const sellerid = JSON.stringify(product.seller);
-
-      if (uid !== sellerid) {
-        throw new APIError('Unauthorized', 401);
-      }
-
-      // TODO: delete images from GSC
-
-      return res.status(204).json();
-    })
-    .catch(err => {
-      if (!err instanceof APIError) {
-        err = new APIError('Error deleting Product', 500);
-      }
+    .then(() => res.status(204).json())
+    .catch(() => {
+      const err = new APIError('Error deleting Product', 500);
       next(err);
     });
 }

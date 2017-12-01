@@ -12,6 +12,17 @@ import productCtrl from '../controllers/product.controller';
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router(); // eslint-disable-line new-cap
 
+/**
+ * Authorization Required middleware.
+ */
+function isAuthorized(req, res, next) {
+  if (req.user._id.toString() !== req.product.seller._id.toString()) {
+    const err = new APIError('Unauthorized', 401);
+    return next(err);
+  }
+  next();
+}
+
 const upload = multer({
   storage: multer.memoryStorage(),
   fileFilter: (req, file, cb) => {
@@ -56,6 +67,7 @@ router
   .put(
     validate(paramValidation.productUUIDParam),
     requireAuth,
+    isAuthorized,
     productCtrl.update
   )
 
@@ -63,6 +75,7 @@ router
   .delete(
     validate(paramValidation.productUUIDParam),
     requireAuth,
+    isAuthorized,
     productCtrl.remove
   );
 
