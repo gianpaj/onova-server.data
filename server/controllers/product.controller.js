@@ -100,44 +100,11 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       }
       product.seller = req.user._id;
 
-      product.photoURIs = [];
+      for (let i = 0; i < req.files.length; i++) {
+        product.photoURIs.push('UPLOADING_PIC');
+      }
 
-      req.files.forEach((image, i) => {
-        if (config.env == 'test') return;
-
-        const gcsname = `products/${product.uuid}-${i + 1}.jpg`;
-        const file = bucket.file(gcsname);
-
-        const stream = file.createWriteStream({
-          metadata: {
-            contentType: image.mimetype,
-          },
-        });
-
-        stream.on('error', err => {
-          console.log('Error uploading image', err);
-        });
-
-        stream.on('finish', () => {
-          file.makePublic().then(() => {
-            const cloudStoragePublicUrl = `https://${CLOUD_BUCKET}/${gcsname}`;
-            debug('Saved image as', cloudStoragePublicUrl);
-
-            product.photoURIs.push(cloudStoragePublicUrl);
-
-            product
-              .save()
-              .then(() => {
-                debug('photoURI updated for product:', product.uuid);
-              })
-              .catch(() => {
-                throw new APIError('Error creating Product', 400);
-              });
-          });
-        });
-
-        stream.end(image.buffer);
-      });
+      uploadImages(product, req.files);
 
       return product
         .save()
@@ -150,6 +117,42 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       return res.status(201).json({ data: savedProduct });
     })
     .catch(e => next(e));
+}
+
+/**
+ * Upload images to GCS
+ */
+function uploadImages(product: ProductDoc, files: Array<any>) {
+  if (config.env == 'test') return;
+
+  files.forEach((image, i) => {
+    const gcsname = `products/${product.uuid}-${i + 1}.jpg`;
+    const file = bucket.file(gcsname);
+    const stream = file.createWriteStream({
+      metadata: {
+        contentType: image.mimetype,
+      },
+    });
+    stream.on('error', err => {
+      console.log('Error uploading image', err);
+    });
+    stream.on('finish', () => {
+      file.makePublic().then(() => {
+        const cloudStoragePublicUrl = `https://${CLOUD_BUCKET}/${gcsname}`;
+        debug('Saved image as', cloudStoragePublicUrl);
+        product.photoURIs.push(cloudStoragePublicUrl);
+        product
+          .save()
+          .then(() => {
+            debug('photoURI updated for product:', product.uuid);
+          })
+          .catch(err => {
+            console.log('Error saving product image', err);
+          });
+      });
+    });
+    stream.end(image.buffer);
+  });
 }
 
 /**
@@ -230,9 +233,10 @@ function update(req: $Request, res: $Response, next: NextFunction) {
         });
       }
 
-      // foundProduct.photoURIs = req.body.photoURIs
-      //   ? req.body.photoURIs
-      //   : foundProduct.photoURIs;
+      // for the moment image cannot be updated
+      // if (req.files) {
+      // }
+
       foundProduct.categoryIds = req.body.categoryIds
         ? req.body.categoryIds
         : foundProduct.categoryIds;

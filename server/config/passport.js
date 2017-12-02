@@ -1,4 +1,4 @@
-import { Strategy, ExtractJwt } from 'passport-jwt';
+import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import LocalStrategy from 'passport-local';
 import passport from 'passport';
 
@@ -55,7 +55,7 @@ const jwtOptions = {
 
 // Setting up JWT login strategy
 passport.use(
-  new Strategy(jwtOptions, (jwt_payload, done) => {
+  new JwtStrategy(jwtOptions, (jwt_payload, done) => {
     User.findById(jwt_payload._id, (err, user) => {
       if (err) {
         return done(err, false);
