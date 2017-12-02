@@ -100,9 +100,9 @@ function create(req: $Request, res: $Response, next: NextFunction) {
       }
       product.seller = req.user._id;
 
-      for (let i = 0; i < req.files.length; i++) {
-        product.photoURIs.push('UPLOADING_PIC');
-      }
+      // for (let i = 0; i < req.files.length; i++) {
+      //   product.photoURIs.push('UPLOADING_PIC');
+      // }
 
       uploadImages(product, req.files);
 
@@ -194,7 +194,21 @@ function remove(req: $Request, res: $Response, next: NextFunction) {
     throw new APIError('Product not found', 400);
   }
 
-  // TODO: delete images from GSC
+  // delete images from GSC
+  // for (let i = 0; i < req.product.photoURIs.length; i++) {
+  //   if (config.env === 'test') break;
+
+  //   const file = req.product.photoURIs[i];
+  //   bucket
+  //     .file(file)
+  //     .delete()
+  //     .then(() => {
+  //       debug(`gs://${CLOUD_BUCKET}/${file} deleted.`);
+  //     })
+  //     .catch(err => {
+  //       debug('ERROR:', err);
+  //     });
+  // }
 
   Product.findOneAndUpdate(
     { uuid: uuid, status: 'forsale' },

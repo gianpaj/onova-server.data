@@ -206,7 +206,7 @@ describe('## Product APIs', () => {
           expect(p.description).toBe(product.description);
           expect(Array.isArray(p.likes));
           expect(p.likes).toHaveLength(0);
-          expect(p.photoURIs).toEqual(['UPLOADING_PIC', 'UPLOADING_PIC']);
+          expect(p.photoURIs).toEqual([]);
           expect(p.price).toBe(product.price);
           expect(p.seller).toBe(user._id);
           expect(p.status).toBe('forsale');
@@ -293,7 +293,7 @@ describe('## Product APIs', () => {
           expect(p.tags).toHaveLength(2);
           expect(p.typeIds.sort()).toEqual([1, 2, 3]);
           expect(p.categoryIds.sort()).toEqual([1, 2, 3]);
-          expect(p.photoURIs).toHaveLength(2);
+          expect(p.photoURIs).toHaveLength(0);
         });
     });
 
