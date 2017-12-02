@@ -7,7 +7,7 @@ import userCtrl from '../controllers/user.controller';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 
-const router = express.Router(); // eslint-disable-line new-cap
+const router = express.Router();
 
 router
   .route('/')

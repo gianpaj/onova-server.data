@@ -58,6 +58,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   displayName: ?string;
   mobileNumber: string;
   emailAddress: string;
+  password: string;
   accountStatus: string;
 }
 

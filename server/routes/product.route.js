@@ -10,7 +10,7 @@ import APIError from '../helpers/APIError';
 import productCtrl from '../controllers/product.controller';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
-const router = express.Router(); // eslint-disable-line new-cap
+const router = express.Router();
 
 /**
  * Authorization Required middleware.

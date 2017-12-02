@@ -1,14 +1,13 @@
 // @flow
 
 import shortid from 'shortid';
-import type { $Request, NextFunction } from 'express';
 import Storage from '@google-cloud/storage';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
 import Product, { ProductDoc } from '../models/product.model';
 import Tag from '../models/tag.model';
-import User from '../models/user.model';
+import User, { UserDoc } from '../models/user.model';
 import config from '../config/config';
 
 // const CLOUD_BUCKET = 'assets.onova.co';
@@ -22,10 +21,21 @@ const storage = Storage({
 });
 const bucket = storage.bucket(CLOUD_BUCKET);
 
+declare class session$Request extends express$Request {
+  files: Array<any>;
+  user: UserDoc;
+  product: ProductDoc;
+}
+
 /**
  * Load a product and append to req.
  */
-function load(req: $Request, res: $Response, next: NextFunction, uuid: string) {
+function load(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction,
+  uuid: string
+) {
   // use static method from ProductSchema
   // flow-disable-next-line
   Product.get(uuid)
@@ -41,7 +51,7 @@ function load(req: $Request, res: $Response, next: NextFunction, uuid: string) {
  *
  * @property {string} req.params.uuid  - The unique id (shortid) of product.
  */
-function get(req: $Request, res: $Response) {
+function get(req: session$Request, res: express$Response) {
   return res.json({ data: req.product });
 }
 
@@ -58,7 +68,11 @@ function get(req: $Request, res: $Response) {
  * @property {string} req.body.tags - (optional)
  * @property {Array<number>} req.body.typeIds
  */
-function create(req: $Request, res: $Response, next: NextFunction) {
+function create(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const product = new Product({
     categoryIds: req.body.categoryIds,
     // currency: req.body.currency, // 'UAH' by default
@@ -164,7 +178,11 @@ function uploadImages(product: ProductDoc, files: Array<any>) {
  * @property {number} req.query.limit - Limit number of products to be returned.
  * @property {array<string>|string} req.query.tags
  */
-function list(req: $Request, res: $Response, next: NextFunction) {
+function list(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const { limit = 50, skip = 0, tags } = req.query;
   let query = { status: 'forsale' };
 
@@ -186,7 +204,11 @@ function list(req: $Request, res: $Response, next: NextFunction) {
  *
  * @property {string} req.query.uuid
  */
-function remove(req: $Request, res: $Response, next: NextFunction) {
+function remove(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   var uuid = req.params.uuid;
 
   if (req.product.status !== 'forsale') {
@@ -228,7 +250,11 @@ function remove(req: $Request, res: $Response, next: NextFunction) {
  *
  * @property {string} req.query.uuid
  */
-function update(req: $Request, res: $Response, next: NextFunction) {
+function update(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const uuid = req.params.uuid;
   Product.findOne({ uuid: uuid })
     .then(foundProduct => {

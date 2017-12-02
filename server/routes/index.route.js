@@ -3,7 +3,7 @@ import userRoutes from './user.route';
 import productRoutes from './product.route';
 import authRoutes from './auth.route';
 
-const router = express.Router(); // eslint-disable-line new-cap
+const router = express.Router();
 
 // GET /health-check - Check service health
 router.get('/health-check', (req, res) => res.send('OK'));

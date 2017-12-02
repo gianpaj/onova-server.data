@@ -1,7 +1,6 @@
 // @flow
 
 import httpStatus from 'http-status';
-import type { $Request, $Response, NextFunction } from 'express';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
@@ -9,10 +8,19 @@ import User, { UserDoc } from '../models/user.model';
 import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 
+declare class session$Request extends express$Request {
+  user: UserDoc;
+}
+
 /**
  * Load user and append to req. object
  */
-function load(req: $Request, res: $Response, next: NextFunction, id: string) {
+function load(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction,
+  id: string
+) {
   // use static method from UserSchema
   // flow-disable-next-line
   User.get(id)
@@ -30,7 +38,7 @@ function load(req: $Request, res: $Response, next: NextFunction, id: string) {
  *
  * @property {string} req.params.userId
  */
-function get(req: $Request, res: $Response) {
+function get(req: session$Request, res: express$Response) {
   const doc = {
     _id: req.user._id,
     username: req.user.username,
@@ -50,7 +58,11 @@ function get(req: $Request, res: $Response) {
  * @property {string} req.body.password - (salted and hashed)
  * @property {string} req.body.mobileNumber - (optional)
  */
-function create(req: $Request, res: $Response, next: NextFunction) {
+function create(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const doc: Object = {
     username: req.body.username,
     emailAddress: req.body.emailAddress,
@@ -112,7 +124,11 @@ function create(req: $Request, res: $Response, next: NextFunction) {
  * @property {string} req.body.password - (optional)
  * @property {string} req.body.mobileNumber - (optional)
  */
-function update(req: $Request, res: $Response, next: NextFunction) {
+function update(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const user = req.user;
   user.displayName = req.body.displayName;
 
@@ -193,7 +209,11 @@ function update(req: $Request, res: $Response, next: NextFunction) {
  * @property {number} req.query.skip - Number of users to be skipped.
  * @property {number} req.query.limit - Limit number of users to be returned.
  */
-function list(req: $Request, res: $Response, next: NextFunction) {
+function list(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const { limit = 50, skip = 0 } = req.query;
   // use static method from UserSchema
   // flow-disable-next-line
@@ -209,7 +229,11 @@ function list(req: $Request, res: $Response, next: NextFunction) {
  *
  * @property {string} req.params.userId
  */
-function remove(req: $Request, res: $Response, next: NextFunction) {
+function remove(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const user = req.user;
 
   user
