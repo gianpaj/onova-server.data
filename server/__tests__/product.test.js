@@ -338,7 +338,7 @@ describe('## Product APIs', () => {
 
     it('should get all products', async () => {
       return request(app)
-        .get(`/api/products/`)
+        .get('/api/products/')
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
@@ -350,7 +350,7 @@ describe('## Product APIs', () => {
 
     it('should get only the last product', async () => {
       return request(app)
-        .get(`/api/products/?limit=1`)
+        .get('/api/products/?limit=1')
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
@@ -362,7 +362,7 @@ describe('## Product APIs', () => {
 
     it('should get only the first product', async () => {
       return request(app)
-        .get(`/api/products/?limit=1&skip=2`)
+        .get('/api/products/?limit=1&skip=2')
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
@@ -376,7 +376,7 @@ describe('## Product APIs', () => {
   describe('# GET /api/products/?tags=', () => {
     it('should find all winter products', async () => {
       return request(app)
-        .get(`/api/products/?tags=winter`)
+        .get('/api/products/?tags=winter')
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
@@ -400,7 +400,7 @@ describe('## Product APIs', () => {
 
     it('should get all remaining products', async () => {
       return request(app)
-        .get(`/api/products/`)
+        .get('/api/products/')
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
