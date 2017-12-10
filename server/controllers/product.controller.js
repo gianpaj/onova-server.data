@@ -154,9 +154,10 @@ function uploadImages(product: ProductDoc, files: Array<any>) {
       file.makePublic().then(() => {
         const cloudStoragePublicUrl = `https://${CLOUD_BUCKET}/${gcsname}`;
         debug('Saved image as', cloudStoragePublicUrl);
-        product.photoURIs.push(cloudStoragePublicUrl);
-        product
-          .save()
+        const key = `photoURIs.${i}`;
+        const updateObj = {};
+        updateObj[key] = cloudStoragePublicUrl;
+        Product.findOneAndUpdate({ _id: product._id }, { $set: updateObj })
           .then(() => {
             debug('photoURI updated for product:', product.uuid);
           })
