@@ -1,96 +1,82 @@
 {
-  "name": "express-mongoose-es6-rest-api",
-  "version": "2.0.0",
-  "description": "A Boilerplate application for building REST APIs using express, mongoose in ES6 with code coverage",
-  "author": "Kunal Kapadia <kunalkapadia12@gmail.com>",
+  "name": "onova.server.data",
+  "version": "0.0.1",
+  "description": "API Data server for mobile app",
+  "author": "Onova Team",
   "main": "index.js",
-  "private": false,
+  "private": true,
   "engines": {
-    "node": ">=4.8.0",
-    "npm": ">=2.15.11",
-    "yarn": ">=0.20.3"
+    "node": ">=8.9",
+    "npm": ">=5.5.0",
+    "yarn": ">=1.0.0"
   },
   "scripts": {
-    "start": "gulp serve",
+    "start": "yarn dev:start",
+    "dev:start": "nodemon --ignore lib --exec babel-node server",
     "start:debug": "cross-env DEBUG=express-mongoose-es6-rest-api:* yarn start",
-    "build": "gulp",
+    "prod:build": "rimraf lib && babel server -d lib --ignore .test.js",
+    "prod:start": "cross-env NODE_ENV=production pm2 start lib --name server.data",
+    "prod:stop": "pm2 delete server.data",
     "lint": "esw *.js server config --color",
-    "lint:watch": "yarn lint -- --watch",
-    "precommit": "yarn lint && yarn test",
-    "test": "cross-env NODE_ENV=test ./node_modules/.bin/mocha --ui bdd --reporter spec --colors --compilers js:babel-core/register server/tests --recursive",
-    "test:watch": "yarn test -- --watch",
-    "test:coverage": "cross-env NODE_ENV=test ./node_modules/.bin/istanbul cover _mocha -- --ui bdd --reporter spec --colors --compilers js:babel-core/register server/tests --recursive",
-    "test:check-coverage": "yarn test:coverage && istanbul check-coverage",
-    "report-coverage": "coveralls < ./coverage/lcov.info"
+    "test": "cross-env NODE_ENV=test jest --runInBand",
+    "test:watch": "yarn test --watch",
+    "test:coverage": "jest --coverage"
   },
   "repository": {
     "type": "git",
-    "url": "git@github.com:KunalKapadia/express-mongoose-es6-rest-api.git"
+    "url": "https://bitbucket.org/onova/server.data.git"
   },
-  "keywords": [
-    "express",
-    "node",
-    "node.js",
-    "mongodb",
-    "mongoose",
-    "es6",
-    "mocha",
-    "istanbul",
-    "REST",
-    "API",
-    "boilerplate"
-  ],
   "dependencies": {
-    "bluebird": "3.4.6",
-    "body-parser": "1.15.2",
-    "compression": "1.6.2",
+    "@google-cloud/storage": "1.5.0",
+    "bcrypt": "1.0.3",
+    "bluebird": "3.5.1",
+    "body-parser": "1.18.2",
+    "compression": "1.7.1",
     "cookie-parser": "1.4.3",
     "cors": "2.8.1",
     "debug": "^2.4.5",
     "dotenv": "^4.0.0",
     "express": "4.14.0",
-    "express-jwt": "5.1.0",
-    "express-validation": "1.0.1",
-    "express-winston": "2.1.2",
-    "helmet": "3.1.0",
-    "http-status": "^0.2.0",
-    "joi": "10.0.6",
-    "jsonwebtoken": "7.1.9",
+    "express-validation": "1.0.2",
+    "express-winston": "2.4.0",
+    "helmet": "3.9.0",
+    "http-status": "^1.0.1",
+    "joi": "13.0.2",
+    "jsonwebtoken": "8.1.0",
     "method-override": "^2.3.5",
-    "mongoose": "4.7.4",
+    "mongoose": "4.13.0",
     "morgan": "1.7.0",
+    "multer": "1.3.0",
+    "node-mailjet": "^3.2.1",
+    "passport": "^0.4.0",
+    "passport-jwt": "^3.0.1",
+    "passport-local": "^1.0.0",
+    "pug": "^2.0.0-rc.4",
+    "shortid": "2.2.8",
     "winston": "2.3.0"
   },
   "devDependencies": {
-    "babel-cli": "6.18.0",
-    "babel-core": "6.18.0",
-    "babel-plugin-add-module-exports": "0.2.1",
-    "babel-preset-es2015": "6.16.0",
-    "babel-preset-stage-2": "6.18.0",
-    "chai": "^3.4.1",
+    "babel-cli": "^6.24.0",
+    "babel-core": "^6.24.0",
+    "babel-eslint": "8.0.1",
+    "babel-plugin-transform-object-rest-spread": "6.26.0",
+    "babel-preset-env": "1.6.1",
+    "babel-preset-flow": "^6.23.0",
     "commitizen": "^2.9.2",
-    "coveralls": "^2.11.6",
-    "cross-env": "3.1.3",
-    "cz-conventional-changelog": "1.2.0",
-    "del": "^2.2.0",
-    "eslint": "3.16.1",
-    "eslint-config-airbnb-base": "7.1.0",
-    "eslint-plugin-import": "1.16.0",
-    "eslint-watch": "2.1.14",
-    "gulp": "3.9.1",
-    "gulp-babel": "6.1.2",
-    "gulp-load-plugins": "^1.2.0",
-    "gulp-newer": "^1.1.0",
-    "gulp-nodemon": "^2.0.6",
-    "gulp-sourcemaps": "^1.6.0",
-    "gulp-util": "^3.0.7",
-    "husky": "^0.13.1",
-    "istanbul": "1.1.0-alpha.1",
-    "mocha": "3.2.0",
-    "run-sequence": "^1.1.5",
-    "supertest": "2.0.1",
-    "supertest-as-promised": "4.0.2",
-    "validate-commit-msg": "^2.6.1"
+    "cross-env": "^5.1.1",
+    "eslint": "^4.11.0",
+    "eslint-config-prettier": "2.8.0",
+    "eslint-plugin-flowtype": "~2.39.1",
+    "eslint-plugin-import": "~2.8.0",
+    "eslint-plugin-prettier": "2.3.1",
+    "eslint-watch": "3.1.3",
+    "flow-bin": "~0.59.0",
+    "jest": "21.2.1",
+    "nodemon": "1.12.1",
+    "pm2": "2.7.2",
+    "prettier": "1.8.2",
+    "rimraf": "2.6.2",
+    "supertest": "3.0.0"
   },
   "license": "MIT",
   "config": {
@@ -98,13 +84,11 @@
       "path": "./node_modules/cz-conventional-changelog"
     }
   },
-  "babel": {
-    "presets": [
-      "es2015",
-      "stage-2"
-    ],
-    "plugins": [
-      "add-module-exports"
-    ]
+  "jest": {
+    "verbose": true,
+    "forceExit": true,
+    "transform": {
+      ".js": "<rootDir>/node_modules/babel-jest"
+    }
   }
 }

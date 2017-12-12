@@ -1,0 +1,48 @@
+import mongoose from 'mongoose';
+import util from 'util';
+
+// config should be imported before importing any other file
+import config from './config/config';
+import app from './config/express';
+
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
+
+// make bluebird default Promise
+Promise = require('bluebird');
+
+// plugin bluebird promise in mongoose
+mongoose.Promise = Promise;
+
+// connect to mongo db
+let mongoUri = config.mongo.host;
+
+if (config.env == 'test') {
+  mongoUri = 'mongodb://localhost/onova-data-test';
+}
+
+const promise = mongoose.connect(mongoUri, {
+  useMongoClient: true,
+  keepAlive: 1,
+  // socketTimeoutMS: 1000
+});
+promise.on('error', () => {
+  throw new Error(`unable to connect to database: ${mongoUri}`);
+});
+
+// print mongoose logs in dev env
+if (config.mongooseDebug) {
+  mongoose.set('debug', (collectionName, method, query, doc) => {
+    debug(`${collectionName}.${method}`, util.inspect(query, false, 20), doc);
+  });
+}
+
+// module.parent check is required to support mocha watch
+// src: https://github.com/mochajs/mocha/issues/1912
+if (!module.parent) {
+  // listen on port config.port
+  app.listen(config.port, () => {
+    console.info(`server started on port ${config.port} (${config.env})`);
+  });
+}
+
+export default app;

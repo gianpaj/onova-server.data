@@ -1,19 +1,52 @@
 import express from 'express';
 import validate from 'express-validation';
-import expressJwt from 'express-jwt';
-import paramValidation from '../../config/param-validation';
+import passport from 'passport';
+
+import paramValidation from '../config/param-validation';
 import authCtrl from '../controllers/auth.controller';
-import config from '../../config/config';
 
-const router = express.Router(); // eslint-disable-line new-cap
+const requireAuth = passport.authenticate('jwt', { session: false });
 
-/** POST /api/auth/login - Returns token if correct username and password is provided */
-router.route('/login')
-  .post(validate(paramValidation.login), authCtrl.login);
+const router = express.Router();
 
-/** GET /api/auth/random-number - Protected route,
- * needs token returned by the above as header. Authorization: Bearer {token} */
-router.route('/random-number')
-  .get(expressJwt({ secret: config.jwtSecret }), authCtrl.getRandomNumber);
+/**
+ * POST /api/auth/login
+ *
+ * Returns token if correct username and password is provided
+ */
+router.route('/login').post(validate(paramValidation.login), authCtrl.login);
+
+/**
+ * GET /api/auth/random-number - (Protected route)
+ *
+ * Needs token returned by the above route as header. Authorization: JWT {token}
+ */
+router.route('/random-number').get(requireAuth, authCtrl.getRandomNumber);
+
+/**
+ * GET /api/auth/activate/:token
+ *
+ * Activate user after clicking on email verification link
+ */
+router
+  .route('/activate/:token')
+  .get(validate(paramValidation.activate), authCtrl.activate);
+
+/**
+ * POST /api/auth/reset
+ *
+ * Request password reset by email
+ */
+router
+  .route('/reset')
+  .post(validate(paramValidation.requestReset), authCtrl.requestPassReset);
+
+router
+  .route('/reset/:token')
+  /** GET /api/auth/reset/:token - Render page to change password */
+  .get(authCtrl.resetPage)
+
+  /** POST /api/auth/reset/:token - Change user password */
+  .post(validate(paramValidation.resetForm), authCtrl.resetFormSubmit);
 
 export default router;
