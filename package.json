@@ -1,10 +1,10 @@
 {
   "name": "onova.server.data",
-  "version": "0.0.1",
+  "version": "0.0.0",
   "description": "API Data server for mobile app",
   "author": "Onova Team",
-  "main": "index.js",
   "private": true,
+  "engineStrict": true,
   "engines": {
     "node": ">=8.9",
     "npm": ">=5.5.0",
@@ -62,7 +62,6 @@
     "babel-plugin-transform-object-rest-spread": "6.26.0",
     "babel-preset-env": "1.6.1",
     "babel-preset-flow": "^6.23.0",
-    "commitizen": "^2.9.2",
     "cross-env": "^5.1.1",
     "eslint": "^4.11.0",
     "eslint-config-prettier": "2.8.0",
@@ -79,11 +78,6 @@
     "supertest": "3.0.0"
   },
   "license": "MIT",
-  "config": {
-    "commitizen": {
-      "path": "./node_modules/cz-conventional-changelog"
-    }
-  },
   "jest": {
     "verbose": true,
     "forceExit": true,
