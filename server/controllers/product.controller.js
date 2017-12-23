@@ -152,7 +152,7 @@ function uploadImages(product: ProductDoc, files: Array<any>) {
     });
     stream.on('finish', () => {
       file.makePublic().then(() => {
-        const cloudStoragePublicUrl = `https://storage.cloud.google.com/${
+        const cloudStoragePublicUrl = `https://storage.googleapis.com/${
           CLOUD_BUCKET
         }/${gcsname}`;
         debug('Saved image as', cloudStoragePublicUrl);
