@@ -39,8 +39,9 @@ function login(req, res, next) {
       }
       const payload = {
         _id: user._id,
-        emailAddress: user.emailAddress,
         accountStatus: user.accountStatus,
+        emailAddress: user.emailAddress,
+        username: user.username,
       };
       return res.json({
         token: `JWT ${generateToken(payload)}`,
