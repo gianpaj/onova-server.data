@@ -1,6 +1,8 @@
 import Joi from 'joi';
 import validate from 'express-validation';
 
+import validation from '../helpers/validation';
+
 // assign options
 validate.options({
   allowUnknownBody: false,
@@ -9,8 +11,6 @@ validate.options({
   allowUnknownParams: false,
   allowUnknownCookies: false,
 });
-
-import validation from '../helpers/validation';
 
 export default {
   // POST /api/users
@@ -145,6 +145,8 @@ export default {
         .required(),
       price: Joi.string()
         .regex(/^\d+(\.\d{2})?$/)
+        .invalid('0')
+        .invalid('0.00')
         .required(),
       currency: Joi.string().valid('UAH'), // 'UAH' by default
     },

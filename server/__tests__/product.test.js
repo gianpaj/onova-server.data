@@ -271,6 +271,22 @@ describe('## Product APIs', () => {
           );
         });
     });
+
+    it('should not create product without a proper price', async () => {
+      badProduct.tags = ['winter'];
+      badProduct.price = '0';
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken)
+        .field(badProduct)
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain(
+            '"price" contains an invalid value'
+          );
+        });
+    });
   });
 
   describe('# GET /api/products/:uuid', () => {
