@@ -46,6 +46,17 @@ const UserSchema = new mongoose.Schema(
       default: 'notverified',
       enum: ['verified', 'notverified', 'banned', 'deleted'],
     },
+    paymentInfo: {
+      payment_method: {
+        type: String,
+        enum: ['paypal', 'c2c'],
+      },
+      third_party_token: String,
+      // temp
+      last_four: String,
+      exp_month: String,
+      exp_year: String,
+    },
     // assigns 'createdAt' and 'updatedAt' fields to your schema
   },
   { timestamps: true }
@@ -60,6 +71,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   emailAddress: string;
   password: string;
   accountStatus: string;
+  paymentInfo: any;
 }
 
 UserSchema.loadClass(UserDoc);

@@ -41,6 +41,12 @@ describe('## User APIs', () => {
     password: 'expressos',
   };
 
+  const userPaymentInfo = {
+    last_four: '4442',
+    exp_month: '10',
+    exp_year: '20',
+  };
+
   let anotherUser = {
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
@@ -226,6 +232,7 @@ describe('## User APIs', () => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body).not.toHaveProperty('password');
+          expect(res.body).not.toHaveProperty('paymentInfo');
           done();
         })
         .catch(done);
@@ -297,9 +304,7 @@ describe('## User APIs', () => {
     it('should update user payment info', done => {
       const tempuser = {
         ...user,
-        last_four: '4442',
-        exp_month: '10',
-        exp_year: '20',
+        ...userPaymentInfo,
       };
       request(app)
         .put(`/api/users/${userId}`)
@@ -322,6 +327,24 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/', () => {
+    it('should get personal info', done => {
+      request(app)
+        .get(`/api/users/${userId}/personal`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const payInfo = res.body.paymentInfo;
+          expect(res.body.username).toBe(user.username);
+          expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(payInfo.last_four).toBe(userPaymentInfo.last_four);
+          expect(payInfo.exp_month).toBe(userPaymentInfo.exp_month);
+          expect(payInfo.exp_year).toBe(userPaymentInfo.exp_year);
+          done();
+        })
+        .catch(done);
+    });
+
     it('should get all users', done => {
       request(app)
         .get('/api/users')

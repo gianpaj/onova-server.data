@@ -34,9 +34,9 @@ function load(
 /**
  * Get user
  *
- * GET /api/users/:userId - ObjectId
+ * GET /api/users/:userId
  *
- * @property {string} req.params.userId
+ * @property {string} req.params.userId - ObjectId
  */
 function get(req: session$Request, res: express$Response) {
   const doc = {
@@ -44,6 +44,24 @@ function get(req: session$Request, res: express$Response) {
     username: req.user.username,
     emailAddress: req.user.emailAddress,
     mobileNumber: req.user.mobileNumber,
+  };
+  return res.json(doc);
+}
+
+/**
+ * Get user's personal info
+ *
+ * GET /api/users/:userId/personal
+ *
+ * @property {string} req.params.userId - ObjectId
+ */
+function getPersonal(req: session$Request, res: express$Response) {
+  const doc = {
+    _id: req.user._id,
+    username: req.user.username,
+    emailAddress: req.user.emailAddress,
+    mobileNumber: req.user.mobileNumber,
+    paymentInfo: req.user.paymentInfo,
   };
   return res.json(doc);
 }
@@ -269,4 +287,4 @@ function _prepareUserJson(user: UserDoc): Object {
   return json;
 }
 
-export default { load, get, create, update, list, remove };
+export default { load, get, getPersonal, create, update, list, remove };

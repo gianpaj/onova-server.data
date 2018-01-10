@@ -28,6 +28,12 @@ router
   // DELETE /api/users/:userId - Delete user - Protected route
   .delete(requireAuth, userCtrl.remove);
 
+router
+  .route('/:userId/personal')
+
+  // GET /api/users/:userId/personal - Get user's personal info - Protected route
+  .get(requireAuth, userCtrl.getPersonal);
+
 // Load user when API with userId route parameter is hit
 router.param('userId', userCtrl.load);
 
