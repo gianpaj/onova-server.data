@@ -261,15 +261,31 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should update user email and unverify it', done => {
-      user.emailAddress = 'newemail@example.com';
+    it('should update only the password', done => {
       request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send(user)
+        .send({ password: 'express123' })
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(res.body.username).toBe(user.username);
+          expect(res.body.accountStatus).toBe('verified');
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should update user email and unverify it', done => {
+      request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ emailAddress: 'express123@gmail.com' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          user.emailAddress = res.body.emailAddress;
+          expect(res.body.emailAddress).toBe('express123@gmail.com');
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('notverified');

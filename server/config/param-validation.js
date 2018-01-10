@@ -37,13 +37,10 @@ export default {
     body: {
       username: Joi.string()
         .min(3)
-        .max(30)
-        .required(),
+        .max(30),
       // displayName:  Joi.string().min(3).max(30).required(),
       mobileNumber: Joi.string().regex(validation.mobileNumber),
-      emailAddress: Joi.string()
-        .email()
-        .required(),
+      emailAddress: Joi.string().email(),
       password: Joi.string()
         .min(8)
         .max(50),

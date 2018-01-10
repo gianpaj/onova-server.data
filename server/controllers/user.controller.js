@@ -156,7 +156,7 @@ function update(
   let Promises = [];
 
   // updating email address
-  if (user.emailAddress != body.emailAddress) {
+  if (body.emailAddress && user.emailAddress !== body.emailAddress) {
     user.emailAddress = body.emailAddress;
     Promises.push(
       new Promise((resolve, reject) => {
@@ -184,7 +184,7 @@ function update(
     );
   }
   // updating username
-  if (user.username != body.username) {
+  if (body.username && user.username != body.username) {
     user.username = body.username;
     Promises.push(
       new Promise((resolve, reject) => {
@@ -204,6 +204,7 @@ function update(
       })
     );
   }
+
   return Promise.all(Promises)
     .then(() => user.save())
     .then(savedUser => res.json(savedUser))
