@@ -47,6 +47,16 @@ export default {
       password: Joi.string()
         .min(8)
         .max(50),
+      // temp - we are not validating month is valid, etc.
+      last_four: Joi.string()
+        .length(4)
+        .regex(/^[0-9]+$/),
+      exp_month: Joi.string()
+        .length(2)
+        .regex(/^[0-9]+$/),
+      exp_year: Joi.string()
+        .length(2)
+        .regex(/^[0-9]+$/),
     },
     params: {
       userId: Joi.string()

@@ -122,34 +122,46 @@ function create(
  * @property {string} req.body.displayName
  * @property {string} req.body.emailAddress
  * @property {string} req.body.password - (optional)
- * @property {string} req.body.mobileNumber - (optional)
+ * @property {string} req.body.last_four - (optional)
+ * @property {string} req.body.exp_month - (optional)
+ * @property {string} req.body.exp_year - (optional)
  */
 function update(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
+  const body = req.body;
   const user = req.user;
-  user.displayName = req.body.displayName;
+  user.displayName = body.displayName;
 
-  if (req.body.mobileNumber) {
-    user.mobileNumber = req.body.mobileNumber;
+  if (body.mobileNumber) {
+    user.mobileNumber = body.mobileNumber;
+  }
+  if (body.last_four) {
+    user.paymentInfo.last_four = body.last_four;
+  }
+  if (body.exp_month) {
+    user.paymentInfo.exp_month = body.exp_month;
+  }
+  if (body.exp_year) {
+    user.paymentInfo.exp_year = body.exp_year;
   }
 
   // update password (automatically hashed on save())
-  if (req.body.password) {
-    user.password = req.body.password;
+  if (body.password) {
+    user.password = body.password;
   }
 
   let Promises = [];
 
   // updating email address
-  if (user.emailAddress != req.body.emailAddress) {
-    user.emailAddress = req.body.emailAddress;
+  if (user.emailAddress != body.emailAddress) {
+    user.emailAddress = body.emailAddress;
     Promises.push(
       new Promise((resolve, reject) => {
         User.findOne(
-          { emailAddress: req.body.emailAddress },
+          { emailAddress: body.emailAddress },
           (err, existingUser) => {
             if (err) {
               return reject(err);
@@ -172,11 +184,11 @@ function update(
     );
   }
   // updating username
-  if (user.username != req.body.username) {
-    user.username = req.body.username;
+  if (user.username != body.username) {
+    user.username = body.username;
     Promises.push(
       new Promise((resolve, reject) => {
-        User.findOne({ username: req.body.username }, (err, existingUser) => {
+        User.findOne({ username: body.username }, (err, existingUser) => {
           if (err) {
             return reject(err);
           }

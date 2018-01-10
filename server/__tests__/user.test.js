@@ -277,6 +277,32 @@ describe('## User APIs', () => {
         })
         .catch(done);
     });
+
+    it('should update user payment info', done => {
+      const tempuser = {
+        ...user,
+        last_four: '4442',
+        exp_month: '10',
+        exp_year: '20',
+      };
+      request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send(tempuser)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const body = res.body;
+          const payInfo = body.paymentInfo;
+          expect(body.emailAddress).toBe(tempuser.emailAddress);
+          expect(body.mobileNumber).toBe(tempuser.mobileNumber);
+          expect(body.username).toBe(tempuser.username);
+          expect(payInfo.last_four).toBe(tempuser.last_four);
+          expect(payInfo.exp_month).toBe(tempuser.exp_month);
+          expect(payInfo.exp_year).toBe(tempuser.exp_year);
+          done();
+        })
+        .catch(done);
+    });
   });
 
   describe('# GET /api/users/', () => {
