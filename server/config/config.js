@@ -17,6 +17,9 @@ const envVarsSchema = Joi.object({
   JWT_SECRET: Joi.string()
     .required()
     .description('JWT Secret required to sign'),
+  SALT_ROUNDS: Joi.string()
+    .required()
+    .description('The salt to be used in password encryption by bcrypt'),
   MONGO_HOST: Joi.string()
     .required()
     .description('Mongo DB host url'),

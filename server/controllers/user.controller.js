@@ -62,6 +62,7 @@ function getPersonal(req: session$Request, res: express$Response) {
     emailAddress: req.user.emailAddress,
     mobileNumber: req.user.mobileNumber,
     paymentInfo: req.user.paymentInfo,
+    shippingAddress: req.user.shippingAddress,
   };
   return res.json(doc);
 }
@@ -143,6 +144,7 @@ function create(
  * @property {string} req.body.last_four - (optional)
  * @property {string} req.body.exp_month - (optional)
  * @property {string} req.body.exp_year - (optional)
+ * @property {any} req.body.shippingAddress - (optional)
  */
 function update(
   req: session$Request,
@@ -156,14 +158,15 @@ function update(
   if (body.mobileNumber) {
     user.mobileNumber = body.mobileNumber;
   }
-  if (body.last_four) {
+
+  if (body.last_four || body.exp_month || body.exp_year) {
     user.paymentInfo.last_four = body.last_four;
-  }
-  if (body.exp_month) {
     user.paymentInfo.exp_month = body.exp_month;
-  }
-  if (body.exp_year) {
     user.paymentInfo.exp_year = body.exp_year;
+  }
+
+  if (body.shippingAddress) {
+    user.shippingAddress = body.shippingAddress;
   }
 
   // update password (automatically hashed on save())
@@ -249,7 +252,7 @@ function list(
   // use static method from UserSchema
   // flow-disable-next-line
   User.list({ limit, skip })
-    .then(users => res.json(users))
+    .then(users => res.json(users.map(_prepareUserJson)))
     .catch(e => next(e));
 }
 

@@ -46,6 +46,18 @@ const UserSchema = new mongoose.Schema(
       default: 'notverified',
       enum: ['verified', 'notverified', 'banned', 'deleted'],
     },
+    shippingAddress: {
+      firstName: String,
+      lastName: String,
+      company: String,
+      line1: String,
+      line2: String,
+      line3: String,
+      city: String,
+      state: String,
+      country: String, // ISO 3166-1 alpha-2 format
+      postcode: String,
+    },
     paymentInfo: {
       payment_method: {
         type: String,
@@ -71,6 +83,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   emailAddress: string;
   password: string;
   accountStatus: string;
+  shippingAddress: any;
   paymentInfo: any;
 }
 

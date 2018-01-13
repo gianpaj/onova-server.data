@@ -36,8 +36,8 @@ if (config.mongooseDebug) {
   });
 }
 
-// module.parent check is required to support mocha watch
-// src: https://github.com/mochajs/mocha/issues/1912
+// module.parent check is required to support jest watch
+// https://github.com/mochajs/mocha/issues/1912
 if (!module.parent) {
   // listen on port config.port
   app.listen(config.port, () => {

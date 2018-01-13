@@ -54,6 +54,18 @@ export default {
       exp_year: Joi.string()
         .length(2)
         .regex(/^[0-9]+$/),
+      shippingAddress: {
+        firstName: Joi.string(),
+        lastName: Joi.string(),
+        company: Joi.string(),
+        line1: Joi.string(),
+        line2: Joi.string().empty(''),
+        line3: Joi.string().empty(''),
+        city: Joi.string(),
+        state: Joi.string(),
+        country: Joi.string(),
+        postcode: Joi.string(),
+      },
     },
     params: {
       userId: Joi.string()

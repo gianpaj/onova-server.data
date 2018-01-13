@@ -19,6 +19,9 @@ afterAll(done => {
   done();
 });
 
+// GET /api/users/ should only return these fields
+const userFields = ['_id', 'username', 'emailAddress', 'accountStatus'];
+
 describe('## User APIs', () => {
   beforeAll(done => {
     // mongoose.connection.dropDatabase().then(done);
@@ -39,6 +42,15 @@ describe('## User APIs', () => {
     emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
     password: 'expressos',
+  };
+
+  const userShippingAddress = {
+    shippingAddress: {
+      line1: '11 Wall Street',
+      line2: '',
+      city: 'New York',
+      state: 'NY',
+    },
   };
 
   const userPaymentInfo = {
@@ -301,6 +313,31 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
+    it('should update user shipping info', done => {
+      const tempuser = {
+        ...user,
+        ...userShippingAddress,
+      };
+      request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send(tempuser)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { body } = res;
+          const { shippingAddress } = userShippingAddress;
+          const shipInfo = body.shippingAddress;
+          expect(body.emailAddress).toBe(tempuser.emailAddress);
+          expect(body.mobileNumber).toBe(tempuser.mobileNumber);
+          expect(body.username).toBe(tempuser.username);
+          expect(shipInfo.line1).toBe(shippingAddress.line1);
+          expect(shipInfo.city).toBe(shippingAddress.city);
+          expect(shipInfo.state).toBe(shippingAddress.state);
+          done();
+        })
+        .catch(done);
+    });
+
     it('should update user payment info', done => {
       const tempuser = {
         ...user,
@@ -312,7 +349,7 @@ describe('## User APIs', () => {
         .send(tempuser)
         .expect(httpStatus.OK)
         .then(res => {
-          const body = res.body;
+          const { body } = res;
           const payInfo = body.paymentInfo;
           expect(body.emailAddress).toBe(tempuser.emailAddress);
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
@@ -333,13 +370,16 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(res => {
-          const payInfo = res.body.paymentInfo;
-          expect(res.body.username).toBe(user.username);
-          expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe(user.mobileNumber);
-          expect(payInfo.last_four).toBe(userPaymentInfo.last_four);
-          expect(payInfo.exp_month).toBe(userPaymentInfo.exp_month);
-          expect(payInfo.exp_year).toBe(userPaymentInfo.exp_year);
+          const { body } = res;
+          const { shippingAddress } = userShippingAddress;
+          const shipInfo = body.shippingAddress;
+          expect(body.username).toBe(user.username);
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.mobileNumber).toBe(user.mobileNumber);
+          expect(body.paymentInfo).toEqual(userPaymentInfo);
+          expect(shipInfo.line1).toBe(shippingAddress.line1);
+          expect(shipInfo.city).toBe(shippingAddress.city);
+          expect(shipInfo.state).toBe(shippingAddress.state);
           done();
         })
         .catch(done);
@@ -351,6 +391,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
+          expect(Object.keys(res.body[0]).sort()).toEqual(userFields.sort());
           done();
         })
         .catch(done);
