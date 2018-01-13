@@ -173,7 +173,7 @@ function uploadImages(product: ProductDoc, files: Array<any>) {
 }
 
 /**
- * Get list of products.
+ * Get list of products that are for sale and which photos have been uploaded
  *
  * GET /api/products
  *
@@ -187,7 +187,7 @@ function list(
   next: express$NextFunction
 ) {
   const { limit = 50, skip = 0, tags } = req.query;
-  let query = { status: 'forsale' };
+  let query = { status: 'forsale', photoURIs: { $exists: true } };
 
   if (tags) {
     query = { ...query, tags: { $in: tags } };
