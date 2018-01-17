@@ -179,6 +179,7 @@ function uploadImages(product: ProductDoc, files: Array<any>) {
  *
  * @property {number} req.query.skip - Number of products to be skipped.
  * @property {number} req.query.limit - Limit number of products to be returned.
+ * @property {string} req.query.userid
  * @property {array<string>|string} req.query.tags
  */
 function list(
@@ -186,8 +187,18 @@ function list(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, skip = 0, tags } = req.query;
-  let query = { status: 'forsale', photoURIs: { $exists: true } };
+  const { limit = 50, skip = 0, tags, userid } = req.query;
+  let query = {
+    status: 'forsale',
+  };
+
+  if (config.env !== 'test') {
+    query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
+  }
+
+  if (userid) {
+    query = { ...query, seller: userid };
+  }
 
   if (tags) {
     query = { ...query, tags: { $in: tags } };

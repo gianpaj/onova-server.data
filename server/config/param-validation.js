@@ -188,6 +188,9 @@ export default {
       skip: Joi.number()
         .min(1)
         .max(50),
+      userid: Joi.string()
+        .hex()
+        .length(24),
       tags: Joi.array()
         .single()
         .items(

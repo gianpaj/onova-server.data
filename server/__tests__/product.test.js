@@ -387,6 +387,18 @@ describe('## Product APIs', () => {
           expect(p[0].description).toBe(product.description);
         });
     });
+
+    it("should get only the user's products", async () => {
+      return request(app)
+        .get(`/api/products/?userid=${user._id}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(Array.isArray(p));
+          expect(p.length).toBe(3);
+          expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
+        });
+    });
   });
 
   describe('# GET /api/products/?tags=', () => {
@@ -436,7 +448,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    describe('deleting another product', () => {
+    describe('create another product', () => {
       beforeAll(done => {
         request(app)
           .post('/api/products')
