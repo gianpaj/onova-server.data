@@ -41,9 +41,10 @@ function load(
 function get(req: session$Request, res: express$Response) {
   const doc = {
     _id: req.user._id,
-    username: req.user.username,
+    bio: req.user.bio,
     emailAddress: req.user.emailAddress,
     mobileNumber: req.user.mobileNumber,
+    username: req.user.username,
   };
   return res.json(doc);
 }
@@ -140,6 +141,7 @@ function create(
  * @property {string} req.body.username
  * @property {string} req.body.displayName
  * @property {string} req.body.emailAddress
+ * @property {string} req.body.bio - (optional)
  * @property {string} req.body.password - (optional)
  * @property {string} req.body.last_four - (optional)
  * @property {string} req.body.exp_month - (optional)
@@ -154,6 +156,10 @@ function update(
   const body = req.body;
   const user = req.user;
   user.displayName = body.displayName;
+
+  if (body.bio) {
+    user.bio = body.bio;
+  }
 
   if (body.mobileNumber) {
     user.mobileNumber = body.mobileNumber;
@@ -278,7 +284,6 @@ function remove(
 
 /**
  * Limit number of fields send back for a user
- * (private)
  */
 function _prepareUserJson(user: UserDoc): Object {
   const json = {

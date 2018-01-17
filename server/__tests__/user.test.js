@@ -235,7 +235,7 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/:userId', () => {
-    it('should get user details', done => {
+    it("should get the user's details", done => {
       request(app)
         .get(`/api/users/${userId}`)
         .expect(httpStatus.OK)
@@ -263,7 +263,7 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
-    it('should update user details', done => {
+    it("should update user's details", done => {
       user.mobileNumber = '9876543212';
       request(app)
         .put(`/api/users/${userId}`)
@@ -272,6 +272,24 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(res.body.username).toBe(user.username);
+          expect(res.body.accountStatus).toBe('verified');
+          done();
+        })
+        .catch(done);
+    });
+
+    it("should update user's bio", done => {
+      const bio = 'born to make a profit';
+      request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ ...user, bio })
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.bio).toBe(bio);
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
@@ -313,7 +331,7 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should update user shipping info', done => {
+    it("should update user's shipping info", done => {
       const tempuser = {
         ...user,
         ...userShippingAddress,
@@ -338,7 +356,7 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should update user payment info', done => {
+    it("should update user's payment info", done => {
       const tempuser = {
         ...user,
         ...userPaymentInfo,

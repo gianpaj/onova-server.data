@@ -35,6 +35,7 @@ export default {
   // UPDATE /api/users/:userId
   updateUser: {
     body: {
+      bio: Joi.string().max(300),
       username: Joi.string()
         .min(3)
         .max(30),

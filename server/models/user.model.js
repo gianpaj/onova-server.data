@@ -14,21 +14,27 @@ import config from '../config/config';
  */
 const UserSchema = new mongoose.Schema(
   {
-    username: {
+    accountStatus: {
       type: String,
-      unique: true,
       required: true,
-      set: (v: string) => v.toLowerCase().trim(),
+      default: 'notverified',
+      enum: ['verified', 'notverified', 'banned', 'deleted'],
     },
-    displayName: {
-      type: String,
-      // required: true
+    billingAddress: {
+      firstName: String,
+      lastName: String,
+      company: String,
+      line1: String,
+      line2: String,
+      line3: String,
+      city: String,
+      state: String,
+      country: String, // ISO 3166-1 alpha-2 format
+      postcode: String,
+      phone: String,
     },
-    mobileNumber: {
-      type: String,
-      trim: true,
-      match: [validation.mobileNumber, 'Invalid mobile number.'],
-    },
+    bio: String,
+    displayName: String,
     emailAddress: {
       type: String,
       required: true,
@@ -36,16 +42,27 @@ const UserSchema = new mongoose.Schema(
       set: (v: string) => v.toLowerCase().trim(),
       // validated at API level via 'Joi' and 'isEmail' npm packages
     },
+    mobileNumber: {
+      type: String,
+      trim: true,
+      match: [validation.mobileNumber, 'Invalid mobile number.'],
+    },
     password: {
       type: String,
       required: true,
     },
-    accountStatus: {
+    paymentInfo: {
+      payment_method: {
       type: String,
-      required: true,
-      default: 'notverified',
-      enum: ['verified', 'notverified', 'banned', 'deleted'],
+        enum: ['paypal', 'c2c'],
+      },
+      third_party_token: String,
+      // temp
+      last_four: String,
+      exp_month: String,
+      exp_year: String,
     },
+    profilePic: String,
     shippingAddress: {
       firstName: String,
       lastName: String,
@@ -58,16 +75,11 @@ const UserSchema = new mongoose.Schema(
       country: String, // ISO 3166-1 alpha-2 format
       postcode: String,
     },
-    paymentInfo: {
-      payment_method: {
+    username: {
         type: String,
-        enum: ['paypal', 'c2c'],
-      },
-      third_party_token: String,
-      // temp
-      last_four: String,
-      exp_month: String,
-      exp_year: String,
+      unique: true,
+      required: true,
+      set: (v: string) => v.toLowerCase().trim(),
     },
     // assigns 'createdAt' and 'updatedAt' fields to your schema
   },
@@ -77,14 +89,17 @@ const UserSchema = new mongoose.Schema(
 export class UserDoc /*:: extends Mongoose$Document */ {
   // MongoId?
   _id: any;
-  username: string;
-  displayName: ?string;
-  mobileNumber: string;
-  emailAddress: string;
-  password: string;
   accountStatus: string;
-  shippingAddress: any;
+  billingAddress: any;
+  bio: ?string;
+  displayName: ?string;
+  emailAddress: string;
+  mobileNumber: string;
+  password: string;
   paymentInfo: any;
+  profilePic: string;
+  shippingAddress: any;
+  username: string;
 }
 
 UserSchema.loadClass(UserDoc);
