@@ -53,7 +53,7 @@ const UserSchema = new mongoose.Schema(
     },
     paymentInfo: {
       payment_method: {
-      type: String,
+        type: String,
         enum: ['paypal', 'c2c'],
       },
       third_party_token: String,

@@ -17,6 +17,7 @@ export default {
   createUser: {
     body: {
       username: Joi.string()
+        .regex(validation.username)
         .min(3)
         .max(30)
         .required(),
@@ -37,6 +38,7 @@ export default {
     body: {
       bio: Joi.string().max(300),
       username: Joi.string()
+        .regex(validation.username)
         .min(3)
         .max(30),
       // displayName:  Joi.string().min(3).max(30).required(),

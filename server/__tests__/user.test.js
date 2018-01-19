@@ -124,6 +124,63 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
+    it('# POST /api/users - should not create a user with an invalid username (space)', done => {
+      const user1 = { emailAddress: 'u1@gmail.com', username: 'white space' };
+      request(app)
+        .post('/api/users')
+        .send({ ...user, ...user1 })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(done())
+        .catch(done);
+    });
+
+    it('# POST /api/users - should not create a user with an invalid username (@ char)', done => {
+      const user2 = { emailAddress: 'user2@gmail.com', username: 'at@sign' };
+      request(app)
+        .post('/api/users')
+        .send({ ...user, ...user2 })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(done())
+        .catch(done);
+    });
+
+    it('# POST /api/users - should create a user with an invalid username (cyrilic alphabet)', done => {
+      const user3 = { emailAddress: 'user3@gmail.com', username: 'Кплнаше' };
+      request(app)
+        .post('/api/users')
+        .send({ ...user, ...user3 })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          console.log(res.body);
+          done();
+        })
+        .catch(done);
+    });
+
+    it('# POST /api/users - should create a user with a valid username (. dot)', done => {
+      const user5 = { emailAddress: 'user5@gmail.com', username: 'user.user' };
+      request(app)
+        .post('/api/users')
+        .send({ ...user, ...user5 })
+        .expect(httpStatus.CREATED)
+        .then(done())
+        .catch(done);
+    });
+
+    it('# POST /api/users - should create a user with a valid username (_ char)', done => {
+      const user6 = { emailAddress: 'u6@gmail.com', username: 'under_score' };
+      request(app)
+        .post('/api/users')
+        .send({ ...user, ...user6 })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          console.log(res.body);
+          done();
+        })
+        // .then(done())
+        .catch(done);
+    });
+
     it('# POST /api/users - should not create a user with the same email address', done => {
       request(app)
         .post('/api/users')
@@ -462,7 +519,7 @@ describe('## User APIs', () => {
         .delete(`/api/users/${anotherUserId}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.UNAUTHORIZED)
-        .then(() => done())
+        .then(done())
         .catch(done);
     });
 
@@ -536,7 +593,7 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send(user)
         .expect(httpStatus.OK)
-        .then(() => done())
+        .then(done())
         .catch(done);
     });
   });
@@ -569,7 +626,7 @@ describe('## User APIs', () => {
       request(app)
         .get('/api/auth/random-number')
         .expect(httpStatus.UNAUTHORIZED)
-        .then(() => done())
+        .then(done())
         .catch(done);
     });
 
@@ -578,7 +635,7 @@ describe('## User APIs', () => {
         .get('/api/auth/random-number')
         .set('Authorization', 'JWT inValidToken')
         .expect(httpStatus.UNAUTHORIZED)
-        .then(() => done())
+        .then(done())
         .catch(done);
     });
 
