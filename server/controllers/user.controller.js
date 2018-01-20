@@ -4,6 +4,8 @@ import httpStatus from 'http-status';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
+import photos from '../helpers/photos';
+import config from '../config/config';
 import User, { UserDoc } from '../models/user.model';
 import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
@@ -39,13 +41,7 @@ function load(
  * @property {string} req.params.userId - ObjectId
  */
 function get(req: session$Request, res: express$Response) {
-  const doc = {
-    _id: req.user._id,
-    bio: req.user.bio,
-    emailAddress: req.user.emailAddress,
-    mobileNumber: req.user.mobileNumber,
-    username: req.user.username,
-  };
+  let doc = _prepareUserJson(req.user);
   return res.json(doc);
 }
 
@@ -54,16 +50,14 @@ function get(req: session$Request, res: express$Response) {
  *
  * GET /api/users/:userId/personal
  *
- * @property {string} req.params.userId - ObjectId
+ * @property {ObjectId} req.params.userId
  */
 function getPersonal(req: session$Request, res: express$Response) {
-  const doc = {
-    _id: req.user._id,
-    username: req.user.username,
-    emailAddress: req.user.emailAddress,
-    mobileNumber: req.user.mobileNumber,
-    paymentInfo: req.user.paymentInfo,
+  let doc = _prepareUserJson(req.user);
+  doc = {
+    ...doc,
     shippingAddress: req.user.shippingAddress,
+    paymentInfo: req.user.paymentInfo,
   };
   return res.json(doc);
 }
@@ -153,8 +147,7 @@ function update(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const body = req.body;
-  const user = req.user;
+  const { body, user } = req;
   user.displayName = body.displayName;
 
   if (body.bio) {
@@ -210,6 +203,7 @@ function update(
       })
     );
   }
+
   // updating username
   if (body.username && user.username != body.username) {
     user.username = body.username;
@@ -228,6 +222,30 @@ function update(
           }
           resolve();
         });
+      })
+    );
+  }
+
+  if (req.file && config.env !== 'test') {
+    debug('skip profilePic upload');
+    Promises.push(
+      new Promise((resolve, reject) => {
+        photos
+          .uploadProfilePic(req.user, req.file)
+          .then(cloudStoragePublicUrl => {
+            return User.findByIdAndUpdate(req.user._id, {
+              $set: { profilePic: cloudStoragePublicUrl },
+            })
+              .exec()
+              .then(doc => {
+                resolve(doc);
+                debug('profilePic updated for user:', doc);
+              });
+          })
+          .catch(err => {
+            debug('Error saving user profilePic', err);
+            reject(err);
+          });
       })
     );
   }
@@ -283,16 +301,16 @@ function remove(
 }
 
 /**
- * Limit number of fields send back for a user
+ * Limit number of fields send back for a user - Un-protected data / no auth
  */
 function _prepareUserJson(user: UserDoc): Object {
-  const json = {
+  return {
     _id: user._id,
     username: user.username,
     emailAddress: user.emailAddress,
     accountStatus: user.accountStatus,
+    profilePic: user.profilePic,
   };
-  return json;
 }
 
 export default { load, get, getPersonal, create, update, list, remove };

@@ -4,6 +4,7 @@ import passport from 'passport';
 
 import paramValidation from '../config/param-validation';
 import userCtrl from '../controllers/user.controller';
+import photos from '../helpers/photos';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 
@@ -23,7 +24,12 @@ router
   .get(userCtrl.get)
 
   // PUT /api/users/:userId - Update user - Protected route
-  .put(validate(paramValidation.updateUser), requireAuth, userCtrl.update)
+  .put(
+    photos.uploadMulter.single('profilePic'),
+    validate(paramValidation.updateUser),
+    requireAuth,
+    userCtrl.update
+  )
 
   // DELETE /api/users/:userId - Delete user - Protected route
   .delete(requireAuth, userCtrl.remove);

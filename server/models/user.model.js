@@ -9,10 +9,12 @@ import APIError from '../helpers/APIError';
 import validation from '../helpers/validation';
 import config from '../config/config';
 
+const Schema = mongoose.Schema;
+
 /**
  * User Schema
  */
-const UserSchema = new mongoose.Schema(
+const UserSchema = new Schema(
   {
     accountStatus: {
       type: String,
@@ -39,7 +41,7 @@ const UserSchema = new mongoose.Schema(
       type: String,
       required: true,
       unique: true,
-      set: (v: string) => v.toLowerCase().trim(),
+      set: (v: String) => v.toLowerCase().trim(),
       // validated at API level via 'Joi' and 'isEmail' npm packages
     },
     mobileNumber: {
@@ -76,10 +78,10 @@ const UserSchema = new mongoose.Schema(
       postcode: String,
     },
     username: {
-        type: String,
+      type: String,
       unique: true,
       required: true,
-      set: (v: string) => v.toLowerCase().trim(),
+      set: (v: String) => v.toLowerCase().trim(),
     },
     // assigns 'createdAt' and 'updatedAt' fields to your schema
   },
@@ -132,7 +134,6 @@ UserSchema.statics = {
    */
   get(id: string) {
     return this.findById(id)
-      .exec()
       .then((user: UserDoc) => {
         if (!user) {
           return Promise.reject();
@@ -156,8 +157,7 @@ UserSchema.statics = {
     return this.find()
       .sort({ createdAt: -1 })
       .skip(+skip)
-      .limit(+limit)
-      .exec();
+      .limit(+limit);
   },
 };
 

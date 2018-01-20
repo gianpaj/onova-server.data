@@ -1,13 +1,11 @@
 import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';
-import multer from 'multer';
-import path from 'path';
-import httpStatus from 'http-status';
 
 import paramValidation from '../config/param-validation';
-import APIError from '../helpers/APIError';
 import productCtrl from '../controllers/product.controller';
+import APIError from '../helpers/APIError';
+import photos from '../helpers/photos';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
@@ -23,31 +21,6 @@ function isAuthorized(req, res, next) {
   next();
 }
 
-const upload = multer({
-  storage: multer.memoryStorage(),
-  limits: {
-    fileSize: 5 * 1024 * 1024, // 5 MB limit
-  },
-  fileFilter: (req, file, cb) => {
-    const filetypes = /jpg|jpeg|png/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(
-      path.extname(file.originalname).toLowerCase()
-    );
-
-    if (mimetype && extname) {
-      return cb(null, true);
-    }
-
-    const APIerr = new APIError(
-      // prettier-ignore
-      `Error: File upload only supports the following filetypes: ${filetypes}`,
-      httpStatus.BAD_REQUEST
-    );
-    return cb(APIerr);
-  },
-});
-
 router
   .route('/')
   // GET /api/products - Get list of products 'forsale'
@@ -55,7 +28,7 @@ router
 
   // POST /api/products - Create new product
   .post(
-    upload.array('photos', 6),
+    photos.uploadMulter.array('photos', 6),
     validate(paramValidation.createProduct),
     requireAuth,
     productCtrl.create

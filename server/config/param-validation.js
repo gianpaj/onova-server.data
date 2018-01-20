@@ -129,9 +129,6 @@ export default {
   // POST /api/products
   createProduct: {
     body: {
-      // photoURIs: Joi.array()
-      //   .items(Joi.string())
-      //   .required(),
       categoryIds: Joi.array()
         .unique()
         .max(5)
