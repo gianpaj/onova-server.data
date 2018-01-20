@@ -37,11 +37,13 @@ export default {
   updateUser: {
     body: {
       bio: Joi.string().max(300),
+      displayName: Joi.string()
+        .min(3)
+        .max(30),
       username: Joi.string()
         .regex(validation.username)
         .min(3)
         .max(30),
-      // displayName:  Joi.string().min(3).max(30).required(),
       mobileNumber: Joi.string().regex(validation.mobileNumber),
       emailAddress: Joi.string().email(),
       password: Joi.string()

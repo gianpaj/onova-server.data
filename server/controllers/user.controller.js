@@ -132,15 +132,17 @@ function create(
  *
  * PUT /api/users/:userId
  *
+ * ALL OPTIONAL
+ *
  * @property {string} req.body.username
  * @property {string} req.body.displayName
  * @property {string} req.body.emailAddress
- * @property {string} req.body.bio - (optional)
- * @property {string} req.body.password - (optional)
- * @property {string} req.body.last_four - (optional)
- * @property {string} req.body.exp_month - (optional)
- * @property {string} req.body.exp_year - (optional)
- * @property {any} req.body.shippingAddress - (optional)
+ * @property {string} req.body.bio
+ * @property {string} req.body.password
+ * @property {string} req.body.last_four
+ * @property {string} req.body.exp_month
+ * @property {string} req.body.exp_year
+ * @property {any} req.body.shippingAddress
  */
 function update(
   req: session$Request,
@@ -148,10 +150,12 @@ function update(
   next: express$NextFunction
 ) {
   const { body, user } = req;
-  user.displayName = body.displayName;
 
   if (body.bio) {
     user.bio = body.bio;
+  }
+  if (body.displayName) {
+    user.displayName = body.displayName;
   }
 
   if (body.mobileNumber) {
@@ -226,8 +230,9 @@ function update(
     );
   }
 
+  req.file && config.env !== 'test' && debug('skip profilePic upload');
+
   if (req.file && config.env !== 'test') {
-    debug('skip profilePic upload');
     Promises.push(
       new Promise((resolve, reject) => {
         photos
@@ -238,8 +243,8 @@ function update(
             })
               .exec()
               .then(doc => {
+                debug('profilePic updated for user:', doc._id);
                 resolve(doc);
-                debug('profilePic updated for user:', doc);
               });
           })
           .catch(err => {
@@ -306,7 +311,9 @@ function remove(
 function _prepareUserJson(user: UserDoc): Object {
   return {
     _id: user._id,
+    bio: user.bio,
     username: user.username,
+    displayName: user.displayName,
     emailAddress: user.emailAddress,
     accountStatus: user.accountStatus,
     profilePic: user.profilePic,

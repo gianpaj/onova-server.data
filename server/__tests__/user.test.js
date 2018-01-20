@@ -652,7 +652,7 @@ describe('## User APIs', () => {
     });
   });
 
-  describe.skip('Password reset', () => {
+  describe('Password reset', () => {
     it('# POST /api/auth/reset - should request a password reset via email', done => {
       request(app)
         .post('/api/auth/reset')

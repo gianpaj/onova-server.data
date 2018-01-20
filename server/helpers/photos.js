@@ -86,11 +86,9 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
 /**
  * Upload to GCS
  */
-function uploadProfilePic(user: UserDoc, image: any) {
-  if (config.env === 'test') return;
-
+function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
   return new Promise((resolve, reject) => {
-    const gcsname = `users/${user._id}.jpg`;
+    const gcsname = `users/${user._id}-${Date.now()}.jpg`;
     const file = bucket.file(gcsname);
     const stream = file.createWriteStream({
       metadata: {
