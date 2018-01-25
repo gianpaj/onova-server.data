@@ -13,20 +13,13 @@ Promise = require('bluebird');
 // plugin bluebird promise in mongoose
 mongoose.Promise = Promise;
 
-// connect to mongo db
-let mongoUri = config.mongo.host;
-
-if (config.env == 'test') {
-  mongoUri = 'mongodb://localhost/onova-data-test';
-}
-
-const promise = mongoose.connect(mongoUri, {
+const promise = mongoose.connect(config.mongo.host, {
   useMongoClient: true,
   keepAlive: 1,
   // socketTimeoutMS: 1000
 });
 promise.on('error', () => {
-  throw new Error(`unable to connect to database: ${mongoUri}`);
+  throw new Error(`unable to connect to database: ${config.mongo.host}`);
 });
 
 // print mongoose logs in dev env

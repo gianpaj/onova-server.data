@@ -7,6 +7,7 @@ import Storage from '@google-cloud/storage';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import { UserDoc } from '../models/user.model';
+import Product from '../models/product.model';
 import APIError from './APIError';
 import config from '../config/config';
 
