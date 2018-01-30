@@ -1,3 +1,5 @@
+// @flow
+
 import request from 'supertest';
 import httpStatus from 'http-status';
 import path from 'path';
@@ -44,6 +46,7 @@ describe('## Product APIs', () => {
   });
 
   let user = {
+    _id: 0,
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
@@ -52,6 +55,7 @@ describe('## Product APIs', () => {
   };
 
   let anotherUser = {
+    _id: 0,
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
     mobileNumber: '1234567890', // optional

@@ -89,29 +89,21 @@ const UserSchema = new Schema(
 );
 
 export class UserDoc /*:: extends Mongoose$Document */ {
-  // MongoId?
-  _id: any;
+  _id: MongoId;
   accountStatus: string;
-  billingAddress: any;
+  billingAddress: ?any;
   bio: ?string;
   displayName: ?string;
   emailAddress: string;
-  mobileNumber: string;
+  mobileNumber: ?string;
   password: string;
-  paymentInfo: any;
-  profilePic: string;
-  shippingAddress: any;
+  paymentInfo: ?any;
+  profilePic: ?string;
+  shippingAddress: ?any;
   username: string;
 }
 
 UserSchema.loadClass(UserDoc);
-
-/**
- * Add your
- * - pre-save hooks
- * - validations
- * - virtuals
- */
 
 /**
  * Helper method for validating user's password.
@@ -129,10 +121,9 @@ UserSchema.statics = {
   /**
    * Get user
    *
-   * @param {ObjectId} id - The objectId of user.
-   * @returns {Promise<User, APIError>}
+   * @param {MongoId} id - The objectId of user.
    */
-  get(id: string) {
+  get(id: string): Promise<UserDoc | APIError> {
     return this.findById(id)
       .then((user: UserDoc) => {
         if (!user) {
@@ -151,13 +142,22 @@ UserSchema.statics = {
    *
    * @param {number} skip - Number of users to be skipped.
    * @param {number} limit - Limit number of users to be returned.
-   * @returns {Promise<User[]>}
    */
-  list({ skip = 0, limit = 50 } = {}) {
+  list({ skip = 0, limit = 50 }): Promise<UserDoc[] | APIError> {
     return this.find()
       .sort({ createdAt: -1 })
       .skip(+skip)
-      .limit(+limit);
+      .limit(+limit)
+      .then((users: UserDoc[]) => {
+        if (!users) {
+          return Promise.reject();
+        }
+        return users;
+      })
+      .catch(() => {
+        const err = new APIError('Invalid users', httpStatus.BAD_REQUEST);
+        return Promise.reject(err);
+      });
   },
 };
 

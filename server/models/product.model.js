@@ -98,16 +98,15 @@ ProductSchema.statics = {
   /**
    * Get product
    *
-   * @param {String} uuid - The unique id (shortid) of product.
-   * @returns {Promise<Product, APIError>}
+   * @param uuid - The unique id (shortid) of the product.
    */
-  get(uuid): Promise<APIError> {
-    return this.findOne({ uuid: uuid })
+  get(uuid: string): Promise<ProductDoc | APIError> {
+    return this.findOne({ uuid })
       .populate({
         path: 'seller',
         select: 'username accountStatus',
       })
-      .then(product => {
+      .then((product: ProductDoc) => {
         if (!product) {
           return Promise.reject();
         }
@@ -124,9 +123,8 @@ ProductSchema.statics = {
    *
    * @param {number} skip - Number of products to be skipped.
    * @param {number} limit - Limit number of products to be returned.
-   * @returns {Promise<ProductDoc[]>}
    */
-  list({ query = {}, skip = 0, limit = 50 } = {}): Promise<ProductDoc[]> {
+  list({ query = {}, skip = 0, limit = 50 }): Promise<ProductDoc[] | APIError> {
     return this.find(query)
       .sort({ createdAt: -1 })
       .skip(+skip)
@@ -169,7 +167,4 @@ ProductSchema.index({ status: 1, photoURIs: 1 });
 ProductSchema.index({ status: 1, seller: 1 });
 // ProductSchema.index({ uuid: 1 }, { unique: true }); // created by `unique` schema setting above
 
-/**
- * @typedef Product
- */
 export default mongoose.model('Product', ProductSchema);

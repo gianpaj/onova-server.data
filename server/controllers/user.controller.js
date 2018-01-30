@@ -12,6 +12,7 @@ import mailCtrl from './mail.controller';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
+  file: File;
 }
 
 /**
@@ -243,8 +244,12 @@ function update(
             })
               .exec()
               .then(doc => {
-                debug('profilePic updated for user:', doc._id);
-                resolve(doc);
+                if (doc) {
+                  debug('profilePic updated for user:', doc._id);
+                  resolve(doc);
+                } else {
+                  reject('no error found');
+                }
               });
           })
           .catch(err => {

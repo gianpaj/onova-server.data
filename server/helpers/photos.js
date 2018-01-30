@@ -7,9 +7,9 @@ import Storage from '@google-cloud/storage';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import { UserDoc } from '../models/user.model';
-import Product from '../models/product.model';
+import Product, { ProductDoc } from '../models/product.model';
 import APIError from './APIError';
-import config from '../config/config';
+// import config from '../config/config';
 
 // const CLOUD_BUCKET = 'assets.onova.co';
 const CLOUD_BUCKET = 'staging.onova-183307.appspot.com';
@@ -40,7 +40,7 @@ const uploadMulter = multer({
 
     const APIerr = new APIError(
       // prettier-ignore
-      `Error: File upload only supports the following filetypes: ${filetypes}`,
+      `Error: File upload only supports the following filetypes: ${filetypes.toString()}`,
       httpStatus.BAD_REQUEST
     );
     return cb(APIerr);

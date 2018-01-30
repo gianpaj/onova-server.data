@@ -13,8 +13,7 @@ var TagSchema = new mongoose.Schema(
 );
 
 export class TagDoc /*:: extends Mongoose$Document */ {
-  // flow-disable-next-line
-  _id: string;
+  _id: MongoId;
 }
 
 TagSchema.loadClass(TagDoc);
