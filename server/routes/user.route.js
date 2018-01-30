@@ -2,7 +2,7 @@ import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';
 
-import paramValidation from '../config/param-validation';
+import paramValidation from '../config/validation/user.validation';
 import userCtrl from '../controllers/user.controller';
 import photos from '../helpers/photos';
 

@@ -1,8 +1,6 @@
 import Joi from 'joi';
 import validate from 'express-validation';
 
-import validation from '../helpers/validation';
-
 // assign options
 validate.options({
   allowUnknownBody: false,
@@ -13,55 +11,6 @@ validate.options({
 });
 
 export default {
-  // POST /api/auth/login
-  login: {
-    body: {
-      emailAddress: Joi.string()
-        .email()
-        .required(),
-      password: Joi.string().required(),
-    },
-  },
-
-  // GET /api/auth/activate/:token
-  activate: {
-    params: {
-      token: Joi.string()
-        .hex()
-        .length(16)
-        .required(),
-    },
-  },
-
-  // POST /api/auth/reset
-  requestReset: {
-    body: {
-      emailAddress: Joi.string()
-        .email()
-        .required(),
-    },
-  },
-
-  // POST /api/auth/reset/:token
-  resetForm: {
-    params: {
-      token: Joi.string()
-        .hex()
-        .length(16)
-        .required(),
-    },
-    body: {
-      password: Joi.string()
-        .min(8)
-        .max(50)
-        .required(),
-      passwordagain: Joi.string()
-        .min(8)
-        .max(50)
-        .required(),
-    },
-  },
-
   // POST /api/products
   createProduct: {
     body: {
@@ -107,6 +56,9 @@ export default {
     },
   },
 
+  // GET /api/products/:uuid
+  // PUT /api/products/:uuid
+  // DELETE /api/products/:uuid
   productUUIDParam: {
     params: {
       uuid: Joi.string()
@@ -116,6 +68,7 @@ export default {
     },
   },
 
+  // GET /api/products
   getProducts: {
     query: {
       limit: Joi.number()
