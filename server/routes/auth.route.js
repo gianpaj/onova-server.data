@@ -2,7 +2,7 @@ import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';
 
-import paramValidation from '../config/param-validation';
+import paramValidation from '../config/validation/auth.validation';
 import authCtrl from '../controllers/auth.controller';
 
 const requireAuth = passport.authenticate('jwt', { session: false });

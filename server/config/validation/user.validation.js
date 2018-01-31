@@ -75,6 +75,7 @@ export default {
     params: {
       userId: Joi.string()
         .hex()
+        .length(24)
         .required(),
     },
   },

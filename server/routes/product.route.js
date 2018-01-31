@@ -2,7 +2,7 @@ import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';
 
-import paramValidation from '../config/param-validation';
+import paramValidation from '../config/validation/product.validation';
 import productCtrl from '../controllers/product.controller';
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';

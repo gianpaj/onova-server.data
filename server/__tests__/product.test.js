@@ -46,7 +46,6 @@ describe('## Product APIs', () => {
   });
 
   let user = {
-    _id: 0,
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
@@ -55,7 +54,6 @@ describe('## Product APIs', () => {
   };
 
   let anotherUser = {
-    _id: 0,
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
     mobileNumber: '1234567890', // optional
@@ -113,13 +111,14 @@ describe('## Product APIs', () => {
         expect(resUser.accountStatus).toBe('notverified');
         expect(resUser).not.toHaveProperty('password');
         expect(typeof res.body.token).toBe('string');
-
+        // flow-disable-next-line
         user._id = resUser._id;
       })
       .then(() => {
         return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
       })
       .then(() => {
+        // flow-disable-next-line
         return Verification.findOne({ user: user._id }).then(verDoc => {
           if (!verDoc) {
             return done('no verification token found');
@@ -155,9 +154,11 @@ describe('## Product APIs', () => {
           .expect(httpStatus.CREATED)
           .then(res => {
             expect(res.body.data.emailAddress).toBe(anotherUser.emailAddress);
+            // flow-disable-next-line
             anotherUser._id = res.body.data._id;
           })
           .then(() => {
+            // flow-disable-next-line
             return Verification.findOne({ user: anotherUser._id }).then(
               verDoc => {
                 if (!verDoc) {
@@ -212,6 +213,7 @@ describe('## Product APIs', () => {
           expect(p.likes).toHaveLength(0);
           expect(p.photoURIs).toEqual([]);
           expect(p.price).toBe(product.price);
+          // flow-disable-next-line
           expect(p.seller).toBe(user._id);
           expect(p.status).toBe('forsale');
           expect(Array.isArray(p.tags));
@@ -301,6 +303,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(p.description).toBe(product.description);
+          // flow-disable-next-line
           expect(p.seller._id).toBe(user._id);
           expect(p.seller.username).toBe(user.username);
           expect(p.status).toBe('forsale');
@@ -393,7 +396,9 @@ describe('## Product APIs', () => {
     });
 
     it("should get only the user's products", async () => {
+      /* eslint-disable */
       return request(app)
+          // flow-disable-next-line
         .get(`/api/products/?userid=${user._id}`)
         .expect(httpStatus.OK)
         .then(res => {
@@ -402,6 +407,7 @@ describe('## Product APIs', () => {
           expect(p.length).toBe(3);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
+      /* eslint-enable */
     });
   });
 
