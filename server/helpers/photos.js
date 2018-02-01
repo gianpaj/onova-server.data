@@ -9,7 +9,7 @@ const debug = require('debug')('express-mongoose-es6-rest-api:index');
 import { UserDoc } from '../models/user.model';
 import Product, { ProductDoc } from '../models/product.model';
 import APIError from './APIError';
-// import config from '../config/config';
+import config from '../config/config';
 
 // const CLOUD_BUCKET = 'assets.onova.co';
 const CLOUD_BUCKET = 'staging.onova-183307.appspot.com';
@@ -51,6 +51,8 @@ const uploadMulter = multer({
  * Upload product images to GCS
  */
 function uploadProductImages(product: ProductDoc, files: Array<any>) {
+  if (config.env == 'test') return;
+
   files.forEach((image, i) => {
     const gcsname = `products/${product.uuid}-${i + 1}.jpg`;
     const file = bucket.file(gcsname);
@@ -64,9 +66,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
     });
     stream.on('finish', () => {
       file.makePublic().then(() => {
-        const cloudStoragePublicUrl = `https://storage.googleapis.com/${
-          CLOUD_BUCKET
-        }/${gcsname}`;
+        const cloudStoragePublicUrl = `https://storage.googleapis.com/${CLOUD_BUCKET}/${gcsname}`;
         debug('Saved image as', cloudStoragePublicUrl);
         const key = `photoURIs.${i}`;
         const updateObj = {};
@@ -104,9 +104,7 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
       file
         .makePublic()
         .then(() => {
-          const cloudStoragePublicUrl = `https://storage.googleapis.com/${
-            CLOUD_BUCKET
-          }/${gcsname}`;
+          const cloudStoragePublicUrl = `https://storage.googleapis.com/${CLOUD_BUCKET}/${gcsname}`;
           resolve(cloudStoragePublicUrl);
         })
         .catch(err => {

@@ -97,8 +97,8 @@ describe('## Product APIs', () => {
   let anotherJwtToken;
   let anotherProductUuid;
 
+  // create 2 users/sellers
   beforeAll(done => {
-    // create 2 users/sellers
     request(app)
       .post('/api/users')
       .send(user)
@@ -194,7 +194,7 @@ describe('## Product APIs', () => {
   });
 
   describe('# POST /api/products', () => {
-    it('should create product', async () => {
+    it('should create a product', async () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)

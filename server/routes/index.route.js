@@ -2,6 +2,7 @@ import express from 'express';
 import userRoutes from './user.route';
 import productRoutes from './product.route';
 import authRoutes from './auth.route';
+import orderRoutes from './order.route';
 
 const router = express.Router();
 
@@ -19,5 +20,8 @@ router.use('/products', productRoutes);
 
 // mount auth routes at /auth
 router.use('/auth', authRoutes);
+
+// mount auth routes at /auth
+router.use('/orders', orderRoutes);
 
 export default router;
