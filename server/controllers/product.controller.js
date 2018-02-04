@@ -35,7 +35,9 @@ function load(
 }
 
 /**
- * GET /api/products/:uuid - Get product
+ * Get a product
+ *
+ * GET /api/products/:uuid
  *
  * @property {string} req.params.uuid  - The unique id (shortid) of product.
  */
@@ -44,7 +46,7 @@ function get(req: session$Request, res: express$Response) {
 }
 
 /**
- * Create new product
+ * Create a new product
  *
  * POST /api/products
  *
@@ -122,7 +124,7 @@ function create(
 }
 
 /**
- * Get list of products that are for sale and which photos have been uploaded
+ * Get a list of products that are for sale and which photos have been uploaded
  *
  * GET /api/products
  *
@@ -163,7 +165,7 @@ function list(
 /**
  * Remove a product - marking the 'status' as 'deleted'
  *
- * GET /api/products/:uuid
+ * DELETE /api/products/:uuid
  *
  * @property {string} req.query.uuid
  */
@@ -209,7 +211,7 @@ function remove(
 /**
  * Update a product
  *
- * GET /api/products/:uuid
+ * PUT /api/products/:uuid
  *
  * @property {string} req.query.uuid
  */
@@ -218,8 +220,7 @@ function update(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const uuid = req.params.uuid;
-  Product.findOne({ uuid: uuid })
+  Product.findOne({ uuid: req.params.uuid })
     .then(foundProduct => {
       if (!foundProduct) {
         throw new APIError('Product not found', 400);

@@ -68,7 +68,17 @@ describe('## Order APIs', () => {
     price: '100.99', // if no decimal points .00 will be added
   };
 
+  let anotherProduct = {
+    categoryIds: [3],
+    typeIds: [1, 3],
+    tags: ['summer'], // optional
+    description: 'nice flipflops',
+    // seller id is the user who creates the product
+    price: '10.99', // if no decimal points .00 will be added
+  };
+
   let productUuid;
+  let anotherProductUuid;
   let jwtToken;
   let anotherJwtToken;
   let activationToken;
@@ -173,6 +183,9 @@ describe('## Order APIs', () => {
 
   describe('# POST /api/orders', () => {
     beforeAll(done => {
+      let Promises = [];
+      Promises.push(
+        new Promise((resolve, reject) => {
       request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -188,6 +201,44 @@ describe('## Order APIs', () => {
           expect(p.seller).toBe(user._id);
           expect(p.status).toBe('forsale');
           productUuid = p.uuid;
+              resolve();
+            })
+            .catch(() => reject());
+        })
+      );
+
+      Promises.push(
+        new Promise((resolve, reject) => {
+          request(app)
+            .post('/api/products')
+            .set('Authorization', jwtToken)
+            .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+            .field(anotherProduct)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const p = res.body.data;
+              expect(p.currency).toBe('UAH');
+              expect(p.description).toBe(anotherProduct.description);
+              expect(p.price).toBe(anotherProduct.price);
+              // flow-disable-next-line
+              expect(p.seller).toBe(user._id);
+              expect(p.status).toBe('forsale');
+              anotherProductUuid = p.uuid;
+
+              return request(app)
+                .delete(`/api/products/${anotherProductUuid}`)
+                .set('Authorization', jwtToken)
+                .expect(httpStatus.NO_CONTENT)
+                .then(res => {
+                  expect(res.body).toMatchObject({});
+                  resolve();
+                });
+            })
+            .catch(() => reject());
+        })
+      );
+
+      Promise.all(Promises).then(() => {
           done();
         });
     });
@@ -206,6 +257,32 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(orderFields.sort());
           productUuid = o.product._id;
+        });
+    });
+
+    it('should not create an order with an invalid product', async () => {
+      let orderOne = {
+        product: 'productUuid',
+      };
+
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', jwtToken)
+        .send(orderOne)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('Product not found');
+        });
+  });
+
+    it('should not create an order if the product is not for sale', async () => {
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', jwtToken)
+        .send({ product: anotherProductUuid })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('This product is not longer for sale or is reserved.');
         });
     });
   });

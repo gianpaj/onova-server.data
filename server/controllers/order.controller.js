@@ -32,7 +32,9 @@ function load(
 }
 
 /**
- * GET /api/orders/:uuid - Get order
+ * Get order
+ *
+ * GET /api/orders/:uuid
  *
  * @property {string} req.params.id - The id of the order.
  */
@@ -96,8 +98,7 @@ function create(
           return order
             .save()
             .then(savedOrder => savedOrder)
-            .catch((e) => {
-              console.error(e);
+            .catch(() => {
               throw new APIError('Error creating Order', 400);
             });
         })
