@@ -1,5 +1,5 @@
 [ignore]
-# .*/node_modules
+.*/node_modules/*
 <PROJECT_ROOT>/coverage/.*
 <PROJECT_ROOT>/dist/.*
 
@@ -12,7 +12,6 @@
 [options]
 suppress_comment= \\(.\\|\n\\)*\\flow-disable-next-line
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
-unsafe.enable_getters_and_setters=true
 
 [version]
-0.61.0
+0.64.0
