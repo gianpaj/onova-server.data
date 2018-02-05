@@ -59,6 +59,13 @@ describe('## Order APIs', () => {
     password: 'express2',
   };
 
+  let nonActiveUser = {
+    username: 'thirdperson',
+    emailAddress: 'gianpa+test3@gmail.com',
+    mobileNumber: '1234567890', // optional
+    password: 'expressos',
+  };
+
   let product = {
     categoryIds: [1, 2, 3],
     typeIds: [1, 2, 3],
@@ -79,12 +86,14 @@ describe('## Order APIs', () => {
 
   let productUuid;
   let anotherProductUuid;
+  let thirdJwtToken;
   let jwtToken;
   let anotherJwtToken;
   let activationToken;
 
   // create 2 users/sellers
   beforeAll(done => {
+    // @TODO use Promise.all().then(() => done());
     request(app)
       .post('/api/users')
       .send(user)
@@ -175,6 +184,36 @@ describe('## Order APIs', () => {
               .then(res => {
                 expect(res.body).toHaveProperty('token');
                 anotherJwtToken = res.body.token;
+              });
+          })
+          .then(() => {
+            return request(app)
+              .post('/api/users')
+              .send(nonActiveUser)
+              .expect(httpStatus.CREATED)
+              .then(res => {
+                const resUser = res.body.data;
+                expect(typeof resUser._id).toBe('string');
+                expect(resUser.username).toBe(nonActiveUser.username);
+                expect(resUser.emailAddress).toBe(nonActiveUser.emailAddress);
+                expect(resUser.accountStatus).toBe('notverified');
+                expect(resUser).not.toHaveProperty('password');
+                expect(typeof res.body.token).toBe('string');
+                // flow-disable-next-line
+                nonActiveUser._id = resUser._id;
+              });
+          })
+          .then(() => {
+            return request(app)
+              .post('/api/auth/login')
+              .send({
+                emailAddress: nonActiveUser.emailAddress,
+                password: nonActiveUser.password,
+              })
+              .expect(httpStatus.OK)
+              .then(res => {
+                expect(res.body).toHaveProperty('token');
+                thirdJwtToken = res.body.token;
                 done();
               });
           });
@@ -186,7 +225,7 @@ describe('## Order APIs', () => {
       let Promises = [];
       Promises.push(
         new Promise((resolve, reject) => {
-      request(app)
+          return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
         .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
@@ -209,7 +248,7 @@ describe('## Order APIs', () => {
 
       Promises.push(
         new Promise((resolve, reject) => {
-          request(app)
+          return request(app)
             .post('/api/products')
             .set('Authorization', jwtToken)
             .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
@@ -282,7 +321,9 @@ describe('## Order APIs', () => {
         .send({ product: anotherProductUuid })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe('This product is not longer for sale or is reserved.');
+          expect(res.body.message).toBe(
+            'This product is not longer for sale or is reserved.'
+          );
         });
     });
   });

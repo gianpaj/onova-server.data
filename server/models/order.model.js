@@ -70,7 +70,7 @@ var OrderSchema = new Schema(
     transationStatus: {
       type: String,
       default: 'pl-pending',
-      enum: ['pl-pending', 'pl-completed', 'pl-cancelled', 'pl-'],
+      enum: ['pl-pending', 'pl-completed', 'pl-cancelled'],
     },
   },
   {

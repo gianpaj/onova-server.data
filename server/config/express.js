@@ -103,6 +103,7 @@ if (config.env !== 'test') {
 // eslint-disable-next-line no-unused-vars
 app.use((err: any, req: $Request, res: $Response, next: NextFunction) =>
   res.status(err.status).json({
+    ok: false,
     message: err.isPublic ? err.message : httpStatus[err.status],
     stack: config.env === 'development' ? err.stack : {},
   })

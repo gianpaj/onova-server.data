@@ -8,6 +8,7 @@ import config from '../config/config';
 
 declare class express$Request extends express$Request {
   order: OrderDoc;
+  user: UserDoc;
 }
 
 const ONOVA_RATE = 1; // 1 = 0 % -- 1.2 = 20%
@@ -56,7 +57,7 @@ function create(
 ) {
   if (req.user.accountStatus !== 'verified') {
     throw new APIError(
-      'Please verify your account before buying a product',
+      'Please verify your account before buying a product.',
       400
     );
   }
@@ -79,6 +80,10 @@ function create(
         .then(seller => {
           if (!seller) {
             throw new APIError('Seller not found', 400);
+          }
+
+          if (req.user._id.toString() === seller._id.toString()) {
+            throw new APIError('You cannot buy your own items', 400);
           }
 
           const pPrice = product.price.toString();
