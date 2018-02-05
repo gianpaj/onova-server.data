@@ -3,17 +3,17 @@ import Joi from 'joi';
 const isTestEnv = process.env.NODE_ENV == 'test';
 
 // require and configure dotenv, will load vars in .env in PROCESS.ENV
-if (!isTestEnv) {
-  require('dotenv').config();
-} else {
+if (isTestEnv) {
   console.warn('running on `test` environment');
-  require('dotenv').config('.env.test');
+  require('dotenv').config({ path: '.env.test' });
+} else {
+  require('dotenv').config();
 }
 
 // define validation for all the env vars
 const envVarsSchema = Joi.object({
   NODE_ENV: Joi.string()
-    .allow(['development', 'production', 'test', 'provision'])
+    .allow(['development', 'production', 'test', 'stage'])
     .default('development'),
   PORT: Joi.number().default(4040),
   MONGOOSE_DEBUG: Joi.boolean().when('NODE_ENV', {
