@@ -62,7 +62,7 @@ describe('## Order APIs', () => {
   let nonActiveUser = {
     username: 'thirdperson',
     emailAddress: 'gianpa+test3@gmail.com',
-    mobileNumber: '1234567890', // optional
+    mobileNumber: '1234567890',
     password: 'expressos',
   };
 
@@ -78,20 +78,26 @@ describe('## Order APIs', () => {
   let anotherProduct = {
     categoryIds: [3],
     typeIds: [1, 3],
-    tags: ['summer'], // optional
+    tags: ['summer'],
     description: 'nice flipflops',
-    // seller id is the user who creates the product
-    price: '10.99', // if no decimal points .00 will be added
+    price: '10.99',
+  };
+
+  let thirdProduct = {
+    categoryIds: [2],
+    typeIds: [2, 3],
+    description: 'nice shorts',
+    price: '200.50',
   };
 
   let productUuid;
   let anotherProductUuid;
-  let thirdJwtToken;
+  let thirdProductUuid;
   let jwtToken;
   let anotherJwtToken;
-  let activationToken;
+  let nonActiveUserJwtToken;
 
-  // create 2 users/sellers
+  // create 3 users. 1 not activated
   beforeAll(done => {
     // @TODO use Promise.all().then(() => done());
     request(app)
@@ -213,7 +219,7 @@ describe('## Order APIs', () => {
               .expect(httpStatus.OK)
               .then(res => {
                 expect(res.body).toHaveProperty('token');
-                thirdJwtToken = res.body.token;
+                nonActiveUserJwtToken = res.body.token;
                 done();
               });
           });
@@ -226,20 +232,42 @@ describe('## Order APIs', () => {
       Promises.push(
         new Promise((resolve, reject) => {
           return request(app)
-        .post('/api/products')
-        .set('Authorization', jwtToken)
-        .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-        .field(product)
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const p = res.body.data;
-          expect(p.currency).toBe('UAH');
-          expect(p.description).toBe(product.description);
-          expect(p.price).toBe(product.price);
-          // flow-disable-next-line
-          expect(p.seller).toBe(user._id);
-          expect(p.status).toBe('forsale');
-          productUuid = p.uuid;
+            .post('/api/products')
+            .set('Authorization', jwtToken)
+            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+            .field(product)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const p = res.body.data;
+              expect(p.currency).toBe('UAH');
+              expect(p.description).toBe(product.description);
+              expect(p.price).toBe(product.price);
+              // flow-disable-next-line
+              expect(p.seller).toBe(user._id);
+              expect(p.status).toBe('forsale');
+              productUuid = p.uuid;
+              resolve();
+            })
+            .catch(() => reject());
+        })
+      );
+      Promises.push(
+        new Promise((resolve, reject) => {
+          return request(app)
+            .post('/api/products')
+            .set('Authorization', anotherJwtToken)
+            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+            .field(thirdProduct)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const p = res.body.data;
+              expect(p.currency).toBe('UAH');
+              expect(p.description).toBe(thirdProduct.description);
+              expect(p.price).toBe(thirdProduct.price);
+              // flow-disable-next-line
+              expect(p.seller).toBe(anotherUser._id);
+              expect(p.status).toBe('forsale');
+              thirdProductUuid = p.uuid;
               resolve();
             })
             .catch(() => reject());
@@ -278,24 +306,24 @@ describe('## Order APIs', () => {
       );
 
       Promise.all(Promises).then(() => {
-          done();
-        });
+        done();
+      });
     });
 
     it('should create an order', async () => {
-      let orderOne = {
-        product: productUuid,
-      };
-
       return request(app)
         .post('/api/orders')
         .set('Authorization', jwtToken)
-        .send(orderOne)
+        .send({ product: thirdProductUuid })
         .expect(httpStatus.CREATED)
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(orderFields.sort());
-          productUuid = o.product._id;
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((thirdProduct.price * 1).toString());
+          expect(o.priceOfItem).toBe(thirdProduct.price);
+          expect(o.transationStatus).toBe('pl-pending');
         });
     });
 
@@ -312,7 +340,7 @@ describe('## Order APIs', () => {
         .then(res => {
           expect(res.body.message).toBe('Product not found');
         });
-  });
+    });
 
     it('should not create an order if the product is not for sale', async () => {
       return request(app)
@@ -324,6 +352,30 @@ describe('## Order APIs', () => {
           expect(res.body.message).toBe(
             'This product is not longer for sale or is reserved.'
           );
+        });
+    });
+
+    it('should not create an order if the buyer is not verified', async () => {
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', nonActiveUserJwtToken)
+        .send({ product: productUuid })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            'Please verify your account before buying a product.'
+          );
+        });
+    });
+
+    it('should not create an order to my own product', async () => {
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', jwtToken)
+        .send({ product: productUuid })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('You cannot buy your own items');
         });
     });
   });

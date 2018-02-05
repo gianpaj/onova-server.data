@@ -63,7 +63,8 @@ function create(
   }
 
   Product.findOne({ uuid: req.body.product })
-    .then(product => {
+    .populate('seller')
+    .then((product: productDoc) => {
       if (!product) {
         throw new APIError('Product not found', 400);
       }
@@ -76,40 +77,33 @@ function create(
       return product;
     })
     .then(product => {
-      return User.findById(req.user._id)
-        .then(seller => {
-          if (!seller) {
-            throw new APIError('Seller not found', 400);
-          }
+      if (req.user._id.toString() === product.seller._id.toString()) {
+        throw new APIError('You cannot buy your own items', 400);
+      }
 
-          if (req.user._id.toString() === seller._id.toString()) {
-            throw new APIError('You cannot buy your own items', 400);
-          }
+      const pPrice = product.price.toString();
+      const onovaFee = (parseFloat(pPrice) * ONOVA_RATE).toString();
 
-          const pPrice = product.price.toString();
-          const onovaFee = (parseFloat(pPrice) * ONOVA_RATE).toString();
+      const order = new Order({
+        buyer: req.user._id,
+        currency: product.currency, // 'UAH' by default
+        // datePending // Date.now by default
+        onovaFee: onovaFee,
+        priceOfItem: product.price,
+        product: product._id,
+        seller: product.seller._id,
+        // status // 'pending' by default
+      });
 
-          const order = new Order({
-            buyer: req.user._id,
-            currency: product.currency, // 'UAH' by default
-            // datePending // Date.now by default
-            onovaFee: onovaFee,
-            priceOfItem: product.price,
-            product: product._id,
-            seller: seller._id,
-            // status // 'pending' by default
-          });
-
-          return order
-            .save()
-            .then(savedOrder => savedOrder)
-            .catch(() => {
-              throw new APIError('Error creating Order', 400);
-            });
-        })
-        .then(savedOrder => {
-          return res.status(201).json({ data: savedOrder });
+      return order
+        .save()
+        .then(savedOrder => savedOrder)
+        .catch(() => {
+          throw new APIError('Error creating Order', 400);
         });
+    })
+    .then(savedOrder => {
+      return res.status(201).json({ data: savedOrder });
     })
     .catch(e => next(e));
 }

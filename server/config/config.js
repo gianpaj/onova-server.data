@@ -1,6 +1,6 @@
 import Joi from 'joi';
 
-const isTestEnv = process.env.NODE_ENV == 'test';
+const isTestEnv = process.env.NODE_ENV === 'test';
 
 // require and configure dotenv, will load vars in .env in PROCESS.ENV
 if (isTestEnv) {
