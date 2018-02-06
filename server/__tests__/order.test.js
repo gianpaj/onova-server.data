@@ -467,8 +467,16 @@ describe('## Order APIs', () => {
       description: 'best bo0ts',
       price: '1900.59',
     };
+    const productPOST2 = {
+      categoryIds: [2],
+      typeIds: [1],
+      description: 'my old panties',
+      price: '99900.59',
+    };
     let productPOST1_uuid;
+    let productPOST2_uuid;
     let orderPOST1;
+    let orderPOST2;
 
     beforeAll(done => {
       let Promises = [];
@@ -506,11 +514,46 @@ describe('## Order APIs', () => {
         })
       );
 
+      Promises.push(
+        new Promise((resolve, reject) => {
+          return request(app)
+            .post('/api/products')
+            .set('Authorization', jwtToken)
+            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+            .field(productPOST2)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const p = res.body.data;
+              expect(p.description).toBe(productPOST2.description);
+              // flow-disable-next-line
+              expect(p.seller).toBe(user._id);
+              productPOST2_uuid = p.uuid;
+              return productPOST2_uuid;
+            })
+            .then(p_uuid => {
+              return request(app)
+                .post('/api/orders')
+                .set('Authorization', anotherJwtToken)
+                .send({ product: p_uuid })
+                .expect(httpStatus.CREATED)
+                .then(res => {
+                  const o = res.body.data;
+                  expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+                  expect(o.priceOfItem).toBe(productPOST2.price);
+                  orderPOST2 = o.id;
+                  resolve();
+                });
+            })
+            .catch(() => reject());
+        })
+      );
+
       Promise.all(Promises).then(() => {
         done();
       });
     });
-    it('should set an order as purchased', async () => {
+
+    it('should set an order status to `purchased`', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
@@ -523,6 +566,91 @@ describe('## Order APIs', () => {
           );
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.status).toBe('purchased');
+        });
+    });
+
+    it('should not update an order that`s not mine', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST2}`)
+        .set('Authorization', jwtToken)
+        .send({ status: 'purchased' })
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(res => {
+          expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should set an order status to `shipped`', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ status: 'shipped' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(
+            [...orderFields, 'datePurchased', 'dateShipped'].sort()
+          );
+          expect(o.priceOfItem).toBe(productPOST1.price);
+          expect(o.status).toBe('shipped');
+        });
+    });
+
+    it('should set an order status to `completed`', async () => {
+      request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ status: 'completed' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(
+            [
+              ...orderFields,
+              'datePurchased',
+              'dateShipped',
+              'dateCompleted',
+            ].sort()
+          );
+          expect(o.priceOfItem).toBe(productPOST1.price);
+          expect(o.status).toBe('completed');
+        });
+    });
+
+    it('should not set an order to `purchased` if it was already `shipped`, `completed` or `cancelled`', async () => {
+      request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ status: 'purchased' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            'cannot set an order status to purchased if its not pending first'
+          );
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should change the paymentMethod to `paypal`', async () => {
+      request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ paymentMethod: 'paypal' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(
+            [
+              ...orderFields,
+              'datePurchased',
+              'dateShipped',
+              'dateCompleted',
+              'paymentMethod',
+            ].sort()
+          );
+          expect(o.priceOfItem).toBe(productPOST1.price);
+          expect(o.paymentMethod).toBe('paypal');
         });
     });
   });

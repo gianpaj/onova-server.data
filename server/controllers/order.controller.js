@@ -43,11 +43,7 @@ function load(
  * @property {*} req.params - Express session parameters
  * @property {string} req.params.id - The id of the order.
  */
-function get(
-  req: express$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function get(req: express$Request, res: express$Response) {
   return res.json({ data: req.order });
 }
 
@@ -151,20 +147,20 @@ function update(
       ) {
         throw new APIError(
           'cannot cancel an order that has been shipped or completed',
-          500
+          400
         );
       }
 
       if (foundOrder.status == 'cancelled') {
         throw new APIError(
           'cannot change the status of an order once is cancelled',
-          500
+          400
         );
       }
 
       // can go only from either 'purchased' or 'shipped' -> 'completed'
       if (foundOrder.status == 'pending' && newStatus == 'completed') {
-        throw new APIError('cannot complete an order that is pending', 500);
+        throw new APIError('cannot complete an order that is pending', 400);
       }
 
       // can go only from either 'pending' -> 'purchased'
@@ -173,13 +169,21 @@ function update(
         newStatus == 'purchased'
       ) {
         throw new APIError(
-          'cannot mark an order as purchased if its not pending first',
-          500
+          'cannot set an order status to purchased if its not pending first',
+          400
         );
       }
 
       if (newStatus == 'purchased') {
         foundOrder.datePurchased = new Date();
+      }
+
+      if (newStatus == 'shipped') {
+        foundOrder.dateShipped = new Date();
+      }
+
+      if (newStatus == 'completed') {
+        foundOrder.dateCompleted = new Date();
       }
 
       foundOrder.status = newStatus ? newStatus : foundOrder.status;
