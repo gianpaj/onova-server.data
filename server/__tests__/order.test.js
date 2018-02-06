@@ -17,6 +17,7 @@ const orderFields = [
   'buyer',
   'currency',
   'datePending',
+  'id',
   'onovaFee',
   'priceOfItem',
   'product',
@@ -376,6 +377,105 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('You cannot buy your own items');
+        });
+    });
+  });
+
+  describe('# GET /api/orders', () => {
+    const productGET1 = {
+      categoryIds: [1],
+      typeIds: [1, 2],
+      description: 'nice bo0ts',
+      price: '900.99',
+    };
+    let productGET1_uuid;
+    let orderGET1;
+
+    beforeAll(done => {
+      let Promises = [];
+      Promises.push(
+        new Promise((resolve, reject) => {
+          return request(app)
+            .post('/api/products')
+            .set('Authorization', anotherJwtToken)
+            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+            .field(productGET1)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const p = res.body.data;
+              expect(p.description).toBe(productGET1.description);
+              // flow-disable-next-line
+              expect(p.seller).toBe(anotherUser._id);
+              productGET1_uuid = p.uuid;
+              return productGET1_uuid;
+            })
+            .then(p_uuid => {
+              return request(app)
+                .post('/api/orders')
+                .set('Authorization', jwtToken)
+                .send({ product: p_uuid })
+                .expect(httpStatus.CREATED)
+                .then(res => {
+                  const o = res.body.data;
+                  expect(o.onovaFee).toBe((productGET1.price * 1).toString());
+                  expect(o.priceOfItem).toBe(productGET1.price);
+                  orderGET1 = o.id;
+                  resolve();
+                });
+            })
+            .catch(() => reject());
+        })
+      );
+      // Promises.push(
+      //   new Promise((resolve, reject) => {
+      //     return request(app)
+      //       .post('/api/products')
+      //       .set('Authorization', jwtToken)
+      //       .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+      //       .field(anotherProduct)
+      //       .expect(httpStatus.CREATED)
+      //       .then(res => {
+      //         const p = res.body.data;
+      //         expect(p.currency).toBe('UAH');
+      //         expect(p.description).toBe(anotherProduct.description);
+      //         expect(p.price).toBe(anotherProduct.price);
+      //         // flow-disable-next-line
+      //         expect(p.seller).toBe(user._id);
+      //         expect(p.status).toBe('forsale');
+      //         anotherProductUuid = p.uuid;
+
+      //         return request(app)
+      //           .delete(`/api/products/${anotherProductUuid}`)
+      //           .set('Authorization', jwtToken)
+      //           .expect(httpStatus.NO_CONTENT)
+      //           .then(res => {
+      //             expect(res.body).toMatchObject({});
+      //             resolve();
+      //           });
+      //       })
+      //       .catch(() => reject());
+      //   })
+      // );
+
+      Promise.all(Promises).then(() => {
+        done();
+      });
+    });
+
+    it('should get my order', async () => {
+      return request(app)
+        .get(`/api/orders/${orderGET1}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
+          expect(o.id).toBe(orderGET1);
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((productGET1.price * 1).toString());
+          expect(o.priceOfItem).toBe(productGET1.price);
+          expect(o.transationStatus).toBe('pl-pending');
         });
     });
   });

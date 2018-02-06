@@ -179,7 +179,6 @@ OrderSchema.set('toJSON', {
     ret.priceOfItem = ret.priceOfItem.$numberDecimal;
     // ret.taxAmount = ret.taxAmount.$numberDecimal;
     // ret.transationFee = ret.transationFee.$numberDecimal;
-    delete ret.id;
     delete ret._id;
     delete ret.__v;
     return ret;
