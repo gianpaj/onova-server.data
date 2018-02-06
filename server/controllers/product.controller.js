@@ -16,6 +16,8 @@ declare class session$Request extends express$Request {
 }
 
 /**
+ * @private
+ *
  * Load a product and append to req.
  */
 function load(
@@ -39,7 +41,9 @@ function load(
  *
  * GET /api/products/:uuid
  *
- * @property {string} req.params.uuid  - The unique id (shortid) of product.
+ * @property {*} req - Express request
+ * @property {*} req.params - Express session parameters
+ * @property {string} req.params.uuid The unique id (shortid) of product.
  */
 function get(req: session$Request, res: express$Response) {
   return res.json({ data: req.product });
@@ -50,12 +54,14 @@ function get(req: session$Request, res: express$Response) {
  *
  * POST /api/products
  *
+ * @property {*} req - Express request
+ * @property {*} req.body - Express body parameters
  * @property {Array<number>} req.body.categoryIds
- * @property {string} req.body.currency - (optional) 'UAH' by default
+ * @property {string=} [req.body.currency='UAH']
  * @property {string} req.body.description
  * @property {string} req.body.price
  * @property {MongoId} req.body.seller
- * @property {string} req.body.tags - (optional)
+ * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
  */
 function create(
@@ -65,11 +71,11 @@ function create(
 ) {
   const product = new Product({
     categoryIds: req.body.categoryIds,
-    // currency: req.body.currency, // 'UAH' by default
+    // currency: req.body.currency,
     description: req.body.description,
     price: req.body.price,
     // status: req.body.status, // 'forsale' by default
-    tags: req.body.tags, // optional field
+    tags: req.body.tags,
     typeIds: req.body.typeIds,
     uuid: shortid.generate(), // needed here for photos' filenames
   });
@@ -128,8 +134,10 @@ function create(
  *
  * GET /api/products
  *
- * @property {number} req.query.skip - Number of products to be skipped.
- * @property {number} req.query.limit - Limit number of products to be returned.
+ * @property {*} req - Express request
+ * @property {*} req.query - Express query parameters
+ * @property {number} req.query.skip Number of products to be skipped.
+ * @property {number} req.query.limit Limit number of products to be returned.
  * @property {string} req.query.userid
  * @property {array<string>|string} req.query.tags
  */
@@ -167,6 +175,8 @@ function list(
  *
  * DELETE /api/products/:uuid
  *
+ * @property {*} req - Express request
+ * @property {*} req.query - Express query parameters
  * @property {string} req.query.uuid
  */
 function remove(
@@ -213,6 +223,8 @@ function remove(
  *
  * PUT /api/products/:uuid
  *
+ * @property {*} req - Express request
+ * @property {*} req.query - Express query parameters
  * @property {string} req.query.uuid
  */
 function update(

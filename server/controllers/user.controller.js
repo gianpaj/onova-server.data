@@ -39,10 +39,12 @@ function load(
  *
  * GET /api/users/:userId
  *
- * @property {string} req.params.userId - ObjectId
+ * @property {*} req - express session
+ * @property {*} req.params - express session parameters
+ * @property {MongoId} req.params.userId
  */
 function get(req: session$Request, res: express$Response) {
-  let doc = _prepareUserJson(req.user);
+  const doc = _prepareUserJson(req.user);
   return res.json(doc);
 }
 
@@ -51,6 +53,8 @@ function get(req: session$Request, res: express$Response) {
  *
  * GET /api/users/:userId/personal
  *
+ * @property {*} req - Express request
+ * @property {*} req.params - Express parameters
  * @property {ObjectId} req.params.userId
  */
 function getPersonal(req: session$Request, res: express$Response) {
@@ -68,10 +72,12 @@ function getPersonal(req: session$Request, res: express$Response) {
  *
  * POST /api/users
  *
+ * @property {*} req - Express request
+ * @property {*} req.body - Express body parameters
  * @property {string} req.body.username
  * @property {string} req.body.emailAddress
- * @property {string} req.body.password - (salted and hashed)
- * @property {string} req.body.mobileNumber - (optional)
+ * @property {string} req.body.password (salted and hashed)
+ * @property {string=} req.body.mobileNumber
  */
 function create(
   req: session$Request,
@@ -133,16 +139,16 @@ function create(
  *
  * PUT /api/users/:userId
  *
- * ALL OPTIONAL
- *
- * @property {string} req.body.username
- * @property {string} req.body.displayName
- * @property {string} req.body.emailAddress
- * @property {string} req.body.bio
- * @property {string} req.body.password
- * @property {string} req.body.last_four
- * @property {string} req.body.exp_month
- * @property {string} req.body.exp_year
+ * @property {*} req - Express request
+ * @property {*} req.body - Express body parameters
+ * @property {string=} req.body.username
+ * @property {string=} req.body.displayName
+ * @property {string=} req.body.emailAddress
+ * @property {string=} req.body.bio
+ * @property {string=} req.body.password
+ * @property {string=} req.body.last_four
+ * @property {string=} req.body.exp_month
+ * @property {string=} req.body.exp_year
  * @property {any} req.body.shippingAddress
  */
 function update(
@@ -274,8 +280,10 @@ function update(
  *
  * GET /api/users
  *
- * @property {number} req.query.skip - Number of users to be skipped.
- * @property {number} req.query.limit - Limit number of users to be returned.
+ * @property {*} req - Express request
+ * @property {*} req.query - Express query parameters
+ * @property {number} req.query.skip Number of users to be skipped.
+ * @property {number} req.query.limit Limit number of users to be returned.
  */
 function list(
   req: session$Request,
@@ -295,6 +303,8 @@ function list(
  *
  * DELETE /api/users/:userId
  *
+ * @property {*} req - Express request
+ * @property {*} req.params - Express params parameters
  * @property {string} req.params.userId
  */
 function remove(
@@ -311,6 +321,8 @@ function remove(
 }
 
 /**
+ * @private
+ *
  * Limit number of fields send back for a user - Un-protected data / no auth
  */
 function _prepareUserJson(user: UserDoc): Object {

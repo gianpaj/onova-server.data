@@ -28,7 +28,4 @@ TagSchema.set('toJSON', {
   },
 });
 
-/**
- * @typedef Tag
- */
 export default mongoose.model('Tag', TagSchema);

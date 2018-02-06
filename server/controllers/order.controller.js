@@ -14,6 +14,8 @@ declare class express$Request extends express$Request {
 const ONOVA_RATE = 1; // 1 = 0 % -- 1.2 = 20%
 
 /**
+ * @private
+ *
  * Load a order and append to req.
  */
 function load(
@@ -37,6 +39,8 @@ function load(
  *
  * GET /api/orders/:uuid
  *
+ * @property {*} req - Express request
+ * @property {*} req.params - Express session parameters
  * @property {string} req.params.id - The id of the order.
  */
 function get(req: express$Request, res: express$Response) {
@@ -48,6 +52,8 @@ function get(req: express$Request, res: express$Response) {
  *
  * POST /api/orders
  *
+ * @property {*} req - Express request
+ * @property {*} req.body - Express body parameters
  * @property {bson$ObjectId} req.body.product - uuid
  */
 function create(

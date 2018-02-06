@@ -32,7 +32,4 @@ export class VerificationDoc /*:: extends Mongoose$Document */ {
 
 VerificationSchema.loadClass(VerificationDoc);
 
-/**
- * @typedef Verification
- */
 export default mongoose.model('Verification', VerificationSchema);

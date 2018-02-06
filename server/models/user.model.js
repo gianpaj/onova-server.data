@@ -1,4 +1,5 @@
 // @flow
+/** @namespace */
 
 import Promise from 'bluebird';
 import mongoose from 'mongoose';
@@ -107,6 +108,8 @@ UserSchema.loadClass(UserDoc);
 
 /**
  * Helper method for validating user's password.
+ *
+ * @memberof UserSchema
  */
 UserSchema.methods.comparePassword = function(candidatePassword, cb) {
   bcrypt.compare(candidatePassword, this.password, (err, isMatch) => {
@@ -140,8 +143,9 @@ UserSchema.statics = {
   /**
    * List users in descending order of 'createdAt' timestamp.
    *
-   * @param {number} skip - Number of users to be skipped.
-   * @param {number} limit - Limit number of users to be returned.
+   * @param {Object} query Query parameters
+   * @param {number} query.skip Number of users to be skipped
+   * @param {number} query.limit Limit number of users to be returned
    */
   list({ skip = 0, limit = 50 }): Promise<UserDoc[] | APIError> {
     return this.find()
@@ -195,6 +199,6 @@ UserSchema.index({ emailAddress: 1 }, { unique: true });
 UserSchema.index({ username: 1 }, { unique: true });
 
 /**
- * @typedef User
+ * @memberof UserSchema
  */
 export default mongoose.model('User', UserSchema);

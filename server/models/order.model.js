@@ -7,6 +7,7 @@ import APIError from '../helpers/APIError';
 
 const Schema = mongoose.Schema;
 
+/** @namespace */
 var OrderSchema = new Schema(
   {
     buyer: {
@@ -107,12 +108,14 @@ OrderSchema.loadClass(OrderDoc);
 
 /**
  * Statics
+ *
+ * @memberof OrderSchema
  */
 OrderSchema.statics = {
   /**
    * Get order
    *
-   * @param {MongoId} id - The unique id (shortid) of order.
+   * @param {MongoId} id The unique id (shortid) of order.
    * @returns {Promise<Order, APIError>}
    */
   get(id: string): Promise<APIError> {
@@ -144,8 +147,9 @@ OrderSchema.statics = {
   /**
    * List orders in descending order of 'createdAt' timestamp.
    *
-   * @param {number} skip - Number of orders to be skipped.
-   * @param {number} limit - Limit number of orders to be returned.
+   * @param {Object} query Query params
+   * @param {number} query.skip Number of orders to be skipped.
+   * @param {number} query.limit Limit number of orders to be returned.
    * @returns {Promise<OrderDoc[]>}
    */
   list({ query = {}, skip = 0, limit = 50 } = {}): Promise<OrderDoc[]> {

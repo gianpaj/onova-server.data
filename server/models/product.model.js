@@ -9,6 +9,7 @@ import APIError from '../helpers/APIError';
 
 const Schema = mongoose.Schema;
 
+/** @namespace */
 var ProductSchema = new Schema(
   {
     categoryIds: {
@@ -93,12 +94,14 @@ ProductSchema.loadClass(ProductDoc);
 
 /**
  * Statics
+ *
+ * @memberof ProductSchema
  */
 ProductSchema.statics = {
   /**
    * Get product
    *
-   * @param uuid - The unique id (shortid) of the product.
+   * @param uuid The unique id (shortid) of the product.
    */
   get(uuid: string): Promise<ProductDoc | APIError> {
     return this.findOne({ uuid })
@@ -121,8 +124,9 @@ ProductSchema.statics = {
   /**
    * List products in descending order of 'createdAt' timestamp.
    *
-   * @param {number} skip - Number of products to be skipped.
-   * @param {number} limit - Limit number of products to be returned.
+   * @param {Object} query Query params
+   * @param {number} query.skip Number of products to be skipped.
+   * @param {number} query.limit Limit number of products to be returned.
    */
   list({ query = {}, skip = 0, limit = 50 }): Promise<ProductDoc[] | APIError> {
     return this.find(query)

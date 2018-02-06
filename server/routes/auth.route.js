@@ -1,3 +1,5 @@
+// @flow
+
 import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';
@@ -43,10 +45,10 @@ router
 
 router
   .route('/reset/:token')
-  /** GET /api/auth/reset/:token - Render page to change password */
+  // GET /api/auth/reset/:token - Render page to change password
   .get(authCtrl.resetPage)
 
-  /** POST /api/auth/reset/:token - Change user password */
+  // POST /api/auth/reset/:token - Change user password
   .post(validate(paramValidation.resetForm), authCtrl.resetFormSubmit);
 
 export default router;
