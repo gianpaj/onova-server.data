@@ -43,7 +43,11 @@ function load(
  * @property {*} req.params - Express session parameters
  * @property {string} req.params.id - The id of the order.
  */
-function get(req: express$Request, res: express$Response) {
+function get(
+  req: express$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   return res.json({ data: req.order });
 }
 
@@ -114,11 +118,92 @@ function create(
     .catch(e => next(e));
 }
 
+/**
+ * Update an order's status
+ *
+ * GET /api/orders/:uuid
+ *
+ * @property {*} req - Express request
+ * @property {*} req.query - Express query parameters
+ * @property {MongoId} req.query.orderId
+ * @property {string} req.query.status
+ * @property {string=} req.query.paymentMethod
+ */
+function update(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const newStatus = req.body.status;
+
+  const a = req.order;
+
+  Order.findOne({ _id: req.params.orderId })
+    .then(foundOrder => {
+      if (!foundOrder) {
+        throw new APIError('Order not found', 400);
+      }
+
+      // can go only from either 'purchased' or 'pending' -> 'cancelled'
+      if (
+        ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
+        newStatus == 'cancelled'
+      ) {
+        throw new APIError(
+          'cannot cancel an order that has been shipped or completed',
+          500
+        );
+      }
+
+      if (foundOrder.status == 'cancelled') {
+        throw new APIError(
+          'cannot change the status of an order once is cancelled',
+          500
+        );
+      }
+
+      // can go only from either 'purchased' or 'shipped' -> 'completed'
+      if (foundOrder.status == 'pending' && newStatus == 'completed') {
+        throw new APIError('cannot complete an order that is pending', 500);
+      }
+
+      // can go only from either 'pending' -> 'purchased'
+      if (
+        ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
+        newStatus == 'purchased'
+      ) {
+        throw new APIError(
+          'cannot mark an order as purchased if its not pending first',
+          500
+        );
+      }
+
+      if (newStatus == 'purchased') {
+        foundOrder.datePurchased = new Date();
+      }
+
+      foundOrder.status = newStatus ? newStatus : foundOrder.status;
+      foundOrder.paymentMethod = req.body.paymentMethod
+        ? req.body.paymentMethod
+        : foundOrder.paymentMethod;
+
+      return foundOrder.save().then(data => {
+        return res.json({ data });
+      });
+    })
+    .catch(err => {
+      if (!err instanceof APIError) {
+        err = new APIError('Error updating Order', 500);
+      }
+      next(err);
+    });
+}
+
 export default {
   load,
   get,
   create,
-  // update,
+  update,
   // list,
   // remove,
 };

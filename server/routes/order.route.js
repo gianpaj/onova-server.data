@@ -6,10 +6,22 @@ import passport from 'passport';
 
 import paramValidation from '../config/validation/order.validation';
 import orderCtrl from '../controllers/order.controller';
+import APIError from '../helpers/APIError';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 
 const router = express.Router();
+
+/**
+ * Authorization Required middleware.
+ */
+function isAuthorized(req, res, next) {
+  if (req.user._id.toString() !== req.order.buyer._id.toString()) {
+    const err = new APIError('Unauthorized', 401);
+    return next(err);
+  }
+  next();
+}
 
 // ALL Protected routes
 router
@@ -23,11 +35,20 @@ router
 router
   .route('/:orderId')
   // GET /api/orders/:orderId - Get a single order
-  .get(validate(paramValidation.orderId), requireAuth, orderCtrl.get)
+  .get(
+    validate(paramValidation.orderId),
+    requireAuth,
+    isAuthorized,
+    orderCtrl.get
+  )
 
-  // // PUT /api/orders/:orderId - Update order
-  // .put(validate(paramValidation.orderId), requireAuth, orderCtrl.update)
-
+  // PUT /api/orders/:orderId - Update order
+  .put(
+    validate(paramValidation.orderId),
+    requireAuth,
+    isAuthorized,
+    orderCtrl.update
+  )
   // // DELETE /api/orders/:orderId - Delete order
   // .delete(validate(paramValidation.orderId), requireAuth, orderCtrl.remove);
 

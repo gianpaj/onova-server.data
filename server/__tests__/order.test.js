@@ -12,7 +12,7 @@ import Tag from '../models/tag.model';
 import Product from '../models/product.model';
 import Order from '../models/order.model';
 
-// GET /api/orders/ should only return these fields
+// GET & PUT /api/orders/ should only return these fields
 const orderFields = [
   'buyer',
   'currency',
@@ -426,36 +426,6 @@ describe('## Order APIs', () => {
             .catch(() => reject());
         })
       );
-      // Promises.push(
-      //   new Promise((resolve, reject) => {
-      //     return request(app)
-      //       .post('/api/products')
-      //       .set('Authorization', jwtToken)
-      //       .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
-      //       .field(anotherProduct)
-      //       .expect(httpStatus.CREATED)
-      //       .then(res => {
-      //         const p = res.body.data;
-      //         expect(p.currency).toBe('UAH');
-      //         expect(p.description).toBe(anotherProduct.description);
-      //         expect(p.price).toBe(anotherProduct.price);
-      //         // flow-disable-next-line
-      //         expect(p.seller).toBe(user._id);
-      //         expect(p.status).toBe('forsale');
-      //         anotherProductUuid = p.uuid;
-
-      //         return request(app)
-      //           .delete(`/api/products/${anotherProductUuid}`)
-      //           .set('Authorization', jwtToken)
-      //           .expect(httpStatus.NO_CONTENT)
-      //           .then(res => {
-      //             expect(res.body).toMatchObject({});
-      //             resolve();
-      //           });
-      //       })
-      //       .catch(() => reject());
-      //   })
-      // );
 
       Promise.all(Promises).then(() => {
         done();
@@ -465,7 +435,7 @@ describe('## Order APIs', () => {
     it('should get my order', async () => {
       return request(app)
         .get(`/api/orders/${orderGET1}`)
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
@@ -476,6 +446,83 @@ describe('## Order APIs', () => {
           expect(o.onovaFee).toBe((productGET1.price * 1).toString());
           expect(o.priceOfItem).toBe(productGET1.price);
           expect(o.transationStatus).toBe('pl-pending');
+        });
+    });
+
+    it('should not get an order that`s not mine', async () => {
+      return request(app)
+        .get(`/api/orders/${orderGET1}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(res => {
+          expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+  describe.only('# PUT /api/orders', () => {
+    const productPOST1 = {
+      categoryIds: [2],
+      typeIds: [1, 3],
+      description: 'best bo0ts',
+      price: '1900.59',
+    };
+    let productPOST1_uuid;
+    let orderPOST1;
+
+    beforeAll(done => {
+      let Promises = [];
+      Promises.push(
+        new Promise((resolve, reject) => {
+          return request(app)
+            .post('/api/products')
+            .set('Authorization', anotherJwtToken)
+            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+            .field(productPOST1)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const p = res.body.data;
+              expect(p.description).toBe(productPOST1.description);
+              // flow-disable-next-line
+              expect(p.seller).toBe(anotherUser._id);
+              productPOST1_uuid = p.uuid;
+              return productPOST1_uuid;
+            })
+            .then(p_uuid => {
+              return request(app)
+                .post('/api/orders')
+                .set('Authorization', jwtToken)
+                .send({ product: p_uuid })
+                .expect(httpStatus.CREATED)
+                .then(res => {
+                  const o = res.body.data;
+                  expect(o.onovaFee).toBe((productPOST1.price * 1).toString());
+                  expect(o.priceOfItem).toBe(productPOST1.price);
+                  orderPOST1 = o.id;
+                  resolve();
+                });
+            })
+            .catch(() => reject());
+        })
+      );
+
+      Promise.all(Promises).then(() => {
+        done();
+      });
+    });
+    it('should set an order as purchased', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ status: 'purchased' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(
+            [...orderFields, 'datePurchased'].sort()
+          );
+          expect(o.priceOfItem).toBe(productPOST1.price);
+          expect(o.status).toBe('purchased');
         });
     });
   });
