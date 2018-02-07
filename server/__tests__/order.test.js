@@ -329,15 +329,22 @@ describe('## Order APIs', () => {
     });
 
     it('should not create an order with an invalid product', async () => {
-      let orderOne = {
-        product: 'productUuid',
-      };
-
       return request(app)
         .post('/api/orders')
         .set('Authorization', jwtToken)
-        .send(orderOne)
+        .send({ product: '5a7ae9c687bc431aba38f9daz' })
         .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('fails to match the required');
+        });
+    });
+
+    it('should not create an order if the product does not exist', async () => {
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', jwtToken)
+        .send({ product: 'ABCxsPOL7G' })
+        .expect(httpStatus.NOT_FOUND)
         .then(res => {
           expect(res.body.message).toBe('Product not found');
         });
@@ -581,6 +588,18 @@ describe('## Order APIs', () => {
         });
     });
 
+    it('should not update an invalid order', async () => {
+      return request(app)
+        .put('/api/orders/BJCxsPOLGBJCxsPOLG')
+        .set('Authorization', jwtToken)
+        .send({ status: 'purchased' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('Invalid order');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
     it('should set an order status to `shipped`', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
@@ -598,7 +617,7 @@ describe('## Order APIs', () => {
     });
 
     it('should set an order status to `completed`', async () => {
-      request(app)
+      return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
         .send({ status: 'completed' })
@@ -618,8 +637,36 @@ describe('## Order APIs', () => {
         });
     });
 
+    it('should set an order status to `cancelled`', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST2}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'cancelled' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
+          expect(o.priceOfItem).toBe(productPOST2.price);
+          expect(o.status).toBe('cancelled');
+        });
+    });
+
+    it('should not set an order status from `cancelled` to `shipped`, etc.', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST2}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'shipped' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            'cannot change the status of an order once is cancelled'
+          );
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
     it('should not set an order to `purchased` if it was already `shipped`, `completed` or `cancelled`', async () => {
-      request(app)
+      return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
         .send({ status: 'purchased' })
@@ -632,8 +679,22 @@ describe('## Order APIs', () => {
         });
     });
 
+    it('should not set an order to an invalid status', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ status: 'purchasedz' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            '"status" must be one of [pending, purchased, shipped, completed, cancelled]'
+          );
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
     it('should change the paymentMethod to `paypal`', async () => {
-      request(app)
+      return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
         .send({ paymentMethod: 'paypal' })
@@ -651,6 +712,20 @@ describe('## Order APIs', () => {
           );
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.paymentMethod).toBe('paypal');
+        });
+    });
+
+    it('should not change the paymentMethod if invalid', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ paymentMethod: 'paypalz' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            '"paymentMethod" must be one of [paypal, liqpay]'
+          );
+          expect(res.body.ok).toBe(false);
         });
     });
   });

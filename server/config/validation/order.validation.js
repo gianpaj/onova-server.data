@@ -13,7 +13,6 @@ export default {
 
   // GET /api/orders/:orderId
   // PUT /api/orders/:orderId
-  // DELETE /api/orders/:orderId
   orderId: {
     params: {
       orderId: Joi.string()

@@ -48,9 +48,7 @@ router
     requireAuth,
     isAuthorized,
     orderCtrl.update
-  )
-  // // DELETE /api/orders/:orderId - Delete order
-  // .delete(validate(paramValidation.orderId), requireAuth, orderCtrl.remove);
+  );
 
 // Load user when API with orderId route parameter is hit
 router.param('orderId', orderCtrl.load);

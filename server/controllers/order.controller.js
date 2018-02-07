@@ -72,7 +72,7 @@ function create(
     .populate('seller')
     .then((product: productDoc) => {
       if (!product) {
-        throw new APIError('Product not found', 400);
+        throw new APIError('Product not found', 404);
       }
       if (product.status !== 'forsale') {
         throw new APIError(
@@ -132,75 +132,62 @@ function update(
 ) {
   const newStatus = req.body.status;
 
-  const a = req.order;
+  const foundOrder = req.order;
 
-  Order.findOne({ _id: req.params.orderId })
-    .then(foundOrder => {
-      if (!foundOrder) {
-        throw new APIError('Order not found', 400);
-      }
+  // can go only from either 'purchased' or 'pending' -> 'cancelled'
+  if (
+    ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
+    newStatus == 'cancelled'
+  ) {
+    throw new APIError(
+      'cannot cancel an order that has been shipped or completed',
+      400
+    );
+  }
 
-      // can go only from either 'purchased' or 'pending' -> 'cancelled'
-      if (
-        ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-        newStatus == 'cancelled'
-      ) {
-        throw new APIError(
-          'cannot cancel an order that has been shipped or completed',
-          400
-        );
-      }
+  if (foundOrder.status == 'cancelled') {
+    throw new APIError(
+      'cannot change the status of an order once is cancelled',
+      400
+    );
+  }
 
-      if (foundOrder.status == 'cancelled') {
-        throw new APIError(
-          'cannot change the status of an order once is cancelled',
-          400
-        );
-      }
+  // can go only from either 'purchased' or 'shipped' -> 'completed'
+  if (foundOrder.status == 'pending' && newStatus == 'completed') {
+    throw new APIError('cannot complete an order that is pending', 400);
+  }
 
-      // can go only from either 'purchased' or 'shipped' -> 'completed'
-      if (foundOrder.status == 'pending' && newStatus == 'completed') {
-        throw new APIError('cannot complete an order that is pending', 400);
-      }
+  // can go only from either 'pending' -> 'purchased'
+  if (
+    ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
+    newStatus == 'purchased'
+  ) {
+    throw new APIError(
+      'cannot set an order status to purchased if its not pending first',
+      400
+    );
+  }
 
-      // can go only from either 'pending' -> 'purchased'
-      if (
-        ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-        newStatus == 'purchased'
-      ) {
-        throw new APIError(
-          'cannot set an order status to purchased if its not pending first',
-          400
-        );
-      }
+  if (newStatus == 'purchased') {
+    foundOrder.datePurchased = new Date();
+  }
 
-      if (newStatus == 'purchased') {
-        foundOrder.datePurchased = new Date();
-      }
+  if (newStatus == 'shipped') {
+    foundOrder.dateShipped = new Date();
+  }
 
-      if (newStatus == 'shipped') {
-        foundOrder.dateShipped = new Date();
-      }
+  if (newStatus == 'completed') {
+    foundOrder.dateCompleted = new Date();
+  }
 
-      if (newStatus == 'completed') {
-        foundOrder.dateCompleted = new Date();
-      }
+  foundOrder.status = newStatus ? newStatus : foundOrder.status;
+  foundOrder.paymentMethod = req.body.paymentMethod
+    ? req.body.paymentMethod
+    : foundOrder.paymentMethod;
 
-      foundOrder.status = newStatus ? newStatus : foundOrder.status;
-      foundOrder.paymentMethod = req.body.paymentMethod
-        ? req.body.paymentMethod
-        : foundOrder.paymentMethod;
-
-      return foundOrder.save().then(data => {
-        return res.json({ data });
-      });
-    })
-    .catch(err => {
-      if (!err instanceof APIError) {
-        err = new APIError('Error updating Order', 500);
-      }
-      next(err);
-    });
+  return foundOrder.save().then(data => {
+    return res.json({ data });
+  });
 }
 
 export default {
@@ -209,5 +196,4 @@ export default {
   create,
   update,
   // list,
-  // remove,
 };
