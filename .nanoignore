@@ -1,0 +1,12 @@
+.yarn
+.vscode
+*.json
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+ehthumbs.db
+Icon?
+Thumbs.db
+*.log
+npm-debug.log*

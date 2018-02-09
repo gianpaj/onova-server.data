@@ -29,14 +29,17 @@ const envVarsSchema = Joi.object({
     .description('The salt to be used in password encryption by bcrypt'),
   MONGO_HOST: Joi.string()
     .required()
-    .description('Mongo DB host url'),
+    .description('MongoDB host'),
+  MONGO_DB: Joi.string()
+    .required()
+    .description('MongoDB database'),
   MONGO_PORT: Joi.number().default(27017),
   MJ_APIKEY_PUBLIC: Joi.string()
     .required()
-    .description('Mailjet DB host url'),
+    .description('Mailjet API public key'),
   MJ_APIKEY_PRIVATE: Joi.string()
     .required()
-    .description('Mongo DB host url'),
+    .description('Mailjet API private key'),
 })
   .unknown()
   .required();
@@ -54,6 +57,7 @@ const config = {
   saltRounds: envVars.SALT_ROUNDS,
   mongo: {
     host: envVars.MONGO_HOST,
+    db: envVars.MONGO_DB,
     port: envVars.MONGO_PORT,
   },
   mailjet: {

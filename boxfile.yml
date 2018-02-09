@@ -1,0 +1,20 @@
+run.config:
+  engine: nodejs
+  engine.config:
+    runtime: nodejs-8.9
+  cache_dirs:
+    - node_modules
+  # extra_steps:
+  #   - yarn
+  extra_packages:
+    - nginx
+
+web.main:
+  start:
+    nginx: nginx -c /app/config/nginx.conf
+    node: npm run prod:build && npm run prod:start
+  log_watch:
+    app[error]: /app/error.log
+
+data.db:
+  image: nanobox/mongodb:3.4

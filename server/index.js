@@ -13,13 +13,25 @@ Promise = require('bluebird');
 // plugin bluebird promise in mongoose
 mongoose.Promise = Promise;
 
-const promise = mongoose.connect(config.mongo.host, {
-  useMongoClient: true,
-  keepAlive: 1,
-  // socketTimeoutMS: 1000
-});
+let mongodbHostname = config.mongo.host;
+
+// nanobox
+if (process.env.APP_NAME) {
+  mongodbHostname = process.env.DATA_DB_HOST;
+}
+
+const promise = mongoose.connect(
+  `mongodb://${mongodbHostname}/${config.mongo.db}`,
+  {
+    useMongoClient: true,
+    keepAlive: 1,
+    // socketTimeoutMS: 1000
+  }
+);
 promise.on('error', () => {
-  throw new Error(`unable to connect to database: ${config.mongo.host}`);
+  throw new Error(
+    `unable to connect to: ${mongodbHostname}/${config.mongo.db}`
+  );
 });
 
 // print mongoose logs in dev env
@@ -33,7 +45,7 @@ if (config.mongooseDebug) {
 // https://github.com/mochajs/mocha/issues/1912
 if (!module.parent) {
   // listen on port config.port
-  app.listen(config.port, () => {
+  app.listen(config.port, '0.0.0.0', () => {
     console.info(`server started on port ${config.port} (${config.env})`);
   });
 }
