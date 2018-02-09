@@ -148,12 +148,13 @@ OrderSchema.statics = {
    * List orders in descending order of 'createdAt' timestamp.
    *
    * @param {Object} query Query params
+   * @param {MongoId} query.buyer Buyer's _id
    * @param {number} query.skip Number of orders to be skipped.
    * @param {number} query.limit Limit number of orders to be returned.
    * @returns {Promise<OrderDoc[]>}
    */
-  list({ query = {}, skip = 0, limit = 50 } = {}): Promise<OrderDoc[]> {
-    return this.find(query)
+  list({ buyer, skip = 0, limit = 50 }): Promise<OrderDoc[]> {
+    return this.find({ buyer })
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)

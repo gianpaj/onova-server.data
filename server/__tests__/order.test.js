@@ -396,13 +396,20 @@ describe('## Order APIs', () => {
       price: '900.99',
     };
     let productGET1_uuid;
+    const productGET2 = {
+      categoryIds: [1],
+      typeIds: [1],
+      description: 'shiny shoes',
+      price: '440.99',
+    };
+    let productGET2_uuid;
     let orderGET1;
 
     beforeAll(done => {
       let Promises = [];
       Promises.push(
         new Promise((resolve, reject) => {
-          return request(app)
+          request(app)
             .post('/api/products')
             .set('Authorization', anotherJwtToken)
             .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
@@ -411,13 +418,14 @@ describe('## Order APIs', () => {
             .then(res => {
               const p = res.body.data;
               expect(p.description).toBe(productGET1.description);
+              expect(p.price).toBe(productGET1.price);
               // flow-disable-next-line
               expect(p.seller).toBe(anotherUser._id);
               productGET1_uuid = p.uuid;
               return productGET1_uuid;
             })
             .then(p_uuid => {
-              return request(app)
+              request(app)
                 .post('/api/orders')
                 .set('Authorization', jwtToken)
                 .send({ product: p_uuid })
@@ -430,12 +438,50 @@ describe('## Order APIs', () => {
                   resolve();
                 });
             })
-            .catch(() => reject());
+            .catch(e => reject(e));
+        })
+      );
+
+      Promises.push(
+        new Promise((resolve, reject) => {
+          request(app)
+            .post('/api/products')
+            .set('Authorization', jwtToken)
+            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+            .field(productGET2)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const p = res.body.data;
+              expect(p.description).toBe(productGET2.description);
+              // flow-disable-next-line
+              expect(p.seller).toBe(user._id);
+              productGET2_uuid = p.uuid;
+              return productGET2_uuid;
+            })
+            .then(p_uuid => {
+              request(app)
+                .post('/api/orders')
+                .set('Authorization', anotherJwtToken)
+                .send({ product: p_uuid })
+                .expect(httpStatus.CREATED)
+                .then(res => {
+                  const o = res.body.data;
+                  expect(o.onovaFee).toBe((productGET2.price * 1).toString());
+                  expect(o.priceOfItem).toBe(productGET2.price);
+                  // orderGET2 = o.id;
+                  resolve();
+                });
+            })
+            .catch(e => reject(e));
         })
       );
 
       Promise.all(Promises).then(() => {
         done();
+      })
+      .catch(err => {
+        console.error(err);
+        done(err);
       });
     });
 
@@ -467,7 +513,34 @@ describe('## Order APIs', () => {
         });
     });
 
-  describe.only('# PUT /api/orders', () => {
+    it('should get my orders', async () => {
+      return request(app)
+        .get('/api/orders')
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Array.isArray(o));
+          expect(o.length).toBe(2);
+          expect(o[1].priceOfItem).toBe(productGET1.price);
+        });
+    });
+
+    it('should not get other people`s orders', async () => {
+      return request(app)
+        .get('/api/orders')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Array.isArray(o));
+          expect(o.length).toBe(1);
+          expect(o[0].priceOfItem).toBe(productGET2.price);
+        });
+    });
+  });
+
+  describe('# PUT /api/orders', () => {
     const productPOST1 = {
       categoryIds: [2],
       typeIds: [1, 3],

@@ -1,9 +1,11 @@
 // @flow
 
+import mongoose from 'mongoose';
+
 import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
-import User, { UserDoc } from '../models/user.model';
+import { UserDoc } from '../models/user.model';
 import config from '../config/config';
 
 declare class express$Request extends express$Request {
@@ -70,7 +72,7 @@ function create(
 
   Product.findOne({ uuid: req.body.product })
     .populate('seller')
-    .then((product: productDoc) => {
+    .then((product: ProductDoc) => {
       if (!product) {
         throw new APIError('Product not found', 404);
       }
@@ -125,11 +127,7 @@ function create(
  * @property {string} req.query.status
  * @property {string=} req.query.paymentMethod
  */
-function update(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
+function update(req: session$Request, res: express$Response) {
   const newStatus = req.body.status;
 
   const foundOrder = req.order;
@@ -190,10 +188,33 @@ function update(
   });
 }
 
+/**
+ * Get list of my orders.
+ *
+ * GET /api/orders
+ *
+ * @property {*} req - Express request
+ * @property {*} req.query - Express query parameters
+ * @property {number} req.query.skip Number of orders to be skipped.
+ * @property {number} req.query.limit Limit number of orders to be returned.
+ */
+function list(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { limit = 50, skip = 0 } = req.query;
+  // use static method from orderSchema
+  // flow-disable-next-line
+  Order.list({ buyer: req.user._id, limit, skip })
+    .then(data => res.json({ data }))
+    .catch(e => next(e));
+}
+
 export default {
   load,
   get,
   create,
   update,
-  // list,
+  list,
 };

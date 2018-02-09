@@ -26,8 +26,8 @@ function isAuthorized(req, res, next) {
 // ALL Protected routes
 router
   .route('/')
-  // // GET /api/orders - Get list of orders of the user who requested (via JWT)
-  // .get(requireAuth, orderCtrl.list)
+  // GET /api/orders - Get list of orders of the user who requested (via JWT)
+  .get(requireAuth, orderCtrl.list)
 
   // POST /api/orders - Create new order
   .post(validate(paramValidation.create), requireAuth, orderCtrl.create);
