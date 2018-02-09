@@ -476,13 +476,14 @@ describe('## Order APIs', () => {
         })
       );
 
-      Promise.all(Promises).then(() => {
-        done();
-      })
-      .catch(err => {
-        console.error(err);
-        done(err);
-      });
+      Promise.all(Promises)
+        .then(() => {
+          done();
+        })
+        .catch(err => {
+          console.error(err);
+          done(err);
+        });
     });
 
     it('should get my order', async () => {
@@ -513,20 +514,20 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get my orders', async () => {
+    it('should get my orders (as seller and buyer)', async () => {
       return request(app)
-        .get('/api/orders')
+        .get('/api/orders/?of=both')
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(o.length).toBe(2);
-          expect(o[1].priceOfItem).toBe(productGET1.price);
+          expect(o.length).toBe(3);
+          expect(o[2].priceOfItem).toBe(productGET1.price);
         });
     });
 
-    it('should not get other people`s orders', async () => {
+    it('should not get other people`s orders (as seller and buyer)', async () => {
       return request(app)
         .get('/api/orders')
         .set('Authorization', anotherJwtToken)
@@ -534,8 +535,8 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(o.length).toBe(1);
-          expect(o[0].priceOfItem).toBe(productGET2.price);
+          expect(o.length).toBe(3);
+          expect(o[1].priceOfItem).toBe(productGET2.price);
         });
     });
   });

@@ -206,7 +206,7 @@ function list(
   const { limit = 50, skip = 0 } = req.query;
   // use static method from orderSchema
   // flow-disable-next-line
-  Order.list({ buyer: req.user._id, limit, skip })
+  Order.list({ myid: req.user._id, limit, skip })
     .then(data => res.json({ data }))
     .catch(e => next(e));
 }
