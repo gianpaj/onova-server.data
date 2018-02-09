@@ -1,6 +1,5 @@
 .yarn
 .vscode
-*.json
 .DS_Store
 .DS_Store?
 ._*

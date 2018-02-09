@@ -50,6 +50,9 @@ app.use(cors());
 app.set('views', './server/views');
 app.set('view engine', 'pug');
 
+// HTTPS and forwarding proxies for App Engine
+app.set('trust proxy', true);
+
 // enable detailed API logging in dev env
 if (config.env === 'development') {
   expressWinston.requestWhitelist.push('body');

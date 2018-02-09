@@ -13,15 +13,8 @@ Promise = require('bluebird');
 // plugin bluebird promise in mongoose
 mongoose.Promise = Promise;
 
-let mongodbHostname = config.mongo.host;
-
-// nanobox
-if (process.env.APP_NAME) {
-  mongodbHostname = process.env.DATA_DB_HOST;
-}
-
 const promise = mongoose.connect(
-  `mongodb://${mongodbHostname}/${config.mongo.db}`,
+  `mongodb://${config.mongo.host}/${config.mongo.db}`,
   {
     useMongoClient: true,
     keepAlive: 1,
@@ -30,7 +23,7 @@ const promise = mongoose.connect(
 );
 promise.on('error', () => {
   throw new Error(
-    `unable to connect to: ${mongodbHostname}/${config.mongo.db}`
+    `unable to connect to: ${config.mongo.host}/${config.mongo.db}`
   );
 });
 
