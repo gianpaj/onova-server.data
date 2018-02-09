@@ -523,7 +523,6 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Array.isArray(o));
           expect(o.length).toBe(3);
-          expect(o[2].priceOfItem).toBe(productGET1.price);
         });
     });
 
@@ -536,7 +535,6 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Array.isArray(o));
           expect(o.length).toBe(3);
-          expect(o[1].priceOfItem).toBe(productGET2.price);
         });
     });
   });

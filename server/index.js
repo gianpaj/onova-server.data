@@ -14,7 +14,7 @@ Promise = require('bluebird');
 mongoose.Promise = Promise;
 
 const promise = mongoose.connect(
-  `mongodb://${config.mongo.host}/${config.mongo.db}`,
+  `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`,
   {
     useMongoClient: true,
     keepAlive: 1,
@@ -23,7 +23,7 @@ const promise = mongoose.connect(
 );
 promise.on('error', () => {
   throw new Error(
-    `unable to connect to: ${config.mongo.host}/${config.mongo.db}`
+    `unable to connect to: mongodb://${config.mongo.host}/${config.mongo.db}`
   );
 });
 

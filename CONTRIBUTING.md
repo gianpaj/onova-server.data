@@ -3,6 +3,7 @@
 All contributions are welcome!
 
 For contributing to this project, please:
+
 * fork the repository to your own account
 * clone the repository
 * make changes
