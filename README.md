@@ -62,7 +62,7 @@ Start server:
 
 ```sh
 # Start server
-yarn start
+yarn dev:start
 
 # Selectively set DEBUG env var to get logs
 DEBUG=express-mongoose-es6-rest-api:* yarn start
