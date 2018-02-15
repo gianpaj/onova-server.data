@@ -120,7 +120,7 @@ function create(
         .save()
         .then(savedProduct => savedProduct)
         .catch(() => {
-          throw new APIError('Error creating Product', 400);
+          throw new APIError('Error creating Product', 500);
         });
     })
     .then(savedProduct => {

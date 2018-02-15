@@ -98,40 +98,33 @@ function create(
 
   const user = new User(doc);
 
-  User.findOne(
-    {
-      $or: [
-        { emailAddress: req.body.emailAddress },
-        { username: req.body.username },
-      ],
-    },
-    (err, existingUser: UserDoc) => {
-      if (err) {
-        return next(err);
-      }
+  User.findOne({
+    $or: [
+      { emailAddress: req.body.emailAddress },
+      { username: req.body.username },
+    ],
+  })
+    .then((existingUser: UserDoc) => {
       if (existingUser) {
         const APIerr = new APIError(
           'An account with the same email address or username exists.',
           httpStatus.BAD_REQUEST
         );
-        return next(APIerr);
+        throw APIerr;
       }
-      user
-        .save()
-        .then((savedUser: UserDoc) => {
-          return mailCtrl
-            .sendVerificationEmail(savedUser.emailAddress, savedUser)
-            .then(() => {
-              const payload = _prepareUserJson(savedUser);
-              return res.status(201).json({
-                token: `JWT ${authCtrl.generateToken(payload)}`,
-                data: payload,
-              });
+      return user.save().then((savedUser: UserDoc) => {
+        return mailCtrl
+          .sendVerificationEmail(savedUser.emailAddress, savedUser)
+          .then(() => {
+            const payload = _prepareUserJson(savedUser);
+            return res.status(201).json({
+              token: `JWT ${authCtrl.generateToken(payload)}`,
+              data: payload,
             });
-        })
-        .catch(e => next(e));
-    }
-  );
+          });
+      });
+    })
+    .catch(e => next(e));
 }
 
 /**

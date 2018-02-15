@@ -107,7 +107,7 @@ function create(
         .save()
         .then(savedOrder => savedOrder)
         .catch(() => {
-          throw new APIError('Error creating Order', 400);
+          throw new APIError('Error creating Order', 500);
         });
     })
     .then(savedOrder => {
