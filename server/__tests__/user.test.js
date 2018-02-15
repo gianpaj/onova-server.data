@@ -661,7 +661,51 @@ describe('## User APIs', () => {
     });
   });
 
-  describe('Password reset', () => {
+  describe('# POST /api/users/:userId/follow', () => {
+    it('should follow another user', async () => {
+      return request(app)
+        .post(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(userId);
+          expect(data.following).toBe(anotherUserId);
+          expect(data).toHaveProperty('dateCreated');
+        });
+    });
+    it('should not follow an invalid user', async () => {
+      return request(app)
+        .post('/api/users/1123123/follow')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('must be 24 characters long');
+        });
+    });
+
+    it('should not follow a user it doesn`t exist', async () => {
+      return request(app)
+        .post('/api/users/5aaaac09336c6735ff0346f9/follow')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('Error following a user');
+        });
+    });
+
+    it('should not follow itself', async () => {
+      return request(app)
+        .post(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('Cannot follow yourself');
+        });
+    });
+  });
+
+  describe.skip('Password reset', () => {
     it('# POST /api/auth/reset - should request a password reset via email', done => {
       request(app)
         .post('/api/auth/reset')
