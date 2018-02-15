@@ -21,7 +21,6 @@ export default {
         .min(3)
         .max(30)
         .required(),
-      // displayName:  Joi.string().min(3).max(30).required(),
       mobileNumber: Joi.string().regex(validation.mobileNumber),
       emailAddress: Joi.string()
         .email()

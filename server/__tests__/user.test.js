@@ -23,7 +23,14 @@ afterAll(done => {
 });
 
 // GET /api/users/ should only return these fields
-const userFields = ['_id', 'username', 'emailAddress', 'accountStatus'];
+const userFields = [
+  '_id',
+  'accountStatus',
+  'emailAddress',
+  'followersCount',
+  'followingCount',
+  'username',
+];
 
 describe('## User APIs', () => {
   beforeAll(done => {
@@ -99,8 +106,10 @@ describe('## User APIs', () => {
           expect(resUser.username).toBe(user.username);
           expect(resUser.emailAddress).toBe(user.emailAddress);
           expect(resUser.accountStatus).toBe('notverified');
-          expect(resUser).not.toHaveProperty('password');
+          expect(resUser.followersCount).toBe(0);
+          expect(resUser.followingCount).toBe(0);
           expect(typeof res.body.token).toBe('string');
+          expect(Object.keys(resUser).sort()).toEqual(userFields.sort());
 
           userId = resUser._id;
           done();

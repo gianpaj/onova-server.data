@@ -334,6 +334,8 @@ function _prepareUserJson(user: UserDoc): Object {
     emailAddress: user.emailAddress,
     accountStatus: user.accountStatus,
     profilePic: user.profilePic,
+    followersCount: user.followersCount,
+    followingCount: user.followingCount,
   };
 }
 

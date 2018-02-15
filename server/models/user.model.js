@@ -37,13 +37,30 @@ const UserSchema = new Schema(
       phone: String,
     },
     bio: String,
-    displayName: String,
+    displayName: {
+      type: String,
+      minlength: 3,
+      maxlength: 30,
+    },
     emailAddress: {
       type: String,
       required: true,
       unique: true,
-      set: (v: String) => v.toLowerCase().trim(),
+      trim: true,
+      lowercase: true,
       // validated at API level via 'Joi' and 'isEmail' npm packages
+    },
+    followersCount: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
+    followingCount: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
     },
     mobileNumber: {
       type: String,
@@ -82,7 +99,10 @@ const UserSchema = new Schema(
       type: String,
       unique: true,
       required: true,
-      set: (v: String) => v.toLowerCase().trim(),
+      minlength: 3,
+      maxlength: 30,
+      trim: true,
+      lowercase: true,
     },
     // assigns 'createdAt' and 'updatedAt' fields to your schema
   },
@@ -96,6 +116,8 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   bio: ?string;
   displayName: ?string;
   emailAddress: string;
+  followersCount: number;
+  followingCount: number;
   mobileNumber: ?string;
   password: string;
   paymentInfo: ?any;
