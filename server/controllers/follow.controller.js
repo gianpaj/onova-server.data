@@ -4,7 +4,6 @@ import httpStatus from 'http-status';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
-import config from '../config/config';
 import User, { UserDoc } from '../models/user.model';
 import Follow, { FollowDoc } from '../models/follow.model';
 
@@ -53,12 +52,7 @@ function follow(
         following: targetUser._id,
       });
 
-      return doc
-        .save()
-        .then(savedDoc => savedDoc)
-        .catch(() => {
-          throw new APIError('Error saving Follow document', 500);
-        });
+      return doc.save().then(savedDoc => savedDoc);
     })
     .then(savedDoc => {
       return res.status(httpStatus.CREATED).json({ data: savedDoc });

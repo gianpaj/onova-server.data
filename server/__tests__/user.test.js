@@ -9,6 +9,7 @@ import jwt from 'jsonwebtoken';
 import app from '../index';
 import config from '../config/config';
 import Verification from '../models/verification.model';
+import Follow from '../models/follow.model';
 import User from '../models/user.model';
 
 /**
@@ -35,7 +36,11 @@ const userFields = [
 describe('## User APIs', () => {
   beforeAll(done => {
     // mongoose.connection.dropDatabase().then(done);
-    const collections = [User.collection];
+    const collections = [
+      User.collection,
+      Follow.collection,
+      Verification.collection,
+    ];
 
     var todo = collections.length;
     if (!todo) return done();
@@ -674,6 +679,16 @@ describe('## User APIs', () => {
           expect(data).toHaveProperty('dateCreated');
         });
     });
+
+    it('should not follow the same user more than once', async () => {
+      return request(app)
+        .post(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('Duplicate follower<->following');
+        });
+    });
     it('should not follow an invalid user', async () => {
       return request(app)
         .post('/api/users/1123123/follow')
@@ -701,6 +716,19 @@ describe('## User APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('Cannot follow yourself');
+        });
+    });
+
+    it('should follow follow back', async () => {
+      return request(app)
+        .post(`/api/users/${userId}/follow`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(anotherUserId);
+          expect(data.following).toBe(userId);
+          expect(data).toHaveProperty('dateCreated');
         });
     });
   });

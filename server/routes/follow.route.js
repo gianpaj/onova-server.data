@@ -3,7 +3,6 @@ import validate from 'express-validation';
 import passport from 'passport';
 
 import paramValidation from '../config/validation/user.validation';
-import userCtrl from '../controllers/user.controller';
 import followCtrl from '../controllers/follow.controller';
 
 // loads Authenticated user document in `req.user`

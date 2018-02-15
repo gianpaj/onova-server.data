@@ -1,6 +1,9 @@
 // @flow
 
 import mongoose from 'mongoose';
+import httpStatus from 'http-status';
+
+import APIError from '../helpers/APIError';
 import User from '../models/user.model';
 const Schema = mongoose.Schema;
 
@@ -30,7 +33,18 @@ export class FollowDoc /*:: extends Mongoose$Document */ {
 
 FollowSchema.loadClass(FollowDoc);
 
-FollowSchema.post('save', function(doc, next) {
+FollowSchema.post('save', function(error, doc, next) {
+  if (error.name === 'MongoError' && error.code === 11000) {
+    const APIerr = new APIError(
+      'Duplicate follower<->following',
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  } else if (error) {
+    console.log(error);
+    return next(error);
+  }
+  console.log(doc);
   User.updateOne({ _id: doc.follower }, { $inc: { followingCount: 1 } }).then();
   // eslint-disable-next-line
   User.updateOne({ _id: doc.following }, { $inc: { followersCount: 1 } }).then();
@@ -59,5 +73,6 @@ FollowSchema.set('toJSON', {
 
 FollowSchema.index({ follower: 1, dateCreated: 1 });
 FollowSchema.index({ following: 1, dateCreated: 1 });
+FollowSchema.index({ follower: 1, following: 1 }, { unique: true });
 
 export default mongoose.model('Follow', FollowSchema);
