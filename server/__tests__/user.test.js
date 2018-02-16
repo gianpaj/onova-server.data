@@ -94,6 +94,7 @@ describe('## User APIs', () => {
 
   let userId;
   let anotherUserId;
+  let thirdUserId;
   let jwtToken;
   let anotherJwtToken;
   let activationToken;
@@ -133,8 +134,11 @@ describe('## User APIs', () => {
           expect(resUser.username).toBe(thirdUser.username);
           expect(resUser.emailAddress).toBe(thirdUser.emailAddress);
           expect(resUser.accountStatus).toBe('notverified');
-          expect(resUser).not.toHaveProperty('password');
+          expect(resUser.followersCount).toBe(0);
+          expect(resUser.followingCount).toBe(0);
           expect(typeof res.body.token).toBe('string');
+          expect(Object.keys(resUser).sort()).toEqual(userFields.sort());
+          thirdUserId = resUser._id;
 
           done();
         })
@@ -302,15 +306,16 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/:userId', () => {
-    it("should get the user's details", done => {
+    it("should get the user's details (public)", done => {
       request(app)
         .get(`/api/users/${userId}`)
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.username).toBe(user.username);
           expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body).not.toHaveProperty('password');
-          expect(res.body).not.toHaveProperty('paymentInfo');
+          expect(res.body.followersCount).toBe(0);
+          expect(res.body.followingCount).toBe(0);
+          expect(Object.keys(res.body).sort()).toEqual(userFields.sort());
           done();
         })
         .catch(done);
@@ -689,6 +694,44 @@ describe('## User APIs', () => {
           expect(res.body.message).toContain('Duplicate follower<->following');
         });
     });
+
+    describe('check followers/following counters', () => {
+      beforeAll(done => {
+        request(app)
+          .post(`/api/users/${thirdUserId}/follow`)
+          .set('Authorization', jwtToken)
+          .expect(httpStatus.CREATED)
+          .then(res => {
+            expect(res.body.data.follower).toBe(userId);
+            done();
+          });
+      });
+
+      it('should increase the followers count of the target user', async () => {
+        return request(app)
+          .get(`/api/users/${userId}`)
+          .expect(httpStatus.OK)
+          .then(res => {
+            expect(res.body.username).toBe(user.username);
+            expect(res.body.emailAddress).toBe(user.emailAddress);
+            expect(res.body.followersCount).toBe(0);
+            expect(res.body.followingCount).toBe(2);
+          });
+      });
+
+      it('should increase the followers count of the subject user', async () => {
+        return request(app)
+          .get(`/api/users/${thirdUserId}`)
+          .expect(httpStatus.OK)
+          .then(res => {
+            expect(res.body.username).toBe(thirdUser.username);
+            expect(res.body.emailAddress).toBe(thirdUser.emailAddress);
+            expect(res.body.followersCount).toBe(1);
+            expect(res.body.followingCount).toBe(0);
+          });
+      });
+    });
+
     it('should not follow an invalid user', async () => {
       return request(app)
         .post('/api/users/1123123/follow')
@@ -733,7 +776,7 @@ describe('## User APIs', () => {
     });
   });
 
-  describe.skip('Password reset', () => {
+  describe('Password reset', () => {
     it('# POST /api/auth/reset - should request a password reset via email', done => {
       request(app)
         .post('/api/auth/reset')

@@ -40,11 +40,11 @@ FollowSchema.post('save', function(error, doc, next) {
       httpStatus.BAD_REQUEST
     );
     return next(APIerr);
-  } else if (error) {
-    console.log(error);
-    return next(error);
   }
-  console.log(doc);
+  next(error);
+});
+
+FollowSchema.post('save', function(doc, next) {
   User.updateOne({ _id: doc.follower }, { $inc: { followingCount: 1 } }).then();
   // eslint-disable-next-line
   User.updateOne({ _id: doc.following }, { $inc: { followersCount: 1 } }).then();
