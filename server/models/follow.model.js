@@ -33,6 +33,43 @@ export class FollowDoc /*:: extends Mongoose$Document */ {
 
 FollowSchema.loadClass(FollowDoc);
 
+/**
+ * Statics
+ */
+FollowSchema.statics = {
+  /**
+   * List of follow documents in descending order of 'createdAt' timestamp.
+   *
+   * @param {Object} query Express query parameters
+   * @param {Object} DBquery DB Query parameters (to find followers/followings)
+   * @param {number} query.skip Number of follow docs to be skipped
+   * @param {number} query.limit Limit number of follow docs to be returned
+   */
+  list({ DBquery, skip = 0, limit = 50 }): Promise<FollowDoc[] | APIError> {
+    const populateField = DBquery.hasOwnProperty('following')
+      ? 'follower'
+      : 'following';
+    return this.find(DBquery)
+      .sort({ createdAt: -1 })
+      .skip(+skip)
+      .limit(+limit)
+      .populate({
+        path: populateField,
+        select: 'username',
+      })
+      .then((follows: FollowDoc[]) => {
+        if (!follows) {
+          return Promise.reject();
+        }
+        return follows;
+      })
+      .catch(() => {
+        const err = new APIError('Invalid follows', httpStatus.BAD_REQUEST);
+        return Promise.reject(err);
+      });
+  },
+};
+
 FollowSchema.post('save', function(error, doc, next) {
   if (error.name === 'MongoError' && error.code === 11000) {
     const APIerr = new APIError(

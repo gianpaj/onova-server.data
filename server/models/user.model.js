@@ -163,7 +163,7 @@ UserSchema.statics = {
   },
 
   /**
-   * List users in descending order of 'createdAt' timestamp.
+   * List of users in descending order of 'createdAt' timestamp.
    *
    * @param {Object} query Query parameters
    * @param {number} query.skip Number of users to be skipped

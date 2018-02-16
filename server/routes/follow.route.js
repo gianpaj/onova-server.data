@@ -10,29 +10,15 @@ const requireAuth = passport.authenticate('jwt', { session: false });
 
 const router = express.Router();
 
-// router
-//   .route('/')
-//   // GET /api/users - Get list of users
-//   .get(userCtrl.list)
+router
+  .route('/:userId/followers')
+  // GET /api/users/:userId/followers - Get list of followers of a specific user
+  .get(followCtrl.listFollowers);
 
-//   // POST /api/users - Create new user
-//   .post(validate(paramValidation.createUser), userCtrl.create);
-
-// router
-//   .route('/:userId')
-//   // GET /api/users/:userId - Get user
-//   .get(userCtrl.get)
-
-//   // PUT /api/users/:userId - Update user - Protected route
-//   .put(
-//     photos.uploadMulter.single('profilePic'),
-//     validate(paramValidation.updateUser),
-//     requireAuth,
-//     userCtrl.update
-//   )
-
-//   // DELETE /api/users/:userId - Delete user - Protected route
-//   .delete(requireAuth, userCtrl.remove);
+router
+  .route('/:userId/following')
+  // GET /api/users/:userId/following - Get list of users a specific user is following
+  .get(followCtrl.listFollowing);
 
 router
   .route('/:userId/follow')

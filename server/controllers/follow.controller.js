@@ -52,7 +52,7 @@ function follow(
         following: targetUser._id,
       });
 
-      return doc.save().then(savedDoc => savedDoc);
+      return doc.save();
     })
     .then(savedDoc => {
       return res.status(httpStatus.CREATED).json({ data: savedDoc });
@@ -104,15 +104,71 @@ function unfollow(
     .then(followDoc => {
       return followDoc.remove();
     })
-    .then((deletedDoc, numberAffected, rawResponse) => {
-      console.log(numberAffected);
-      console.log(rawResponse);
+    .then(deletedDoc => {
       return res.status(httpStatus.CREATED).json({ data: deletedDoc });
     })
+    .catch(e => next(e));
+}
+
+/**
+ * Get list of followers of a specific user
+ *
+ * GET /api/users/:userId/followers
+ *
+ * @property {*} req - Express request
+ * @property {*} req.params - Express params parameters
+ * @property {string} req.params.userId
+ * @property {*} req.query - Express query parameters
+ * @property {number} req.query.skip Number of users to be skipped.
+ * @property {number} req.query.limit Limit number of users to be returned.
+ */
+function listFollowers(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { limit = 50, skip = 0 } = req.query;
+
+  const DBquery = { following: req.params.userId };
+
+  // use static method from FollowSchema
+  // flow-disable-next-line
+  Follow.list({ DBquery, limit, skip })
+    .then(follows => res.json({ data: follows }))
+    .catch(e => next(e));
+}
+
+/**
+ * Get list of users a specific user is following
+ *
+ * GET /api/users/:userId/following
+ *
+ * @property {*} req - Express request
+ * @property {*} req.params - Express params parameters
+ * @property {string} req.params.userId
+ * @property {*} req.query - Express query parameters
+ * @property {number} req.query.skip Number of users to be skipped.
+ * @property {number} req.query.limit Limit number of users to be returned.
+ */
+function listFollowing(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { limit = 50, skip = 0 } = req.query;
+
+  const DBquery = { follower: req.params.userId };
+
+  // use static method from FollowSchema
+  // flow-disable-next-line
+  Follow.list({ DBquery, limit, skip })
+    .then(follows => res.json({ data: follows }))
     .catch(e => next(e));
 }
 
 export default {
   follow,
   unfollow,
+  listFollowers,
+  listFollowing,
 };

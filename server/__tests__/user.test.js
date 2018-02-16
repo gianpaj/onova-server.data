@@ -681,7 +681,9 @@ describe('## User APIs', () => {
           const { data } = res.body;
           expect(data.follower).toBe(userId);
           expect(data.following).toBe(anotherUserId);
-          expect(data).toHaveProperty('dateCreated');
+          expect(Object.keys(data).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
         });
     });
 
@@ -762,7 +764,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should follow follow back', async () => {
+    it('should follow back', async () => {
       return request(app)
         .post(`/api/users/${userId}/follow`)
         .set('Authorization', anotherJwtToken)
@@ -786,6 +788,9 @@ describe('## User APIs', () => {
           const { data } = res.body;
           expect(data.follower).toBe(userId);
           expect(data.following).toBe(anotherUserId);
+          expect(Object.keys(data).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
         });
     });
 
@@ -816,6 +821,42 @@ describe('## User APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('Cannot unfollow yourself');
+        });
+    });
+  });
+
+  describe('# GET /api/users/:userId/followers', () => {
+    it('should get all followers', async () => {
+      return request(app)
+        .get(`/api/users/${userId}/followers`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(Array.isArray(data)).toBe(true);
+          expect(data.length).toBe(1);
+          // expect(data[0].following).toBe(userId);
+          expect(typeof data[0].follower).toBe('object');
+          expect(Object.keys(data[0]).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
+        });
+    });
+  });
+
+  describe('# GET /api/users/:userId/following', () => {
+    it('should get all following', async () => {
+      return request(app)
+        .get(`/api/users/${userId}/following`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(Array.isArray(data)).toBe(true);
+          expect(data.length).toBe(1);
+          // expect(data[0].follower).toBe(userId);
+          expect(typeof data[0].following).toBe('object');
+          expect(Object.keys(data[0]).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
         });
     });
   });
