@@ -40,11 +40,11 @@ router
   // GET /api/users/:userId/follow - Follow user
   .post(requireAuth, followCtrl.follow);
 
-// router
-//   .route('/:userId/unfollow')
+router
+  .route('/:userId/unfollow')
 
-//   // GET /api/users/:userId/follow - Unfollow user
-//   .post(requireAuth, followCtrl.unfollow);
+  // GET /api/users/:userId/follow - Unfollow user
+  .post(requireAuth, followCtrl.unfollow);
 
 // Load user when API with userId route parameter is hit
 router.param('userId', validate(paramValidation.updateUser));

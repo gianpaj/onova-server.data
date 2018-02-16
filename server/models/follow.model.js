@@ -45,17 +45,17 @@ FollowSchema.post('save', function(error, doc, next) {
 });
 
 FollowSchema.post('save', function(doc, next) {
-  User.updateOne({ _id: doc.follower }, { $inc: { followingCount: 1 } }).then();
+  User.updateOne({ _id: doc.follower }, { $inc: { followingCount: 1 } }).exec();
   // eslint-disable-next-line
-  User.updateOne({ _id: doc.following }, { $inc: { followersCount: 1 } }).then();
+  User.updateOne({ _id: doc.following }, { $inc: { followersCount: 1 } }).exec();
   next();
 });
 
-FollowSchema.post('remove', function(next) {
+FollowSchema.post('remove', function(doc, next) {
   // eslint-disable-next-line
-  User.updateOne({ id: this.follower }, { $inc: { followingCount: -1 } }).then();
+  User.updateOne({ _id: doc.follower }, { $inc: { followingCount: -1 } }).exec();
   // eslint-disable-next-line
-  User.updateOne({ id: this.following }, { $inc: { followersCount: -1 } }).then();
+  User.updateOne({ _id: doc.following }, { $inc: { followersCount: -1 } }).exec();
   next();
 });
 

@@ -60,6 +60,59 @@ function follow(
     .catch(e => next(e));
 }
 
+/**
+ * Delete a following relationship
+ *
+ * POST /api/users/:userId/unfollow
+ *
+ * @property {*} req Express request
+ * @property {*} req.params Express params parameters
+ * @property {string} req.params.userId The target user to be followed
+ */
+function unfollow(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const targetUserId = req.params.userId;
+
+  if (req.user._id.toString() === targetUserId.toString()) {
+    const APIerr = new APIError(
+      'Cannot unfollow yourself',
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
+
+  User.findById(targetUserId)
+    .then((targetUser: UserDoc) => {
+      if (!targetUser) {
+        const APIerr = new APIError(
+          'Error unfollowing a user',
+          httpStatus.BAD_REQUEST
+        );
+        throw APIerr;
+      }
+      return targetUser;
+    })
+    .then(targetUser => {
+      return Follow.findOne({
+        follower: req.user._id,
+        following: targetUser._id,
+      });
+    })
+    .then(followDoc => {
+      return followDoc.remove();
+    })
+    .then((deletedDoc, numberAffected, rawResponse) => {
+      console.log(numberAffected);
+      console.log(rawResponse);
+      return res.status(httpStatus.CREATED).json({ data: deletedDoc });
+    })
+    .catch(e => next(e));
+}
+
 export default {
   follow,
+  unfollow,
 };

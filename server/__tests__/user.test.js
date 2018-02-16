@@ -776,6 +776,50 @@ describe('## User APIs', () => {
     });
   });
 
+  describe('# POST /api/users/:userId/unfollow', () => {
+    it('should unfollow another user', async () => {
+      return request(app)
+        .post(`/api/users/${anotherUserId}/unfollow`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(userId);
+          expect(data.following).toBe(anotherUserId);
+        });
+    });
+
+    it('should not unfollow an invalid user', async () => {
+      return request(app)
+        .post('/api/users/2123412d/unfollow')
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('must be 24 characters long');
+        });
+    });
+
+    it('should not unfollow a user that doesn`t exist', async () => {
+      return request(app)
+        .post('/api/users/5aaaac09336c6735ff0346f9/unfollow')
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('Error unfollowing a user');
+        });
+    });
+
+    it('should not unfollow itself', async () => {
+      return request(app)
+        .post(`/api/users/${anotherUserId}/unfollow`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('Cannot unfollow yourself');
+        });
+    });
+  });
+
   describe('Password reset', () => {
     it('# POST /api/auth/reset - should request a password reset via email', done => {
       request(app)
