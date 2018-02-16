@@ -27,7 +27,8 @@ var FollowSchema = new Schema({
 });
 
 export class FollowDoc /*:: extends Mongoose$Document */ {
-  userId: MongoId;
+  follower: MongoId;
+  following: MongoId;
   dateCreated: Date;
 }
 

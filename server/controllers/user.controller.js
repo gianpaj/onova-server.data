@@ -58,13 +58,12 @@ function get(req: session$Request, res: express$Response) {
  * @property {ObjectId} req.params.userId
  */
 function getPersonal(req: session$Request, res: express$Response) {
-  let doc = _prepareUserJson(req.user);
-  doc = {
+  const doc = _prepareUserJson(req.user);
+  return res.json({
     ...doc,
     shippingAddress: req.user.shippingAddress,
     paymentInfo: req.user.paymentInfo,
-  };
-  return res.json(doc);
+  });
 }
 
 /**

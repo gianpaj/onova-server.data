@@ -12,6 +12,44 @@ declare class session$Request extends express$Request {
 }
 
 /**
+ * Get follow document to check if the requestor is following :userId
+ *
+ * GET /api/users/:userId/follow
+ *
+ * @property {*} req - express session
+ * @property {*} req.params - express session parameters
+ * @property {MongoId} req.params.userId
+ */
+function get(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const targetUserId = req.params.userId;
+
+  if (req.user._id.toString() === targetUserId.toString()) {
+    const APIerr = new APIError(
+      'Cannot follow thyself',
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
+
+  Follow.findOne({
+    follower: req.user._id,
+    following: req.params.userId,
+  })
+    .then(followDoc => {
+      if (!followDoc) {
+        const APIerr = new APIError('Not following', httpStatus.NOT_FOUND);
+        return next(APIerr);
+      }
+      return res.json({ data: followDoc });
+    })
+    .catch(e => next(e));
+}
+
+/**
  * Create new following relationship
  *
  * POST /api/users/:userId/follow
@@ -29,7 +67,7 @@ function follow(
 
   if (req.user._id.toString() === targetUserId.toString()) {
     const APIerr = new APIError(
-      'Cannot follow yourself',
+      'Cannot follow thyself',
       httpStatus.BAD_REQUEST
     );
     return next(APIerr);
@@ -78,7 +116,7 @@ function unfollow(
 
   if (req.user._id.toString() === targetUserId.toString()) {
     const APIerr = new APIError(
-      'Cannot unfollow yourself',
+      'Cannot unfollow thyself',
       httpStatus.BAD_REQUEST
     );
     return next(APIerr);
@@ -101,7 +139,7 @@ function unfollow(
         following: targetUser._id,
       });
     })
-    .then(followDoc => {
+    .then((followDoc: FollowDoc) => {
       return followDoc.remove();
     })
     .then(deletedDoc => {
@@ -167,6 +205,7 @@ function listFollowing(
 }
 
 export default {
+  get,
   follow,
   unfollow,
   listFollowers,

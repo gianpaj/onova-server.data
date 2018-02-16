@@ -760,7 +760,7 @@ describe('## User APIs', () => {
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe('Cannot follow yourself');
+          expect(res.body.message).toBe('Cannot follow thyself');
         });
     });
 
@@ -820,7 +820,7 @@ describe('## User APIs', () => {
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.message).toBe('Cannot unfollow yourself');
+          expect(res.body.message).toBe('Cannot unfollow thyself');
         });
     });
   });
@@ -857,6 +857,59 @@ describe('## User APIs', () => {
           expect(Object.keys(data[0]).sort()).toEqual(
             ['follower', 'following', 'dateCreated'].sort()
           );
+        });
+    });
+  });
+
+  describe('# GET /api/users/:userId/follow', () => {
+    beforeAll(done => {
+      request(app)
+        .post(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(userId);
+          expect(data.following).toBe(anotherUserId);
+          expect(Object.keys(data).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
+          done();
+        });
+    });
+
+    it('should get that i am following a user', async () => {
+      return request(app)
+        .get(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(userId);
+          expect(data.following).toBe(anotherUserId);
+          expect(Object.keys(data).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
+        });
+    });
+
+    it('should get that i am not following a user', async () => {
+      return request(app)
+        .get(`/api/users/5aaaac09336c6735ff0346f9/follow`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.NOT_FOUND)
+        .then(res => {
+          expect(res.body.message).toContain('Not following');
+        });
+    });
+
+    it('should not able to check if your`re following yourself', async () => {
+      return request(app)
+        .get(`/api/users/${userId}/follow`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('Cannot follow thyself');
         });
     });
   });

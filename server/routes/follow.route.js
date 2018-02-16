@@ -23,6 +23,9 @@ router
 router
   .route('/:userId/follow')
 
+  // GET /api/users/:userId/follow - Get follow document to check if the requestor is following :userId
+  .get(requireAuth, followCtrl.get)
+
   // GET /api/users/:userId/follow - Follow user
   .post(requireAuth, followCtrl.follow);
 
