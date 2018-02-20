@@ -143,7 +143,7 @@ function unfollow(
       return followDoc.remove();
     })
     .then(deletedDoc => {
-      return res.status(httpStatus.CREATED).json({ data: deletedDoc });
+      return res.status(httpStatus.NO_CONTENT).json({ data: deletedDoc });
     })
     .catch(e => next(e));
 }
