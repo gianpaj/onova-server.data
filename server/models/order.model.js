@@ -66,9 +66,9 @@ var OrderSchema = new Schema(
       enum: ['pending', 'purchased', 'shipped', 'completed', 'cancelled'],
     },
     taxAmount: String,
-    transationFee: Schema.Types.Decimal128,
-    transationId: String,
-    transationStatus: {
+    transactionFee: Schema.Types.Decimal128,
+    transactionId: String,
+    transactionStatus: {
       type: String,
       default: 'pl-pending',
       enum: ['pl-pending', 'pl-completed', 'pl-cancelled'],
@@ -95,9 +95,9 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   seller: MongoId;
   status: string;
   taxAmount: ?number;
-  transationFee: ?number;
-  transationId: ?string;
-  transationStatus: ?string;
+  transactionFee: ?number;
+  transactionId: ?string;
+  transactionStatus: ?string;
   // shippingFee: number;
   // shippingMethod: string;
   // shippingStatus: string;
@@ -181,7 +181,7 @@ OrderSchema.set('toJSON', {
     ret.onovaFee = ret.onovaFee.$numberDecimal;
     ret.priceOfItem = ret.priceOfItem.$numberDecimal;
     // ret.taxAmount = ret.taxAmount.$numberDecimal;
-    // ret.transationFee = ret.transationFee.$numberDecimal;
+    // ret.transactionFee = ret.transactionFee.$numberDecimal;
     delete ret._id;
     delete ret.__v;
     return ret;

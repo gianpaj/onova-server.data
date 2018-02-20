@@ -23,7 +23,7 @@ const orderFields = [
   'product',
   'seller',
   'status',
-  'transationStatus',
+  'transactionStatus',
 ];
 
 describe('## Order APIs', () => {
@@ -324,7 +324,7 @@ describe('## Order APIs', () => {
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((thirdProduct.price * 1).toString());
           expect(o.priceOfItem).toBe(thirdProduct.price);
-          expect(o.transationStatus).toBe('pl-pending');
+          expect(o.transactionStatus).toBe('pl-pending');
         });
     });
 
@@ -499,7 +499,7 @@ describe('## Order APIs', () => {
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((productGET1.price * 1).toString());
           expect(o.priceOfItem).toBe(productGET1.price);
-          expect(o.transationStatus).toBe('pl-pending');
+          expect(o.transactionStatus).toBe('pl-pending');
         });
     });
 
