@@ -1,12 +1,9 @@
 // @flow
 
-import mongoose from 'mongoose';
-
 import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
 import { UserDoc } from '../models/user.model';
-import config from '../config/config';
 
 declare class express$Request extends express$Request {
   order: OrderDoc;
@@ -39,7 +36,7 @@ function load(
 /**
  * Get order
  *
- * GET /api/orders/:uuid
+ * GET /api/orders/:orderId
  *
  * @property {*} req - Express request
  * @property {*} req.params - Express session parameters
@@ -103,12 +100,7 @@ function create(
         // status // 'pending' by default
       });
 
-      return order
-        .save()
-        .then(savedOrder => savedOrder)
-        .catch(() => {
-          throw new APIError('Error creating Order', 500);
-        });
+      return order.save();
     })
     .then(savedOrder => {
       return res.status(201).json({ data: savedOrder });
@@ -117,9 +109,9 @@ function create(
 }
 
 /**
- * Update an order's status
+ * Update an order's status and/or paymentMethod
  *
- * GET /api/orders/:uuid
+ * PUT /api/orders/:orderId
  *
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters

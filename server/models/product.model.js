@@ -29,6 +29,7 @@ var ProductSchema = new Schema(
       type: String,
       required: true,
     },
+    // not being used
     likes: {
       type: [Schema.Types.ObjectId],
       ref: 'User',
@@ -77,7 +78,7 @@ var ProductSchema = new Schema(
 
 export class ProductDoc /*:: extends Mongoose$Document */ {
   categoryIds: Array<Number>;
-  comments: Array<MongoId>;
+  comments: Array<MongoId>; // optional
   currency: string;
   description: string;
   likes: Array<MongoId>;
@@ -85,7 +86,7 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   price: number;
   seller: string;
   status: string;
-  tags: Array<string>;
+  tags: Array<string>; // optional
   typeIds: Array<Number>;
   uuid: string;
 }

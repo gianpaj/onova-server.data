@@ -173,6 +173,14 @@ OrderSchema.statics = {
   },
 };
 
+OrderSchema.post('save', function(error: Error, doc, next) {
+  if (error.name === 'MongoError' && error.code === 11000) {
+    const APIerr = new APIError('Duplicate order', httpStatus.BAD_REQUEST);
+    return next(APIerr);
+  }
+  next(error);
+});
+
 // Never return '__v' fields in the JSON representation
 // Note that this doesn't effect `toObject`
 OrderSchema.set('toJSON', {
@@ -188,7 +196,7 @@ OrderSchema.set('toJSON', {
   },
 });
 
-OrderSchema.index({ product: 1 });
+OrderSchema.index({ product: 1, buyer: 1 }, { unique: true });
 OrderSchema.index({ seller: 1 });
 OrderSchema.index({ buyer: 1 });
 

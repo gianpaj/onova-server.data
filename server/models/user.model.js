@@ -196,7 +196,7 @@ UserSchema.pre('save', function(next) {
 
   // only hash the password if it has been modified (or is new)
   if (!user.isModified('password')) return next();
-  bcrypt.hash(user.password, saltRounds, (err, hash) => {
+  bcrypt.hash(user.password, saltRounds, (err: Error, hash: string) => {
     if (err) {
       return next(err);
     }

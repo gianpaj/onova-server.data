@@ -328,6 +328,17 @@ describe('## Order APIs', () => {
         });
     });
 
+    it('should not create a duplicate order for the same product', async () => {
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', jwtToken)
+        .send({ product: thirdProductUuid })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('Duplicate order');
+        });
+    });
+
     it('should not create an order with an invalid product', async () => {
       return request(app)
         .post('/api/orders')
