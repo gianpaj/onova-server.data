@@ -60,6 +60,8 @@ function create(
   res: express$Response,
   next: express$NextFunction
 ) {
+  let foundProduct: ProductDoc;
+
   if (req.user.accountStatus !== 'verified') {
     throw new APIError(
       'Please verify your account before buying a product.',
@@ -79,6 +81,7 @@ function create(
           400
         );
       }
+      foundProduct = product;
       return product;
     })
     .then(product => {
@@ -105,7 +108,17 @@ function create(
     .then(savedOrder => {
       return res.status(201).json({ data: savedOrder });
     })
-    .catch(e => next(e));
+    .catch(e => {
+      if (e.message == 'Duplicate order') {
+        Order.findOne({ buyer: req.user._id, product: foundProduct._id }).then(
+          o => {
+            return res.status(400).json({ message: e.message, orderId: o.id });
+          }
+        );
+      } else {
+        next(e);
+      }
+    });
 }
 
 /**

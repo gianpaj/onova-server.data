@@ -335,6 +335,7 @@ describe('## Order APIs', () => {
         .send({ product: thirdProductUuid })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
+          expect(res.body).toHaveProperty('orderId');
           expect(res.body.message).toContain('Duplicate order');
         });
     });
