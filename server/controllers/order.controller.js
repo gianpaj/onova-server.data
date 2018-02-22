@@ -111,8 +111,8 @@ function create(
     .catch(e => {
       if (e.message == 'Duplicate order') {
         Order.findOne({ buyer: req.user._id, product: foundProduct._id }).then(
-          o => {
-            return res.status(400).json({ message: e.message, orderId: o.id });
+          order => {
+            return res.status(400).json({ message: e.message, order });
           }
         );
       } else {
