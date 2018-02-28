@@ -16,27 +16,27 @@ var ProductSchema = new Schema(
       type: [Number],
       required: true,
     },
-    comments: {
-      _id: {
-        type: Schema.Types.ObjectId,
-        required: true,
+    comments: [
+      {
+        _id: {
+          type: Schema.Types.ObjectId,
+          required: true,
+        },
+        createdAt: {
+          type: Date,
+          default: Date.now,
+        },
+        text: {
+          type: String,
+          required: true,
+        },
+        user: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
       },
-      createdAt: {
-        type: Date,
-        default: Date.now,
-        required: true,
-      },
-      text: {
-        type: String,
-        required: true,
-      },
-
-      user: {
-        type: Schema.Types.ObjectId,
-        ref: 'User',
-        required: true,
-      },
-    },
+    ],
     currency: {
       type: String,
       required: true,
