@@ -1,8 +1,10 @@
+// @flow
+
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import LocalStrategy from 'passport-local';
 import passport from 'passport';
 
-import User from '../models/user.model';
+import User, { UserDoc } from '../models/user.model';
 import config from './config';
 
 // Configure Passport authenticated session persistence.
@@ -21,26 +23,21 @@ passport.use(
   new LocalStrategy(
     { usernameField: 'emailAddress' },
     (email, password, done) => {
-      User.findOne({ emailAddress: email.toLowerCase() }, (err, user) => {
-        if (err) {
-          return done(err);
-        }
-        if (!user) {
-          return done(null, false, { error: 'Invalid email or password.' });
-        }
-
-        user.comparePassword(password, (err, isMatch) => {
-          if (err) {
-            return done(err);
+      User.findOne({ emailAddress: email.toLowerCase() })
+        .then((user: UserDoc) => {
+          if (!user) {
+            return done(null, false, { error: 'Invalid email or password.' });
           }
 
-          if (isMatch) {
-            return done(null, user);
-          }
+          user.comparePassword(password, (err, isMatch) => {
+            if (err) return done(err);
 
-          return done(null, false, { error: 'Invalid email or password.' });
-        });
-      });
+            if (isMatch) return done(null, user);
+
+            return done(null, false, { error: 'Invalid email or password.' });
+          });
+        })
+        .catch(err => done(err, false));
     }
   )
 );
@@ -56,16 +53,13 @@ const jwtOptions = {
 // Setting up JWT login strategy
 passport.use(
   new JwtStrategy(jwtOptions, (jwt_payload, done) => {
-    User.findById(jwt_payload._id, (err, user) => {
-      if (err) {
-        return done(err, false);
-      }
-
-      if (user) {
-        done(null, user);
-      } else {
+    User.findById(jwt_payload._id)
+      .then((user: UserDoc) => {
+        if (user) {
+          return done(null, user);
+        }
         done(null, false);
-      }
-    });
+      })
+      .catch(err => done(err, false));
   })
 );
