@@ -783,7 +783,7 @@ describe('## User APIs', () => {
       return request(app)
         .post(`/api/users/${anotherUserId}/unfollow`)
         .set('Authorization', jwtToken)
-        .expect(httpStatus.CREATED)
+        .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
           expect(data.follower).toBe(userId);
