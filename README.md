@@ -83,7 +83,7 @@ yarn test:coverage
 yarn test:watch
 
 # Run individual test files
-DEBUG=express-mongoose-es6-rest-api:* NODE_ENV=test ./node_modules/.bin/jest server/__tests__/order.test.js --forceExit --watch --bail
+DEBUG=express-mongoose-es6-rest-api:* NODE_ENV=test npx jest server/__tests__/order.test.js --forceExit --watch --bail
 ```
 
 Lint:
