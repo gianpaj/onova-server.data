@@ -4,5 +4,6 @@
     "**/yarn.lock": true,
     "**/coverage": true
   },
-  "javascript.validate.enable": false
+  "javascript.validate.enable": false,
+  "flow.useNPMPackagedFlow": true,
 }

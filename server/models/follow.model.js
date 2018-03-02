@@ -2,10 +2,13 @@
 
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
+import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
 import User from '../models/user.model';
+
 const Schema = mongoose.Schema;
+const FeedManager = stream.FeedManager;
 
 /** @namespace */
 var FollowSchema = new Schema({
@@ -86,6 +89,7 @@ FollowSchema.post('save', function(doc, next) {
   User.updateOne({ _id: doc.follower }, { $inc: { followingCount: 1 } }).exec();
   // eslint-disable-next-line
   User.updateOne({ _id: doc.following }, { $inc: { followersCount: 1 } }).exec();
+  FeedManager.followUser(doc.follower, doc.following);
   next();
 });
 
@@ -94,6 +98,7 @@ FollowSchema.post('remove', function(doc, next) {
   User.updateOne({ _id: doc.follower }, { $inc: { followingCount: -1 } }).exec();
   // eslint-disable-next-line
   User.updateOne({ _id: doc.following }, { $inc: { followersCount: -1 } }).exec();
+  FeedManager.unfollowUser(doc.follower, doc.following);
   next();
 });
 
@@ -112,5 +117,26 @@ FollowSchema.set('toJSON', {
 FollowSchema.index({ follower: 1, dateCreated: 1 });
 FollowSchema.index({ following: 1, dateCreated: 1 });
 FollowSchema.index({ follower: 1, following: 1 }, { unique: true });
+
+FollowSchema.plugin(stream.mongoose.activity);
+
+// notify the user which is being followed
+FollowSchema.methods.activityNotify = function() {
+  const following_feed = FeedManager.getNotificationFeed(this.following._id);
+  return [following_feed];
+};
+
+FollowSchema.methods.activityActorProp = function() {
+  return 'follower';
+};
+
+// automatically populate paths during enrichment
+FollowSchema.statics.pathsToPopulate = function() {
+  return ['following'];
+};
+
+FollowSchema.methods.activityForeignId = function() {
+  return this.following._id + ':' + this.follower._id;
+};
 
 export default mongoose.model('Follow', FollowSchema);

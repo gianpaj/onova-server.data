@@ -13,6 +13,8 @@ import expressWinston from 'express-winston';
 import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
+import mongoose from 'mongoose';
+import stream from 'getstream-node';
 
 import winstonInstance from './winston';
 import routes from '../routes/index.route';
@@ -101,6 +103,11 @@ if (config.env !== 'test') {
     })
   );
 }
+
+// if (config.env == 'prod') {
+  // send the mongoose instance with registered models to StreamMongoose
+  stream.mongoose.setupMongoose(mongoose);
+// }
 
 // error handler, send stacktrace only during development
 // eslint-disable-next-line no-unused-vars

@@ -4,10 +4,12 @@ import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import shortid from 'shortid';
+import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
 
 const Schema = mongoose.Schema;
+const FeedManager = stream.FeedManager;
 
 /** @namespace */
 var ProductSchema = new Schema(
@@ -188,5 +190,11 @@ ProductSchema.index({ status: 1, tags: 1 });
 ProductSchema.index({ status: 1, photoURIs: 1 });
 ProductSchema.index({ status: 1, seller: 1 });
 // ProductSchema.index({ uuid: 1 }, { unique: true }); // created by `unique` schema setting above
+
+ProductSchema.plugin(stream.mongoose.activity);
+
+ProductSchema.methods.activityActorProp = function() {
+  return 'seller';
+};
 
 export default mongoose.model('Product', ProductSchema);
