@@ -13,8 +13,8 @@ import expressWinston from 'express-winston';
 import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
-import mongoose from 'mongoose';
-import stream from 'getstream-node';
+// import mongoose from 'mongoose';
+// import stream from 'getstream-node';
 
 import winstonInstance from './winston';
 import routes from '../routes/index.route';
@@ -96,17 +96,17 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
 });
 
 // log error in winston transports except when executing test suite
-if (config.env !== 'test') {
+// if (config.env !== 'test') {
   app.use(
     expressWinston.errorLogger({
       winstonInstance,
     })
   );
-}
+// }
 
 // if (config.env == 'prod') {
-  // send the mongoose instance with registered models to StreamMongoose
-  stream.mongoose.setupMongoose(mongoose);
+//   // send the mongoose instance with registered models to StreamMongoose
+//   stream.mongoose.setupMongoose(mongoose);
 // }
 
 // error handler, send stacktrace only during development

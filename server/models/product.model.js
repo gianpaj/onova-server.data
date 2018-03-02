@@ -8,7 +8,7 @@ import shortid from 'shortid';
 
 import APIError from '../helpers/APIError';
 
-// const Schema = mongoose.Schema;
+const Schema = mongoose.Schema;
 // const FeedManager = stream.FeedManager;
 
 /** @namespace */

@@ -2398,7 +2398,7 @@ getpass@^0.1.1:
   dependencies:
     assert-plus "^1.0.0"
 
-getstream-node@false1.5.0:
+getstream-node@1.5.0:
   version "1.5.0"
   resolved "https://registry.yarnpkg.com/getstream-node/-/getstream-node-1.5.0.tgz#13e60405eab07250e91b7158f855a52435ac7be2"
   dependencies:
