@@ -4,6 +4,7 @@ import followRoutes from './follow.route';
 import productRoutes from './product.route';
 import authRoutes from './auth.route';
 import orderRoutes from './order.route';
+// import feedRoutes from './feed.route';
 
 const router = express.Router();
 
@@ -27,5 +28,7 @@ router.use('/auth', authRoutes);
 
 // mount orders routes at /orders
 router.use('/orders', orderRoutes);
+
+// router.use('/feed', feedRoutes);
 
 export default router;
