@@ -96,13 +96,13 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
 });
 
 // log error in winston transports except when executing test suite
-// if (config.env !== 'test') {
+if (config.env !== 'test') {
   app.use(
     expressWinston.errorLogger({
       winstonInstance,
     })
   );
-// }
+}
 
 // if (config.env == 'prod') {
 //   // send the mongoose instance with registered models to StreamMongoose

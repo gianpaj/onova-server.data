@@ -6,12 +6,12 @@ import httpStatus from 'http-status';
 import path from 'path';
 
 import app from '../index';
-import config from '../config/config';
 import Follow from '../models/follow.model';
 import Tag from '../models/tag.model';
 import User from '../models/user.model';
 import Product from '../models/product.model';
 import Verification from '../models/verification.model';
+import { createProduct } from './product.test';
 
 /**
  * root level hooks
@@ -116,7 +116,7 @@ describe('## Feed APIs', () => {
   });
 
   // create 2 users/sellers + 2 products
-  beforeAll(done => {
+  beforeAll((done) => {
     request(app)
       .post('/api/users')
       .send(user)
@@ -206,52 +206,26 @@ describe('## Feed APIs', () => {
               });
           });
       })
-      .then(() => {
-        request(app)
-          .post('/api/products')
-          .set('Authorization', jwtToken)
-          .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-          .field(product)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            productUuid = res.body.data.uuid;
-            expect(typeof res.body.data).toBe('object');
-          });
+      .then(async () => {
+        const p1 = await createProduct(anotherProduct, jwtToken);
+        expect(p1.description).toBe(anotherProduct.description);
+        productUuid = p1.uuid;
       })
-      .then(() => {
-        request(app)
-          .post('/api/products')
-          .set('Authorization', anotherJwtToken)
-          .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
-          .field(anotherProduct)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            anotherProductUuid = res.body.data.uuid;
-            expect(res.body.data.tags).toHaveLength(0);
-            expect(typeof res.body.data).toBe('object');
-          });
+      .then(async () => {
+        const p2 = await createProduct(anotherProduct, anotherJwtToken);
+        expect(p2.description).toBe(anotherProduct.description);
+        anotherProductUuid = p2.uuid;
       })
-      .then(() => {
+      .then(async () => {
+        const p1 = await createProduct(anotherProduct, anotherJwtToken);
+        expect(p1.description).toBe(anotherProduct.description);
         request(app)
-          .post('/api/products')
+          .delete(`/api/products/${p1.uuid}`)
           .set('Authorization', anotherJwtToken)
-          .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
-          .field(notForSaleProduct)
-          .expect(httpStatus.CREATED)
+          .expect(httpStatus.NO_CONTENT)
           .then(res => {
-            expect(res.body.data.tags).toEqual(notForSaleProduct.tags);
-            expect(typeof res.body.data).toBe('object');
-            return res.body.data.uuid;
-          })
-          .then(notForSaleProductId => {
-            request(app)
-              .delete(`/api/products/${notForSaleProductId}`)
-              .set('Authorization', anotherJwtToken)
-              .expect(httpStatus.NO_CONTENT)
-              .then(res => {
-                expect(res.body).toMatchObject({});
-                done();
-              });
+            expect(res.body).toMatchObject({});
+            done();
           });
       });
   });
@@ -310,7 +284,6 @@ describe('## Feed APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          console.log(data);
           expect(data[0].uuid).toBe(anotherProductUuid);
           expect(Object.keys(data[0]).sort()).toEqual(feedFields.sort());
           expect(data).toHaveLength(1);

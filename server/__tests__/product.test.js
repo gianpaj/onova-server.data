@@ -9,7 +9,7 @@ import app from '../index';
 import Verification from '../models/verification.model';
 import User from '../models/user.model';
 import Tag from '../models/tag.model';
-import Product from '../models/product.model';
+import Product, { ProductDoc } from '../models/product.model';
 
 // jest.mock('@google-cloud/storage');
 
@@ -95,7 +95,7 @@ describe('## Product APIs', () => {
   let productUuid;
   let jwtToken;
   let anotherJwtToken;
-  let anotherProductUuid;
+  let anotherProdUuid;
 
   // create 2 users/sellers
   beforeAll(done => {
@@ -331,32 +331,13 @@ describe('## Product APIs', () => {
   });
 
   describe('# GET /api/products/', () => {
-    beforeAll(done => {
-      request(app)
-        .post('/api/products')
-        .set('Authorization', jwtToken)
-        .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-        .field(anotherProduct)
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          expect(typeof res.body.data).toBe('object');
-        })
-        .then(() => {
-          request(app)
-            .post('/api/products')
-            .set('Authorization', jwtToken)
-            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-            .field(thirdProduct)
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              expect(res.body.data.tags).toEqual(
-                expect.arrayContaining(thirdProduct.tags)
-              );
-              expect(res.body.data.tags).toHaveLength(1);
-              expect(typeof res.body.data).toBe('object');
-              done();
-            });
-        });
+    beforeAll(async () => {
+      const p1 = await createProduct(anotherProduct, jwtToken);
+      expect(typeof p1).toBe('object');
+      const p2 = await createProduct(thirdProduct, jwtToken);
+      expect(p2.tags).toEqual(expect.arrayContaining(thirdProduct.tags));
+      expect(p2.tags).toHaveLength(1);
+      expect(typeof p2).toBe('object');
     });
 
     it('should get all products', async () => {
@@ -459,23 +440,14 @@ describe('## Product APIs', () => {
     });
 
     describe('create another product', () => {
-      beforeAll(done => {
-        request(app)
-          .post('/api/products')
-          .set('Authorization', anotherJwtToken)
-          .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-          .field(anotherProduct)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            anotherProductUuid = res.body.data.uuid;
-            expect(typeof res.body.data).toBe('object');
-            done();
-          });
+      beforeAll(async () => {
+        const p = await createProduct(anotherProduct, anotherJwtToken);
+        anotherProdUuid = p.uuid;
       });
 
       it('should not delete a product which is not mine', async () => {
         return request(app)
-          .delete(`/api/products/${anotherProductUuid}`)
+          .delete(`/api/products/${anotherProdUuid}`)
           .set('Authorization', jwtToken)
           .expect(httpStatus.UNAUTHORIZED)
           .then(res => {
@@ -518,7 +490,7 @@ describe('## Product APIs', () => {
 
     it('should not update a product which is not mine', async () => {
       return request(app)
-        .put(`/api/products/${anotherProductUuid}`)
+        .put(`/api/products/${anotherProdUuid}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
@@ -527,3 +499,26 @@ describe('## Product APIs', () => {
     });
   });
 });
+
+/**
+ * Create a product with one image
+ *
+ * @param {ProductDoc} product
+ * @param {string} jwToken
+ * @return {Promise<ProductDoc>}
+ */
+export function createProduct(
+  product: ProductDoc,
+  jwToken: string
+): Promise<ProductDoc> {
+  return request(app)
+    .post('/api/products')
+    .set('Authorization', jwToken)
+    .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+    .field(product)
+    .expect(httpStatus.CREATED)
+    .then(res => {
+      expect(typeof res.body.data).toBe('object');
+      return res.body.data;
+    });
+}
