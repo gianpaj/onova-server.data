@@ -10,6 +10,7 @@ import config from '../config/config';
 import Follow from '../models/follow.model';
 import Tag from '../models/tag.model';
 import User from '../models/user.model';
+import Product from '../models/product.model';
 import Verification from '../models/verification.model';
 
 /**
@@ -25,7 +26,20 @@ afterAll(done => {
 
 // GET /api/feed/ should only return these fields
 const feedFields = [
-  '_id',
+  'categoryIds',
+  'comments',
+  'createdAt',
+  'currency',
+  'description',
+  'likes',
+  'photoURIs',
+  'price',
+  'seller',
+  'status',
+  'tags',
+  'typeIds',
+  'updatedAt',
+  'uuid',
 ];
 
 let product = {
@@ -64,9 +78,19 @@ let thirdUser = {
   password: 'express3',
 };
 
+let notForSaleProduct = {
+  categoryIds: [2],
+  typeIds: [1, 3],
+  tags: ['WINTER'],
+  description: 'nice scarf',
+  price: '30',
+};
+
 let userId;
 let anotherUserId;
 let thirdUserId;
+let productUuid;
+let anotherProductUuid;
 let jwtToken;
 let anotherJwtToken;
 
@@ -78,6 +102,7 @@ describe('## Feed APIs', () => {
       Tag.collection,
       User.collection,
       Verification.collection,
+      Product.collection,
     ];
 
     var todo = collections.length;
@@ -178,7 +203,6 @@ describe('## Feed APIs', () => {
               .then(res => {
                 expect(res.body).toHaveProperty('token');
                 anotherJwtToken = res.body.token;
-                done();
               });
           });
       })
@@ -190,6 +214,7 @@ describe('## Feed APIs', () => {
           .field(product)
           .expect(httpStatus.CREATED)
           .then(res => {
+            productUuid = res.body.data.uuid;
             expect(typeof res.body.data).toBe('object');
           });
       })
@@ -201,37 +226,106 @@ describe('## Feed APIs', () => {
           .field(anotherProduct)
           .expect(httpStatus.CREATED)
           .then(res => {
+            anotherProductUuid = res.body.data.uuid;
             expect(res.body.data.tags).toHaveLength(0);
             expect(typeof res.body.data).toBe('object');
-            done();
+          });
+      })
+      .then(() => {
+        request(app)
+          .post('/api/products')
+          .set('Authorization', anotherJwtToken)
+          .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+          .field(notForSaleProduct)
+          .expect(httpStatus.CREATED)
+          .then(res => {
+            expect(res.body.data.tags).toEqual(notForSaleProduct.tags);
+            expect(typeof res.body.data).toBe('object');
+            return res.body.data.uuid;
+          })
+          .then(notForSaleProductId => {
+            request(app)
+              .delete(`/api/products/${notForSaleProductId}`)
+              .set('Authorization', anotherJwtToken)
+              .expect(httpStatus.NO_CONTENT)
+              .then(res => {
+                expect(res.body).toMatchObject({});
+                done();
+              });
           });
       });
   });
 
   describe('# GET /api/feed/flat', () => {
+    // both accounts follow each other
     beforeAll(done => {
-      request(app)
-        .post(`/api/users/${anotherUserId}/follow`)
-        .set('Authorization', jwtToken)
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(userId);
-          expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
-          );
-          done();
+      let Promises = [];
+      Promises.push(
+        new Promise((resolve, reject) => {
+          request(app)
+            .post(`/api/users/${anotherUserId}/follow`)
+            .set('Authorization', jwtToken)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const { data } = res.body;
+              expect(data.follower).toBe(userId);
+              expect(data.following).toBe(anotherUserId);
+              expect(Object.keys(data).sort()).toEqual(
+                ['follower', 'following', 'dateCreated'].sort()
+              );
+              resolve();
+            })
+            .catch(e => reject(e));
+        })
+      );
+      Promises.push(
+        new Promise((resolve, reject) => {
+          request(app)
+            .post(`/api/users/${userId}/follow`)
+            .set('Authorization', anotherJwtToken)
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const { data } = res.body;
+              expect(data.follower).toBe(anotherUserId);
+              expect(data.following).toBe(userId);
+              expect(Object.keys(data).sort()).toEqual(
+                ['follower', 'following', 'dateCreated'].sort()
+              );
+              resolve();
+            })
+            .catch(e => reject(e));
+        })
+      );
+      Promise.all(Promises)
+        .then(() => done())
+        .catch(e => {
+          throw e;
         });
     });
 
-    it('should get my feed', async () => {
+    it('should get the first user`s feed', async () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.data).toHaveLength(1);
+          const { data } = res.body;
+          console.log(data);
+          expect(data[0].uuid).toBe(anotherProductUuid);
+          expect(Object.keys(data[0]).sort()).toEqual(feedFields.sort());
+          expect(data).toHaveLength(1);
+        });
+    });
+
+    it('should get another user`s feed', async () => {
+      return request(app)
+        .get('/api/feed/flat')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].uuid).toBe(productUuid);
+          expect(data).toHaveLength(1);
         });
     });
 

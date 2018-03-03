@@ -48,6 +48,10 @@ function flat(
 
       return Product.find(DBquery)
         .sort({ createdAt: -1 })
+        .populate({
+          path: 'seller',
+          select: 'username',
+        })
         .skip(+skip)
         .limit(+limit)
         .then(data => res.json({ data }));
