@@ -116,7 +116,7 @@ describe('## Feed APIs', () => {
   });
 
   // create 2 users/sellers + 2 products
-  beforeAll((done) => {
+  beforeAll(done => {
     request(app)
       .post('/api/users')
       .send(user)
@@ -217,10 +217,10 @@ describe('## Feed APIs', () => {
         anotherProductUuid = p2.uuid;
       })
       .then(async () => {
-        const p1 = await createProduct(anotherProduct, anotherJwtToken);
-        expect(p1.description).toBe(anotherProduct.description);
+        const p3 = await createProduct(anotherProduct, anotherJwtToken);
+        expect(p3.description).toBe(anotherProduct.description);
         request(app)
-          .delete(`/api/products/${p1.uuid}`)
+          .delete(`/api/products/${p3.uuid}`)
           .set('Authorization', anotherJwtToken)
           .expect(httpStatus.NO_CONTENT)
           .then(res => {
@@ -307,6 +307,93 @@ describe('## Feed APIs', () => {
         .get('/api/feed/flat')
         .expect(httpStatus.UNAUTHORIZED)
         .then();
+    });
+  });
+
+  describe('# GET /api/feed/flat?categoryIds=', () => {
+    let categoryProductUUID;
+
+    beforeAll(async () => {
+      const p = {
+        categoryIds: [2],
+        typeIds: [1, 3],
+        tags: ['WINTER'],
+        description: 'nice jumper',
+        price: '39',
+      };
+      const pp = await createProduct(p, jwtToken);
+      expect(pp.description).toBe(p.description);
+      categoryProductUUID = pp.uuid;
+    });
+
+    it('should get feed of categoryIds', async () => {
+      return request(app)
+        .get('/api/feed/flat?categoryIds=2')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].uuid).toBe(categoryProductUUID);
+          expect(data).toHaveLength(1);
+        });
+    });
+  });
+
+  describe('# GET /api/feed/flat?typeIds=', () => {
+    let typeIdProductUUID;
+
+    beforeAll(async () => {
+      const p = {
+        categoryIds: [1],
+        typeIds: [1, 5],
+        tags: ['WINTER'],
+        description: 'nice hoodie',
+        price: '69',
+      };
+      const pp = await createProduct(p, jwtToken);
+      expect(pp.description).toBe(p.description);
+      typeIdProductUUID = pp.uuid;
+    });
+
+    it('should get feed of typeIds', async () => {
+      return request(app)
+        .get('/api/feed/flat?typeIds=5')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].uuid).toBe(typeIdProductUUID);
+          expect(data).toHaveLength(1);
+        });
+    });
+  });
+
+  describe('# GET /api/feed/flat?tag=', () => {
+    let tagProductUUID;
+
+    beforeAll(async () => {
+      const p = {
+        categoryIds: [2],
+        typeIds: [1, 4],
+        tags: ['warm'],
+        description: 'nice socks',
+        price: '19',
+      };
+      const pp = await createProduct(p, jwtToken);
+      expect(pp.description).toBe(p.description);
+      tagProductUUID = pp.uuid;
+    });
+
+    it('should get feed of tag', async () => {
+      return request(app)
+        .get('/api/feed/flat?tag=warm')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].uuid).toBe(tagProductUUID);
+          expect(data).toHaveLength(1);
+        });
     });
   });
 });

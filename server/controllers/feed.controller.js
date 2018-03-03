@@ -42,9 +42,10 @@ function flat(
 
       let DBquery = { status: 'forsale', seller: { $in: following } };
 
-      if (categoryIds) DBquery = { ...DBquery, categoryIds };
-      // if (tag) DBquery = { ...DBquery, tags: [tag] };
-      if (typeIds) DBquery = { ...DBquery, typeIds };
+      if (typeIds) DBquery = { ...DBquery, typeIds: { $in: typeIds } };
+      if (categoryIds)
+        DBquery = { ...DBquery, categoryIds: { $in: categoryIds } };
+      if (tag) DBquery = { ...DBquery, tags: { $in: [tag] } };
 
       return Product.find(DBquery)
         .sort({ createdAt: -1 })
