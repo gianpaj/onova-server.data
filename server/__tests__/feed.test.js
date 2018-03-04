@@ -26,6 +26,7 @@ afterAll(done => {
 
 // GET /api/feed/ should only return these fields
 const feedFields = [
+  '_id',
   'categoryIds',
   'comments',
   'createdAt',
@@ -42,7 +43,7 @@ const feedFields = [
   'uuid',
 ];
 
-let product = {
+const product = {
   categoryIds: [1, 2, 3],
   typeIds: [1, 2, 3],
   tags: ['winter', 'spring2007'], // optional
@@ -72,13 +73,13 @@ let anotherUser = {
   password: 'express2',
 };
 
-let thirdUser = {
+const thirdUser = {
   username: 'thirdwheel',
   emailAddress: 'gianpa+thirdwheel@gmail.com',
   password: 'express3',
 };
 
-let notForSaleProduct = {
+const notForSaleProduct = {
   categoryIds: [2],
   typeIds: [1, 3],
   tags: ['WINTER'],
@@ -88,7 +89,6 @@ let notForSaleProduct = {
 
 let userId;
 let anotherUserId;
-let thirdUserId;
 let productUuid;
 let anotherProductUuid;
 let jwtToken;
@@ -207,8 +207,8 @@ describe('## Feed APIs', () => {
           });
       })
       .then(async () => {
-        const p1 = await createProduct(anotherProduct, jwtToken);
-        expect(p1.description).toBe(anotherProduct.description);
+        const p1 = await createProduct(product, jwtToken);
+        expect(p1.description).toBe(product.description);
         productUuid = p1.uuid;
       })
       .then(async () => {
@@ -217,8 +217,8 @@ describe('## Feed APIs', () => {
         anotherProductUuid = p2.uuid;
       })
       .then(async () => {
-        const p3 = await createProduct(anotherProduct, anotherJwtToken);
-        expect(p3.description).toBe(anotherProduct.description);
+        const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
+        expect(p3.description).toBe(notForSaleProduct.description);
         request(app)
           .delete(`/api/products/${p3.uuid}`)
           .set('Authorization', anotherJwtToken)
@@ -230,53 +230,53 @@ describe('## Feed APIs', () => {
       });
   });
 
-  describe('# GET /api/feed/flat', () => {
-    // both accounts follow each other
-    beforeAll(done => {
-      let Promises = [];
-      Promises.push(
-        new Promise((resolve, reject) => {
-          request(app)
-            .post(`/api/users/${anotherUserId}/follow`)
-            .set('Authorization', jwtToken)
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const { data } = res.body;
-              expect(data.follower).toBe(userId);
-              expect(data.following).toBe(anotherUserId);
-              expect(Object.keys(data).sort()).toEqual(
-                ['follower', 'following', 'dateCreated'].sort()
-              );
-              resolve();
-            })
-            .catch(e => reject(e));
-        })
-      );
-      Promises.push(
-        new Promise((resolve, reject) => {
-          request(app)
-            .post(`/api/users/${userId}/follow`)
-            .set('Authorization', anotherJwtToken)
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const { data } = res.body;
-              expect(data.follower).toBe(anotherUserId);
-              expect(data.following).toBe(userId);
-              expect(Object.keys(data).sort()).toEqual(
-                ['follower', 'following', 'dateCreated'].sort()
-              );
-              resolve();
-            })
-            .catch(e => reject(e));
-        })
-      );
-      Promise.all(Promises)
-        .then(() => done())
-        .catch(e => {
-          throw e;
-        });
-    });
+  // both accounts follow each other
+  beforeAll(done => {
+    let Promises = [];
+    Promises.push(
+      new Promise((resolve, reject) => {
+        request(app)
+          .post(`/api/users/${anotherUserId}/follow`)
+          .set('Authorization', jwtToken)
+          .expect(httpStatus.CREATED)
+          .then(res => {
+            const { data } = res.body;
+            expect(data.follower).toBe(userId);
+            expect(data.following).toBe(anotherUserId);
+            expect(Object.keys(data).sort()).toEqual(
+              ['follower', 'following', 'dateCreated'].sort()
+            );
+            resolve();
+          })
+          .catch(e => reject(e));
+      })
+    );
+    Promises.push(
+      new Promise((resolve, reject) => {
+        request(app)
+          .post(`/api/users/${userId}/follow`)
+          .set('Authorization', anotherJwtToken)
+          .expect(httpStatus.CREATED)
+          .then(res => {
+            const { data } = res.body;
+            expect(data.follower).toBe(anotherUserId);
+            expect(data.following).toBe(userId);
+            expect(Object.keys(data).sort()).toEqual(
+              ['follower', 'following', 'dateCreated'].sort()
+            );
+            resolve();
+          })
+          .catch(e => reject(e));
+      })
+    );
+    Promise.all(Promises)
+      .then(() => done())
+      .catch(e => {
+        throw e;
+      });
+  });
 
+  describe('# GET /api/feed/flat', () => {
     it('should get the first user`s feed', async () => {
       return request(app)
         .get('/api/feed/flat')
@@ -334,7 +334,7 @@ describe('## Feed APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data[0].uuid).toBe(categoryProductUUID);
-          expect(data).toHaveLength(1);
+          expect(data).toHaveLength(2);
         });
     });
   });
@@ -396,4 +396,68 @@ describe('## Feed APIs', () => {
         });
     });
   });
+
+  describe('# GET /api/feed/flat?lastId=', () => {
+    // delete all Products
+    beforeAll(done => {
+      const collections = [Product.collection];
+      var todo = collections.length;
+      if (!todo) return done();
+
+      collections.forEach(collection => {
+        collection.remove({}, { safe: true }, () => {
+          if (--todo === 0) done();
+        });
+      });
+    });
+
+    beforeAll(async () => {
+      const a = await createManyProducts(105, jwtToken);
+      if (typeof a == Error) console.error(a);
+    });
+
+    let lastId;
+
+    it('should get feed with pagination', async () => {
+      return request(app)
+        .get('/api/feed/flat')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data).toHaveLength(50);
+          lastId = data[49]._id;
+        });
+    });
+
+    it('should get feed with load more', async () => {
+      return request(app)
+        .get(`/api/feed/flat?lastId=${lastId}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0]._id).not.toBe(lastId);
+          expect(data).toHaveLength(50);
+        });
+    });
+  });
 });
+
+async function createManyProducts(num: number, jwtToken: string) {
+  const p = {
+    categoryIds: [2],
+    typeIds: [1, 4],
+    tags: ['warm', 'bundle'],
+    description: 'nice pair of socks',
+  };
+
+  const Promises = [];
+  for (let i = 0; i <= num; i++) {
+    p.price = Math.floor(Math.random() * 50);
+    Promises.push(createProduct(p, jwtToken));
+  }
+  return Promise.all(Promises)
+    .then(res => res)
+    .catch(e => e);
+}

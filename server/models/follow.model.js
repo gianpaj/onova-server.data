@@ -53,6 +53,7 @@ FollowSchema.statics = {
     const populateField = DBquery.hasOwnProperty('following')
       ? 'follower'
       : 'following';
+
     return this.find(DBquery)
       .sort({ createdAt: -1 })
       .skip(+skip)

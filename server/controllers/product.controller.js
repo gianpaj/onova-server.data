@@ -5,7 +5,7 @@ import shortid from 'shortid';
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
 import Product, { ProductDoc } from '../models/product.model';
-import Tag from '../models/tag.model';
+import Tag, { TagDoc } from '../models/tag.model';
 import User, { UserDoc } from '../models/user.model';
 import config from '../config/config';
 
@@ -81,15 +81,7 @@ function create(
   });
 
   // create Tag documents
-  if (req.body.tags) {
-    req.body.tags.forEach(tag => {
-      Tag.findOneAndUpdate({ _id: tag }, { _id: tag }, { upsert: true })
-        .then(() => {})
-        .catch(err => {
-          console.log('error saving tags', err);
-        });
-    });
-  }
+  if (req.body.tags) createTags(req.body.tags);
 
   // req.files is array of `photos` files
   if (req.files.length < 1) {
@@ -239,15 +231,7 @@ function update(
       }
 
       // create Tag documents
-      if (req.body.tags) {
-        req.body.tags.forEach(tag => {
-          Tag.findOneAndUpdate({ _id: tag }, { _id: tag }, { upsert: true })
-            .then(() => {})
-            .catch(err => {
-              console.log('error saving tags', err);
-            });
-        });
-      }
+      if (req.body.tags) createTags(req.body.tags);
 
       // for the moment image cannot be updated
       // if (req.files) {
@@ -278,6 +262,18 @@ function update(
       }
       next(err);
     });
+}
+
+function createTags(tags: Array<TagDoc>) {
+  tags.forEach(tag => {
+    Tag.findOneAndUpdate({ _id: tag }, { _id: tag }, { upsert: true }).catch(
+      err => {
+        if (err.codeName !== 'DuplicateKey') {
+          console.log('error saving tags', err);
+        }
+      }
+    );
+  });
 }
 
 export default {

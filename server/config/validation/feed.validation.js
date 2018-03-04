@@ -44,6 +44,9 @@ export default {
         .regex(/^(\b[a-z][a-z0-9]*)$/i)
         .min(3)
         .max(30),
+      lastId: Joi.string()
+        .hex()
+        .length(24),
     },
   },
 };

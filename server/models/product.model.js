@@ -167,7 +167,8 @@ ProductSchema.statics = {
 };
 
 ProductSchema.pre('save', function(next) {
-  if (!this.uuid) this.uuid = shortid.generate();
+  let doc = this;
+  if (!this.uuid) return generateUnique(doc, next);
   next();
 });
 
@@ -178,7 +179,6 @@ ProductSchema.set('toJSON', {
   transform: (doc, ret) => {
     ret.price = ret.price.$numberDecimal;
     delete ret.id;
-    delete ret._id;
     delete ret.__v;
     return ret;
   },
@@ -196,5 +196,33 @@ ProductSchema.index({ status: 1, seller: 1 });
 // ProductSchema.methods.activityActorProp = function() {
 //   return 'seller';
 // };
+
+const UNIQUE_RETRIES = 9999;
+
+function generateUnique(doc, next) {
+  const retries = 0;
+  let shortid;
+
+  // Try to generate a unique ID,
+  // i.e. one that isn't in the previous.
+  while (!shortid && retries < UNIQUE_RETRIES) {
+    shortid = shortid.generate();
+    doc.constructor.findOne({ uuid: shortid }).then(
+      docRes => {
+        if (docRes) {
+          shortid = null;
+          return retries++;
+        }
+        doc.uuid = shortid;
+        next();
+      },
+      err => {
+        next(err);
+      }
+    );
+  }
+
+  return shortid;
+}
 
 export default mongoose.model('Product', ProductSchema);

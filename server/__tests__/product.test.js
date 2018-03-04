@@ -15,6 +15,7 @@ import Product, { ProductDoc } from '../models/product.model';
 
 // should only return these fields
 const productFields = [
+  '_id',
   'categoryIds',
   'comments',
   'createdAt',
@@ -518,6 +519,7 @@ export function createProduct(
     .field(product)
     .expect(httpStatus.CREATED)
     .then(res => {
+      if (!res.body.data) console.error(res.body);
       expect(typeof res.body.data).toBe('object');
       return res.body.data;
     });

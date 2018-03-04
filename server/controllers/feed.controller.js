@@ -4,8 +4,8 @@ import httpStatus from 'http-status';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
-import User, { UserDoc } from '../models/user.model';
-import Product, { ProductDoc } from '../models/product.model';
+import { UserDoc } from '../models/user.model';
+import Product from '../models/product.model';
 import Follow, { FollowDoc } from '../models/follow.model';
 // import Feed, { FeedDoc } from '../models/feed.model';
 
@@ -23,7 +23,7 @@ declare class session$Request extends express$Request {
  * @property {Array<number>=} req.query.categoryIds
  * @property {Array<string>=} req.query.tag - limited to single tag
  * @property {Array<number>=} req.query.typeIds
- * @property {number} req.query.skip Number of users to be skipped.
+ * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of users to be returned.
  */
 function flat(
@@ -31,7 +31,7 @@ function flat(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, skip = 0, categoryIds, tag, typeIds } = req.query;
+  const { limit = 50, lastId, categoryIds, tag, typeIds } = req.query;
 
   Follow.find({ follower: req.user._id })
     .limit(1000) // following
@@ -47,13 +47,15 @@ function flat(
         DBquery = { ...DBquery, categoryIds: { $in: categoryIds } };
       if (tag) DBquery = { ...DBquery, tags: { $in: [tag] } };
 
+      // for pagination - excluding the `lastId`
+      if (lastId) DBquery = { ...DBquery, _id: { $gte: lastId } };
+
       return Product.find(DBquery)
-        .sort({ createdAt: -1 })
+        .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
         .populate({
           path: 'seller',
           select: 'username',
         })
-        .skip(+skip)
         .limit(+limit)
         .then(data => res.json({ data }));
     })
