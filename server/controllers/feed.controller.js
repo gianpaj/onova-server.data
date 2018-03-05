@@ -47,7 +47,7 @@ function flat(
         DBquery = { ...DBquery, categoryIds: { $in: categoryIds } };
       if (tag) DBquery = { ...DBquery, tags: { $in: [tag] } };
 
-      // for pagination - excluding the `lastId`
+      // for pagination - doesn't include the `lastId`
       if (lastId) DBquery = { ...DBquery, _id: { $gte: lastId } };
 
       return Product.find(DBquery)

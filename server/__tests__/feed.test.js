@@ -3,7 +3,6 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
-import path from 'path';
 
 import app from '../index';
 import Follow from '../models/follow.model';
@@ -12,6 +11,7 @@ import User from '../models/user.model';
 import Product from '../models/product.model';
 import Verification from '../models/verification.model';
 import { createProduct } from './product.test';
+import { createUserAndLogin } from './user.test';
 
 /**
  * root level hooks
@@ -73,12 +73,6 @@ let anotherUser = {
   password: 'express2',
 };
 
-const thirdUser = {
-  username: 'thirdwheel',
-  emailAddress: 'gianpa+thirdwheel@gmail.com',
-  password: 'express3',
-};
-
 const notForSaleProduct = {
   categoryIds: [2],
   typeIds: [1, 3],
@@ -91,7 +85,7 @@ let userId;
 let anotherUserId;
 let productUuid;
 let anotherProductUuid;
-let jwtToken;
+let firstJwtToken;
 let anotherJwtToken;
 
 describe('## Feed APIs', () => {
@@ -117,97 +111,22 @@ describe('## Feed APIs', () => {
 
   // create 2 users/sellers + 2 products
   beforeAll(done => {
-    request(app)
-      .post('/api/users')
-      .send(user)
-      .expect(httpStatus.CREATED)
-      .then(res => {
-        const resUser = res.body.data;
-        expect(typeof resUser._id).toBe('string');
-        expect(resUser.username).toBe(user.username);
-        expect(resUser.emailAddress).toBe(user.emailAddress);
-        expect(resUser.accountStatus).toBe('notverified');
-        expect(resUser).not.toHaveProperty('password');
-        expect(typeof res.body.token).toBe('string');
-        userId = resUser._id;
+    createUserAndLogin(user)
+      .then(({ user, jwtToken }) => {
+        userId = user._id;
+        firstJwtToken = jwtToken;
       })
       .then(() => {
         return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
       })
       .then(() => {
-        // flow-disable-next-line
-        return Verification.findOne({ user: userId }).then(verDoc => {
-          if (!verDoc) {
-            return done('no verification token found');
-          }
-          return verDoc.resetToken;
+        return createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
+          anotherUserId = user._id;
+          anotherJwtToken = jwtToken;
         });
       })
-      .then(activationToken => {
-        return request(app)
-          .get(`/api/auth/activate/${activationToken}`)
-          .expect(httpStatus.OK)
-          .then(res => {
-            expect(res.text).toContain('Account activated');
-          });
-      })
-      .then(() => {
-        return request(app)
-          .post('/api/auth/login')
-          .send({
-            emailAddress: user.emailAddress,
-            password: user.password,
-          })
-          .expect(httpStatus.OK)
-          .then(res => {
-            expect(res.body).toHaveProperty('token');
-            jwtToken = res.body.token;
-          });
-      })
-      .then(() => {
-        return request(app)
-          .post('/api/users')
-          .send(anotherUser)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            expect(res.body.data.emailAddress).toBe(anotherUser.emailAddress);
-            anotherUserId = res.body.data._id;
-          })
-          .then(() => {
-            // flow-disable-next-line
-            return Verification.findOne({ user: anotherUserId }).then(
-              verDoc => {
-                if (!verDoc) {
-                  return done('no verification token found');
-                }
-                return verDoc.resetToken;
-              }
-            );
-          })
-          .then(activationToken => {
-            return request(app)
-              .get(`/api/auth/activate/${activationToken}`)
-              .expect(httpStatus.OK)
-              .then(res => {
-                expect(res.text).toContain('Account activated');
-              });
-          })
-          .then(() => {
-            return request(app)
-              .post('/api/auth/login')
-              .send({
-                emailAddress: anotherUser.emailAddress,
-                password: anotherUser.password,
-              })
-              .expect(httpStatus.OK)
-              .then(res => {
-                expect(res.body).toHaveProperty('token');
-                anotherJwtToken = res.body.token;
-              });
-          });
-      })
       .then(async () => {
-        const p1 = await createProduct(product, jwtToken);
+        const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
         productUuid = p1.uuid;
       })
@@ -237,7 +156,7 @@ describe('## Feed APIs', () => {
       new Promise((resolve, reject) => {
         request(app)
           .post(`/api/users/${anotherUserId}/follow`)
-          .set('Authorization', jwtToken)
+          .set('Authorization', firstJwtToken)
           .expect(httpStatus.CREATED)
           .then(res => {
             const { data } = res.body;
@@ -280,7 +199,7 @@ describe('## Feed APIs', () => {
     it('should get the first user`s feed', async () => {
       return request(app)
         .get('/api/feed/flat')
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
@@ -321,7 +240,7 @@ describe('## Feed APIs', () => {
         description: 'nice jumper',
         price: '39',
       };
-      const pp = await createProduct(p, jwtToken);
+      const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
       categoryProductUUID = pp.uuid;
     });
@@ -350,7 +269,7 @@ describe('## Feed APIs', () => {
         description: 'nice hoodie',
         price: '69',
       };
-      const pp = await createProduct(p, jwtToken);
+      const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
       typeIdProductUUID = pp.uuid;
     });
@@ -379,7 +298,7 @@ describe('## Feed APIs', () => {
         description: 'nice socks',
         price: '19',
       };
-      const pp = await createProduct(p, jwtToken);
+      const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
       tagProductUUID = pp.uuid;
     });
@@ -412,7 +331,7 @@ describe('## Feed APIs', () => {
     });
 
     beforeAll(async () => {
-      const a = await createManyProducts(105, jwtToken);
+      const a = await createManyProducts(105, firstJwtToken);
       if (typeof a == Error) console.error(a);
     });
 

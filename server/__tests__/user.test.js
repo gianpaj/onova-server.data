@@ -1002,3 +1002,61 @@ describe('## User APIs', () => {
     });
   });
 });
+
+/**
+ * Create a user and activate it
+ */
+export function createUserAndLogin(
+  user: UserDoc
+): Promise<{ user: UserDoc, jwtToken: string }> {
+  return request(app)
+    .post('/api/users')
+    .send(user)
+    .expect(httpStatus.CREATED)
+    .then(res => {
+      if (!res.body.data) console.error(res.body);
+      const resUser = res.body.data;
+      expect(typeof resUser._id).toBe('string');
+      expect(resUser.username).toBe(user.username);
+      expect(resUser.emailAddress).toBe(user.emailAddress);
+      expect(resUser.accountStatus).toBe('notverified');
+      expect(resUser.followersCount).toBe(0);
+      expect(resUser.followingCount).toBe(0);
+      expect(typeof res.body.token).toBe('string');
+      expect(Object.keys(resUser).sort()).toEqual(userFields.sort());
+
+      return res.body.data;
+    })
+    .then((resUser: UserDoc) => {
+      // flow-disable-next-line
+      return Verification.findOne({ user: resUser._id }).then(verDoc => {
+        if (!verDoc) {
+          return done('no verification token found');
+        }
+        return { resetToken: verDoc.resetToken, resUser };
+      });
+    })
+    .then(({ resetToken, resUser }) => {
+      return request(app)
+        .get(`/api/auth/activate/${resetToken}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.text).toContain('Account activated');
+          return resUser;
+        });
+    })
+    .then((resUser: UserDoc) => {
+      return request(app)
+        .post('/api/auth/login')
+        .send({
+          emailAddress: resUser.emailAddress,
+          password: user.password,
+        })
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body).toHaveProperty('token');
+          return { user: resUser, jwtToken: res.body.token };
+        });
+    })
+    .catch(e => e);
+}
