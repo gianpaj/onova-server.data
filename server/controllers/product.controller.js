@@ -1,6 +1,7 @@
 // @flow
 
 import shortid from 'shortid';
+import mongoose from 'mongoose';
 
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
@@ -250,7 +251,9 @@ function update(
       // foundProduct.status = req.body.status
       //   ? req.body.status
       //   : foundProduct.status;
-      foundProduct.price = req.body.price ? req.body.price : foundProduct.price;
+      foundProduct.price = req.body.price
+        ? mongoose.Types.Decimal128.fromString(req.body.price)
+        : foundProduct.price;
 
       return foundProduct.save().then(product => {
         return res.json({ data: product });

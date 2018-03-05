@@ -174,7 +174,7 @@ OrderSchema.statics = {
 };
 
 OrderSchema.post('save', function(error: Error, doc, next) {
-  if (error.name === 'MongoError' && error.code === 11000) {
+  if (error.code === 11000) {
     const APIerr = new APIError('Duplicate order', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
@@ -186,10 +186,10 @@ OrderSchema.post('save', function(error: Error, doc, next) {
 OrderSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
-    ret.onovaFee = ret.onovaFee.$numberDecimal;
-    ret.priceOfItem = ret.priceOfItem.$numberDecimal;
-    // ret.taxAmount = ret.taxAmount.$numberDecimal;
-    // ret.transactionFee = ret.transactionFee.$numberDecimal;
+    ret.onovaFee = ret.onovaFee.toString();
+    ret.priceOfItem = ret.priceOfItem.toString();
+    // ret.taxAmount = ret.taxAmount.toString();
+    // ret.transactionFee = ret.transactionFee.toString();
     delete ret._id;
     delete ret.__v;
     return ret;

@@ -58,7 +58,7 @@ var ProductSchema = new Schema(
       // required: true, // added async after the images are uploaded to GSC
     },
     price: {
-      type: Schema.Types.Decimal128,
+      type: Schema.Types.Decimal,
       required: true,
     },
     seller: {
@@ -177,7 +177,7 @@ ProductSchema.pre('save', function(next) {
 ProductSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
-    ret.price = ret.price.$numberDecimal;
+    ret.price = ret.price.toString();
     delete ret.id;
     delete ret.__v;
     return ret;

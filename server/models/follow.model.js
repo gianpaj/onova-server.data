@@ -76,7 +76,7 @@ FollowSchema.statics = {
 };
 
 FollowSchema.post('save', function(error: Error, doc, next) {
-  if (error.name === 'MongoError' && error.code === 11000) {
+  if (error.code === 11000) {
     const APIerr = new APIError(
       'Duplicate follower<->following',
       httpStatus.BAD_REQUEST
