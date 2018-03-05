@@ -1,12 +1,17 @@
 import express from 'express';
-import userRoutes from './user.route';
-import followRoutes from './follow.route';
-import productRoutes from './product.route';
+
 import authRoutes from './auth.route';
-import orderRoutes from './order.route';
+import commentRoutes from './comment.route';
 import feedRoutes from './feed.route';
+import followRoutes from './follow.route';
+import orderRoutes from './order.route';
+import productRoutes from './product.route';
+import userRoutes from './user.route';
 
 const router = express.Router();
+
+// mount auth routes at /auth
+router.use('/auth', authRoutes);
 
 // GET /health-check - Check service health
 router.get('/health-check', (req, res) => res.send('OK'));
@@ -20,11 +25,11 @@ router.use('/users', userRoutes);
 // mount user follow routes at /users/:userId/[follow/unfollow]
 router.use('/users', followRoutes);
 
-// mount product routes at /product
+// mount product routes at /products
 router.use('/products', productRoutes);
 
-// mount auth routes at /auth
-router.use('/auth', authRoutes);
+// mount product routes at /products/:uuid/comment
+router.use('/products', commentRoutes);
 
 // mount orders routes at /orders
 router.use('/orders', orderRoutes);

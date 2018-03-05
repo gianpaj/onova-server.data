@@ -11,6 +11,23 @@ import APIError from '../helpers/APIError';
 const Schema = mongoose.Schema;
 // const FeedManager = stream.FeedManager;
 
+const CommentSchema = new Schema({
+  createdAt: {
+    type: Date,
+    default: Date.now,
+    required: true,
+  },
+  user: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  text: {
+    type: String,
+    required: true,
+  },
+});
+
 /** @namespace */
 var ProductSchema = new Schema(
   {
@@ -18,27 +35,7 @@ var ProductSchema = new Schema(
       type: [Number],
       required: true,
     },
-    comments: [
-      {
-        _id: {
-          type: Schema.Types.ObjectId,
-          required: true,
-        },
-        createdAt: {
-          type: Date,
-          default: Date.now,
-        },
-        text: {
-          type: String,
-          required: true,
-        },
-        user: {
-          type: Schema.Types.ObjectId,
-          ref: 'User',
-          required: true,
-        },
-      },
-    ],
+    comments: [CommentSchema],
     currency: {
       type: String,
       required: true,
