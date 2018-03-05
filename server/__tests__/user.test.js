@@ -513,15 +513,10 @@ describe('## User APIs', () => {
 
   describe('# POST /api/users/:userId', () => {
     beforeAll(done => {
-      request(app)
-        .post('/api/users')
-        .send(anotherUser)
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          anotherUserId = res.body.data._id;
-          done();
-        })
-        .catch(done);
+      createUserAndLogin(anotherUser).then(({ user }) => {
+        anotherUserId = user._id;
+        done();
+      });
     });
 
     it('first user should not delete another user', done => {
@@ -548,16 +543,11 @@ describe('## User APIs', () => {
 
   describe('# PUT /api/users/:userId', () => {
     beforeAll(done => {
-      request(app)
-        .post('/api/users')
-        .send(user)
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          userId = res.body.data._id;
-          jwtToken = res.body.token;
-          done();
-        })
-        .catch(done);
+      createUserAndLogin(user).then(({ user, jwtToken: token }) => {
+        userId = user._id;
+        jwtToken = token;
+        done();
+      });
     });
 
     it('should not update an user email to an existing one', done => {

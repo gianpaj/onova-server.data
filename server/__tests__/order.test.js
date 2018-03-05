@@ -11,6 +11,7 @@ import User from '../models/user.model';
 import Tag from '../models/tag.model';
 import Product from '../models/product.model';
 import Order from '../models/order.model';
+import { createUserAndLogin } from './user.test';
 
 // GET & PUT /api/orders/ should only return these fields
 const orderFields = [
@@ -34,6 +35,7 @@ describe('## Order APIs', () => {
       Product.collection,
       Order.collection,
       Tag.collection,
+      Verification.collection,
     ];
 
     var todo = collections.length;
@@ -100,129 +102,52 @@ describe('## Order APIs', () => {
 
   // create 3 users. 1 not activated
   beforeAll(done => {
-    // @TODO use Promise.all().then(() => done());
-    request(app)
-      .post('/api/users')
-      .send(user)
-      .expect(httpStatus.CREATED)
-      .then(res => {
-        const resUser = res.body.data;
-        expect(typeof resUser._id).toBe('string');
-        expect(resUser.username).toBe(user.username);
-        expect(resUser.emailAddress).toBe(user.emailAddress);
-        expect(resUser.accountStatus).toBe('notverified');
-        expect(resUser).not.toHaveProperty('password');
-        expect(typeof res.body.token).toBe('string');
-        // flow-disable-next-line
+    // @TODO: use Promise.all().then(() => done());
+    createUserAndLogin(user)
+      .then(({ user: resUser, jwtToken: token }) => {
         user._id = resUser._id;
+        jwtToken = token;
       })
       .then(() => {
         return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
       })
       .then(() => {
-        // flow-disable-next-line
-        return Verification.findOne({ user: user._id }).then(verDoc => {
-          if (!verDoc) {
-            return done('no verification token found');
+        return createUserAndLogin(anotherUser).then(
+          ({ user: resUser, jwtToken: token }) => {
+            anotherUser._id = resUser._id;
+            anotherJwtToken = token;
           }
-          return verDoc.resetToken;
-        });
+        );
       })
-      .then(activationToken => {
+      .then(() => {
         return request(app)
-          .get(`/api/auth/activate/${activationToken}`)
-          .expect(httpStatus.OK)
+          .post('/api/users')
+          .send(nonActiveUser)
+          .expect(httpStatus.CREATED)
           .then(res => {
-            expect(res.text).toContain('Account activated');
+            const resUser = res.body.data;
+            expect(typeof resUser._id).toBe('string');
+            expect(resUser.username).toBe(nonActiveUser.username);
+            expect(resUser.emailAddress).toBe(nonActiveUser.emailAddress);
+            expect(resUser.accountStatus).toBe('notverified');
+            expect(resUser).not.toHaveProperty('password');
+            expect(typeof res.body.token).toBe('string');
+            // flow-disable-next-line
+            nonActiveUser._id = resUser._id;
           });
       })
       .then(() => {
         return request(app)
           .post('/api/auth/login')
           .send({
-            emailAddress: user.emailAddress,
-            password: user.password,
+            emailAddress: nonActiveUser.emailAddress,
+            password: nonActiveUser.password,
           })
           .expect(httpStatus.OK)
           .then(res => {
             expect(res.body).toHaveProperty('token');
-            jwtToken = res.body.token;
-          });
-      })
-      .then(() => {
-        return request(app)
-          .post('/api/users')
-          .send(anotherUser)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            const resUser = res.body.data;
-            expect(resUser.emailAddress).toBe(anotherUser.emailAddress);
-            expect(resUser.accountStatus).toBe('notverified');
-            // flow-disable-next-line
-            anotherUser._id = res.body.data._id;
-          })
-          .then(() => {
-            // flow-disable-next-line
-            return Verification.findOne({ user: anotherUser._id }).then(
-              verDoc => {
-                if (!verDoc) {
-                  return done('no verification token found');
-                }
-                return verDoc.resetToken;
-              }
-            );
-          })
-          .then(activationToken => {
-            return request(app)
-              .get(`/api/auth/activate/${activationToken}`)
-              .expect(httpStatus.OK)
-              .then(res => {
-                expect(res.text).toContain('Account activated');
-              });
-          })
-          .then(() => {
-            return request(app)
-              .post('/api/auth/login')
-              .send({
-                emailAddress: anotherUser.emailAddress,
-                password: anotherUser.password,
-              })
-              .expect(httpStatus.OK)
-              .then(res => {
-                expect(res.body).toHaveProperty('token');
-                anotherJwtToken = res.body.token;
-              });
-          })
-          .then(() => {
-            return request(app)
-              .post('/api/users')
-              .send(nonActiveUser)
-              .expect(httpStatus.CREATED)
-              .then(res => {
-                const resUser = res.body.data;
-                expect(typeof resUser._id).toBe('string');
-                expect(resUser.username).toBe(nonActiveUser.username);
-                expect(resUser.emailAddress).toBe(nonActiveUser.emailAddress);
-                expect(resUser.accountStatus).toBe('notverified');
-                expect(resUser).not.toHaveProperty('password');
-                expect(typeof res.body.token).toBe('string');
-                // flow-disable-next-line
-                nonActiveUser._id = resUser._id;
-              });
-          })
-          .then(() => {
-            return request(app)
-              .post('/api/auth/login')
-              .send({
-                emailAddress: nonActiveUser.emailAddress,
-                password: nonActiveUser.password,
-              })
-              .expect(httpStatus.OK)
-              .then(res => {
-                expect(res.body).toHaveProperty('token');
-                nonActiveUserJwtToken = res.body.token;
-                done();
-              });
+            nonActiveUserJwtToken = res.body.token;
+            done();
           });
       });
   });
