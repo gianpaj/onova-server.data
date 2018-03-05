@@ -7,25 +7,28 @@ import app from './config/express';
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
-// make bluebird default Promise
-Promise = require('bluebird');
-
-// plugin bluebird promise in mongoose
-mongoose.Promise = Promise;
-
-const promise = mongoose.connect(
-  `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`,
-  {
-    useMongoClient: true,
-    keepAlive: 1,
-    // socketTimeoutMS: 1000
-  }
-);
-promise.on('error', () => {
-  throw new Error(
-    `unable to connect to: mongodb://${config.mongo.host}/${config.mongo.db}`
+mongoose
+  .connect(
+    `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`,
+    {
+      keepAlive: 1,
+      // socketTimeoutMS: 1000
+    }
+  )
+  .then(
+    () => {
+      console.log(
+        `connected to mongodb://${config.mongo.host}/${config.mongo.db}`
+      );
+    },
+    err => {
+      throw new Error(
+        `unable to connect to: mongodb://${config.mongo.host}/${
+          config.mongo.db
+        }: ${err}`
+      );
+    }
   );
-});
 
 // print mongoose logs in dev env
 if (config.mongooseDebug) {
