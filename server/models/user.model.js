@@ -83,6 +83,7 @@ const UserSchema = new Schema(
       exp_year: String,
     },
     profilePic: String,
+    pushToken: String,
     shippingAddress: {
       firstName: String,
       lastName: String,
@@ -122,6 +123,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   password: string;
   paymentInfo: ?any;
   profilePic: ?string;
+  pushToken: ?string;
   shippingAddress: ?any;
   username: string;
 }

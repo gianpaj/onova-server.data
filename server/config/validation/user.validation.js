@@ -48,6 +48,7 @@ export default {
       password: Joi.string()
         .min(8)
         .max(50),
+      pushToken: Joi.string(),
       // temp - we are not validating month is valid, etc.
       last_four: Joi.string()
         .length(4)

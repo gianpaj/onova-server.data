@@ -3,10 +3,10 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: node:6.9.4
+image: node:8
 
 
-clone:           # the 'clone' section 
+clone:           # the 'clone' section
   depth: 1       # the depth, in this case the clone will contain last commit
 
 pipelines:

@@ -64,7 +64,7 @@ Start server:
 # Start server
 yarn dev:start
 
-# Selectively set DEBUG env var to get logs
+# set DEBUG env var to get logs
 DEBUG=express-mongoose-es6-rest-api:* yarn start
 ```
 
@@ -108,7 +108,7 @@ yarn start
 
 ## Logging
 
-Universal logging library [winston](https://www.npmjs.com/package/winston) is used for logging. It has support for multiple transports.  A transport is essentially a storage device for your logs. Each instance of a winston logger can have multiple transports configured at different levels. For example, one may want error logs to be stored in a persistent remote location (like a database), but all logs output to the console or a local file. We just log to the console for simplicity, you can configure more transports as per your requirement.
+Universal logging library [winston](https://www.npmjs.com/package/winston) is used for logging. It has support for multiple transports. A transport is essentially a storage device for your logs. Each instance of a winston logger can have multiple transports configured at different levels. For example, one may want error logs to be stored in a persistent remote location (like a database), but all logs output to the console or a local file. We just log to the console for simplicity, you can configure more transports as per your requirement.
 
 ### API logging
 

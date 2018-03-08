@@ -447,6 +447,28 @@ describe('## User APIs', () => {
         })
         .catch(done);
     });
+
+    it("should update user's pushToken", done => {
+      const tempuser = {
+        ...user,
+        pushToken: 'randomStringWith1020Numbers',
+      };
+      request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send(tempuser)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { body } = res;
+          expect(body.emailAddress).toBe(tempuser.emailAddress);
+          expect(body.mobileNumber).toBe(tempuser.mobileNumber);
+          expect(body.username).toBe(tempuser.username);
+          expect(body.paymentInfo).toEqual(userPaymentInfo);
+          expect(body.pushToken).toEqual('randomStringWith1020Numbers');
+          done();
+        })
+        .catch(done);
+    });
   });
 
   describe('# GET /api/users/', () => {

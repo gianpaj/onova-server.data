@@ -171,6 +171,10 @@ function update(
     user.shippingAddress = body.shippingAddress;
   }
 
+  if (body.pushToken) {
+    user.pushToken = body.pushToken;
+  }
+
   // update password (automatically hashed on save())
   if (body.password) {
     user.password = body.password;

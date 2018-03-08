@@ -2,7 +2,9 @@
 
 import httpStatus from 'http-status';
 
+import config from '../config/config';
 import APIError from '../helpers/APIError';
+import { sendPush } from '../helpers/api';
 import { UserDoc } from '../models/user.model';
 import Product, { ProductDoc } from '../models/product.model';
 
