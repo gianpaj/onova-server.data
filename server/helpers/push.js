@@ -33,10 +33,13 @@ export function sendPush({
     })
     .then(({ sender, target }: { sender: UserDoc, target: UserDoc }) => {
       const pushData = {
-        senderName: sender.displayName || sender.username,
+        message,
+        platform: target.platform,
         productUuid,
         pushToken: target.pushToken,
-        message,
+        senderId: sender._id,
+        senderName: sender.displayName || sender.username,
+        targetId: target._id,
         random: shortid(), // for unique push notification
       };
       const job = agenda.create(config.JOBNAMES.PUSHCOMMENTS, pushData);

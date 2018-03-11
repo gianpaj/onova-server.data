@@ -30,6 +30,7 @@ export default {
         .max(50)
         .required(),
       pushToken: Joi.string(),
+      platform: Joi.string().valid(['android', 'ios']),
     },
   },
 
@@ -50,6 +51,7 @@ export default {
         .min(8)
         .max(50),
       pushToken: Joi.string(),
+      platform: Joi.string().valid(['android', 'ios']),
       // temp - we are not validating month is valid, etc.
       last_four: Joi.string()
         .length(4)

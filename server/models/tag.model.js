@@ -14,6 +14,8 @@ var TagSchema = new mongoose.Schema(
 
 export class TagDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
+  createdAt: Date;
+  updatedAt: Date;
 }
 
 TagSchema.loadClass(TagDoc);

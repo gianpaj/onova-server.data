@@ -71,8 +71,12 @@ const UserSchema = new Schema(
       type: String,
       required: true,
     },
+    platform: {
+      type: String,
+      enum: ['android', 'ios'],
+    },
     paymentInfo: {
-      payment_method: {
+      paymentMethod: {
         type: String,
         enum: ['paypal', 'c2c'],
       },
@@ -122,6 +126,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   mobileNumber: ?string;
   password: string;
   paymentInfo: ?any;
+  platform: ?string;
   profilePic: ?string;
   pushToken: ?string;
   shippingAddress: ?any;

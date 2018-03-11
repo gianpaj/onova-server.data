@@ -50,6 +50,7 @@ let user = {
   password: 'expressos',
   pushToken:
     'e4Xu1jjTbXg:APA91bF_3S7FuBIDjO6feBMy1OzD2JsVtUJwVmIJD8YYPNk417zxX8YTYv_FoCCjg-x1rXUlHlxzKDjflXCK7Dujvff81aDBXFet8S8z99lK2_QwBIhvjQchS3HlTfJCuoJnfbm6xEjW',
+  platform: 'ios',
 };
 
 let anotherUser = {
@@ -59,6 +60,7 @@ let anotherUser = {
   password: 'express2',
   pushToken:
     'e4Xu1jjTbXg:APA91bF_3S7FuBIDjO6feBMy1OzD2JsVtUJwVmIJD8YYPNk417zxX8YTYv_FoCCjg-x1rXUlHlxzKDjflXCK7Dujvff81aDBXFet8S8z99lK2_QwBIhvjQchS3HlTfJCuoJnfbm6xEjW',
+  platform: 'android',
 };
 
 const thirdUser = {

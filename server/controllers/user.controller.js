@@ -92,13 +92,11 @@ function create(
     // accountStatus: 'notverified' (default)
   };
 
-  if (req.body.pushToken) {
-    doc.pushToken = req.body.pushToken;
-  }
+  const { body } = req;
 
-  if (req.body.mobileNumber) {
-    doc.mobileNumber = req.body.mobileNumber;
-  }
+  if (body.mobileNumber) doc.mobileNumber = body.mobileNumber;
+  if (body.platform) doc.platform = body.platform;
+  if (body.pushToken) doc.pushToken = body.pushToken;
 
   const user = new User(doc);
 
@@ -138,15 +136,18 @@ function create(
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
- * @property {string=} req.body.username
+ * @property {string=} req.body.bio
  * @property {string=} req.body.displayName
  * @property {string=} req.body.emailAddress
- * @property {string=} req.body.bio
+ * @property {string=} req.body.mobileNumber
  * @property {string=} req.body.password
- * @property {string=} req.body.last_four
+ * @property {string=} req.body.platform
+ * @property {string=} req.body.pushToken
+ * @property {string=} req.body.username
  * @property {string=} req.body.exp_month
  * @property {string=} req.body.exp_year
- * @property {any} req.body.shippingAddress
+ * @property {string=} req.body.last_four
+ * @property {any=} req.body.shippingAddress
  */
 function update(
   req: session$Request,
@@ -155,34 +156,19 @@ function update(
 ) {
   const { body, user } = req;
 
-  if (body.bio) {
-    user.bio = body.bio;
-  }
-  if (body.displayName) {
-    user.displayName = body.displayName;
-  }
-
-  if (body.mobileNumber) {
-    user.mobileNumber = body.mobileNumber;
-  }
+  if (body.bio) user.bio = body.bio;
+  if (body.displayName) user.displayName = body.displayName;
+  if (body.mobileNumber) user.mobileNumber = body.mobileNumber;
+  // update password (automatically hashed on save() hook)
+  if (body.password) user.password = body.password;
+  if (body.platform) user.platform = body.platform;
+  if (body.pushToken) user.pushToken = body.pushToken;
+  if (body.shippingAddress) user.shippingAddress = body.shippingAddress;
 
   if (body.last_four || body.exp_month || body.exp_year) {
     user.paymentInfo.last_four = body.last_four;
     user.paymentInfo.exp_month = body.exp_month;
     user.paymentInfo.exp_year = body.exp_year;
-  }
-
-  if (body.shippingAddress) {
-    user.shippingAddress = body.shippingAddress;
-  }
-
-  if (body.pushToken) {
-    user.pushToken = body.pushToken;
-  }
-
-  // update password (automatically hashed on save())
-  if (body.password) {
-    user.password = body.password;
   }
 
   let Promises = [];
