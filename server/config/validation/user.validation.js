@@ -29,6 +29,7 @@ export default {
         .min(8)
         .max(50)
         .required(),
+      pushToken: Joi.string(),
     },
   },
 

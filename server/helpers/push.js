@@ -1,21 +1,8 @@
 // @flow
 
-import request from 'request-promise-native';
 import User, { UserDoc } from '../models/user.model';
-
-const hostname = 'localhost';
-
-export function post(uri, port, json): Promise<null> {
-  // return new Promise((resolve, reject) => {
-  return request({
-    method: 'POST',
-    uri: `http://${hostname}:${port}/api/v1${uri}`,
-    body: json,
-    json: true,
-  })
-    .then(res => res)
-    .catch(e => e);
-}
+import { agenda } from '../config/express';
+import config from '../config/config';
 
 export function sendPush({
   senderId,
@@ -29,13 +16,13 @@ export function sendPush({
   message: string,
 }): Promise<null> {
   return User.findById(senderId)
-    .then((sender: UserDoc) => {
+    .then(sender => {
       if (!sender) {
         throw new Error('Cannot find sender');
       }
 
       return User.findById(targetId)
-        .then((target: UserDoc) => {
+        .then(target => {
           if (!target) {
             throw new Error('Cannot find target');
           }
@@ -43,13 +30,18 @@ export function sendPush({
         })
         .catch(e => e);
     })
-    .then(({ sender, target }) => {
-      return post('/push', 3030, {
-        sender,
-        target,
+    .then(({ sender, target }: { sender: UserDoc, target: UserDoc }) => {
+      const pushData = {
+        senderName: sender.displayName || sender.username,
         productUuid,
+        pushToken: target.pushToken,
         message,
-      }).then(res => res);
+      };
+      const job = agenda.now(config.JOBNAMES.PUSHCOMMENTS, pushData);
+
+      return job.save(err => {
+        if (err) throw new Error(`Job failed with error: ${err}`);
+      });
     })
     .catch(e => {
       console.error(e);

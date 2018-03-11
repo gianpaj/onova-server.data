@@ -91,6 +91,10 @@ function create(
     // accountStatus: 'notverified' (default)
   };
 
+  if (req.body.pushToken) {
+    doc.pushToken = req.body.pushToken;
+  }
+
   if (req.body.mobileNumber) {
     doc.mobileNumber = req.body.mobileNumber;
   }

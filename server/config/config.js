@@ -33,6 +33,9 @@ const envVarsSchema = Joi.object({
   MONGO_DB: Joi.string()
     .required()
     .description('MongoDB database'),
+  MONGO_JOB_DB: Joi.string()
+    .required()
+    .description('MongoDB database for the agenda for push notifications'),
   MONGO_PORT: Joi.number().default(27017),
   MJ_APIKEY_PUBLIC: Joi.string()
     .required()
@@ -58,11 +61,15 @@ const config = {
   mongo: {
     host: envVars.MONGO_HOST,
     db: envVars.MONGO_DB,
+    jobDb: envVars.MONGO_JOB_DB,
     port: envVars.MONGO_PORT,
   },
   mailjet: {
     apikeyPublic: envVars.MJ_APIKEY_PUBLIC,
     apikeyPrivate: envVars.MJ_APIKEY_PRIVATE,
+  },
+  JOBNAMES: {
+    PUSHCOMMENTS: 'send-push-comments',
   },
 };
 

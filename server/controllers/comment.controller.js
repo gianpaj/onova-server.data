@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 
 import config from '../config/config';
 import APIError from '../helpers/APIError';
-import { sendPush } from '../helpers/api';
+import { sendPush } from '../helpers/push';
 import { UserDoc } from '../models/user.model';
 import Product, { ProductDoc } from '../models/product.model';
 
@@ -74,6 +74,21 @@ function create(
     { new: true }
   )
     .then((product: ProductDoc) => {
+      sendPush({
+        senderId: req.user._id,
+        targetId: req.product.seller._id,
+        productUuid: req.product.id,
+        message: 'wrote a new comment',
+      })
+        .then(() => {
+          console.log(config.JOBNAMES.PUSHCOMMENTS, 'Job successfully saved');
+        })
+        .catch(err => {
+          console.error(err);
+        });
+      // if (config.env == 'prod') {
+      //   mixpanel.track('new_comment', props);
+      // }
       const lastCommment = product.comments[product.comments.length - 1];
       return res
         .status(httpStatus.CREATED)

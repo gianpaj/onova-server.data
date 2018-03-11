@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@google-cloud/storage": "1.5.0",
+    "agenda": "false1.0.3",
     "babel-cli": "^6.24.0",
     "babel-core": "^6.24.0",
     "babel-eslint": "8.2.1",
@@ -51,7 +52,6 @@
     "pm2": "2.9.2",
     "pug": "^2.0.0-rc.4",
     "request": "2.83.0",
-    "request-promise-native": "1.0.5",
     "shortid": "2.2.8",
     "winston": "2.3.0"
   },

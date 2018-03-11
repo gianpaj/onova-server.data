@@ -13,6 +13,7 @@ import expressWinston from 'express-winston';
 import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
+import Agenda from 'agenda';
 // import mongoose from 'mongoose';
 // import stream from 'getstream-node';
 
@@ -20,6 +21,21 @@ import winstonInstance from './winston';
 import routes from '../routes/index.route';
 import config from './config';
 import APIError from '../helpers/APIError';
+
+const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
+  config.mongo.jobDb
+}`;
+
+export const agenda = new Agenda({ db: { address: jobDb } });
+
+if (config.env == 'test') {
+  agenda.on('ready', () => {
+    agenda.purge((err, numRemoved) => {
+      if (err) return console.error(err);
+      console.log(numRemoved);
+    });
+  });
+}
 
 /**
  * API keys and Passport configuration.
