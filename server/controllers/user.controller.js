@@ -77,6 +77,7 @@ function getPersonal(req: session$Request, res: express$Response) {
  * @property {string} req.body.emailAddress
  * @property {string} req.body.password (salted and hashed)
  * @property {string=} req.body.mobileNumber
+ * @property {string=} req.body.pushToken
  */
 function create(
   req: session$Request,
