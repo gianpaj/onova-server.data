@@ -3,6 +3,7 @@
 import User, { UserDoc } from '../models/user.model';
 import { agenda } from '../config/express';
 import config from '../config/config';
+import shortid from 'shortid';
 
 export function sendPush({
   senderId,
@@ -36,8 +37,9 @@ export function sendPush({
         productUuid,
         pushToken: target.pushToken,
         message,
+        random: shortid(), // for unique push notification
       };
-      const job = agenda.now(config.JOBNAMES.PUSHCOMMENTS, pushData);
+      const job = agenda.create(config.JOBNAMES.PUSHCOMMENTS, pushData);
 
       return job.save(err => {
         if (err) throw new Error(`Job failed with error: ${err}`);
