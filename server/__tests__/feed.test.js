@@ -90,13 +90,12 @@ let anotherJwtToken;
 
 describe('## Feed APIs', () => {
   beforeAll(done => {
-    // mongoose.connection.dropDatabase().then(done);
     const collections = [
       Follow.collection,
+      Product.collection,
       Tag.collection,
       User.collection,
       Verification.collection,
-      Product.collection,
     ];
 
     var todo = collections.length;
@@ -371,12 +370,16 @@ async function createManyProducts(num: number, jwtToken: string) {
     description: 'nice pair of socks',
   };
 
-  const Promises = [];
+  const items = [];
   for (let i = 0; i <= num; i++) {
     p.price = Math.floor(Math.random() * 50);
-    Promises.push(createProduct(p, jwtToken));
+    items.push(p);
   }
-  return Promise.all(Promises)
+  return await Promise.all(
+    items.map(async item => {
+      await createProduct(item, jwtToken);
+    })
+  )
     .then(res => res)
     .catch(e => e);
 }

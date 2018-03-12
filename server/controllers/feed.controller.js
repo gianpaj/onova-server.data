@@ -1,9 +1,7 @@
 // @flow
 
-import httpStatus from 'http-status';
 // import stream from 'getstream-node';
 
-import APIError from '../helpers/APIError';
 import { UserDoc } from '../models/user.model';
 import Product from '../models/product.model';
 import Follow, { FollowDoc } from '../models/follow.model';
@@ -47,7 +45,7 @@ function flat(
         DBquery = { ...DBquery, categoryIds: { $in: categoryIds } };
       if (tag) DBquery = { ...DBquery, tags: { $in: [tag] } };
 
-      // for pagination - doesn't include the `lastId`
+      // for pagination - results are excluding the lastId`
       if (lastId) DBquery = { ...DBquery, _id: { $gte: lastId } };
 
       return Product.find(DBquery)
