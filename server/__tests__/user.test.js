@@ -35,10 +35,9 @@ const userFields = [
 
 describe('## User APIs', () => {
   beforeAll(done => {
-    // mongoose.connection.dropDatabase().then(done);
     const collections = [
-      User.collection,
       Follow.collection,
+      User.collection,
       Verification.collection,
     ];
 
@@ -711,6 +710,8 @@ describe('## User APIs', () => {
 
     describe('check followers/following counters', () => {
       beforeAll(done => {
+        // TODO: fix me. this test (file) should not run e.g. when comment.test.js is run exclusively
+        if (!thirdUserId) return done();
         request(app)
           .post(`/api/users/${thirdUserId}/follow`)
           .set('Authorization', jwtToken)

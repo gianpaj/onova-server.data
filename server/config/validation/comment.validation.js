@@ -18,12 +18,12 @@ export default {
         .max(300)
         .required(),
     },
-  },
-  params: {
-    uuid: Joi.string()
-      // shortid
-      .regex(/^[a-zA-Z0-9_-]{7,14}$/)
-      .required(),
+    params: {
+      uuid: Joi.string()
+        // shortid
+        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .required(),
+    },
   },
 
   // DELETE /api/products/:uuid/comments

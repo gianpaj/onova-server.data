@@ -22,12 +22,9 @@ declare class session$Request extends express$Request {
  * @property {*} req.params - express session parameters
  * @property {MongoId} req.params.uuid
  */
-function get(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
-  const { limit = 50, lastId } = req.query;
+function get(req: session$Request, res: express$Response) {
+  // const { limit = 50, lastId } = req.query;
+  // TODO: paginate inside list of comments` array using limit & lastId
 
   const { comments, uuid } = req.product;
   res.json({ data: { uuid, comments } });

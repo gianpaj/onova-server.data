@@ -13,6 +13,8 @@ import Verification from '../models/verification.model';
 import { createProduct } from './product.test';
 import { createUserAndLogin } from './user.test';
 
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 1500;
+
 /**
  * root level hooks
  */
@@ -202,6 +204,17 @@ describe('## Comment APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toContain('Comment cannot be added');
+        });
+    });
+
+    it('should not add a comment to a invalid product', async () => {
+      return request(app)
+        .post(`/api/products/1234/comment`)
+        .set('Authorization', anotherJwtToken)
+        .send({ text: 'first!' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('Invalid product');
         });
     });
 
