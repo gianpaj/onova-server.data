@@ -135,10 +135,16 @@ describe('## Notification APIs', () => {
   describe('# GET /api/users/notifications', () => {
     // create comments
     beforeAll(async () => {
-      const c2 = await createComment(
+      const c1 = await createComment(
         { text: 'first!' },
         anotherProductUuid,
         firstJwtToken
+      );
+      expect(c1.uuid).toBe(anotherProductUuid);
+      const c2 = await createComment(
+        { text: 'thanks dude!' },
+        anotherProductUuid,
+        anotherJwtToken
       );
       expect(c2.uuid).toBe(anotherProductUuid);
       await createManyComments(40, productUuid, anotherJwtToken);
@@ -164,7 +170,7 @@ describe('## Notification APIs', () => {
         .expect(httpStatus.UNAUTHORIZED);
     });
 
-    it('should get another person`s notifications', async () => {
+    it('should not create a new notification when a comment is inserted by the seller', async () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', anotherJwtToken)
@@ -184,32 +190,33 @@ describe('## Notification APIs', () => {
     beforeAll(async () => {
       const data = await createComment(
         { text: 'love the boots' },
-        productUuid,
+        anotherProductUuid,
         firstJwtToken
       );
       commentIdSecond = data.comment._id;
 
       return request(app)
-        .delete(`/api/products/${productUuid}/comment/${commentIdSecond}`)
+        .delete(
+          `/api/products/${anotherProductUuid}/comment/${commentIdSecond}`
+        )
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data.uuid).toBe(productUuid);
-          expect(data.length).toBe(41);
+          expect(data.uuid).toBe(anotherProductUuid);
+          expect(data.length).toBe(2);
         });
     });
 
-    it('should not get the deleted comment notification', done => {
-      request(app)
+    it('should not get the deleted comment notification', async () => {
+      return request(app)
         .get('/api/users/notifications')
-        .set('Authorization', firstJwtToken)
+        .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0].triggeredBy).toBe(productId);
-          expect(data).toHaveLength(41);
-          done();
+          expect(data[0].triggeredBy).toBe(anotherProductId);
+          expect(data).toHaveLength(1);
         });
     });
   });

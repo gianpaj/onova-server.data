@@ -91,14 +91,17 @@ function create(
         triggeredType: 'Product',
         onlyPush: false,
       };
-      notifCtrl
-        .createNotification(notif)
-        .then(() => {
-          debug('comment notification created');
-        })
-        .catch(err => {
-          console.error(err);
-        });
+      // don't create a new notification when a comment is inserted by the seller
+      if (product.seller.toString() !== req.user._id.toString()) {
+        notifCtrl
+          .createNotification(notif)
+          .then(() => {
+            debug('comment notification created');
+          })
+          .catch(err => {
+            console.error(err);
+          });
+      }
       // if (config.env == 'prod') {
       //   mixpanel.track('new_comment', props);
       // }
