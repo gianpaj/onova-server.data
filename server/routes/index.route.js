@@ -20,6 +20,8 @@ router.get('/health-check', (req, res) => res.send('OK'));
 router.get('/health-check/json', (req, res) => res.json({ ok: true }));
 
 // mount user routes at /users
+// +
+// mount user notifications routes at /users/notifications
 router.use('/users', userRoutes);
 
 // mount user follow routes at /users/:userId/[follow/unfollow]

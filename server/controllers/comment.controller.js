@@ -1,12 +1,16 @@
 // @flow
 
 import httpStatus from 'http-status';
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
-import config from '../config/config';
 import APIError from '../helpers/APIError';
-import { sendPush } from '../helpers/push';
 import { UserDoc } from '../models/user.model';
 import Product, { ProductDoc } from '../models/product.model';
+import notifCtrl from '../controllers/notification.controller';
+
+const i18n = {
+  newComment: 'new comment from %s',
+};
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -31,7 +35,9 @@ function get(req: session$Request, res: express$Response) {
 }
 
 /**
- * Create new comment
+ * Create new comment and create notification for seller
+ *
+ * TODO: create notification for @mention
  *
  * POST /api/product/:uuid/comment
  *
@@ -71,14 +77,21 @@ function create(
     { new: true }
   )
     .then((product: ProductDoc) => {
-      sendPush({
-        senderId: req.user._id,
-        targetId: req.product.seller._id,
-        productUuid: req.product.id,
-        message: 'wrote a new comment',
-      })
+      const notif: NotifPayload = {
+        data: {
+          text: req.body.text,
+          senderName: req.user.displayName || req.user.username,
+        },
+        notifI18n: i18n.newComment,
+        targetUser: req.product.seller._id,
+        triggeredBy: req.product._id,
+        triggeredType: 'Product',
+        onlyPush: false,
+      };
+      notifCtrl
+        .createNotification(notif)
         .then(() => {
-          console.log(config.JOBNAMES.PUSHCOMMENTS, 'Job successfully saved');
+          debug('comment notification created');
         })
         .catch(err => {
           console.error(err);

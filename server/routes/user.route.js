@@ -3,12 +3,19 @@ import validate from 'express-validation';
 import passport from 'passport';
 
 import paramValidation from '../config/validation/user.validation';
+import notificationCtrl from '../controllers/notification.controller';
 import userCtrl from '../controllers/user.controller';
 import photos from '../helpers/photos';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 
 const router = express.Router();
+
+router
+  .route('/notifications')
+
+  // GET /api/users/notifications - Get user's notifications
+  .get(requireAuth, notificationCtrl.get);
 
 router
   .route('/')
