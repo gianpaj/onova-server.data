@@ -5,6 +5,7 @@ import request from 'supertest';
 import path from 'path';
 
 import { UserDoc } from '../models/user.model';
+import { CommentDoc } from '../models/product.model';
 import Verification from '../models/verification.model';
 import app from '../index';
 
@@ -101,4 +102,44 @@ export function createProduct(
       expect(typeof res.body.data).toBe('object');
       return res.body.data;
     });
+}
+
+/**
+ * Create a comment on a product
+ *
+ * @param {CommentDoc} comment
+ * @param {string} productUuid
+ * @param {string} jwToken
+ * @return {Promise<CommentDoc>}
+ */
+export function createComment(
+  comment: CommentDoc,
+  productUuid: string,
+  jwToken: string
+): Promise<CommentDoc> {
+  return request(app)
+    .post(`/api/products/${productUuid}/comment`)
+    .set('Authorization', jwToken)
+    .send(comment)
+    .expect(httpStatus.CREATED)
+    .then(res => {
+      expect(res.body.data.uuid).toBe(productUuid);
+      return res.body.data;
+    });
+}
+
+export function createManyComments(
+  num: number,
+  productUuid: string,
+  jwtToken: string
+) {
+  const c = 'nice pair of socks';
+
+  const Promises = [];
+  for (let i = 0; i <= num; i++) {
+    Promises.push(createComment(c, productUuid, jwtToken));
+  }
+  return Promise.all(Promises)
+    .then(res => res)
+    .catch(e => e);
 }

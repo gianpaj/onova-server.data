@@ -93,8 +93,10 @@ var ProductSchema = new Schema(
 );
 
 export class ProductDoc /*:: extends Mongoose$Document */ {
+  _id: MongoId;
   categoryIds: Array<Number>;
   comments: Array<MongoId>; // optional
+  createdAt: Date;
   currency: string;
   description: string;
   likes: Array<MongoId>;
@@ -105,6 +107,13 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   tags: Array<string>; // optional
   typeIds: Array<Number>;
   uuid: string;
+}
+
+export class CommentDoc /*:: extends Mongoose$Document */ {
+  _id: MongoId;
+  createdAt: Date;
+  user: string;
+  text: string;
 }
 
 ProductSchema.loadClass(ProductDoc);

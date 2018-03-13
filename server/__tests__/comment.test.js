@@ -11,9 +11,7 @@ import User from '../models/user.model';
 import Product from '../models/product.model';
 import Verification from '../models/verification.model';
 import Notification from '../models/notification.model';
-import { createProduct, createUserAndLogin } from './utils';
-
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 1500;
+import { createComment, createProduct, createUserAndLogin } from './utils';
 
 /**
  * root level hooks
@@ -240,7 +238,11 @@ describe('## Comment APIs', () => {
     });
 
     beforeAll(async () => {
-      const data = await createComment('nice jacket', productUuid, jwtToken);
+      const data = await createComment(
+        { text: 'nice jacket' },
+        productUuid,
+        jwtToken
+      );
       commentIdFirst = data.comment._id;
     });
 
@@ -278,7 +280,11 @@ describe('## Comment APIs', () => {
     });
 
     beforeAll(async () => {
-      const data = await createComment('nice jacket', productUuid, jwtToken);
+      const data = await createComment(
+        { text: 'nice jacket' },
+        productUuid,
+        jwtToken
+      );
       commentIdSecond = data.comment._id;
     });
 
@@ -358,37 +364,3 @@ describe('## Comment APIs', () => {
   //   });
   // });
 });
-
-async function createManyComments(
-  num: number,
-  uuid: string,
-  userId: string,
-  jwtToken: string
-) {
-  const c = 'nice pair of socks';
-
-  const Promises = [];
-  for (let i = 0; i <= num; i++) {
-    Promises.push(createComment(c, uuid, jwtToken));
-  }
-  return Promise.all(Promises)
-    .then(res => res)
-    .catch(e => e);
-}
-
-async function createComment(
-  comment: string,
-  uuid: string,
-  jwtToken: string
-): Promise<any> {
-  return request(app)
-    .post(`/api/products/${uuid}/comment`)
-    .set('Authorization', jwtToken)
-    .send({ text: comment })
-    .expect(httpStatus.CREATED)
-    .then(res => {
-      const { data } = res.body;
-      expect(data.uuid).toBe(uuid);
-      return data;
-    });
-}
