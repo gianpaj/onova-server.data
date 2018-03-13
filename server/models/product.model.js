@@ -207,19 +207,19 @@ const UNIQUE_RETRIES = 9999;
 
 function generateUnique(doc, next) {
   const retries = 0;
-  let shortid;
+  let sid;
 
   // Try to generate a unique ID,
   // i.e. one that isn't in the previous.
-  while (!shortid && retries < UNIQUE_RETRIES) {
-    shortid = shortid.generate();
-    doc.constructor.findOne({ uuid: shortid }).then(
+  while (!sid && retries < UNIQUE_RETRIES) {
+    sid = shortid.generate();
+    doc.constructor.findOne({ uuid: sid }).then(
       docRes => {
         if (docRes) {
-          shortid = null;
+          sid = null;
           return retries++;
         }
-        doc.uuid = shortid;
+        doc.uuid = sid;
         next();
       },
       err => {
@@ -228,7 +228,7 @@ function generateUnique(doc, next) {
     );
   }
 
-  return shortid;
+  return sid;
 }
 
 export default mongoose.model('Product', ProductSchema);
