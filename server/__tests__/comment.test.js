@@ -10,8 +10,8 @@ import Tag from '../models/tag.model';
 import User from '../models/user.model';
 import Product from '../models/product.model';
 import Verification from '../models/verification.model';
-import { createProduct } from './product.test';
-import { createUserAndLogin } from './user.test';
+import Notification from '../models/notification.model';
+import { createProduct, createUserAndLogin } from './utils';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 1500;
 
@@ -88,13 +88,13 @@ let thirdJWTtoken;
 
 describe('## Comment APIs', () => {
   beforeAll(done => {
-    // mongoose.connection.dropDatabase().then(done);
     const collections = [
       Follow.collection,
+      Notification.collection,
+      Product.collection,
       Tag.collection,
       User.collection,
       Verification.collection,
-      Product.collection,
     ];
 
     var todo = collections.length;

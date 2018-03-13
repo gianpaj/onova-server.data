@@ -10,8 +10,7 @@ import Tag from '../models/tag.model';
 import User from '../models/user.model';
 import Product from '../models/product.model';
 import Verification from '../models/verification.model';
-import { createProduct } from './product.test';
-import { createUserAndLogin } from './user.test';
+import { createProduct, createUserAndLogin } from './utils';
 
 /**
  * root level hooks

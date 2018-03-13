@@ -9,8 +9,8 @@ import app from '../index';
 import Verification from '../models/verification.model';
 import User from '../models/user.model';
 import Tag from '../models/tag.model';
-import Product, { ProductDoc } from '../models/product.model';
-import { createUserAndLogin } from './user.test';
+import Product from '../models/product.model';
+import { createProduct, createUserAndLogin } from './utils';
 
 // jest.mock('@google-cloud/storage');
 
@@ -431,27 +431,3 @@ describe('## Product APIs', () => {
     });
   });
 });
-
-/**
- * Create a product with one image
- *
- * @param {ProductDoc} product
- * @param {string} jwToken
- * @return {Promise<ProductDoc>}
- */
-export function createProduct(
-  product: ProductDoc,
-  jwToken: string
-): Promise<ProductDoc> {
-  return request(app)
-    .post('/api/products')
-    .set('Authorization', jwToken)
-    .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-    .field(product)
-    .expect(httpStatus.CREATED)
-    .then(res => {
-      if (!res.body.data) console.error(res.body);
-      expect(typeof res.body.data).toBe('object');
-      return res.body.data;
-    });
-}

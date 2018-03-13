@@ -11,7 +11,7 @@ import User from '../models/user.model';
 import Tag from '../models/tag.model';
 import Product from '../models/product.model';
 import Order from '../models/order.model';
-import { createUserAndLogin } from './user.test';
+import { createUserAndLogin } from './utils';
 
 // GET & PUT /api/orders/ should only return these fields
 const orderFields = [

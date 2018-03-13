@@ -85,6 +85,7 @@
     "forceExit": true,
     "transform": {
       ".js": "<rootDir>/node_modules/babel-jest"
-    }
+    },
+    "testPathIgnorePatterns": ["node_modules", "server/__tests__/utils.js"]
   }
 }
