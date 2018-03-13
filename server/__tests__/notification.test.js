@@ -5,6 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
+
 import Follow from '../models/follow.model';
 import Tag from '../models/tag.model';
 import User from '../models/user.model';
@@ -30,7 +31,15 @@ afterAll(done => {
 });
 
 // GET /api/users/notifications - should only return these fields
-const notifFields = [];
+const notifFields = [
+  'dateCreated',
+  '_id',
+  'data',
+  'notifI18n',
+  'targetUser',
+  'triggeredBy',
+  'triggeredType',
+];
 
 let user = {
   username: 'firstperson',
@@ -124,7 +133,7 @@ describe('## Notification APIs', () => {
   });
 
   describe('# GET /api/users/notifications', () => {
-    // create a comment
+    // create comments
     beforeAll(async () => {
       const c2 = await createComment(
         { text: 'first!' },
@@ -132,7 +141,7 @@ describe('## Notification APIs', () => {
         firstJwtToken
       );
       expect(c2.uuid).toBe(anotherProductUuid);
-      await createManyComments(50, productUuid, anotherJwtToken);
+      await createManyComments(40, productUuid, anotherJwtToken);
     });
 
     it('should get my notifications', async () => {
@@ -142,9 +151,17 @@ describe('## Notification APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
+          // notifId = data[0]._id;
           expect(data[0].triggeredBy).toBe(productId);
-          expect(data).toHaveLength(50);
+          expect(data).toHaveLength(41);
         });
+    });
+
+    it('should not get my notifications without authorization', async () => {
+      return request(app)
+        .get('/api/users/notifications')
+        .set('Authorization', 'asdf')
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
     it('should get another person`s notifications', async () => {
@@ -154,8 +171,45 @@ describe('## Notification APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
+          expect(Object.keys(data[0]).sort()).toEqual(notifFields.sort());
           expect(data[0].triggeredBy).toBe(anotherProductId);
           expect(data).toHaveLength(1);
+        });
+    });
+  });
+
+  describe('# DELETE /api/products/:uuid/comment/:commentId', () => {
+    let commentIdSecond;
+
+    beforeAll(async () => {
+      const data = await createComment(
+        { text: 'love the boots' },
+        productUuid,
+        firstJwtToken
+      );
+      commentIdSecond = data.comment._id;
+
+      return request(app)
+        .delete(`/api/products/${productUuid}/comment/${commentIdSecond}`)
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.uuid).toBe(productUuid);
+          expect(data.length).toBe(41);
+        });
+    });
+
+    it('should not get the deleted comment notification', done => {
+      request(app)
+        .get('/api/users/notifications')
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].triggeredBy).toBe(productId);
+          expect(data).toHaveLength(41);
+          done();
         });
     });
   });

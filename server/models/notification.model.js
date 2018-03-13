@@ -61,7 +61,6 @@ NotificationSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
     delete ret.id;
-    delete ret._id;
     delete ret.__v;
     return ret;
   },

@@ -15,7 +15,7 @@ router
   .route('/notifications')
 
   // GET /api/users/notifications - Get user's notifications
-  .get(requireAuth, notificationCtrl.get);
+  .get(validate(paramValidation.notif), requireAuth, notificationCtrl.get);
 
 router
   .route('/')

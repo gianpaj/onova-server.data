@@ -272,6 +272,7 @@ describe('## Comment APIs', () => {
 
   describe('# DELETE /api/products/:uuid/comment/:commentId', () => {
     let commentIdSecond;
+    let commentIdThird;
 
     beforeAll(done => {
       Product.collection.update({}, { $unset: { comments: '' } }, () => {
@@ -286,6 +287,12 @@ describe('## Comment APIs', () => {
         jwtToken
       );
       commentIdSecond = data.comment._id;
+      const data2 = await createComment(
+        { text: 'nice jacket' },
+        anotherProductUuid,
+        jwtToken
+      );
+      commentIdThird = data2.comment._id;
     });
 
     it('should delete the first product`s comments', async () => {
@@ -310,14 +317,27 @@ describe('## Comment APIs', () => {
         });
     });
 
-    // it('should not get comments if i am not authenticated', async () => {
-    //   return request(app)
-    //     .get(`/api/products/${productUuid}/comment`)
-    //     .expect(httpStatus.UNAUTHORIZED)
-    //     .then();
-    // });
+    it('should not get comments if i am not authenticated', async () => {
+      return request(app)
+        .get(`/api/products/${productUuid}/comment`)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then();
+    });
+
+    it('should not delete the comment of another user', async () => {
+      return request(app)
+        .delete(`/api/products/${anotherProductUuid}/comment/${commentIdThird}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain(
+            'Cannot delete other people`s comment'
+          );
+        });
+    });
   });
 
+  // TODO: test comment's pagination
   // describe('# GET /api/products/:uuid/comment?lastId=', () => {
   //   // delete all Products
   //   beforeAll(done => {

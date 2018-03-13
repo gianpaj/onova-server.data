@@ -87,7 +87,6 @@ function createNotification(notif: notifPayload): Promise<null> {
           console.error(err);
           reject(err);
         });
-      return resolve();
     } else {
       Notification.create({
         data,
@@ -107,28 +106,31 @@ function createNotification(notif: notifPayload): Promise<null> {
 /**
  * Delete a notification. For example, when a comment is deleted
  *
+ * @property {string} type The type of notification (Comment, )
  * @property {string} id
  */
-function removeNotification(id: string): Promise<null> {
+function removeNotification(type: string, id: string): Promise<null> {
   return new Promise((resolve, reject) => {
-    Notification.findById(id)
-      .then((notif: NotificationDoc) => {
-        if (!notif) {
-          const err = new Error('Notification not found');
-          return reject(err);
-        }
+    if (type == 'Comment') {
+      Notification.findOne({ 'data.commentId': id })
+        .then((notif: NotificationDoc) => {
+          if (!notif) {
+            const err = new Error('Notification not found');
+            return reject(err);
+          }
 
-        if (req.user._id.toString() !== notif.targetUser.toString()) {
-          const err = new Error('Cannot delete other people`s notification');
-          return reject(err);
-        }
+          // if (req.user._id.toString() !== notif.targetUser.toString()) {
+          //   const err = new Error('Cannot delete other people`s notification');
+          //   return reject(err);
+          // }
 
-        notfic
-          .remove()
-          .then(() => resolve())
-          .catch(e => reject(e));
-      })
-      .catch(e => reject(e));
+          notif
+            .remove()
+            .then(() => resolve())
+            .catch(e => reject(e));
+        })
+        .catch(e => reject(e));
+    }
   });
 }
 

@@ -82,4 +82,11 @@ export default {
         .required(),
     },
   },
+  notif: {
+    query: {
+      limit: Joi.number()
+        .min(1)
+        .max(50),
+    },
+  },
 };

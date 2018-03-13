@@ -5,7 +5,7 @@ const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
 import { UserDoc } from '../models/user.model';
-import Product, { ProductDoc } from '../models/product.model';
+import Product, { ProductDoc, CommentDoc } from '../models/product.model';
 import notifCtrl from '../controllers/notification.controller';
 
 const i18n = {
@@ -77,10 +77,13 @@ function create(
     { new: true }
   )
     .then((product: ProductDoc) => {
+      const lastCommment: CommentDoc =
+        product.comments[product.comments.length - 1];
       const notif: NotifPayload = {
         data: {
           text: req.body.text,
           senderName: req.user.displayName || req.user.username,
+          commentId: lastCommment._id,
         },
         notifI18n: i18n.newComment,
         targetUser: req.product.seller._id,
@@ -99,7 +102,6 @@ function create(
       // if (config.env == 'prod') {
       //   mixpanel.track('new_comment', props);
       // }
-      const lastCommment = product.comments[product.comments.length - 1];
       return res
         .status(httpStatus.CREATED)
         .json({ data: { comment: lastCommment, uuid: product.uuid } });
@@ -126,7 +128,9 @@ function remove(
 ) {
   const { product } = req;
 
-  const comment = product.comments.find(c => (c._id = req.params.commentId));
+  const comment: CommentDoc = product.comments.find(
+    c => c._id == req.params.commentId
+  );
 
   if (comment === undefined) {
     const APIerr = new APIError(
@@ -150,6 +154,14 @@ function remove(
     { new: true }
   )
     .then((product: ProductDoc) => {
+      notifCtrl
+        .removeNotification('Comment', comment._id)
+        .then(() => {
+          debug('comment notification delete');
+        })
+        .catch(err => {
+          console.error(err);
+        });
       return res.json({
         data: { length: product.comments.length, uuid: product.uuid },
       });
