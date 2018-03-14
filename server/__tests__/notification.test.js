@@ -79,6 +79,7 @@ let anotherProductId;
 let anotherProductUuid;
 let firstJwtToken;
 let anotherJwtToken;
+let lastNotifId;
 
 describe('## Notification APIs', () => {
   beforeAll(done => {
@@ -157,13 +158,37 @@ describe('## Notification APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          // notifId = data[0]._id;
           expect(data[0].triggeredBy).toBe(productId);
           expect(data).toHaveLength(41);
         });
     });
 
-    it('should not get my notifications without authorization', async () => {
+    it('should get my first 20 notifications', async () => {
+      return request(app)
+        .get('/api/users/notifications?limit=20')
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          lastNotifId = data[19]._id;
+          expect(data[0].triggeredBy).toBe(productId);
+          expect(data).toHaveLength(20);
+        });
+    });
+
+    it('should load more notifications', async () => {
+      return request(app)
+        .get(`/api/users/notifications?lastId=${lastNotifId}`)
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].triggeredBy).toBe(productId);
+          expect(data).toHaveLength(20);
+        });
+    });
+
+    it('should not get notifications without authorization', async () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', 'asdf')

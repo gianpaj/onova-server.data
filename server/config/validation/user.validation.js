@@ -87,6 +87,9 @@ export default {
       limit: Joi.number()
         .min(1)
         .max(50),
+      lastId: Joi.string()
+        .hex()
+        .length(24),
     },
   },
 };
