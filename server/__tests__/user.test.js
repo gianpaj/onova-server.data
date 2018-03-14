@@ -376,11 +376,22 @@ describe('## User APIs', () => {
         .send({ password: 'express123' })
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe(user.mobileNumber);
-          expect(res.body.username).toBe(user.username);
-          expect(res.body.accountStatus).toBe('verified');
-          done();
+          const { body } = res;
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.mobileNumber).toBe(user.mobileNumber);
+          expect(body.username).toBe(user.username);
+          expect(body.accountStatus).toBe('verified');
+          return request(app)
+            .post('/api/auth/login')
+            .send({
+              emailAddress: user.emailAddress,
+              password: 'express123',
+            })
+            .expect(httpStatus.OK)
+            .then(res => {
+              expect(res.body).toHaveProperty('token');
+              done();
+            });
         })
         .catch(done);
     });
@@ -456,7 +467,7 @@ describe('## User APIs', () => {
       request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send(tempuser)
+        .send({ pushToken: tempuser.pushToken })
         .expect(httpStatus.OK)
         .then(res => {
           const { body } = res;
@@ -464,7 +475,7 @@ describe('## User APIs', () => {
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
           expect(body.paymentInfo).toEqual(userPaymentInfo);
-          expect(body.pushToken).toEqual('randomStringWith1020Numbers');
+          expect(body.pushToken).toEqual(tempuser.pushToken);
           done();
         })
         .catch(done);
@@ -592,7 +603,6 @@ describe('## User APIs', () => {
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send({
-          ...user,
           emailAddress: 'newemail@example.com',
           username: anotherUser.username,
         })
@@ -604,17 +614,6 @@ describe('## User APIs', () => {
           user.username = 'firstperson';
           done();
         })
-        .catch(done);
-    });
-
-    it('should update a user password', done => {
-      user.password = 'secure123';
-      request(app)
-        .put(`/api/users/${userId}`)
-        .set('Authorization', jwtToken)
-        .send(user)
-        .expect(httpStatus.OK)
-        .then(done())
         .catch(done);
     });
   });
@@ -705,12 +704,8 @@ describe('## User APIs', () => {
           }
 
           Verification.findOne({ user: existingUser._id }, (err, verDoc) => {
-            if (err) {
-              return done(err);
-            }
-            if (!verDoc) {
-              return done('no verification token found');
-            }
+            if (err) return done(err);
+            if (!verDoc) return done('no verification token found');
             resetToken = verDoc.resetToken;
             request(app)
               .post(`/api/auth/reset/${verDoc.resetToken}`)
