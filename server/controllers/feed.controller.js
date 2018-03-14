@@ -1,7 +1,9 @@
 // @flow
 
+import httpStatus from 'http-status';
 // import stream from 'getstream-node';
 
+import APIError from '../helpers/APIError';
 import { UserDoc } from '../models/user.model';
 import Product from '../models/product.model';
 import Follow, { FollowDoc } from '../models/follow.model';
@@ -46,16 +48,32 @@ function flat(
       if (tag) DBquery = { ...DBquery, tags: { $in: [tag] } };
 
       // for pagination - results are excluding the lastId`
-      if (lastId) DBquery = { ...DBquery, _id: { $gte: lastId } };
+      if (lastId) {
+        DBquery = { ...DBquery, _id: { $gte: lastId } };
 
-      return Product.find(DBquery)
-        .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-        .populate({
-          path: 'seller',
-          select: 'username',
-        })
-        .limit(+limit)
-        .then(data => res.json({ data }));
+        return Product.findById(lastId).then(product => {
+          if (!product) {
+            throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+          }
+          return Product.find(DBquery)
+            .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+            .populate({
+              path: 'seller',
+              select: 'username',
+            })
+            .limit(+limit)
+            .then(data => res.json({ data }));
+        });
+      } else {
+        return Product.find(DBquery)
+          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+          .populate({
+            path: 'seller',
+            select: 'username',
+          })
+          .limit(+limit)
+          .then(data => res.json({ data }));
+      }
     })
     .catch(e => next(e));
 }

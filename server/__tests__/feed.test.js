@@ -358,6 +358,16 @@ describe('## Feed APIs', () => {
           expect(data).toHaveLength(50);
         });
     });
+
+    it('should not get feed with load more with a missing lastId', async () => {
+      return request(app)
+        .get(`/api/feed/flat?lastId=5ff999999147a8bd32ea35f6`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.NOT_FOUND)
+        .then(res => {
+          expect(res.body.message).toContain('Product not found');
+        });
+    });
   });
 });
 
