@@ -188,6 +188,16 @@ describe('## Notification APIs', () => {
         });
     });
 
+    it('should not load more notifications with a missing lastId', async () => {
+      return request(app)
+        .get(`/api/users/notifications?lastId=5ff8ef0e9147a8bd32ea35f6`)
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.NOT_FOUND)
+        .then(res => {
+          expect(res.body.message).toContain('Notification not found');
+        });
+    });
+
     it('should not get notifications without authorization', async () => {
       return request(app)
         .get('/api/users/notifications')

@@ -75,9 +75,8 @@ describe('## Follow APIs', () => {
       anotherUserId = user._id;
       anotherJwtToken = jwtToken;
     });
-    return await createUserAndLogin(thirdUser).then(({ user, jwtToken }) => {
+    return await createUserAndLogin(thirdUser).then(({ user }) => {
       thirdUserId = user._id;
-      // anotherJwtToken = jwtToken;
     });
   });
 

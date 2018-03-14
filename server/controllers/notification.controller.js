@@ -1,5 +1,9 @@
 // @flow
 
+import httpStatus from 'http-status';
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
+
+import APIError from '../helpers/APIError';
 import config from '../config/config';
 import { sendPush } from '../helpers/push';
 import { UserDoc } from '../models/user.model';
@@ -40,13 +44,28 @@ function get(
   const { limit = 50, lastId } = req.query;
 
   // for pagination - results are excluding the lastId`
-  if (lastId) DBquery = { ...DBquery, _id: { $gte: lastId } };
+  if (lastId) {
+    DBquery = { ...DBquery, _id: { $gte: lastId } };
 
-  Notification.find(DBquery)
-    .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-    .limit(+limit)
-    .then(data => res.json({ data }))
-    .catch(e => next(e));
+    Notification.findById(lastId)
+      .then(notif => {
+        if (!notif) {
+          throw new APIError('Notification not found.', httpStatus.NOT_FOUND);
+        }
+        Notification.find(DBquery)
+          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+          .limit(+limit)
+          .then(data => res.json({ data }))
+          .catch(e => next(e));
+      })
+      .catch(e => next(e));
+  } else {
+    Notification.find(DBquery)
+      .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+      .limit(+limit)
+      .then(data => res.json({ data }))
+      .catch(e => next(e));
+  }
 }
 
 /**
