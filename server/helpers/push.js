@@ -9,11 +9,13 @@ import type { notifPayload } from '../controllers/notification.controller';
 
 export function sendPush({
   data,
+  notifI18n,
   targetUser,
   triggeredBy,
   triggeredType,
   message,
 }: notifPayload): Promise<null> {
+  // Follow notification
   if (triggeredType == 'User') {
     return User.findById(triggeredBy)
       .then(sender => {
@@ -32,9 +34,8 @@ export function sendPush({
       })
       .then(({ sender, target }: { sender: UserDoc, target: UserDoc }) => {
         const pushData = {
-          message,
+          message: interpolate(notifI18n, { senderName: data.senderName }),
           platform: target.platform,
-          productUuid,
           pushToken: target.pushToken,
           senderId: sender._id,
           senderName: sender.displayName || sender.username,
@@ -97,4 +98,19 @@ export function sendPush({
         console.error(e);
       });
   }
+}
+
+/**
+ * Interpolate string on variables
+ *
+ * Example:
+ *
+ * const template = 'New comment from: ${username}';
+ * interpolate(template, { username: 'Jesus' })
+ * 'New comment from: Jesus'
+ *
+ * From: https://stackoverflow.com/a/41118285/728287
+ */
+function interpolate(tpl: string, args: any) {
+  return tpl.replace(/\${(\w+)}/g, (_, v) => args[v]);
 }

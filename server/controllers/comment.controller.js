@@ -6,7 +6,9 @@ const debug = require('debug')('express-mongoose-es6-rest-api:index');
 import APIError from '../helpers/APIError';
 import { UserDoc } from '../models/user.model';
 import Product, { ProductDoc, CommentDoc } from '../models/product.model';
-import notifCtrl from '../controllers/notification.controller';
+import notifCtrl, {
+  NotifPayload,
+} from '../controllers/notification.controller';
 
 const i18n = {
   newComment: 'new comment from %s',

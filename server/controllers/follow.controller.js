@@ -2,9 +2,17 @@
 
 import httpStatus from 'http-status';
 
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 import APIError from '../helpers/APIError';
 import User, { UserDoc } from '../models/user.model';
 import Follow, { FollowDoc } from '../models/follow.model';
+import notifCtrl, {
+  NotifPayload,
+} from '../controllers/notification.controller';
+
+const i18n = {
+  newFollower: 'new follower from: ${senderName}',
+};
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -84,6 +92,25 @@ function follow(
       return targetUser;
     })
     .then(targetUser => {
+      const notif: NotifPayload = {
+        data: {
+          senderName: req.user.displayName || req.user.username,
+        },
+        notifI18n: i18n.newFollower,
+        targetUser: targetUserId,
+        triggeredBy: req.user._id,
+        triggeredType: 'User',
+        onlyPush: false,
+      };
+      notifCtrl
+        .createNotification(notif)
+        .then(() => {
+          debug('comment notification created');
+        })
+        .catch(err => {
+          console.error(err);
+        });
+
       const doc = new Follow({
         follower: req.user._id,
         following: targetUser._id,

@@ -153,7 +153,7 @@ UserSchema.statics = {
   /**
    * Get user
    *
-   * @param {MongoId} id - The objectId of user.
+   * @param {MongoId} id - The ObjectId of user.
    */
   get(id: string): Promise<UserDoc | APIError> {
     return this.findById(id)

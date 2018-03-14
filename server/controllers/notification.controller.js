@@ -77,7 +77,7 @@ function get(
  * @property {MongoId} notif.targetUser
  * @property {MongoId} notif.triggeredBy
  * @property {string} notif.triggeredType User|Product|Order
- * @property {boolean} notif.onlyPush
+ * @property {boolean} notif.onlyPush (default false)
  */
 function createNotification(notif: notifPayload): Promise<null> {
   const {
@@ -90,34 +90,67 @@ function createNotification(notif: notifPayload): Promise<null> {
   } = notif;
 
   return new Promise((resolve, reject) => {
-    // e.g. order updates
-    if (onlyPush) {
+    if (triggeredType == 'User') {
       sendPush({
-        targetUser,
-        triggeredBy,
-        triggeredType,
-        message: shorten(data.text, 40),
-      })
-        .then(() => {
-          console.log(config.JOBNAMES.PUSHCOMMENTS, 'Job successfully saved');
-          resolve();
-        })
-        .catch(err => {
-          console.error(err);
-          reject(err);
-        });
-    } else {
-      Notification.create({
         data,
         notifI18n,
         targetUser,
         triggeredBy,
         triggeredType,
       })
-        .then(doc => {
-          resolve(doc);
+        .then(() => {
+          debug(config.JOBNAMES.PUSHCOMMENTS, 'Job successfully saved');
+          resolve();
         })
-        .catch(e => reject(e));
+        .catch(err => {
+          console.error(err);
+          reject(err);
+        });
+      // e.g. order updates
+      if (!onlyPush) {
+        Notification.create({
+          data,
+          notifI18n,
+          targetUser,
+          triggeredBy,
+          triggeredType,
+        })
+          .then(doc => {
+            resolve(doc);
+          })
+          .catch(e => reject(e));
+      }
+    } else if (triggeredType == 'Product') {
+      // comment notification to seller
+      sendPush({
+        data,
+        targetUser,
+        triggeredBy,
+        triggeredType,
+        message: shorten(data.text, 40),
+      })
+        .then(() => {
+          debug(config.JOBNAMES.PUSHCOMMENTS, 'Job successfully saved');
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(err);
+        });
+      // e.g. order updates
+      if (!onlyPush) {
+        Notification.create({
+          data,
+          notifI18n,
+          targetUser,
+          triggeredBy,
+          triggeredType,
+        })
+          .then(doc => {
+            resolve(doc);
+          })
+          .catch(e => reject(e));
+      }
     }
   });
 }

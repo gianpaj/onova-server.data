@@ -255,4 +255,34 @@ describe('## Notification APIs', () => {
         });
     });
   });
+
+  describe('# Follow and Notify', () => {
+    // firstUser --follows--> anotherUser
+    beforeAll(async () => {
+      return request(app)
+        .post(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(userId);
+          expect(data.following).toBe(anotherUserId);
+          expect(Object.keys(data).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
+        });
+    });
+
+    it('should create a notification for the person being followed', async () => {
+      return request(app)
+        .get('/api/users/notifications')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].triggeredBy).toBe(userId);
+          expect(data).toHaveLength(2);
+        });
+    });
+  });
 });
