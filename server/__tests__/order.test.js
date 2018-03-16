@@ -440,27 +440,11 @@ describe('## Order APIs', () => {
       });
     });
 
-    it('should set an order status to `paid`', async () => {
-      return request(app)
-        .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', jwtToken)
-        .send({ status: 'paid' })
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'datePaid'].sort()
-          );
-          expect(o.priceOfItem).toBe(productPOST1.price);
-          expect(o.status).toBe('paid');
-        });
-    });
-
     it('should not update an order that`s not mine', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
         .set('Authorization', jwtToken)
-        .send({ status: 'paid' })
+        .send({ status: 'cancelled' })
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
           expect(res.body.message).toBe('Unauthorized');
@@ -489,7 +473,8 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'datePaid', 'dateShipped'].sort()
+            // TODO: after payment is tested it should return 'datePaid'
+            [...orderFields, 'dateShipped'].sort()
           );
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.status).toBe('shipped');
@@ -505,7 +490,8 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'datePaid', 'dateShipped', 'dateCompleted'].sort()
+            // TODO: after payment is tested it should return 'datePaid'
+            [...orderFields, 'dateShipped', 'dateCompleted'].sort()
           );
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.status).toBe('completed');
@@ -540,20 +526,6 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not set an order to `paid` if it was already `shipped`, `completed` or `cancelled`', async () => {
-      return request(app)
-        .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', jwtToken)
-        .send({ status: 'paid' })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe(
-            'cannot set an order status to paid if its not pending first'
-          );
-          expect(res.body.ok).toBe(false);
-        });
-    });
-
     it('should not set an order to an invalid status', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
@@ -562,7 +534,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"status" must be one of [pending, paid, shipped, completed, cancelled]'
+            '"status" must be one of [shipped, completed, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -576,10 +548,10 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
+          // TODO: after payment is tested it should return 'datePaid'
           expect(Object.keys(o).sort()).toEqual(
             [
               ...orderFields,
-              'datePaid',
               'dateShipped',
               'dateCompleted',
               'paymentMethod',

@@ -22,8 +22,6 @@ export default {
     },
     body: {
       status: Joi.string().only([
-        'pending',
-        'paid',
         'shipped',
         'completed',
         'cancelled',
