@@ -23,7 +23,7 @@ export default {
     body: {
       status: Joi.string().only([
         'pending',
-        'purchased',
+        'paid',
         'shipped',
         'completed',
         'cancelled',

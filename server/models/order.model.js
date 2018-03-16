@@ -31,7 +31,7 @@ var OrderSchema = new Schema(
       required: true,
       default: Date.now,
     },
-    datePurchased: {
+    datePaid: {
       type: Date,
     },
     dateShipped: {
@@ -86,7 +86,7 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   dateCancelled: ?Date;
   dateCompleted: ?Date;
   datePending: Date;
-  datePurchased: ?Date;
+  datePaid: ?Date;
   dateShipped: ?Date;
   onovaFee: number;
   paymentMethod: ?string;

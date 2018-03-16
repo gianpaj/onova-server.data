@@ -137,7 +137,7 @@ function update(req: session$Request, res: express$Response) {
 
   const foundOrder = req.order;
 
-  // can go only from either 'purchased' or 'pending' -> 'cancelled'
+  // can go only from either 'paid' or 'pending' -> 'cancelled'
   if (
     ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
     newStatus == 'cancelled'
@@ -155,24 +155,24 @@ function update(req: session$Request, res: express$Response) {
     );
   }
 
-  // can go only from either 'purchased' or 'shipped' -> 'completed'
+  // can go only from either 'paid' or 'shipped' -> 'completed'
   if (foundOrder.status == 'pending' && newStatus == 'completed') {
     throw new APIError('cannot complete an order that is pending', 400);
   }
 
-  // can go only from either 'pending' -> 'purchased'
+  // can go only from either 'pending' -> 'paid'
   if (
     ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-    newStatus == 'purchased'
+    newStatus == 'paid'
   ) {
     throw new APIError(
-      'cannot set an order status to purchased if its not pending first',
+      'cannot set an order status to paid if its not pending first',
       400
     );
   }
 
-  if (newStatus == 'purchased') {
-    foundOrder.datePurchased = new Date();
+  if (newStatus == 'paid') {
+    foundOrder.datePaid = new Date();
   }
 
   if (newStatus == 'shipped') {
