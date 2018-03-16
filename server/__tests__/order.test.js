@@ -11,7 +11,7 @@ import User from '../models/user.model';
 import Tag from '../models/tag.model';
 import Product from '../models/product.model';
 import Order from '../models/order.model';
-import { createUserAndLogin } from './utils';
+import { createUserAndLogin, createProduct } from './utils';
 
 // GET & PUT /api/orders/ should only return these fields
 const orderFields = [
@@ -156,78 +156,27 @@ describe('## Order APIs', () => {
     beforeAll(done => {
       let Promises = [];
       Promises.push(
-        new Promise((resolve, reject) => {
-          return request(app)
-            .post('/api/products')
-            .set('Authorization', jwtToken)
-            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-            .field(product)
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const p = res.body.data;
-              expect(p.currency).toBe('UAH');
-              expect(p.description).toBe(product.description);
-              expect(p.price).toBe(product.price);
-              // flow-disable-next-line
-              expect(p.seller).toBe(user._id);
-              expect(p.status).toBe('forsale');
-              productUuid = p.uuid;
-              resolve();
-            })
-            .catch(() => reject());
+        createProduct(product, jwtToken).then(p => {
+          productUuid = p.uuid;
         })
       );
       Promises.push(
-        new Promise((resolve, reject) => {
-          return request(app)
-            .post('/api/products')
-            .set('Authorization', anotherJwtToken)
-            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-            .field(thirdProduct)
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const p = res.body.data;
-              expect(p.currency).toBe('UAH');
-              expect(p.description).toBe(thirdProduct.description);
-              expect(p.price).toBe(thirdProduct.price);
-              // flow-disable-next-line
-              expect(p.seller).toBe(anotherUser._id);
-              expect(p.status).toBe('forsale');
-              thirdProductUuid = p.uuid;
-              resolve();
-            })
-            .catch(() => reject());
+        createProduct(thirdProduct, anotherJwtToken).then(p => {
+          thirdProductUuid = p.uuid;
         })
       );
 
+      // create product and delete it
       Promises.push(
-        new Promise((resolve, reject) => {
+        createProduct(anotherProduct, jwtToken).then(p => {
+          anotherProductUuid = p.uuid;
           return request(app)
-            .post('/api/products')
+            .delete(`/api/products/${anotherProductUuid}`)
             .set('Authorization', jwtToken)
-            .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
-            .field(anotherProduct)
-            .expect(httpStatus.CREATED)
+            .expect(httpStatus.NO_CONTENT)
             .then(res => {
-              const p = res.body.data;
-              expect(p.currency).toBe('UAH');
-              expect(p.description).toBe(anotherProduct.description);
-              expect(p.price).toBe(anotherProduct.price);
-              // flow-disable-next-line
-              expect(p.seller).toBe(user._id);
-              expect(p.status).toBe('forsale');
-              anotherProductUuid = p.uuid;
-
-              return request(app)
-                .delete(`/api/products/${anotherProductUuid}`)
-                .set('Authorization', jwtToken)
-                .expect(httpStatus.NO_CONTENT)
-                .then(res => {
-                  expect(res.body).toMatchObject({});
-                  resolve();
-                });
-            })
-            .catch(() => reject());
+              expect(res.body).toMatchObject({});
+            });
         })
       );
 
@@ -332,91 +281,51 @@ describe('## Order APIs', () => {
       description: 'nice bo0ts',
       price: '900.99',
     };
-    let productGET1_uuid;
+    let orderGET1;
+
     const productGET2 = {
       categoryIds: [1],
       typeIds: [1],
       description: 'shiny shoes',
       price: '440.99',
     };
-    let productGET2_uuid;
-    let orderGET1;
 
     beforeAll(done => {
       let Promises = [];
       Promises.push(
-        new Promise((resolve, reject) => {
-          request(app)
-            .post('/api/products')
-            .set('Authorization', anotherJwtToken)
-            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-            .field(productGET1)
+        createProduct(productGET1, anotherJwtToken).then(product => {
+          return request(app)
+            .post('/api/orders')
+            .set('Authorization', jwtToken)
+            .send({ product: product.uuid })
             .expect(httpStatus.CREATED)
             .then(res => {
-              const p = res.body.data;
-              expect(p.description).toBe(productGET1.description);
-              expect(p.price).toBe(productGET1.price);
-              // flow-disable-next-line
-              expect(p.seller).toBe(anotherUser._id);
-              productGET1_uuid = p.uuid;
-              return productGET1_uuid;
-            })
-            .then(p_uuid => {
-              request(app)
-                .post('/api/orders')
-                .set('Authorization', jwtToken)
-                .send({ product: p_uuid })
-                .expect(httpStatus.CREATED)
-                .then(res => {
-                  const o = res.body.data;
-                  expect(o.onovaFee).toBe((productGET1.price * 1).toString());
-                  expect(o.priceOfItem).toBe(productGET1.price);
-                  orderGET1 = o.id;
-                  resolve();
-                });
-            })
-            .catch(e => reject(e));
+              const o = res.body.data;
+              expect(o.onovaFee).toBe((productGET1.price * 1).toString());
+              expect(o.priceOfItem).toBe(productGET1.price);
+              orderGET1 = o.id;
+            });
         })
       );
 
       Promises.push(
-        new Promise((resolve, reject) => {
-          request(app)
-            .post('/api/products')
-            .set('Authorization', jwtToken)
-            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-            .field(productGET2)
+        createProduct(productGET2, jwtToken).then(product => {
+          return request(app)
+            .post('/api/orders')
+            .set('Authorization', anotherJwtToken)
+            .send({ product: product.uuid })
             .expect(httpStatus.CREATED)
             .then(res => {
-              const p = res.body.data;
-              expect(p.description).toBe(productGET2.description);
-              // flow-disable-next-line
-              expect(p.seller).toBe(user._id);
-              productGET2_uuid = p.uuid;
-              return productGET2_uuid;
-            })
-            .then(p_uuid => {
-              request(app)
-                .post('/api/orders')
-                .set('Authorization', anotherJwtToken)
-                .send({ product: p_uuid })
-                .expect(httpStatus.CREATED)
-                .then(res => {
-                  const o = res.body.data;
-                  expect(o.onovaFee).toBe((productGET2.price * 1).toString());
-                  expect(o.priceOfItem).toBe(productGET2.price);
-                  // orderGET2 = o.id;
-                  resolve();
-                });
-            })
-            .catch(e => reject(e));
+              const o = res.body.data;
+              expect(o.onovaFee).toBe((productGET2.price * 1).toString());
+              expect(o.priceOfItem).toBe(productGET2.price);
+              // orderGET2 = o.id;
+            });
         })
       );
 
       Promise.all(Promises)
-        .then(() => {
-          done();
-        })
+        .then(() => done())
         .catch(err => {
           console.error(err);
           done(err);
@@ -489,78 +398,40 @@ describe('## Order APIs', () => {
       description: 'my old panties',
       price: '99900.59',
     };
-    let productPOST1_uuid;
-    let productPOST2_uuid;
     let orderPOST1;
     let orderPOST2;
 
     beforeAll(done => {
       let Promises = [];
       Promises.push(
-        new Promise((resolve, reject) => {
+        createProduct(productPOST1, anotherJwtToken).then(product => {
           return request(app)
-            .post('/api/products')
-            .set('Authorization', anotherJwtToken)
-            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-            .field(productPOST1)
+            .post('/api/orders')
+            .set('Authorization', jwtToken)
+            .send({ product: product.uuid })
             .expect(httpStatus.CREATED)
             .then(res => {
-              const p = res.body.data;
-              expect(p.description).toBe(productPOST1.description);
-              // flow-disable-next-line
-              expect(p.seller).toBe(anotherUser._id);
-              productPOST1_uuid = p.uuid;
-              return productPOST1_uuid;
-            })
-            .then(p_uuid => {
-              return request(app)
-                .post('/api/orders')
-                .set('Authorization', jwtToken)
-                .send({ product: p_uuid })
-                .expect(httpStatus.CREATED)
-                .then(res => {
-                  const o = res.body.data;
-                  expect(o.onovaFee).toBe((productPOST1.price * 1).toString());
-                  expect(o.priceOfItem).toBe(productPOST1.price);
-                  orderPOST1 = o.id;
-                  resolve();
-                });
-            })
-            .catch(() => reject());
+              const o = res.body.data;
+              expect(o.onovaFee).toBe((productPOST1.price * 1).toString());
+              expect(o.priceOfItem).toBe(productPOST1.price);
+              orderPOST1 = o.id;
+            });
         })
       );
 
       Promises.push(
-        new Promise((resolve, reject) => {
+        createProduct(productPOST2, jwtToken).then(product => {
           return request(app)
-            .post('/api/products')
-            .set('Authorization', jwtToken)
-            .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-            .field(productPOST2)
+            .post('/api/orders')
+            .set('Authorization', anotherJwtToken)
+            .send({ product: product.uuid })
             .expect(httpStatus.CREATED)
             .then(res => {
-              const p = res.body.data;
-              expect(p.description).toBe(productPOST2.description);
-              // flow-disable-next-line
-              expect(p.seller).toBe(user._id);
-              productPOST2_uuid = p.uuid;
-              return productPOST2_uuid;
-            })
-            .then(p_uuid => {
-              return request(app)
-                .post('/api/orders')
-                .set('Authorization', anotherJwtToken)
-                .send({ product: p_uuid })
-                .expect(httpStatus.CREATED)
-                .then(res => {
-                  const o = res.body.data;
-                  expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
-                  expect(o.priceOfItem).toBe(productPOST2.price);
-                  orderPOST2 = o.id;
-                  resolve();
-                });
-            })
-            .catch(() => reject());
+              const o = res.body.data;
+              expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+              expect(o.priceOfItem).toBe(productPOST2.price);
+              orderPOST2 = o.id;
+            });
         })
       );
 
@@ -634,12 +505,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(
-            [
-              ...orderFields,
-              'datePaid',
-              'dateShipped',
-              'dateCompleted',
-            ].sort()
+            [...orderFields, 'datePaid', 'dateShipped', 'dateCompleted'].sort()
           );
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.status).toBe('completed');
