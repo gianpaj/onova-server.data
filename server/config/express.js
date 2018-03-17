@@ -10,6 +10,7 @@ import methodOverride from 'method-override';
 import cors from 'cors';
 import httpStatus from 'http-status';
 import expressWinston from 'express-winston';
+import winston from 'winston';
 import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
@@ -71,7 +72,7 @@ app.set('view engine', 'pug');
 // HTTPS and forwarding proxies for App Engine
 app.set('trust proxy', true);
 
-// enable detailed API logging in dev env
+// enable detailed API console logging in dev env
 if (config.env === 'development') {
   expressWinston.requestWhitelist.push('body');
   expressWinston.responseWhitelist.push('body');
@@ -82,6 +83,12 @@ if (config.env === 'development') {
       msg:
         'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
       colorize: true, // Color the status code (default green, 3XX cyan, 4XX yellow, 5XX red).
+    })
+  );
+} else if (config.env === 'production') {
+  app.use(
+    expressWinston.logger({
+      transports: [ new winston.transports.File({ filename: 'access.log' })],
     })
   );
 }
@@ -111,16 +118,26 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
   return next(err);
 });
 
-// log error in winston transports except when executing test suite
-if (config.env !== 'test') {
+// log error in winston transports in development
+if (config.env == 'development') {
   app.use(
     expressWinston.errorLogger({
       winstonInstance,
     })
   );
+} else if (config.env == 'production') {
+  // log errors to files
+  app.use(
+    expressWinston.errorLogger({
+      transports: [new winston.transports.File({ filename: 'error.log' })],
+      exceptionHandlers: [
+        new winston.transports.File({ filename: 'exceptions.log' }),
+      ],
+    })
+  );
 }
 
-// if (config.env == 'prod') {
+// if (config.env == 'production') {
 //   // send the mongoose instance with registered models to StreamMongoose
 //   stream.mongoose.setupMongoose(mongoose);
 // }

@@ -5,6 +5,7 @@ const logger = new winston.Logger({
     new winston.transports.Console({
       json: true,
       colorize: true,
+      dumpExceptions: true,
     }),
   ],
 });
