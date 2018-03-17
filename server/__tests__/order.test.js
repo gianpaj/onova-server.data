@@ -2,7 +2,6 @@
 
 import request from 'supertest';
 import httpStatus from 'http-status';
-import path from 'path';
 
 import app from '../index';
 // import config from '../config/config';

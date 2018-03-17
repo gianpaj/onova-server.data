@@ -1,8 +1,6 @@
 import Joi from 'joi';
 import validate from 'express-validation';
 
-import validation from '../../helpers/validation';
-
 // assign options
 validate.options({
   allowUnknownBody: false,

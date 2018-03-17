@@ -94,7 +94,6 @@ describe('## User APIs', () => {
 
   let userId;
   let anotherUserId;
-  let thirdUserId;
   let jwtToken;
   let anotherJwtToken;
   let activationToken;

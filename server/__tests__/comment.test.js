@@ -108,7 +108,7 @@ describe('## Comment APIs', () => {
   // create 2 users/sellers + 2 products
   beforeAll(done => {
     createUserAndLogin(user)
-      .then(({ user, jwtToken: token }) => {
+      .then(({ jwtToken: token }) => {
         // userId = user._id;
         jwtToken = token;
       })
@@ -140,12 +140,10 @@ describe('## Comment APIs', () => {
         return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
       })
       .then(async () => {
-        return createUserAndLogin(anotherUser).then(
-          ({ user, jwtToken: token }) => {
-            // anotherUserId = user._id;
-            anotherJwtToken = token;
-          }
-        );
+        return createUserAndLogin(anotherUser).then(({ jwtToken: token }) => {
+          // anotherUserId = user._id;
+          anotherJwtToken = token;
+        });
       })
       .then(async () => {
         const p1 = await createProduct(product, jwtToken);
