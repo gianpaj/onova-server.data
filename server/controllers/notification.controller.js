@@ -192,22 +192,18 @@ function createNotification(notif: notifPayload): Promise<null> {
 function removeNotification(type: string, id: string): Promise<null> {
   return new Promise((resolve, reject) => {
     if (type == 'Comment') {
-      Notification.findOne({ 'data.commentId': id })
+      Notification.findOneAndRemove({ 'data.commentId': id })
         .then((notif: NotificationDoc) => {
           if (!notif) {
             const err = new Error('Notification not found');
             return reject(err);
           }
+          resolve();
 
           // if (req.user._id.toString() !== notif.targetUser.toString()) {
           //   const err = new Error('Cannot delete other people`s notification');
           //   return reject(err);
           // }
-
-          notif
-            .remove()
-            .then(() => resolve())
-            .catch(e => reject(e));
         })
         .catch(e => reject(e));
     }

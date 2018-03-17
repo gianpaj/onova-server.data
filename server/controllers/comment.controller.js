@@ -93,7 +93,7 @@ function create(
         triggeredType: 'Product',
         onlyPush: false,
       };
-      // don't create a new notification when a comment is inserted by the seller
+      // only create a new notification if the comment is not by the seller
       if (product.seller.toString() !== req.user._id.toString()) {
         notifCtrl
           .createNotification(notif)
@@ -159,14 +159,17 @@ function remove(
     { new: true }
   )
     .then((product: ProductDoc) => {
-      notifCtrl
-        .removeNotification('Comment', comment._id)
-        .then(() => {
-          debug('comment notification delete');
-        })
-        .catch(err => {
-          console.error(err);
-        });
+      // only try to delete a new notification when the comment is not from the seller
+      if (product.seller.toString() !== req.user._id.toString()) {
+        notifCtrl
+          .removeNotification('Comment', comment._id)
+          .then(() => {
+            debug('comment notification delete');
+          })
+          .catch(err => {
+            console.error(err);
+          });
+      }
       return res.json({
         data: { length: product.comments.length, uuid: product.uuid },
       });

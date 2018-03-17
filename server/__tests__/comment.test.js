@@ -271,6 +271,7 @@ describe('## Comment APIs', () => {
   describe('# DELETE /api/products/:uuid/comment/:commentId', () => {
     let commentIdSecond;
     let commentIdThird;
+    let commentIdReply;
 
     beforeAll(done => {
       Product.collection.update({}, { $unset: { comments: '' } }, () => {
@@ -279,24 +280,30 @@ describe('## Comment APIs', () => {
     });
 
     beforeAll(async () => {
-      const data = await createComment(
+      const data2 = await createComment(
         { text: 'nice jacket' },
         productUuid,
-        jwtToken
+        anotherJwtToken
       );
-      commentIdSecond = data.comment._id;
-      const data2 = await createComment(
+      commentIdSecond = data2.comment._id;
+      const data3 = await createComment(
         { text: 'nice jacket' },
         anotherProductUuid,
         jwtToken
       );
-      commentIdThird = data2.comment._id;
+      commentIdThird = data3.comment._id;
+      const data4 = await createComment(
+        { text: 'thanks for the comment @firstperson' },
+        anotherProductUuid,
+        anotherJwtToken
+      );
+      commentIdReply = data4.comment._id;
     });
 
-    it('should delete the first product`s comments', async () => {
+    it('should delete the first product`s comment', async () => {
       return request(app)
         .delete(`/api/products/${productUuid}/comment/${commentIdSecond}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
@@ -308,7 +315,7 @@ describe('## Comment APIs', () => {
     it('should not delete a comment that doesn`t exist', async () => {
       return request(app)
         .delete(`/api/products/${productUuid}/comment/${commentIdSecond}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', anotherJwtToken)
         .expect(httpStatus.NOT_FOUND)
         .then(res => {
           expect(res.body.message).toContain('Comment not found');
@@ -331,6 +338,18 @@ describe('## Comment APIs', () => {
           expect(res.body.message).toContain(
             'Cannot delete other people`s comment'
           );
+        });
+    });
+
+    it('should delete a product`s seller`s reply comment', async () => {
+      return request(app)
+        .delete(`/api/products/${anotherProductUuid}/comment/${commentIdReply}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.uuid).toBe(anotherProductUuid);
+          expect(data.length).toBe(1);
         });
     });
   });
