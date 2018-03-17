@@ -330,7 +330,7 @@ describe('## Feed APIs', () => {
 
     beforeAll(async () => {
       const a = await createManyProducts(105, firstJwtToken);
-      if (typeof a == Error) console.error(a);
+      if (a instanceof Error) console.error(a);
     });
 
     let lastId;
@@ -372,7 +372,7 @@ describe('## Feed APIs', () => {
 });
 
 async function createManyProducts(num: number, jwtToken: string) {
-  const p = {
+  let p = {
     categoryIds: [2],
     typeIds: [1, 4],
     tags: ['warm', 'bundle'],
@@ -381,6 +381,7 @@ async function createManyProducts(num: number, jwtToken: string) {
 
   const items = [];
   for (let i = 0; i <= num; i++) {
+    // $FlowFixMe
     p.price = Math.floor(Math.random() * 50);
     items.push(p);
   }

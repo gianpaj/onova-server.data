@@ -5,7 +5,7 @@ import request from 'supertest';
 import path from 'path';
 
 import { UserDoc } from '../models/user.model';
-import { CommentDoc } from '../models/product.model';
+import { CommentDoc, ProductDoc } from '../models/product.model';
 import Verification from '../models/verification.model';
 import app from '../index';
 
@@ -50,7 +50,7 @@ export function createUserAndLogin(
       // flow-disable-next-line
       return Verification.findOne({ user: resUser._id }).then(verDoc => {
         if (!verDoc) {
-          return done('no verification token found');
+          throw Error('no verification token found');
         }
         return { resetToken: verDoc.resetToken, resUser };
       });

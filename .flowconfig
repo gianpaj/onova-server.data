@@ -3,6 +3,8 @@
 <PROJECT_ROOT>/coverage/.*
 <PROJECT_ROOT>/dist/.*
 
+<PROJECT_ROOT>/flow-typed/.*
+
 [include]
 
 [libs]
@@ -10,6 +12,19 @@
 [lints]
 
 [options]
+emoji=true
+
+module.system=haste
+
+munge_underscores=true
+
+module.file_ext=.js
+module.file_ext=.jsx
+module.file_ext=.json
+
+suppress_type=$FlowIssue
+suppress_type=$FlowFixMe
+
 suppress_comment= \\(.\\|\n\\)*\\flow-disable-next-line
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
 

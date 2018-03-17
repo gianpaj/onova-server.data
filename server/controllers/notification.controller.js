@@ -13,17 +13,17 @@ declare class session$Request extends express$Request {
   user: UserDoc;
 }
 
-export type notifPayload = {
+declare class notifPayload {
   data: {
     text: ?string,
     senderName: ?string,
-  },
-  notifI18n: string,
-  targetUser: string,
-  triggeredBy: string,
-  triggeredType: string,
-  onlyPush: boolean,
-};
+  };
+  notifI18n: string;
+  targetUser: string;
+  triggeredBy: string;
+  triggeredType: string;
+  onlyPush: boolean;
+}
 
 /**
  * Get user's notifications

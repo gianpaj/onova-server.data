@@ -137,7 +137,6 @@ describe('## User APIs', () => {
           expect(resUser.followingCount).toBe(0);
           expect(typeof res.body.token).toBe('string');
           expect(Object.keys(resUser).sort()).toEqual(userFields.sort());
-          thirdUserId = resUser._id;
 
           done();
         })
