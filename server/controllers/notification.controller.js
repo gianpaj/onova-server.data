@@ -13,8 +13,8 @@ declare class session$Request extends express$Request {
   user: UserDoc;
 }
 
-declare class notifPayload {
-  data: {
+export class NotifPayload {
+  data: ?{
     text: ?string,
     senderName: ?string,
   };
@@ -22,7 +22,7 @@ declare class notifPayload {
   targetUser: string;
   triggeredBy: string;
   triggeredType: string;
-  onlyPush: boolean;
+  onlyPush: ?boolean;
 }
 
 /**
@@ -90,6 +90,7 @@ function createNotification(notif: notifPayload): Promise<null> {
   } = notif;
 
   return new Promise((resolve, reject) => {
+    // New follower
     if (triggeredType == 'User') {
       sendPush({
         data,
@@ -99,14 +100,14 @@ function createNotification(notif: notifPayload): Promise<null> {
         triggeredType,
       })
         .then(() => {
-          debug(config.JOBNAMES.PUSHCOMMENTS, 'Job successfully saved');
+          debug(config.JOBNAMES.PUSHFOLLOW, 'Job successfully saved');
           resolve();
         })
         .catch(err => {
           console.error(err);
           reject(err);
         });
-      // e.g. order updates
+
       if (!onlyPush) {
         Notification.create({
           data,
@@ -121,7 +122,7 @@ function createNotification(notif: notifPayload): Promise<null> {
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Product') {
-      // comment notification to seller
+      // New comment notification to seller
       sendPush({
         data,
         targetUser,
@@ -130,14 +131,14 @@ function createNotification(notif: notifPayload): Promise<null> {
         message: shorten(data.text, 40),
       })
         .then(() => {
-          debug(config.JOBNAMES.PUSHCOMMENTS, 'Job successfully saved');
+          debug(config.JOBNAMES.PUSHCOMMENT, 'Job successfully saved');
           resolve();
         })
         .catch(err => {
           console.error(err);
           reject(err);
         });
-      // e.g. order updates
+
       if (!onlyPush) {
         Notification.create({
           data,
@@ -151,6 +152,33 @@ function createNotification(notif: notifPayload): Promise<null> {
           })
           .catch(e => reject(e));
       }
+    } else if (triggeredType == 'Order') {
+      // New Order
+      sendPush({
+        targetUser,
+        triggeredBy,
+        triggeredType,
+        message: notifI18n,
+      })
+        .then(() => {
+          debug(config.JOBNAMES.PUSHORDER, 'Job successfully saved');
+          resolve();
+        })
+        .catch(err => {
+          console.error(err);
+          reject(err);
+        });
+      Notification.create({
+        data,
+        notifI18n,
+        targetUser,
+        triggeredBy,
+        triggeredType,
+      })
+        .then(doc => {
+          resolve(doc);
+        })
+        .catch(e => reject(e));
     }
   });
 }

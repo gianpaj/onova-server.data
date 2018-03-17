@@ -102,6 +102,7 @@ function follow(
         triggeredType: 'User',
         onlyPush: false,
       };
+
       notifCtrl
         .createNotification(notif)
         .then(() => {

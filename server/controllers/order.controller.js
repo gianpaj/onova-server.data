@@ -1,14 +1,23 @@
 // @flow
 
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
+
 import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
 import { UserDoc } from '../models/user.model';
+import notifCtrl, {
+  NotifPayload,
+} from '../controllers/notification.controller';
 
 declare class express$Request extends express$Request {
   order: OrderDoc;
   user: UserDoc;
 }
+
+const i18n = {
+  newOrder: 'Congrats! 🎉 You have a new order',
+};
 
 const ONOVA_RATE = 1; // 1 = 0 % -- 1.2 = 20%
 
@@ -106,6 +115,22 @@ function create(
       return order.save();
     })
     .then(savedOrder => {
+      const notif: NotifPayload = {
+        notifI18n: i18n.newOrder,
+        targetUser: foundProduct.seller._id,
+        triggeredBy: savedOrder._id,
+        triggeredType: 'Order',
+      };
+
+      notifCtrl
+        .createNotification(notif)
+        .then(() => {
+          debug('newOrder notification created');
+        })
+        .catch(err => {
+          console.error(err);
+        });
+
       return res.status(201).json({ data: savedOrder });
     })
     .catch(e => {
@@ -160,20 +185,21 @@ function update(req: session$Request, res: express$Response) {
     throw new APIError('cannot complete an order that is pending', 400);
   }
 
-  // can go only from either 'pending' -> 'paid'
-  if (
-    ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-    newStatus == 'paid'
-  ) {
-    throw new APIError(
-      'cannot set an order status to paid if its not pending first',
-      400
-    );
-  }
+  // TODO: move this to a function that changes the state and keeps a transition log
+  // // can go only from either 'pending' -> 'paid'
+  // if (
+  //   ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
+  //   newStatus == 'paid'
+  // ) {
+  //   throw new APIError(
+  //     'cannot set an order status to paid if its not pending first',
+  //     400
+  //   );
+  // }
 
-  if (newStatus == 'paid') {
-    foundOrder.datePaid = new Date();
-  }
+  // if (newStatus == 'paid') {
+  //   foundOrder.datePaid = new Date();
+  // }
 
   if (newStatus == 'shipped') {
     foundOrder.dateShipped = new Date();

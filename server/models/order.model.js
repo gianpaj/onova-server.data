@@ -26,6 +26,9 @@ var OrderSchema = new Schema(
     dateCompleted: {
       type: Date,
     },
+    dateDelivered: {
+      type: Date,
+    },
     datePending: {
       type: Date,
       required: true,
@@ -37,13 +40,16 @@ var OrderSchema = new Schema(
     dateShipped: {
       type: Date,
     },
+    dateReadyforShipment: {
+      type: Date,
+    },
     onovaFee: {
       type: Schema.Types.Decimal128,
       required: true,
     },
     paymentMethod: {
       type: String,
-      enum: ['paypal', 'liqpay'],
+      enum: ['paypal', 'uapay'],
     },
     priceOfItem: {
       type: Schema.Types.Decimal128,
@@ -63,15 +69,52 @@ var OrderSchema = new Schema(
       type: String,
       required: true,
       default: 'pending',
-      enum: ['pending', 'purchased', 'shipped', 'completed', 'cancelled'],
+      enum: [
+        // Unpaid - Customer started the checkout process but did not complete it. Product status is still 'forsale' [If we can freeze funds - Plan B]
+        'pending',
+        // Awaiting seller confirmation to allow buyer to make payment – Product status is now 'reserved'
+        'onhold',
+        // Payment successful - # 1 Step in UI - Product status is 'sold' and is ready for shipment. Tracking number has been generated automatically or provided manually
+        'processing',
+        // Only by Shipping Provider (i.e. NovaPohsta) - # 2 Step in UI
+        'shipped',
+        // Seller cancels order before confirming (requires reason)
+        'cancelled',
+        // Only by Shipping Provider - # 3 Step in UI
+        'delivered',
+        // Only by Shipping Provider. Item has been collected - # 4 Step in UI
+        'completed',
+        // Seller fails to ship or fails to confirm
+        'failed_by_seller',
+        // Buyer fails to collect or fails to pay
+        'failed_by_buyer',
+        // Payment failed or was declined (unpaid)
+        // or
+        // TODO: the holdProductFor or orderPendingFor windows expired without a response
+        'failed',
+      ],
+    },
+    reason: {
+      type: String,
     },
     taxAmount: String,
+    trackingNumber: String,
     transactionFee: Schema.Types.Decimal128,
     transactionId: String,
     transactionStatus: {
       type: String,
       default: 'pl-pending',
-      enum: ['pl-pending', 'pl-completed', 'pl-cancelled'],
+      enum: [
+        'pl-pending',
+        'pl-completed',
+        'pl-cancelled',
+        'pl-refunded',
+        'pl-failed',
+      ],
+    },
+    shippingProvider: {
+      type: String,
+      enum: ['novaposhta'],
     },
   },
   {
@@ -85,9 +128,11 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   currency: string;
   dateCancelled: ?Date;
   dateCompleted: ?Date;
+  dateDelivered: ?Date;
   datePending: Date;
   datePaid: ?Date;
   dateShipped: ?Date;
+  dateReadyforShipment: ?Date;
   onovaFee: number;
   paymentMethod: ?string;
   priceOfItem: number;
@@ -100,6 +145,7 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   transactionStatus: ?string;
   // shippingFee: number;
   // shippingMethod: string;
+  shippingProvider: string;
   // shippingStatus: string;
   // shippingTax: number;
 }

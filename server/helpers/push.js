@@ -2,6 +2,7 @@
 
 import User, { UserDoc } from '../models/user.model';
 import Product, { ProductDoc } from '../models/product.model';
+import Order, { OrderDoc } from '../models/order.model';
 import { agenda } from '../config/express';
 import config from '../config/config';
 import shortid from 'shortid';
@@ -15,7 +16,7 @@ export function sendPush({
   triggeredType,
   message,
 }: notifPayload): Promise<null> {
-  // Follow notification
+  // New follower
   if (triggeredType == 'User') {
     return User.findById(triggeredBy)
       .then(sender => {
@@ -40,6 +41,7 @@ export function sendPush({
           senderId: sender._id,
           senderName: sender.displayName || sender.username,
           targetUser: target._id,
+          triggeredType,
           random: shortid(), // for unique push notification
         };
 
@@ -47,7 +49,7 @@ export function sendPush({
           return Promise.resolve();
         }
 
-        const job = agenda.create(config.JOBNAMES.PUSHCOMMENTS, pushData);
+        const job = agenda.create(config.JOBNAMES.PUSHFOLLOW, pushData);
 
         return job.save(err => {
           if (err) throw new Error(`Job failed with error: ${err}`);
@@ -55,9 +57,10 @@ export function sendPush({
       })
       .catch(e => {
         console.error(e);
+        return e;
       });
   } else if (triggeredType == 'Product') {
-    // comment notification to seller
+    // New comment notification to seller
     return Product.findById(triggeredBy)
       .then(product => {
         if (!product) {
@@ -79,6 +82,7 @@ export function sendPush({
           platform: target.platform,
           pushToken: target.pushToken,
           triggeredBy: product._id,
+          triggeredType,
           senderName: data.senderName,
           targetUser: target._id,
           random: shortid(), // for unique push notification
@@ -96,6 +100,49 @@ export function sendPush({
       })
       .catch(e => {
         console.error(e);
+        return e;
+      });
+  } else if (triggeredType == 'Order') {
+    // New Order
+    return Order.findById(triggeredBy)
+      .then(order => {
+        if (!order) {
+          throw new Error('Cannot find order');
+        }
+
+        return User.findById(targetUser)
+          .then(target => {
+            if (!target) {
+              throw new Error('Cannot find target');
+            }
+            return { order, target };
+          })
+          .catch(e => e);
+      })
+      .then(({ order, target }: { order: OrderDoc, target: UserDoc }) => {
+        const pushData = {
+          message,
+          platform: target.platform,
+          pushToken: target.pushToken,
+          triggeredBy: order._id,
+          triggeredType,
+          targetUser: target._id,
+          random: shortid(), // unique push notification
+        };
+
+        if (config.env == 'test') {
+          return Promise.resolve();
+        }
+
+        const job = agenda.create(config.JOBNAMES.PUSHCOMMENTS, pushData);
+
+        return job.save(err => {
+          if (err) throw new Error(`Job failed with error: ${err}`);
+        });
+      })
+      .catch(e => {
+        console.error(e);
+        return e;
       });
   }
 }

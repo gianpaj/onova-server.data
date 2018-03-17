@@ -9,6 +9,7 @@ import app from '../index';
 import Follow from '../models/follow.model';
 import Tag from '../models/tag.model';
 import User from '../models/user.model';
+import Order from '../models/order.model';
 import Product from '../models/product.model';
 import Notification from '../models/notification.model';
 import Verification from '../models/verification.model';
@@ -86,6 +87,7 @@ describe('## Notification APIs', () => {
     const collections = [
       Follow.collection,
       Notification.collection,
+      Order.collection,
       Product.collection,
       Tag.collection,
       User.collection,
@@ -282,6 +284,38 @@ describe('## Notification APIs', () => {
           const { data } = res.body;
           expect(data[0].triggeredBy).toBe(userId);
           expect(data).toHaveLength(2);
+        });
+    });
+  });
+
+  describe('# Create an order and Notify', () => {
+    let orderId;
+    beforeAll(async () => {
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', anotherJwtToken)
+        .send({ product: productUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          orderId = o.id;
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((product.price * 1).toString());
+          expect(o.priceOfItem).toBe(product.price);
+          expect(o.transactionStatus).toBe('pl-pending');
+        });
+    });
+
+    it('a new order notification should have been created', async () => {
+      return request(app)
+        .get('/api/users/notifications')
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data).toHaveLength(42);
+          expect(data[0].triggeredBy).toBe(orderId);
         });
     });
   });

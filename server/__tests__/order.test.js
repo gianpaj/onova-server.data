@@ -151,6 +151,7 @@ describe('## Order APIs', () => {
       });
   });
 
+  // create 3 products and delete 1 of them
   describe('# POST /api/orders', () => {
     beforeAll(done => {
       let Promises = [];

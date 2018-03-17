@@ -69,7 +69,17 @@ const config = {
     apikeyPrivate: envVars.MJ_APIKEY_PRIVATE,
   },
   JOBNAMES: {
-    PUSHCOMMENTS: 'send-push-comments',
+    PUSHCOMMENT: 'send-push-comment',
+    PUSHFOLLOW: 'send-push-follow',
+    PUSHORDER: 'send-push-order',
+  },
+  settings: {
+    // TODO: Hold products (for 'onhold' orders) for 3 minutes.
+    // When limit is reached, the onhold order is canceled. And Product is set back to 'for sale.
+    holdProductFor: 180,
+    // TODO: Wait the seller to confirm the order for 1 hour.
+    // When limit is reached, the pending order is canceled.
+    orderPendingFor: 3600,
   },
 };
 
