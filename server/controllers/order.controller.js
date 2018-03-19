@@ -209,6 +209,10 @@ function update(req: session$Request, res: express$Response) {
     foundOrder.dateCompleted = new Date();
   }
 
+  if (newStatus == 'cancelled') {
+    foundOrder.dateCancelled = new Date();
+  }
+
   foundOrder.status = newStatus ? newStatus : foundOrder.status;
   foundOrder.paymentMethod = req.body.paymentMethod
     ? req.body.paymentMethod

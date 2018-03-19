@@ -22,7 +22,6 @@ export default {
     },
     body: {
       status: Joi.string().only([
-        'shipped',
         'completed',
         'cancelled',
       ]),

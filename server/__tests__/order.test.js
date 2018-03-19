@@ -521,15 +521,12 @@ describe('## Order APIs', () => {
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
         .send({ status: 'shipped' })
-        .expect(httpStatus.OK)
+        .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(
-            // TODO: after payment is tested it should return 'datePaid'
-            [...orderFields, 'dateShipped'].sort()
+          expect(res.body.message).toBe(
+            '"status" must be one of [completed, cancelled]'
           );
-          expect(o.priceOfItem).toBe(productPOST1.price);
-          expect(o.status).toBe('shipped');
+          expect(res.body.ok).toBe(false);
         });
     });
 
@@ -544,20 +541,6 @@ describe('## Order APIs', () => {
           expect(Object.keys(o).sort()).toEqual(
             [...orderFields, 'dateCancelled'].sort()
           );
-          expect(o.priceOfItem).toBe(productPOST1.price);
-          expect(o.status).toBe('completed');
-        });
-    });
-
-    it('should set an order status to `cancelled`', async () => {
-      return request(app)
-        .put(`/api/orders/${orderPOST2}`)
-        .set('Authorization', anotherJwtToken)
-        .send({ status: 'cancelled' })
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
         });
@@ -571,7 +554,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            'cannot change the status of an order once is cancelled'
+            '"status" must be one of [completed, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -585,7 +568,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"status" must be one of [shipped, completed, cancelled]'
+            '"status" must be one of [completed, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -601,12 +584,7 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           // TODO: after payment is tested it should return 'datePaid'
           expect(Object.keys(o).sort()).toEqual(
-            [
-              ...orderFields,
-              'dateShipped',
-              'dateCompleted',
-              'paymentMethod',
-            ].sort()
+            [...orderFields, 'paymentMethod'].sort()
           );
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.paymentMethod).toBe('paypal');
