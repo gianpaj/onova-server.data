@@ -533,17 +533,16 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should set an order status to `completed`', async () => {
+    it('should allow the seller set an order status to `cancelled`', async () => {
       return request(app)
-        .put(`/api/orders/${orderPOST1}`)
+        .put(`/api/orders/${orderPOST2}`)
         .set('Authorization', jwtToken)
-        .send({ status: 'completed' })
+        .send({ status: 'cancelled' })
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(
-            // TODO: after payment is tested it should return 'datePaid'
-            [...orderFields, 'dateShipped', 'dateCompleted'].sort()
+            [...orderFields, 'dateCancelled'].sort()
           );
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.status).toBe('completed');
@@ -625,6 +624,56 @@ describe('## Order APIs', () => {
             '"paymentMethod" must be one of [paypal, liqpay]'
           );
           expect(res.body.ok).toBe(false);
+        });
+    });
+  });
+
+  describe('# PUT /api/orders (more)', () => {
+    const productPOST2 = {
+      categoryIds: [2],
+      typeIds: [1],
+      description: 'my old panties',
+      price: '99900.59',
+    };
+    let orderPOST3;
+
+    beforeAll(done => {
+      let Promises = [];
+
+      Promises.push(
+        createProduct(productPOST2, jwtToken).then(product => {
+          return request(app)
+            .post('/api/orders')
+            .set('Authorization', anotherJwtToken)
+            .send({ product: product.uuid })
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const o = res.body.data;
+              expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+              expect(o.priceOfItem).toBe(productPOST2.price);
+              orderPOST3 = o.id;
+            });
+        })
+      );
+
+      Promise.all(Promises).then(() => {
+        done();
+      });
+    });
+
+    it('should allow the buyer set an order status to `cancelled`', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST3}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'cancelled' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(
+            [...orderFields, 'dateCancelled'].sort()
+          );
+          expect(o.priceOfItem).toBe(productPOST2.price);
+          expect(o.status).toBe('cancelled');
         });
     });
   });
