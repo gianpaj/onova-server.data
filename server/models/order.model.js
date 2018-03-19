@@ -81,21 +81,24 @@ var OrderSchema = new Schema(
         'paid',
         // # 1 Step in UI - Product is ready for shipment. Tracking number is generated automatically
         'processing',
-        // Only by Shipping Provider (i.e. NovaPohsta) - # 2 Step in UI
+        // [Only by Shipping Provider] (i.e. NovaPohsta) - # 2 Step in UI
         'shipped',
-        // Seller cancels order before confirming (requires reason)
+        // Seller cancels order and doesn't confirm. (it's paid). (TODO: refund). Requires reason.
+        // or
+        // Buyer cancels order before paying (still pending)
         'cancelled',
-        // Only by Shipping Provider - # 3 Step in UI
+        // [Only by Shipping Provider] - # 3 Step in UI
         'delivered',
-        // Only by Shipping Provider. Item has been collected - # 4 Step in UI
+        // [Only by Shipping Provider]. Item has been collected - # 4 Step in UI
         'completed',
-        // Seller fails to ship or fails to confirm
+        // Seller fails to ship or fails to confirm [by Payment or Shipping Provider]
         'failed_by_seller',
-        // Buyer fails to collect or fails to pay
+        // Buyer fails to collect or fails to pay [by Payment or Shipping Provider]
         'failed_by_buyer',
-        // Payment failed or was declined (unpaid)
+        // Payment failed or was declined (unpaid) [by Payment Provider]
         // or
         // TODO: the holdProductFor or orderPendingFor windows expired without a response
+        // [by Internal Process]
         'failed',
       ],
     },
