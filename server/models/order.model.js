@@ -37,6 +37,9 @@ var OrderSchema = new Schema(
     datePaid: {
       type: Date,
     },
+    dateProcessing: {
+      type: Date,
+    },
     dateShipped: {
       type: Date,
     },
@@ -74,6 +77,9 @@ var OrderSchema = new Schema(
         'pending',
         // NOT ACTIVE - Seller confirmed and awaits buyer to pay – Product status is now 'reserved'. All other orders for the same item are cancelled. (Do need to send a reason, now?)
         // 'onhold',
+        // Payment successful. Product marked as 'sold' [Only by Payment Provider]
+        'paid',
+        // # 1 Step in UI - Product is ready for shipment. Tracking number is generated automatically
         'processing',
         // Only by Shipping Provider (i.e. NovaPohsta) - # 2 Step in UI
         'shipped',

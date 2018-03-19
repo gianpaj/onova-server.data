@@ -158,7 +158,11 @@ function create(
  * @property {string} req.query.status
  * @property {string=} req.query.paymentMethod
  */
-function update(req: session$Request, res: express$Response) {
+function update(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const newStatus = req.body.status;
 
   const foundOrder = req.order;
@@ -181,10 +185,10 @@ function update(req: session$Request, res: express$Response) {
     );
   }
 
-  // can go only from either 'paid' or 'shipped' -> 'completed'
-  if (foundOrder.status == 'pending' && newStatus == 'completed') {
-    throw new APIError('cannot complete an order that is pending', 400);
-  }
+  // // can go only from either 'paid' or 'shipped' -> 'completed'
+  // if (foundOrder.status == 'pending' && newStatus == 'completed') {
+  //   throw new APIError('cannot complete an order that is pending', 400);
+  // }
 
   // TODO: move this to a function that changes the state and keeps a transition log
   // // can go only from either 'pending' -> 'paid'
@@ -198,16 +202,14 @@ function update(req: session$Request, res: express$Response) {
   //   );
   // }
 
-  // if (newStatus == 'paid') {
-  //   foundOrder.datePaid = new Date();
-  // }
+  if (newStatus == 'processing') {
+    // only the seller can confirm the order
+    if (req.user._id.toString() !== req.order.seller._id.toString()) {
+      const err = new APIError('Unauthorized', 401);
+      return next(err);
+    }
 
-  if (newStatus == 'shipped') {
-    foundOrder.dateShipped = new Date();
-  }
-
-  if (newStatus == 'completed') {
-    foundOrder.dateCompleted = new Date();
+    foundOrder.dateProcessing = new Date();
   }
 
   if (newStatus == 'cancelled') {

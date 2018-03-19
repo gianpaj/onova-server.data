@@ -516,7 +516,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should set an order status to `shipped`', async () => {
+    it('should not set an order status to `shipped`', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
@@ -524,7 +524,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"status" must be one of [completed, cancelled]'
+            '"status" must be one of [processing, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -554,7 +554,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"status" must be one of [completed, cancelled]'
+            '"status" must be one of [processing, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -568,7 +568,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"status" must be one of [completed, cancelled]'
+            '"status" must be one of [processing, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -614,6 +614,7 @@ describe('## Order APIs', () => {
       price: '99900.59',
     };
     let orderPOST3;
+    let orderPOST4;
 
     beforeAll(done => {
       let Promises = [];
@@ -630,6 +631,21 @@ describe('## Order APIs', () => {
               expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST2.price);
               orderPOST3 = o.id;
+            });
+        })
+      );
+      Promises.push(
+        createProduct(productPOST2, jwtToken).then(product => {
+          return request(app)
+            .post('/api/orders')
+            .set('Authorization', anotherJwtToken)
+            .send({ product: product.uuid })
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const o = res.body.data;
+              expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+              expect(o.priceOfItem).toBe(productPOST2.price);
+              orderPOST4 = o.id;
             });
         })
       );
@@ -652,6 +668,34 @@ describe('## Order APIs', () => {
           );
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
+        });
+    });
+
+    it('should not allow the buyer set an order status to `processing` (confirm)', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST4}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'processing' })
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(res => {
+          expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should allow the seller set an order status to `processing` (confirm)', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST4}`)
+        .set('Authorization', jwtToken)
+        .send({ status: 'processing' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(
+            [...orderFields, 'dateProcessing'].sort()
+          );
+          expect(o.priceOfItem).toBe(productPOST2.price);
+          expect(o.status).toBe('processing');
         });
     });
   });

@@ -21,10 +21,7 @@ export default {
         .required(),
     },
     body: {
-      status: Joi.string().only([
-        'completed',
-        'cancelled',
-      ]),
+      status: Joi.string().only(['processing', 'cancelled']),
       // eslint-disable-next-line
       paymentMethod: Joi.string().only([
         'paypal',
