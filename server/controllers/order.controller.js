@@ -115,21 +115,22 @@ function create(
       return order.save();
     })
     .then(savedOrder => {
-      const notif: NotifPayload = {
-        notifI18n: i18n.newOrder,
-        targetUser: foundProduct.seller._id,
-        triggeredBy: savedOrder._id,
-        triggeredType: 'Order',
-      };
+      // const notif: NotifPayload = {
+      //   notifI18n: i18n.newOrder,
+      //   targetUser: foundProduct.seller._id,
+      //   triggeredBy: savedOrder._id,
+      //   triggeredType: 'Order',
+      // };
 
-      notifCtrl
-        .createNotification(notif)
-        .then(() => {
-          debug('newOrder notification created');
-        })
-        .catch(err => {
-          console.error(err);
-        });
+      // Notification is sent to seller only after payment is completed
+      // notifCtrl
+      //   .createNotification(notif)
+      //   .then(() => {
+      //     debug('newOrder notification created');
+      //   })
+      //   .catch(err => {
+      //     console.error(err);
+      //   });
 
       return res.status(201).json({ data: savedOrder });
     })

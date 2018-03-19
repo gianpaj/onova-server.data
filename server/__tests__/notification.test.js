@@ -307,6 +307,17 @@ describe('## Notification APIs', () => {
         });
     });
 
+    it('a new order notification should have not have been created', async () => {
+      return request(app)
+        .get('/api/users/notifications')
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data).toHaveLength(41);
+        });
+    });
+  });
     it('a new order notification should have been created', async () => {
       return request(app)
         .get('/api/users/notifications')

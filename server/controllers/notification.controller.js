@@ -153,7 +153,7 @@ function createNotification(notif: notifPayload): Promise<null> {
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Order') {
-      // New Order
+      // Order update, created, cancelled, etc.
       sendPush({
         targetUser,
         triggeredBy,

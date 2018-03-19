@@ -103,7 +103,7 @@ export function sendPush({
         return e;
       });
   } else if (triggeredType == 'Order') {
-    // New Order
+    // Order update, created, cancelled, etc.
     return Order.findById(triggeredBy)
       .then(order => {
         if (!order) {

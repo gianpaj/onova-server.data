@@ -70,11 +70,10 @@ var OrderSchema = new Schema(
       required: true,
       default: 'pending',
       enum: [
-        // Unpaid - Customer started the checkout process but did not complete it. Product status is still 'forsale' [If we can freeze funds - Plan B]
+        // Unpaid - Customer started the checkout process. Payment is not completed. Product marked as 'reserved'
         'pending',
-        // Awaiting seller confirmation to allow buyer to make payment – Product status is now 'reserved'
-        'onhold',
-        // Payment successful - # 1 Step in UI - Product status is 'sold' and is ready for shipment. Tracking number has been generated automatically or provided manually
+        // NOT ACTIVE - Seller confirmed and awaits buyer to pay – Product status is now 'reserved'. All other orders for the same item are cancelled. (Do need to send a reason, now?)
+        // 'onhold',
         'processing',
         // Only by Shipping Provider (i.e. NovaPohsta) - # 2 Step in UI
         'shipped',
