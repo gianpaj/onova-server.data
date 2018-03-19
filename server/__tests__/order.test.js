@@ -5,11 +5,12 @@ import httpStatus from 'http-status';
 
 import app from '../index';
 // import config from '../config/config';
-import Verification from '../models/verification.model';
-import User from '../models/user.model';
-import Tag from '../models/tag.model';
-import Product from '../models/product.model';
+import Notification from '../models/notification.model';
 import Order from '../models/order.model';
+import Product from '../models/product.model';
+import Tag from '../models/tag.model';
+import User from '../models/user.model';
+import Verification from '../models/verification.model';
 import { createUserAndLogin, createProduct } from './utils';
 
 // GET & PUT /api/orders/ should only return these fields
@@ -30,10 +31,11 @@ describe('## Order APIs', () => {
   beforeAll(done => {
     // mongoose.connection.dropDatabase().then(done);
     const collections = [
-      User.collection,
-      Product.collection,
+      Notification.collection,
       Order.collection,
+      Product.collection,
       Tag.collection,
+      User.collection,
       Verification.collection,
     ];
 
@@ -59,6 +61,8 @@ describe('## Order APIs', () => {
     emailAddress: 'gianpa+test2@gmail.com',
     mobileNumber: '1234567890', // optional
     password: 'express2',
+    pushToken: 'anotherpersonPushToken',
+    platform: 'ios',
   };
 
   let nonActiveUser = {

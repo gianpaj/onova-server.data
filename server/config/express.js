@@ -33,7 +33,7 @@ if (config.env == 'test') {
   agenda.on('ready', () => {
     agenda.purge((err, numRemoved) => {
       if (err) return console.error(err);
-      console.log(numRemoved);
+      console.log('jobs removed', numRemoved);
     });
   });
 }

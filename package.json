@@ -88,6 +88,7 @@
     },
     "testPathIgnorePatterns": [
       "node_modules",
+      "lib",
       "server/__tests__/utils.js"
     ]
   }

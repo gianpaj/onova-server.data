@@ -16,6 +16,10 @@ export function sendPush({
   triggeredType,
   message,
 }: notifPayload): Promise<null> {
+  if (config.env == 'test') {
+    return Promise.resolve();
+  }
+
   // New follower
   if (triggeredType == 'User') {
     return User.findById(triggeredBy)
@@ -44,10 +48,6 @@ export function sendPush({
           triggeredType,
           random: shortid(), // for unique push notification
         };
-
-        if (config.env == 'test') {
-          return Promise.resolve();
-        }
 
         const job = agenda.create(config.JOBNAMES.PUSHFOLLOW, pushData);
 
@@ -88,11 +88,7 @@ export function sendPush({
           random: shortid(), // for unique push notification
         };
 
-        if (config.env == 'test') {
-          return Promise.resolve();
-        }
-
-        const job = agenda.create(config.JOBNAMES.PUSHCOMMENTS, pushData);
+        const job = agenda.create(config.JOBNAMES.PUSHCOMMENT, pushData);
 
         return job.save(err => {
           if (err) throw new Error(`Job failed with error: ${err}`);
@@ -103,7 +99,7 @@ export function sendPush({
         return e;
       });
   } else if (triggeredType == 'Order') {
-    // Order update, created, cancelled, etc.
+    // Order paid, cancelled, etc.
     return Order.findById(triggeredBy)
       .then(order => {
         if (!order) {
@@ -130,11 +126,7 @@ export function sendPush({
           random: shortid(), // unique push notification
         };
 
-        if (config.env == 'test') {
-          return Promise.resolve();
-        }
-
-        const job = agenda.create(config.JOBNAMES.PUSHCOMMENTS, pushData);
+        const job = agenda.create(config.JOBNAMES.PUSHORDER, pushData);
 
         return job.save(err => {
           if (err) throw new Error(`Job failed with error: ${err}`);

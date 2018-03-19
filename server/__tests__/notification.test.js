@@ -327,7 +327,7 @@ describe('## Notification APIs', () => {
         return request(app)
           .put(`/api/orders/${orderId}`)
           .set('Authorization', firstJwtToken)
-          .send({ status: 'cancelled' })
+          .send({ status: 'cancelled', reason: 'changed my mind' })
           .expect(httpStatus.OK)
           .then(res => {
             const o = res.body.data;
@@ -336,7 +336,7 @@ describe('## Notification APIs', () => {
           });
       });
 
-      it('a new order notification should have been created to the buyer', async () => {
+      it('a cancellation order notification should have been created to the buyer', async () => {
         return request(app)
           .get('/api/users/notifications')
           .set('Authorization', anotherJwtToken)
