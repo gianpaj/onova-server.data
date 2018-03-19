@@ -530,19 +530,32 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should allow the seller set an order status to `cancelled`', async () => {
+    it('should not allow the seller to cancel the order without a reason', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
         .set('Authorization', jwtToken)
         .send({ status: 'cancelled' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('"reason" is required');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should allow the seller to cancel the order', async () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST2}`)
+        .set('Authorization', jwtToken)
+        .send({ status: 'cancelled', reason: 'it`s already sold' })
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'dateCancelled'].sort()
+            [...orderFields, 'dateCancelled', 'reason'].sort()
           );
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
+          expect(o.reason).toBe('it`s already sold');
         });
     });
 

@@ -21,7 +21,11 @@ export default {
         .required(),
     },
     body: {
-      status: Joi.string().only(['processing', 'cancelled']),
+      status: Joi.valid(['processing', 'cancelled']),
+      reason: Joi.string()
+        .min(10)
+        .max(300),
+
       // eslint-disable-next-line
       paymentMethod: Joi.string().only([
         'paypal',

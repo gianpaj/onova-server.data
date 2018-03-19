@@ -2,6 +2,7 @@
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
+import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
@@ -16,10 +17,12 @@ declare class express$Request extends express$Request {
 }
 
 const i18n = {
-  newOrder: 'Congrats! 🎉 You have a new order',
+  orderPaid: 'Congrats! 🎉 You have a new purchase', // 36 chars
+  orderShipped: 'Your purchase has been shipped! 🎉', // 34 chars
+  orderCancelled: 'Your order been cancelled! 😭', // 34 chars
 };
 
-const ONOVA_RATE = 1; // 1 = 0 % -- 1.2 = 20%
+const ONOVA_RATE = 1; // 1 = 0% -- 1.2 = 20%
 
 /**
  * @private
@@ -87,7 +90,7 @@ function create(
       if (product.status !== 'forsale') {
         throw new APIError(
           'This product is not longer for sale or is reserved.',
-          400
+          httpStatus.BAD_REQUEST
         );
       }
       foundProduct = product;
@@ -95,7 +98,10 @@ function create(
     })
     .then(product => {
       if (req.user._id.toString() === product.seller._id.toString()) {
-        throw new APIError('You cannot buy your own items', 400);
+        throw new APIError(
+          'You cannot buy your own items',
+          httpStatus.BAD_REQUEST
+        );
       }
 
       const pPrice = product.price.toString();
@@ -163,7 +169,10 @@ function update(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const newStatus = req.body.status;
+  const { reason, status: newStatus } = req.body;
+
+  const iAmTheSeller =
+    req.user._id.toString() == req.order.seller._id.toString();
 
   const foundOrder = req.order;
 
@@ -174,14 +183,14 @@ function update(
   ) {
     throw new APIError(
       'cannot cancel an order that has been shipped or completed',
-      400
+      httpStatus.BAD_REQUEST
     );
   }
 
   if (foundOrder.status == 'cancelled') {
     throw new APIError(
       'cannot change the status of an order once is cancelled',
-      400
+      httpStatus.BAD_REQUEST
     );
   }
 
@@ -204,8 +213,8 @@ function update(
 
   if (newStatus == 'processing') {
     // only the seller can confirm the order
-    if (req.user._id.toString() !== req.order.seller._id.toString()) {
-      const err = new APIError('Unauthorized', 401);
+    if (!iAmTheSeller) {
+      const err = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
       return next(err);
     }
 
@@ -213,6 +222,14 @@ function update(
   }
 
   if (newStatus == 'cancelled') {
+    // required the seller to enter a reason
+    if (!reason && iAmTheSeller) {
+      const err = new APIError('"reason" is required', httpStatus.BAD_REQUEST);
+      return next(err);
+    }
+    if (iAmTheSeller) {
+      foundOrder.reason = reason;
+    }
     foundOrder.dateCancelled = new Date();
   }
 
@@ -220,6 +237,14 @@ function update(
   foundOrder.paymentMethod = req.body.paymentMethod
     ? req.body.paymentMethod
     : foundOrder.paymentMethod;
+
+  if (newStatus) {
+    createOrderNotification(foundOrder)
+      .then(() => {
+        debug('notification(s) created for order:', newStatus);
+      })
+      .catch(e => console.error(e));
+  }
 
   return foundOrder.save().then(data => {
     return res.json({ data });
@@ -247,6 +272,62 @@ function list(
   Order.list({ myid: req.user._id, limit, skip })
     .then(data => res.json({ data }))
     .catch(e => next(e));
+}
+
+/**
+ * Creates the approprate notification(s) for each order status transition
+ *
+ * Actor                                 | Notify
+ * ===================================== | ======
+ * buyer  ---pays---> Order 'paid'       | seller
+ * seller -confirms-> Order 'processing' | -
+ * NP says seller -shipped-> Order 'shipped' | buyer
+ * 'cancelled'
+ * 'delivered'
+ * 'completed'
+ * 'failed_by_seller'
+ * 'failed_by_buyer'
+ * 'failed'
+ */
+function createOrderNotification(order: OrderDoc) {
+  let notif: NotifPayload = {
+    triggeredBy: order._id,
+    triggeredType: 'Order',
+  };
+  switch (order.status) {
+    case 'processing':
+      return Promise.resolve();
+    case 'paid':
+      // TODO: test
+      notif = {
+        ...notif,
+        notifI18n: i18n.orderPaid,
+        targetUser: order.seller,
+      };
+
+      return notifCtrl.createNotification(notif);
+      break;
+    case 'shipped':
+      // TODO: test
+      notif = {
+        ...notif,
+        notifI18n: i18n.orderShipped,
+        targetUser: order.buyer._id,
+      };
+
+      return notifCtrl.createNotification(notif);
+      break;
+    case 'cancelled':
+      // cancelled by seller. there is no notification if the buyer cancels
+      notif = {
+        ...notif,
+        notifI18n: i18n.orderCancelled,
+        targetUser: order.buyer._id,
+      };
+
+      return notifCtrl.createNotification(notif);
+      break;
+  }
 }
 
 export default {

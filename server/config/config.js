@@ -74,9 +74,9 @@ const config = {
     PUSHORDER: 'send-push-order',
   },
   settings: {
-    // TODO: Hold products (for 'onhold' orders) for 3 minutes.
-    // When limit is reached, the onhold order is canceled. And Product is set back to 'for sale.
-    holdProductFor: 180,
+    // TODO: Hold products (for 'onhold' orders) for 15 minutes.
+    // When limit is reached, the onhold order is canceled. And Product is set back to 'forsale'.
+    holdProductFor: 900,
     // TODO: Wait the seller to confirm the order for 1 hour.
     // When limit is reached, the pending order is canceled.
     orderPendingFor: 3600,

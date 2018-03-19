@@ -321,17 +321,33 @@ describe('## Notification APIs', () => {
           expect(data).toHaveLength(41);
         });
     });
-  });
-    it('a new order notification should have been created', async () => {
-      return request(app)
-        .get('/api/users/notifications')
-        .set('Authorization', firstJwtToken)
-        .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data).toHaveLength(42);
-          expect(data[0].triggeredBy).toBe(orderId);
-        });
+
+    describe('# Cancel an order and Notify the buyer', () => {
+      beforeAll(async () => {
+        return request(app)
+          .put(`/api/orders/${orderId}`)
+          .set('Authorization', firstJwtToken)
+          .send({ status: 'cancelled' })
+          .expect(httpStatus.OK)
+          .then(res => {
+            const o = res.body.data;
+            expect(o.priceOfItem).toBe(product.price);
+            expect(o.status).toBe('cancelled');
+          });
+      });
+
+      it('a new order notification should have been created to the buyer', async () => {
+        return request(app)
+          .get('/api/users/notifications')
+          .set('Authorization', anotherJwtToken)
+          .expect(httpStatus.OK)
+          .then(res => {
+            const { data } = res.body;
+            expect(data[0].triggeredBy).toBe(orderId);
+            expect(data[0].notifI18n).toContain('cancelled');
+            expect(data).toHaveLength(3);
+          });
+      });
     });
   });
 });
