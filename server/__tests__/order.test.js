@@ -68,6 +68,13 @@ describe('## Order APIs', () => {
     password: 'expressos',
   };
 
+  let forthUser = {
+    username: 'forthperson',
+    emailAddress: 'gianpa+test4@gmail.com',
+    mobileNumber: '1234567890',
+    password: 'expressos4',
+  };
+
   let product = {
     categoryIds: [1, 2, 3],
     typeIds: [1, 2, 3],
@@ -98,6 +105,7 @@ describe('## Order APIs', () => {
   let jwtToken;
   let anotherJwtToken;
   let nonActiveUserJwtToken;
+  let forthJwtToken;
 
   // create 3 users. 1 not activated
   beforeAll(done => {
@@ -115,6 +123,14 @@ describe('## Order APIs', () => {
           ({ user: resUser, jwtToken: token }) => {
             anotherUser._id = resUser._id;
             anotherJwtToken = token;
+          }
+        );
+      })
+      .then(() => {
+        return createUserAndLogin(forthUser).then(
+          ({ user: resUser, jwtToken: token }) => {
+            forthUser._id = resUser._id;
+            forthJwtToken = token;
           }
         );
       })
@@ -151,40 +167,40 @@ describe('## Order APIs', () => {
       });
   });
 
+  beforeAll(done => {
+    let Promises = [];
+    Promises.push(
+      createProduct(product, jwtToken).then(p => {
+        productUuid = p.uuid;
+      })
+    );
+    Promises.push(
+      createProduct(thirdProduct, anotherJwtToken).then(p => {
+        thirdProductUuid = p.uuid;
+      })
+    );
+
+    // create product and delete it
+    Promises.push(
+      createProduct(anotherProduct, jwtToken).then(p => {
+        anotherProductUuid = p.uuid;
+        return request(app)
+          .delete(`/api/products/${anotherProductUuid}`)
+          .set('Authorization', jwtToken)
+          .expect(httpStatus.NO_CONTENT)
+          .then(res => {
+            expect(res.body).toMatchObject({});
+          });
+      })
+    );
+
+    Promise.all(Promises).then(() => {
+      done();
+    });
+  });
+
   // create 3 products and delete 1 of them
   describe('# POST /api/orders', () => {
-    beforeAll(done => {
-      let Promises = [];
-      Promises.push(
-        createProduct(product, jwtToken).then(p => {
-          productUuid = p.uuid;
-        })
-      );
-      Promises.push(
-        createProduct(thirdProduct, anotherJwtToken).then(p => {
-          thirdProductUuid = p.uuid;
-        })
-      );
-
-      // create product and delete it
-      Promises.push(
-        createProduct(anotherProduct, jwtToken).then(p => {
-          anotherProductUuid = p.uuid;
-          return request(app)
-            .delete(`/api/products/${anotherProductUuid}`)
-            .set('Authorization', jwtToken)
-            .expect(httpStatus.NO_CONTENT)
-            .then(res => {
-              expect(res.body).toMatchObject({});
-            });
-        })
-      );
-
-      Promise.all(Promises).then(() => {
-        done();
-      });
-    });
-
     it('should create an order', async () => {
       return request(app)
         .post('/api/orders')
@@ -202,7 +218,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not create a duplicate order for the same product', async () => {
+    it('should not create a duplicate order for the same product and buyer', async () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', jwtToken)
@@ -275,7 +291,7 @@ describe('## Order APIs', () => {
   });
 
   describe('# GET /api/orders', () => {
-    const productGET1 = {
+    const productGET1OfAnother = {
       categoryIds: [1],
       typeIds: [1, 2],
       description: 'nice bo0ts',
@@ -293,7 +309,7 @@ describe('## Order APIs', () => {
     beforeAll(done => {
       let Promises = [];
       Promises.push(
-        createProduct(productGET1, anotherJwtToken).then(product => {
+        createProduct(productGET1OfAnother, anotherJwtToken).then(product => {
           return request(app)
             .post('/api/orders')
             .set('Authorization', jwtToken)
@@ -301,8 +317,10 @@ describe('## Order APIs', () => {
             .expect(httpStatus.CREATED)
             .then(res => {
               const o = res.body.data;
-              expect(o.onovaFee).toBe((productGET1.price * 1).toString());
-              expect(o.priceOfItem).toBe(productGET1.price);
+              expect(o.onovaFee).toBe(
+                (productGET1OfAnother.price * 1).toString()
+              );
+              expect(o.priceOfItem).toBe(productGET1OfAnother.price);
               orderGET1 = o.id;
             });
         })
@@ -343,8 +361,8 @@ describe('## Order APIs', () => {
           expect(o.id).toBe(orderGET1);
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((productGET1.price * 1).toString());
-          expect(o.priceOfItem).toBe(productGET1.price);
+          expect(o.onovaFee).toBe((productGET1OfAnother.price * 1).toString());
+          expect(o.priceOfItem).toBe(productGET1OfAnother.price);
           expect(o.transactionStatus).toBe('pl-pending');
         });
     });
@@ -352,11 +370,28 @@ describe('## Order APIs', () => {
     it('should not get an order that`s not mine', async () => {
       return request(app)
         .get(`/api/orders/${orderGET1}`)
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', forthJwtToken)
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
           expect(res.body.message).toBe('Unauthorized');
           expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should get an order as a seller', async () => {
+      return request(app)
+        .get(`/api/orders/${orderGET1}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
+          expect(o.id).toBe(orderGET1);
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((productGET1OfAnother.price * 1).toString());
+          expect(o.priceOfItem).toBe(productGET1OfAnother.price);
+          expect(o.transactionStatus).toBe('pl-pending');
         });
     });
 
@@ -443,7 +478,7 @@ describe('## Order APIs', () => {
     it('should not update an order that`s not mine', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', forthJwtToken)
         .send({ status: 'cancelled' })
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {

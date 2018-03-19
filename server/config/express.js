@@ -69,7 +69,7 @@ app.use(cors());
 app.set('views', './server/views');
 app.set('view engine', 'pug');
 
-// HTTPS and forwarding proxies for App Engine
+// tell Express to use the remote IP address
 app.set('trust proxy', true);
 
 // enable detailed API console logging in dev env
@@ -88,7 +88,7 @@ if (config.env === 'development') {
 } else if (config.env === 'production') {
   app.use(
     expressWinston.logger({
-      transports: [ new winston.transports.File({ filename: 'access.log' })],
+      transports: [new winston.transports.File({ filename: 'access.log' })],
     })
   );
 }

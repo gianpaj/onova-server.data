@@ -71,7 +71,7 @@ function get(
 /**
  * Create a new notification for user's notification screen and optionally schedule a push notification
  *
- * @property {*} notif
+ * @property {notifPayload} notif
  * @property {any} notif.data
  * @property {string} notif.notifI18n
  * @property {MongoId} notif.targetUser

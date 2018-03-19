@@ -2,8 +2,7 @@
   "name": "onova.server.data",
   "version": "0.0.0",
   "description": "API Data server for mobile app",
-  "author": "Onova Team",
-  "private": true,
+  "author": "Onova Team <hello@onova.co>",
   "scripts": {
     "start": "yarn prod:build && yarn prod:start",
     "dev:start": "nodemon --ignore lib --exec babel-node server",
@@ -75,6 +74,7 @@
     "npm": ">=5.6.0",
     "yarn": ">=1.3.0"
   },
+  "private": true,
   "repository": {
     "type": "git",
     "url": "https://bitbucket.org/onova/server.data.git"

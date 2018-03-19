@@ -16,7 +16,10 @@ const router = express.Router();
  * Authorization Required middleware.
  */
 function isAuthorized(req, res, next) {
-  if (req.user._id.toString() !== req.order.buyer._id.toString()) {
+  if (
+    req.user._id.toString() !== req.order.buyer._id.toString() &&
+    req.user._id.toString() !== req.order.seller._id.toString()
+  ) {
     const err = new APIError('Unauthorized', 401);
     return next(err);
   }
