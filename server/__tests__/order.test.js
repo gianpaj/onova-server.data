@@ -230,6 +230,23 @@ describe('## Order APIs', () => {
         });
     });
 
+    it('should allow another buyer to order for the same product', async () => {
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', forthJwtToken)
+        .send({ product: thirdProductUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((thirdProduct.price * 1).toString());
+          expect(o.priceOfItem).toBe(thirdProduct.price);
+          expect(o.transactionStatus).toBe('pl-pending');
+        });
+    });
+
     it('should not create an order with an invalid product', async () => {
       return request(app)
         .post('/api/orders')
@@ -415,7 +432,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(o.length).toBe(3);
+          expect(o.length).toBe(4);
         });
     });
   });
