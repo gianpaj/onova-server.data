@@ -42,10 +42,10 @@ export function sendPush({
           message: interpolate(notifI18n, { senderName: data.senderName }),
           platform: target.platform,
           pushToken: target.pushToken,
-          senderId: sender._id,
+          triggeredBy: sender._id,
+          triggeredType,
           senderName: sender.displayName || sender.username,
           targetUser: target._id,
-          triggeredType,
           random: shortid(), // for unique push notification
         };
 

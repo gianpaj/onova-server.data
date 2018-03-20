@@ -44,6 +44,8 @@ describe('## Follow APIs', () => {
     emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
     password: 'expressos',
+    pushToken: 'firstpersonsPushToken',
+    platform: 'ios',
   };
 
   let anotherUser = {
@@ -51,12 +53,16 @@ describe('## Follow APIs', () => {
     emailAddress: 'gianpa+test2@gmail.com',
     mobileNumber: '1234567890', // optional
     password: 'express2',
+    pushToken: 'anotherPushToken',
+    platform: 'ios',
   };
 
   let thirdUser = {
     username: 'thirdwheel',
     emailAddress: 'gianpa+thirdwheel@gmail.com',
     password: 'express3',
+    pushToken: 'thirdPushToken',
+    platform: 'android',
   };
 
   let userId;
