@@ -17,9 +17,9 @@ declare class express$Request extends express$Request {
 }
 
 const i18n = {
-  orderPaid: 'Congrats! 🎉 You have a new purchase', // 36 chars
+  orderPaid: 'Congrats! 🎉 You have a new purchase!', // 36 chars
   orderShipped: 'Your purchase has been shipped! 🎉', // 34 chars
-  orderCancelled: 'Your order been cancelled! 😭', // 34 chars
+  orderCancelled: 'Your order has been cancelled! 😭', // 34 chars
 };
 
 const ONOVA_RATE = 1; // 1 = 0% -- 1.2 = 20%
