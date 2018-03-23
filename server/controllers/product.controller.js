@@ -52,7 +52,7 @@ function loadWithComments(
     })
     .populate({
       path: 'comments.user',
-      select: 'username accountStatus displayName',
+      select: 'username accountStatus displayName profilePic',
     })
     .then((product: ProductDoc) => {
       if (!product) {
@@ -186,9 +186,11 @@ function list(
     query = { ...query, tags: { $in: tags } };
   }
 
+  const projection = { comments: 0 };
+
   // use static method from ProductSchema
   // flow-disable-next-line
-  Product.list({ query, limit, skip })
+  Product.list({ query, projection, limit, skip })
     .then(products => res.json({ data: products }))
     .catch(e => next(e));
 }
@@ -214,7 +216,7 @@ function remove(
     throw new APIError('Product not found', 400);
   }
 
-  // delete images from GSC
+  // TODO: delete images from GSC
   // for (let i = 0; i < req.product.photoURIs.length; i++) {
   //   if (config.env === 'test') break;
 

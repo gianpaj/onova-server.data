@@ -135,6 +135,7 @@ ProductSchema.statics = {
         path: 'seller',
         select: 'username accountStatus',
       })
+      .select('-comments')
       .then((product: ProductDoc) => {
         if (!product) {
           return Promise.reject();
@@ -154,8 +155,13 @@ ProductSchema.statics = {
    * @param {number} query.skip Number of products to be skipped.
    * @param {number} query.limit Limit number of products to be returned.
    */
-  list({ query = {}, skip = 0, limit = 50 }): Promise<ProductDoc[] | APIError> {
-    return this.find(query)
+  list({
+    query = {},
+    projection = {},
+    skip = 0,
+    limit = 50,
+  }): Promise<ProductDoc[] | APIError> {
+    return this.find(query, projection)
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
