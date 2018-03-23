@@ -6,7 +6,7 @@ Functionality:
 - REST API
 - Image upload to Google Cloud Storage
 
-Based on [Express ES6 REST API Starter](https://github.com/KunalKapadia/express-mongoose-es6-rest-api).
+Based on [Express ES6 REST API Starter](https://github.com/kunalkapadia/express-mongoose-es6-rest-api).
 
 ## Overview
 

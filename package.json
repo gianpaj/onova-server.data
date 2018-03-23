@@ -52,7 +52,7 @@
     "pug": "^2.0.0-rc.4",
     "request": "2.83.0",
     "shortid": "2.2.8",
-    "winston": "2.3.0"
+    "winston": "2.4.1"
   },
   "devDependencies": {
     "eslint": "^4.16.0",
