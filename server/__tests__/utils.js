@@ -19,6 +19,9 @@ const userFields = [
   'username',
 ];
 
+// POST /api/auth/login should only return these fields
+const authFields = ['data', 'token'];
+
 /**
  * Create a user and activate it
  */
@@ -73,7 +76,7 @@ export function createUserAndLogin(
         })
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body).toHaveProperty('token');
+          expect(Object.keys(res.body).sort()).toEqual(authFields.sort());
           return { user: resUser, jwtToken: res.body.token };
         });
     })

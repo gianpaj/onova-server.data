@@ -34,6 +34,9 @@ const userFields = [
   'username',
 ];
 
+// POST /api/auth/login should only return these fields
+const authFields = ['data', 'token'];
+
 describe('## User APIs', () => {
   beforeAll(done => {
     const collections = [
@@ -290,14 +293,19 @@ describe('## User APIs', () => {
         })
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body).toHaveProperty('token');
-          const token = res.body.token.split('JWT ')[1];
+          const { body } = res;
+          expect(body).toHaveProperty('token');
+          const token = body.token.split('JWT ')[1];
+          expect(Object.keys(body).sort()).toEqual(authFields.sort());
+          expect(Object.keys(body.data).sort()).toEqual(
+            ['_id', 'accountStatus', 'emailAddress', 'username'].sort()
+          );
           jwt.verify(token, config.jwtSecret, (err, decoded) => {
             expect(err).toBeFalsy();
             expect(decoded.emailAddress).toBe(user.emailAddress);
-            jwtToken = res.body.token;
-            done();
+            jwtToken = body.token;
           });
+          done();
         })
         .catch(done);
     });
