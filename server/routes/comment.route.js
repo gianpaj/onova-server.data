@@ -41,6 +41,6 @@ router
   );
 
 // Load product when API with uuid route parameter is hit
-router.param('uuid', productCtrl.load);
+router.param('uuid', productCtrl.loadWithComments);
 
 export default router;

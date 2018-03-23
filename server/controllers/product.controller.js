@@ -2,6 +2,7 @@
 
 import shortid from 'shortid';
 import mongoose from 'mongoose';
+import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
@@ -17,8 +18,6 @@ declare class session$Request extends express$Request {
 }
 
 /**
- * @private
- *
  * Load a product and append to req.
  */
 function load(
@@ -35,6 +34,37 @@ function load(
       return next();
     })
     .catch(e => next(e));
+}
+
+/**
+ * Load a product with comments (and it's user doc) and append to req.
+ */
+function loadWithComments(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction,
+  uuid: string
+) {
+  Product.findOne({ uuid })
+    .populate({
+      path: 'seller',
+      select: 'username accountStatus',
+    })
+    .populate({
+      path: 'comments.user',
+      select: 'username accountStatus displayName',
+    })
+    .then((product: ProductDoc) => {
+      if (!product) {
+        throw new Error('');
+      }
+      req.product = product;
+      return next();
+    })
+    .catch(() => {
+      const e = new APIError('Invalid product', httpStatus.BAD_REQUEST);
+      next(e);
+    });
 }
 
 /**
@@ -281,6 +311,7 @@ function createTags(tags: Array<TagDoc>) {
 
 export default {
   load,
+  loadWithComments,
   get,
   create,
   update,

@@ -253,6 +253,12 @@ describe('## Comment APIs', () => {
           const { data } = res.body;
           expect(data.uuid).toBe(productUuid);
           expect(data.comments[0]._id).toBe(commentIdFirst);
+          expect(Object.keys(data.comments[0].user).sort()).toEqual([
+            '_id',
+            'accountStatus',
+            'id',
+            'username',
+          ]);
           expect(Object.keys(data.comments[0]).sort()).toEqual(
             commentFields.sort()
           );

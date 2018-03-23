@@ -145,7 +145,7 @@ function remove(
     return next(APIerr);
   }
 
-  if (req.user._id.toString() !== comment.user.toString()) {
+  if (req.user._id.toString() !== comment.user._id.toString()) {
     const APIerr = new APIError(
       'Cannot delete other people`s comment',
       httpStatus.BAD_REQUEST
