@@ -40,7 +40,9 @@ function login(req, res, next) {
       const payload = {
         _id: user._id,
         accountStatus: user.accountStatus,
+        displayName: user.displayName,
         emailAddress: user.emailAddress,
+        profilePic: user.profilePic,
         username: user.username,
       };
       return res.json({
