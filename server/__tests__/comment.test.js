@@ -224,17 +224,53 @@ describe('## Comment APIs', () => {
         });
     });
 
-    it('should add a comment to a product with a 2 @mention s', async () => {
+    it('should add a comment to a product with a 3 @mention s', async () => {
       return request(app)
         .post(`/api/products/${productUuid}/comment`)
         .set('Authorization', anotherJwtToken)
-        .send({ text: 'nice one @hacker and @firstperson' })
+        .send({ text: 'nice one @hacker and @firstperson and @anotherperson' })
         .expect(httpStatus.CREATED)
         .then(res => {
           const { data } = res.body;
           expect(data.uuid).toBe(productUuid);
           expect(data.comment.text).toContain(
             'nice one [@hacker:null] and [@firstperson:'
+          );
+          expect(data.comment.text).toContain(' and [@anotherperson:');
+          expect(Object.keys(data.comment).sort()).toEqual(
+            commentFields.sort()
+          );
+        });
+    });
+
+    it('should add a comment to a product with a 2 equal @mention s', async () => {
+      return request(app)
+        .post(`/api/products/${productUuid}/comment`)
+        .set('Authorization', anotherJwtToken)
+        .send({ text: 'nice one @firstperson and @firstperson' })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.uuid).toBe(productUuid);
+          expect(data.comment.text).toContain('nice one [@firstperson:');
+          expect(data.comment.text).toContain(' and [@firstperson:');
+          expect(Object.keys(data.comment).sort()).toEqual(
+            commentFields.sort()
+          );
+        });
+    });
+
+    it('should add a comment to a product with a 2 equal non-existant @mention s', async () => {
+      return request(app)
+        .post(`/api/products/${productUuid}/comment`)
+        .set('Authorization', anotherJwtToken)
+        .send({ text: 'nice one @hacker and @hacker' })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.uuid).toBe(productUuid);
+          expect(data.comment.text).toContain(
+            'nice one [@hacker:null] and [@hacker:null]'
           );
           expect(Object.keys(data.comment).sort()).toEqual(
             commentFields.sort()

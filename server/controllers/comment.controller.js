@@ -74,24 +74,20 @@ function create(
   if (text.indexOf('@') !== -1) {
     // find all username and add store comment with id
     // e.g `hello [@michel:5a78d09e2d314a702698f957] and [@anna:5a78d09e2d314a702698f958]`
-    const usernames = text.match(/@[a-zA-Zа-яА-Я0-9\_\.]*/g);
-    let Promises = [];
-    for (let i = 0; i < usernames.length; i++) {
-      const user = usernames[i].replace('@', '');
-      Promises.push(
-        User.findOne({ username: user }).then(u => {
-          if (!u) {
-            return `[@${user}:null]`;
-          }
-          return `[@${u.username}:${u.id}]`;
-        })
-      );
-    }
-
-    Promise.all(Promises)
+    let usernames = text.match(/@[a-zA-Zа-яА-Я0-9\_\.]*/g);
+    usernames = [...new Set(usernames)];
+    usernames = usernames.map(u => u.replace('@', ''));
+    User.find({ username: { $in: usernames } })
       .then(users => {
-        usernames.forEach((username, i) => {
-          text = text.replace(username, users[i]);
+        usernames.forEach(u => {
+          const userIndex = users.map(us => us.username).indexOf(u);
+          if (userIndex == -1) {
+            const re = new RegExp(`@${u}`, 'g');
+            text = text.replace(re, `[@${u}:null]`);
+          } else {
+            const re = new RegExp(`@${u}`, 'g');
+            text = text.replace(re, `[@${u}:${users[userIndex].id}]`);
+          }
         });
 
         saveComment(
