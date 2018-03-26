@@ -4,7 +4,8 @@ import httpStatus from 'http-status';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
-import { UserDoc } from '../models/user.model';
+import usernameGlobal from '../helpers/validation';
+import User, { UserDoc } from '../models/user.model';
 import Product, { ProductDoc, CommentDoc } from '../models/product.model';
 import notifCtrl, {
   NotifPayload,
@@ -68,11 +69,58 @@ function create(
     );
   }
 
-  const comment = {
-    text: req.body.text,
-    user: req.user._id,
-  };
+  let { text } = req.body;
 
+  if (text.indexOf('@') !== -1) {
+    // find all username and add store comment with id
+    // e.g `hello [@michel:5a78d09e2d314a702698f957] and [@anna:5a78d09e2d314a702698f958]`
+    const usernames = text.match(/@[a-zA-Zа-яА-Я0-9\_\.]*/g);
+    let Promises = [];
+    for (let i = 0; i < usernames.length; i++) {
+      const user = usernames[i].replace('@', '');
+      Promises.push(
+        User.findOne({ username: user }).then(u => {
+          if (!u) {
+            return `[@${user}:null]`;
+          }
+          return `[@${u.username}:${u.id}]`;
+        })
+      );
+    }
+
+    Promise.all(Promises)
+      .then(users => {
+        usernames.forEach((username, i) => {
+          text = text.replace(username, users[i]);
+        });
+
+        saveComment(
+          {
+            text: text,
+            user: req.user._id,
+          },
+          req,
+          res,
+          next
+        );
+      })
+      .catch(err => {
+        console.error(err);
+      });
+  } else {
+    saveComment(
+      {
+        text: text,
+        user: req.user._id,
+      },
+      req,
+      res,
+      next
+    );
+  }
+}
+
+function saveComment(comment, req, res, next) {
   Product.findOneAndUpdate(
     { _id: req.product.id },
     { $push: { comments: comment } },

@@ -192,6 +192,56 @@ describe('## Comment APIs', () => {
         });
     });
 
+    it('should add a comment to a product with a @mention', async () => {
+      return request(app)
+        .post(`/api/products/${productUuid}/comment`)
+        .set('Authorization', anotherJwtToken)
+        .send({ text: 'nice one @firstperson' })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.uuid).toBe(productUuid);
+          expect(data.comment.text).toContain('nice one [@firstperson:');
+          expect(Object.keys(data.comment).sort()).toEqual(
+            commentFields.sort()
+          );
+        });
+    });
+
+    it('should add a comment to a product with a non existant user @mention', async () => {
+      return request(app)
+        .post(`/api/products/${productUuid}/comment`)
+        .set('Authorization', anotherJwtToken)
+        .send({ text: 'nice one @hacker' })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.uuid).toBe(productUuid);
+          expect(data.comment.text).toContain('nice one [@hacker:null]');
+          expect(Object.keys(data.comment).sort()).toEqual(
+            commentFields.sort()
+          );
+        });
+    });
+
+    it('should add a comment to a product with a 2 @mention s', async () => {
+      return request(app)
+        .post(`/api/products/${productUuid}/comment`)
+        .set('Authorization', anotherJwtToken)
+        .send({ text: 'nice one @hacker and @firstperson' })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.uuid).toBe(productUuid);
+          expect(data.comment.text).toContain(
+            'nice one [@hacker:null] and [@firstperson:'
+          );
+          expect(Object.keys(data.comment).sort()).toEqual(
+            commentFields.sort()
+          );
+        });
+    });
+
     it('should not add a comment to a deleted product', async () => {
       return request(app)
         .post(`/api/products/${notForSaleProductUuid}/comment`)
@@ -313,6 +363,7 @@ describe('## Comment APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
+          expect(Object.keys(data).sort()).toEqual(['uuid', 'length'].sort());
           expect(data.uuid).toBe(productUuid);
           expect(data.length).toBe(0);
         });
