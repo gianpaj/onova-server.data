@@ -21,7 +21,7 @@ export default {
         .required(),
     },
     body: {
-      status: Joi.valid(['processing', 'cancelled']),
+      status: Joi.valid(['confirmed', 'cancelled']),
       reason: Joi.string()
         .min(10)
         .max(300),

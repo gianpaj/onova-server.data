@@ -211,14 +211,14 @@ function update(
   //   );
   // }
 
-  if (newStatus == 'processing') {
+  if (newStatus == 'confirmed') {
     // only the seller can confirm the order
     if (!iAmTheSeller) {
       const err = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
       return next(err);
     }
 
-    foundOrder.dateProcessing = new Date();
+    foundOrder.dateConfirmed = new Date();
   }
 
   if (newStatus == 'cancelled') {
@@ -277,17 +277,7 @@ function list(
 /**
  * Creates the approprate notification(s) for each order status transition
  *
- * Actor                                 | Notify
- * ===================================== | ======
- * buyer  ---pays---> Order 'paid'       | seller
- * seller -confirms-> Order 'processing' | -
- * NP says seller -shipped-> Order 'shipped' | buyer
- * 'cancelled'
- * 'delivered'
- * 'completed'
- * 'failed_by_seller'
- * 'failed_by_buyer'
- * 'failed'
+ * See graph in `ORDER_PROCESS.md`
  */
 function createOrderNotification(order: OrderDoc) {
   let notif: NotifPayload = {
@@ -295,7 +285,7 @@ function createOrderNotification(order: OrderDoc) {
     triggeredType: 'Order',
   };
   switch (order.status) {
-    case 'processing':
+    case 'confirmed':
       return Promise.resolve();
     case 'paid':
       // TODO: test

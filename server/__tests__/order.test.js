@@ -528,7 +528,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"status" must be one of [processing, cancelled]'
+            '"status" must be one of [confirmed, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -571,7 +571,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"status" must be one of [processing, cancelled]'
+            '"status" must be one of [confirmed, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -585,7 +585,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"status" must be one of [processing, cancelled]'
+            '"status" must be one of [confirmed, cancelled]'
           );
           expect(res.body.ok).toBe(false);
         });
@@ -688,11 +688,11 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not allow the buyer set an order status to `processing` (confirm)', async () => {
+    it('should not allow the buyer set an order status to `confirmed` (confirm)', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST4}`)
         .set('Authorization', anotherJwtToken)
-        .send({ status: 'processing' })
+        .send({ status: 'confirmed' })
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
           expect(res.body.message).toBe('Unauthorized');
@@ -700,19 +700,19 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should allow the seller set an order status to `processing` (confirm)', async () => {
+    it('should allow the seller set an order status to `confirmed` (confirm)', async () => {
       return request(app)
         .put(`/api/orders/${orderPOST4}`)
         .set('Authorization', jwtToken)
-        .send({ status: 'processing' })
+        .send({ status: 'confirmed' })
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'dateProcessing'].sort()
+            [...orderFields, 'dateConfirmed'].sort()
           );
           expect(o.priceOfItem).toBe(productPOST2.price);
-          expect(o.status).toBe('processing');
+          expect(o.status).toBe('confirmed');
         });
     });
   });

@@ -37,7 +37,7 @@ var OrderSchema = new Schema(
     datePaid: {
       type: Date,
     },
-    dateProcessing: {
+    dateConfirmed: {
       type: Date,
     },
     dateShipped: {
@@ -79,8 +79,10 @@ var OrderSchema = new Schema(
         // 'onhold',
         // Payment successful. Product marked as 'sold' [Only by Payment Provider]
         'paid',
+
         // # 1 Step in UI - Product is ready for shipment. Tracking number is generated automatically
-        'processing',
+        'confirmed',
+
         // [Only by Shipping Provider] (i.e. NovaPohsta) - # 2 Step in UI
         'shipped',
         // Seller cancels order and doesn't confirm. (it's paid). (TODO: refund). Requires reason.
