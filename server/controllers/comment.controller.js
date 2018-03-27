@@ -4,7 +4,6 @@ import httpStatus from 'http-status';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
-import usernameGlobal from '../helpers/validation';
 import User, { UserDoc } from '../models/user.model';
 import Product, { ProductDoc, CommentDoc } from '../models/product.model';
 import notifCtrl, {
