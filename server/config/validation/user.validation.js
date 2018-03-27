@@ -13,6 +13,18 @@ validate.options({
 });
 
 export default {
+  // GET /api/users (for mentions)
+  listUsers: {
+    query: {
+      u: Joi.string()
+        .min(0)
+        .max(30),
+      limit: Joi.number()
+        .min(1)
+        .max(50),
+    },
+  },
+
   // POST /api/users
   createUser: {
     body: {

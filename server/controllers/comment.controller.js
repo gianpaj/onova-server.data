@@ -80,11 +80,10 @@ function create(
       .then(users => {
         usernames.forEach(u => {
           const userIndex = users.map(us => us.username).indexOf(u);
+          const re = new RegExp(`@${u}`, 'g');
           if (userIndex == -1) {
-            const re = new RegExp(`@${u}`, 'g');
             text = text.replace(re, `[@${u}:null]`);
           } else {
-            const re = new RegExp(`@${u}`, 'g');
             text = text.replace(re, `[@${u}:${users[userIndex].id}]`);
           }
         });

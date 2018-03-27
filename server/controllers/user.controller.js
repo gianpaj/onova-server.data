@@ -262,6 +262,10 @@ function update(
     });
 }
 
+function escapeRegex(text) {
+  return text.replace(/[^A-Za-z0-9_]/g, '\\$&');
+}
+
 /**
  * Get list of users.
  *
@@ -269,7 +273,6 @@ function update(
  *
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
- * @property {number} req.query.skip Number of users to be skipped.
  * @property {number} req.query.limit Limit number of users to be returned.
  */
 function list(
@@ -277,12 +280,29 @@ function list(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, skip = 0 } = req.query;
-  // use static method from UserSchema
-  // flow-disable-next-line
-  User.list({ limit, skip })
-    .then(users => res.json(users.map(_prepareUserJson)))
-    .catch(e => next(e));
+  const { limit = 50, u } = req.query;
+
+  if (!u) {
+    // use static method from UserSchema
+    // flow-disable-next-line
+    return User.list({ limit })
+      .then(users => res.json(users.map(_prepareUserJson)))
+      .catch(e => next(e));
+  }
+
+  const regex = new RegExp(escapeRegex(u), 'gi');
+  User.find({ username: regex })
+    .select('_id accountStatus displayName username')
+    .then(users => {
+      if (!users) {
+        return res.json({});
+      }
+      return res.json(users);
+    })
+    .catch(e => {
+      const APIerr = new APIError(e, httpStatus.INTERNAL_SERVER_ERROR);
+      next(APIerr);
+    });
 }
 
 /**

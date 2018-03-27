@@ -515,22 +515,84 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
+          expect(res.body.length).toBe(5);
           expect(Object.keys(res.body[0]).sort()).toEqual(userFields.sort());
           done();
         })
         .catch(done);
     });
 
-    it('should get all users (with limit and skip)', done => {
+    it('should get all users (with limit)', done => {
       request(app)
         .get('/api/users')
-        .query({ limit: 10, skip: 1 })
+        .query({ limit: 10 })
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
           done();
         })
         .catch(done);
+    });
+  });
+
+  describe('# GET /api/users/?u=<username>', () => {
+    const john = {
+      username: 'johnone',
+      emailAddress: 'gianpa+john@gmail.com',
+      mobileNumber: '1234567890',
+      password: 'express2',
+    };
+    const johnJuan = {
+      username: 'johntwo',
+      emailAddress: 'gianpa+two@gmail.com',
+      mobileNumber: '1234567890',
+      password: 'express2',
+    };
+    const johnPerson = {
+      username: 'johnperson',
+      emailAddress: 'gianpa+person@gmail.com',
+      mobileNumber: '1234567890',
+      password: 'express2',
+    };
+
+    beforeAll(done => {
+      createUserAndLogin(john).then(() => {
+        createUserAndLogin(johnJuan).then(() => {
+          createUserAndLogin(johnPerson).then(() => {
+            done();
+          });
+        });
+      });
+    });
+
+    it('should get all users which username`s contain with first', async () => {
+      return request(app)
+        .get('/api/users?u=first')
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.length).toBe(1);
+          expect(res.body[0].username).toBe(user.username);
+        });
+    });
+
+    it('should get all users which username`s contain with person', async () => {
+      return request(app)
+        .get('/api/users?u=person')
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.length).toBe(2);
+          expect(res.body[0].username).toBe(user.username);
+        });
+    });
+
+    it('should get all users which username`s contain with john', async () => {
+      return request(app)
+        .get('/api/users?u=john')
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.length).toBe(3);
+          expect(res.body[0].username).toBe(john.username);
+        });
     });
   });
 

@@ -20,7 +20,7 @@ router
 router
   .route('/')
   // GET /api/users - Get list of users
-  .get(userCtrl.list)
+  .get(validate(paramValidation.listUsers), userCtrl.list)
 
   // POST /api/users - Create new user
   .post(validate(paramValidation.createUser), userCtrl.create);
