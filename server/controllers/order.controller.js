@@ -286,6 +286,7 @@ function createOrderNotification(order: OrderDoc) {
   };
   switch (order.status) {
     case 'confirmed':
+      // TODO: send 2 notifications
       return Promise.resolve();
     case 'paid':
       // TODO: test
