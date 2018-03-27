@@ -10,9 +10,12 @@ import notifCtrl, {
   NotifPayload,
 } from '../controllers/notification.controller';
 
-const i18n = {
-  newComment: 'new comment from %s',
-};
+const mentionsRegex = /@[a-zA-Zа-яА-Я0-9\_\.]*/g;
+
+// const i18n = {
+//   newComment: 'new comment from %s',
+//   newMention: '%s mentioned you',
+// };
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -69,11 +72,12 @@ function create(
   }
 
   let { text } = req.body;
+  const rawText = text;
 
   if (text.indexOf('@') !== -1) {
     // find all username and add store comment with id
     // e.g `hello [@michel:5a78d09e2d314a702698f957] and [@anna:5a78d09e2d314a702698f958]`
-    let usernames = text.match(/@[a-zA-Zа-яА-Я0-9\_\.]*/g);
+    let usernames = text.match(mentionsRegex);
     usernames = [...new Set(usernames)];
     usernames = usernames.map(u => u.replace('@', ''));
     User.find({ username: { $in: usernames } })
@@ -88,9 +92,13 @@ function create(
           }
         });
 
+        const userIds = users.map(us => us._id);
+
         saveComment(
           {
-            text: text,
+            text,
+            rawText,
+            userIds,
             user: req.user._id,
           },
           req,
@@ -129,22 +137,54 @@ function saveComment(comment, req, res, next) {
           senderName: req.user.displayName || req.user.username,
           commentId: lastCommment._id,
         },
-        notifI18n: i18n.newComment,
+        notifI18n: `new comment from @${req.user.displayName ||
+          req.user.username}`,
         targetUser: req.product.seller._id,
         triggeredBy: req.product._id,
         triggeredType: 'Product',
         onlyPush: false,
       };
-      // only create a new notification if the comment is not by the seller
-      if (product.seller.toString() !== req.user._id.toString()) {
-        notifCtrl
-          .createNotification(notif)
-          .then(() => {
-            debug('comment notification created');
-          })
-          .catch(err => {
-            console.error(err);
+
+      // if comment does not contain @mentions
+      if (req.body.text.indexOf('@') == -1) {
+        // only create a new notification if the comment is not by the seller
+        if (product.seller.toString() !== req.user._id.toString()) {
+          notifCtrl
+            .createNotification(notif)
+            .then(() => {
+              debug('comment notification created');
+            })
+            .catch(err => {
+              console.error(err);
+            });
+        }
+      } else {
+        if (comment.userIds) {
+          comment.userIds.forEach(userId => {
+            if (userId == req.user._id.toString()) return;
+            const notifForMention: NotifPayload = {
+              data: {
+                text: comment.rawText,
+                senderName: req.user.displayName || req.user.username,
+                commentId: lastCommment._id,
+              },
+              notifI18n: `@${req.user.displayName ||
+                req.user.username} mentioned you`,
+              targetUser: userId,
+              triggeredBy: req.product._id,
+              triggeredType: 'Product',
+              onlyPush: false,
+            };
+            notifCtrl
+              .createNotification(notifForMention)
+              .then(() => {
+                debug('comment mention notification created');
+              })
+              .catch(err => {
+                console.error(err);
+              });
           });
+        }
       }
       // if (config.env == 'prod') {
       //   mixpanel.track('new_comment', props);

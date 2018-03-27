@@ -292,7 +292,7 @@ function list(
 
   const regex = new RegExp(escapeRegex(u), 'gi');
   User.find({ username: regex })
-    .select('_id accountStatus displayName username')
+    .select('_id accountStatus displayName username profilePic')
     .then(users => {
       if (!users) {
         return res.json({});
