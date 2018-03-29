@@ -7,28 +7,29 @@ import app from './config/express';
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
-mongoose
-  .connect(
-    `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`,
-    {
-      keepAlive: 1,
-      // socketTimeoutMS: 1000
-    }
-  )
-  .then(
-    () => {
-      console.log(
-        `connected to mongodb://${config.mongo.host}/${config.mongo.db}`
-      );
-    },
-    err => {
-      throw new Error(
-        `unable to connect to: mongodb://${config.mongo.host}/${
-          config.mongo.db
-        }: ${err}`
-      );
-    }
-  );
+let mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${
+  config.mongo.db
+}`;
+
+if (config.env == 'production') {
+  mongoURI = `mongodb://${config.mongo.user}:${config.mongo.pass}@${
+    config.mongo.host
+  }:${config.mongo.port}/${config.mongo.db}`;
+}
+
+let options = {
+  keepAlive: 1,
+  // socketTimeoutMS: 1000
+};
+
+mongoose.connect(mongoURI, options).then(
+  () => {
+    console.log(`connected to ${mongoURI}`);
+  },
+  err => {
+    throw new Error(`unable to connect to: ${mongoURI} - ${err}`);
+  }
+);
 
 // print mongoose logs in dev env
 if (config.mongooseDebug) {
