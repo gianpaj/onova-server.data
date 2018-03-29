@@ -28,6 +28,17 @@ const CommentSchema = new Schema({
   },
 });
 
+// from mobileapp (AddProduct.js)
+// categoryIds
+//   { label: 'Clothes', value: 0 },
+//   { label: 'Shoes', value: 1 },
+//   { label: 'Other', value: 2 },
+
+// typeIds
+//   { label: 'Man', value: 0 },
+//   { label: 'Woman', value: 1 },
+//   { label: 'Other', value: 2 },
+
 /** @namespace */
 var ProductSchema = new Schema(
   {
