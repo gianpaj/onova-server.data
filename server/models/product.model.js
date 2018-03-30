@@ -144,7 +144,7 @@ ProductSchema.statics = {
     return this.findOne({ uuid })
       .populate({
         path: 'seller',
-        select: 'username accountStatus',
+        select: 'username accountStatus profilePic',
       })
       .select('-comments')
       .then((product: ProductDoc) => {

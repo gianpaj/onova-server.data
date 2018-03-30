@@ -224,33 +224,51 @@ function update(
     );
   }
 
-  req.file && config.env !== 'test' && debug('skip profilePic upload');
-
-  if (req.file && config.env !== 'test') {
-    Promises.push(
-      new Promise((resolve, reject) => {
-        photos
-          .uploadProfilePic(req.user, req.file)
-          .then(cloudStoragePublicUrl => {
-            return User.findByIdAndUpdate(req.user._id, {
-              $set: { profilePic: cloudStoragePublicUrl },
-            })
-              .exec()
-              .then(doc => {
-                if (doc) {
-                  debug('profilePic updated for user:', doc._id);
-                  resolve(doc);
-                } else {
-                  reject('no error found');
-                }
-              });
+  if (req.file) {
+    if (config.env == 'test') {
+      debug('skipping profilePic upload to GCS');
+      Promises.push(
+        new Promise((resolve, reject) => {
+          User.findByIdAndUpdate(req.user._id, {
+            $set: { profilePic: req.file.originalname },
           })
-          .catch(err => {
-            debug('Error saving user profilePic', err);
-            reject(err);
-          });
-      })
-    );
+            .exec()
+            .then(doc => {
+              if (doc) {
+                debug('profilePic updated for user:', doc._id);
+                resolve(doc);
+              } else {
+                reject('no error found');
+              }
+            });
+        })
+      );
+    } else {
+      Promises.push(
+        new Promise((resolve, reject) => {
+          photos
+            .uploadProfilePic(req.user, req.file)
+            .then(cloudStoragePublicUrl => {
+              return User.findByIdAndUpdate(req.user._id, {
+                $set: { profilePic: cloudStoragePublicUrl },
+              })
+                .exec()
+                .then(doc => {
+                  if (doc) {
+                    debug('profilePic updated for user:', doc._id);
+                    resolve(doc);
+                  } else {
+                    reject('no error found');
+                  }
+                });
+            })
+            .catch(err => {
+              debug('Error saving user profilePic', err);
+              reject(err);
+            });
+        })
+      );
+    }
   }
 
   return Promise.all(Promises)

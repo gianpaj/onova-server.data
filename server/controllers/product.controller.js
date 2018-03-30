@@ -48,7 +48,7 @@ function loadWithComments(
   Product.findOne({ uuid })
     .populate({
       path: 'seller',
-      select: 'username accountStatus',
+      select: 'username accountStatus profilePic',
     })
     .populate({
       path: 'comments.user',

@@ -103,12 +103,19 @@ describe('## Product APIs', () => {
   let anotherJwtToken;
   let anotherProdUuid;
 
-  // create 2 users/sellers
+  // create 2 users/sellers + Tag and upload profile pic of a seller
   beforeAll(done => {
     createUserAndLogin(user)
       .then(({ user: resUser, jwtToken: token }) => {
         user._id = resUser._id;
         jwtToken = token;
+      })
+      .then(async () => {
+        return request(app)
+          .put(`/api/users/${user._id}`)
+          .set('Authorization', jwtToken)
+          .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+          .expect(httpStatus.OK);
       })
       .then(() => {
         return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
@@ -239,6 +246,10 @@ describe('## Product APIs', () => {
           // flow-disable-next-line
           expect(p.seller._id).toBe(user._id);
           expect(p.seller.username).toBe(user.username);
+          expect(Object.keys(p.seller).sort()).toEqual(
+            ['_id', 'accountStatus', 'id', 'profilePic', 'username'].sort()
+          );
+          expect(p.seller.profilePic).toContain('profilepic.jpg');
           expect(p.status).toBe('forsale');
           expect(p.currency).toBe('UAH');
           expect(Array.isArray(p.likes));
