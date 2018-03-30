@@ -219,6 +219,14 @@ OrderSchema.statics = {
       $or: [{ buyer: myid }, { seller: myid }],
     })
       .sort({ createdAt: -1 })
+      .populate({
+        path: 'seller',
+        select: 'username accountStatus profilePic',
+      })
+      .populate({
+        path: 'buyer',
+        select: 'username accountStatus profilePic',
+      })
       .skip(+skip)
       .limit(+limit)
       .then((orders: OrderDoc[]) => {

@@ -2,6 +2,7 @@
 
 import request from 'supertest';
 import httpStatus from 'http-status';
+import path from 'path';
 
 import app from '../index';
 // import config from '../config/config';
@@ -118,6 +119,13 @@ describe('## Order APIs', () => {
       .then(({ user: resUser, jwtToken: token }) => {
         user._id = resUser._id;
         jwtToken = token;
+      })
+      .then(async () => {
+        return request(app)
+          .put(`/api/users/${user._id}`)
+          .set('Authorization', jwtToken)
+          .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+          .expect(httpStatus.OK);
       })
       .then(() => {
         return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
@@ -436,7 +444,23 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
+          expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
           expect(o.length).toBe(4);
+        });
+    });
+
+    it('should get mys orders', async () => {
+      return request(app)
+        .get('/api/orders')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(Array.isArray(o));
+          expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o[0].buyer).sort()).toEqual(
+            ['_id', 'accountStatus', 'id', 'profilePic', 'username'].sort()
+          );
         });
     });
   });
