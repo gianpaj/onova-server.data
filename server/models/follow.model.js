@@ -103,8 +103,8 @@ FollowSchema.post('remove', function(doc, next) {
   next();
 });
 
-// Never return '__v' fields in the JSON representation
-// Note that this doesn't effect `toObject`
+// Never return these fields in the JSON representation
+// This doesn't effect `toObject` method
 FollowSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
@@ -139,20 +139,5 @@ FollowSchema.index({ follower: 1, following: 1 }, { unique: true });
 // FollowSchema.methods.activityForeignId = function() {
 //   return this.following._id + ':' + this.follower._id;
 // };
-
-// Default users which will be followed when an user is created
-const followedUsersSchema = new Schema(
-  {
-    username: {
-      type: Schema.Types.String,
-      required: true,
-      unique: 1,
-    },
-  },
-  {
-    // assigns 'createdAt' and 'updatedAt' fields to your schema
-    timestamps: true,
-  }
-);
 
 export default mongoose.model('Follow', FollowSchema);

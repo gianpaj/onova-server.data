@@ -85,6 +85,13 @@ const config = {
     // When limit is reached, the pending order is canceled.
     orderPendingFor: 3600,
   },
+  DEFAULT_USERNAMES_TO_FOLLOW: [
+    'seller1',
+    'seller2',
+    'seller3',
+    'seller4',
+    'seller5',
+  ],
 };
 
 export default config;

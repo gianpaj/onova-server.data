@@ -7,8 +7,10 @@ import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
 import config from '../config/config';
 import User, { UserDoc } from '../models/user.model';
+import DefaultFollow from '../models/defaultFollow.model';
 import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
+import followController from './follow.controller';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -114,7 +116,17 @@ function create(
         );
         throw APIerr;
       }
+
       return user.save().then((savedUser: UserDoc) => {
+        // if we should Auto Follow certain users by default
+        if (config.DEFAULT_USERNAMES_TO_FOLLOW.length !== 0) {
+          followDefaultUsers(savedUser)
+            .then((num: Number) => {
+              if (num) debug(`followed ${num} default users`);
+            })
+            .catch(e => console.error(e));
+        }
+
         return mailCtrl
           .sendVerificationEmail(savedUser.emailAddress, savedUser)
           .then(() => {
@@ -127,6 +139,44 @@ function create(
       });
     })
     .catch(e => next(e));
+}
+
+/**
+ * A new user follows the number of users
+ */
+function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
+  return new Promise((resolve, reject) => {
+    // default users should not follow themselves
+    if (config.DEFAULT_USERNAMES_TO_FOLLOW.indexOf(newUser.username) > -1) {
+      return resolve();
+    }
+    User.find({ username: { $in: config.DEFAULT_USERNAMES_TO_FOLLOW } })
+      .then(users => {
+        if (users.length == 0) {
+          // FIXME: hide error in a better way - see internalFollow() method
+          return resolve();
+          // return reject(new Error('there are no default users to follow'));
+        }
+        return DefaultFollow.find({
+          user: {
+            $in: users.map(u => u._id),
+          },
+        });
+      })
+      .then(async follows => {
+        if (follows.length == 0) {
+          return reject(new Error('there are no default followers'));
+        }
+
+        for (const follow of follows) {
+          await followController
+            .internalFollow(newUser, follow.user)
+            .catch(err => console.error(err));
+        }
+        resolve(follows.length);
+      })
+      .catch(err => reject(err));
+  });
 }
 
 /**

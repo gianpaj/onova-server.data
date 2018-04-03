@@ -11,6 +11,7 @@ import config from '../config/config';
 import Verification from '../models/verification.model';
 import Follow from '../models/follow.model';
 import User from '../models/user.model';
+import DefaultFollow from '../models/defaultFollow.model';
 import { createUserAndLogin } from './utils';
 
 /**
@@ -42,6 +43,7 @@ describe('## User APIs', () => {
     const collections = [
       Follow.collection,
       User.collection,
+      DefaultFollow.collection,
       Verification.collection,
     ];
 

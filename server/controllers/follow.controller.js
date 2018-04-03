@@ -6,6 +6,7 @@ const debug = require('debug')('express-mongoose-es6-rest-api:index');
 import APIError from '../helpers/APIError';
 import User, { UserDoc } from '../models/user.model';
 import Follow, { FollowDoc } from '../models/follow.model';
+import DefaultFollow from '../models/defaultFollow.model';
 import notifCtrl, {
   NotifPayload,
 } from '../controllers/notification.controller';
@@ -80,25 +81,44 @@ function follow(
     return next(APIerr);
   }
 
-  User.findById(targetUserId)
+  internalFollow(req.user, targetUserId)
+    .then(savedDoc => {
+      return res.status(httpStatus.CREATED).json({ data: savedDoc });
+    })
+    .catch(e => {
+      if (e.message == 'Error following a user') {
+        const APIerr = new APIError(e.message, httpStatus.BAD_REQUEST);
+        return next(APIerr);
+      }
+      next(e);
+    });
+}
+
+/**
+ * Follow a user by _id or username and create a Notification
+ *
+ * @param {UserDoc} sender
+ * @param {String} targetUser _id or username
+ */
+function internalFollow(sender: UserDoc, targetUser: String): Promise<any> {
+  // search by userId and username
+  return User.findOne({
+    $or: [{ username: targetUser }, { _id: targetUser }],
+  })
     .then((targetUser: UserDoc) => {
       if (!targetUser) {
-        const APIerr = new APIError(
-          'Error following a user',
-          httpStatus.BAD_REQUEST
-        );
-        throw APIerr;
+        throw new Error('Error following a user');
       }
       return targetUser;
     })
     .then(targetUser => {
       const notif: NotifPayload = {
         data: {
-          senderName: req.user.displayName || req.user.username,
+          senderName: sender.displayName || sender.username,
         },
         notifI18n: i18n.newFollower,
-        targetUser: targetUserId,
-        triggeredBy: req.user._id,
+        targetUser: targetUser._id,
+        triggeredBy: sender._id,
         triggeredType: 'User',
         onlyPush: false,
       };
@@ -113,16 +133,27 @@ function follow(
         });
 
       const doc = new Follow({
-        follower: req.user._id,
+        follower: sender._id,
         following: targetUser._id,
       });
 
       return doc.save();
     })
-    .then(savedDoc => {
-      return res.status(httpStatus.CREATED).json({ data: savedDoc });
-    })
-    .catch(e => next(e));
+    .then(follow => {
+      DefaultFollow.updateOne(
+        { user: follow.following },
+        {
+          $inc: { initialFollowersCount: 1 },
+        }
+      ).then(res => {
+        if (res.nModified == 1) {
+          return void debug('increase initial count for defaultFollower');
+        }
+        // FIXME: hide error in a better way - see followDefaultUsers() method
+        // console.error('error incrementing initialFollowersCount');
+      });
+      return follow;
+    });
 }
 
 /**
@@ -234,6 +265,7 @@ function listFollowing(
 export default {
   get,
   follow,
+  internalFollow,
   unfollow,
   listFollowers,
   listFollowing,

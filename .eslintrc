@@ -14,7 +14,12 @@
     "jest": true
   },
   "rules": {
-    "no-unused-vars": 1,
+    "no-unused-vars": [
+      1,
+      {
+        "argsIgnorePattern": "res|next|^err"
+      }
+    ],
     "prettier/prettier": [
       "error",
       {

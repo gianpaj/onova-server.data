@@ -213,8 +213,8 @@ UserSchema.pre('save', function(next) {
   });
 });
 
-// Never return 'password' and '__v' fields in the JSON representation
-// Note that this doesn't effect `toObject`
+// Never return these fields in the JSON representation
+// This doesn't effect `toObject` method
 UserSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
