@@ -1,0 +1,6 @@
+apps:
+  - script : ./server.data/index.js
+    name   : 'server.data'
+    env    :
+      NODE_ENV: production
+      PORT: 4040
