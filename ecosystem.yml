@@ -1,6 +1,9 @@
 apps:
-  - script : ./server.data/index.js
+  - script : npm
+    args: start
+    cwd: ./server.data
     name   : 'server.data'
+    autorestart: true
     env    :
       NODE_ENV: production
       PORT: 4040
