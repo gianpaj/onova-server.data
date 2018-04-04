@@ -3,8 +3,10 @@
 # Only use spaces to indent your .yml configuration.
 # -----
 # You can specify a custom docker image from Docker Hub as your build environment.
-image: node:8
+# image: node:8
 
+options:
+  max-time: 60
 
 clone:           # the 'clone' section
   depth: 1       # the depth, in this case the clone will contain last commit
@@ -13,8 +15,14 @@ pipelines:
   branches:
     master:
       - step:
-          caches:
-            - node
-          script: # Modify the commands below to build your repository.
-            - npm install
-            - npm test
+          # caches:
+          #   - node
+          script:
+            - >
+              ssh bitbucket@direct.onova.co /bin/bash << EOF
+                echo "connected to `hostname` as $USER";
+                cd /var/www/server.data &&
+                git pull &&
+                npm install --no-shrinkwrap &&
+                pm2 restart server.data --silent --no-color;
+              EOF
