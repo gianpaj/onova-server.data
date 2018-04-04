@@ -11,16 +11,12 @@ import Product, { ProductDoc } from '../models/product.model';
 import APIError from './APIError';
 import config from '../config/config';
 
-// const CLOUD_BUCKET = 'assets.onova.co';
-const CLOUD_BUCKET = 'staging.onova-183307.appspot.com';
-// const CLOUD_BUCKET = require('../givebox.shared/config').CLOUD_BUCKET;
-
 const storage = Storage({
   // Service account key: 'storage-data-server'
   // id '3a339323d16ab4189e140a740f2381496686e235'
   keyFilename: 'Onova-3a339323d16a.json',
 });
-const bucket = storage.bucket(CLOUD_BUCKET);
+const bucket = storage.bucket(config.CLOUD_BUCKET);
 
 const uploadMulter = multer({
   storage: multer.memoryStorage(),
@@ -66,7 +62,9 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
     });
     stream.on('finish', () => {
       file.makePublic().then(() => {
-        const cloudStoragePublicUrl = `https://storage.googleapis.com/${CLOUD_BUCKET}/${gcsname}`;
+        const cloudStoragePublicUrl = `http://${
+          config.CLOUD_BUCKET
+        }/${gcsname}`;
         debug('Saved image as', cloudStoragePublicUrl);
         const key = `photoURIs.${i}`;
         const updateObj = {};
@@ -104,7 +102,9 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
       file
         .makePublic()
         .then(() => {
-          const cloudStoragePublicUrl = `https://storage.googleapis.com/${CLOUD_BUCKET}/${gcsname}`;
+          const cloudStoragePublicUrl = `http://${
+            config.CLOUD_BUCKET
+          }/${gcsname}`;
           resolve(cloudStoragePublicUrl);
         })
         .catch(err => {
