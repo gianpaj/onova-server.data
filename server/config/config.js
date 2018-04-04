@@ -75,6 +75,7 @@ const config = {
     apikeyPublic: envVars.MJ_APIKEY_PUBLIC,
     apikeyPrivate: envVars.MJ_APIKEY_PRIVATE,
   },
+  CLOUD_BUCKET: envVars.CLOUD_BUCKET,
   JOBNAMES: {
     PUSHCOMMENT: 'send-push-comment',
     PUSHFOLLOW: 'send-push-follow',
