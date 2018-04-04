@@ -45,6 +45,9 @@ const envVarsSchema = Joi.object({
   MJ_APIKEY_PRIVATE: Joi.string()
     .required()
     .description('Mailjet API private key'),
+  CLOUD_BUCKET: Joi.string()
+    .required()
+    .description('Google Cloud Storage bucket'),
 })
   .unknown()
   .required();
