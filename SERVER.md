@@ -194,11 +194,34 @@ with:
     
 Set schedule:
 
-    nano /etc/apt/apt.conf.d/10periodic
+    nano /etc/apt/apt.conf.d/20auto-upgrades
     
 with:
 
-    APT::Periodic::Unattended-Upgrade "7";
+    APT::Periodic::Unattended-Upgrade "3";
+    
+Configure to automatically upgrade security-only updates:
+    
+    nano /etc/apt/apt.conf.d/50unattended-upgrades
+    
+Leave only `-security` and `ESM`:
+
+    Unattended-Upgrade::Allowed-Origins {
+            "${distro_id}:${distro_codename}-security";
+            // Extended Security Maintenance; doesn't necessarily exist for
+            // every release and this system may not have it installed, but if
+            // available, the policy for updates is such that unattended-upgrades
+            // should also install from here by default.
+            "${distro_id}ESM:${distro_codename}";
+    };
+    
+Test:
+
+    unattended-upgrade -v -d --dry-run
+    
+Taken from:
+
+- https://gist.github.com/roybotnik/b0ec2eda2bc625e19eaf
 
 ## Security
 
