@@ -22,7 +22,8 @@ pipelines:
               ssh bitbucket@direct.onova.co /bin/bash << EOF
                 echo "connected to `hostname` as $USER";
                 cd /var/www/server.data &&
-                git pull &&
-                npm install --no-shrinkwrap &&
+                git fetch &&
+                git reset --hard HEAD &&
+                yarn &&
                 pm2 restart server.data --silent --no-color;
               EOF

@@ -11,12 +11,6 @@ let mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${
   config.mongo.db
 }`;
 
-if (config.env == 'production') {
-  mongoURI = `mongodb://${config.mongo.user}:${config.mongo.pass}@${
-    config.mongo.host
-  }:${config.mongo.port}/${config.mongo.db}`;
-}
-
 let options = {
   keepAlive: 1,
   // socketTimeoutMS: 1000
