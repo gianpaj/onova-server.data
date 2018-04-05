@@ -50,7 +50,6 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
             Subject: subject,
           },
         ],
-        SandboxMode: true,
       });
 
       request
@@ -102,7 +101,6 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
               'Hi {{var:displayName}},<p>Please verify your new email address.</p><p>Click here to confirm it: {{var:confirmation_link}}</p><p>Cheers, The Onova Team.</p>',
           },
         ],
-        SandboxMode: true,
       });
 
       request
@@ -154,7 +152,6 @@ function sendResetEmail(emailTo: string, user: Object): void {
               "Hi {{var:displayName}},<p>You have requested to reset your password. If you haven't simply ignore this email.</p><p>Click here to reset your password: {{var:reset_link}}</p><p>Cheers, The Onova Team.</p>",
           },
         ],
-        SandboxMode: true,
       });
 
       request
