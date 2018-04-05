@@ -1,4 +1,5 @@
 # VM Server setup
+
 > The VM is in Google Cloud Engine
 
 - project: 183307
@@ -7,7 +8,7 @@
 - Linux distribution: Ubuntu 16.04.4 LTS (xenial)
 
 ## Initial setup
-  
+
     sudo su
     apt-get update
     apt-get dist-upgrade
@@ -120,7 +121,7 @@ certbot --nginx -d onova.co -d www.onova.co
 certbot renew --dry-run
 ```
 
-Check cron job: `/etc/cron.d/certbot` 
+Check cron job: `/etc/cron.d/certbot`
 
 ## Swap
 
@@ -143,7 +144,7 @@ Example output:
 
     Setting up swapspace version 1, size = 1024 MiB (1073737728 bytes)
     no label, UUID=c49fd825-67ef-4978-8f32-d37ecf632192
-    
+
 ```bash
 swapon /swapfile
 # test
@@ -164,7 +165,7 @@ Example:
                   total        used        free      shared  buff/cache   available
     Mem:           3.6G        104M        2.3G        5.3M        1.2G        3.2G
     Swap:          1.0G          0B        1.0G
-    
+
 ### Adjusting the Swappiness Property
 
     cat /proc/sys/vm/swappiness
@@ -183,27 +184,27 @@ Example:
 ## Unattended upgrades
 
     apt-get install unattended-upgrades
-    
+
 Configure to auto-remove old dependencies:
-    
+
     nano /etc/apt/apt.conf.d/50unattended-upgrades
 
 with:
-    
+
     Unattended-Upgrade::Remove-Unused-Dependencies "true";
-    
+
 Set schedule:
 
     nano /etc/apt/apt.conf.d/20auto-upgrades
-    
+
 with:
 
     APT::Periodic::Unattended-Upgrade "3";
-    
+
 Configure to automatically upgrade security-only updates:
-    
+
     nano /etc/apt/apt.conf.d/50unattended-upgrades
-    
+
 Leave only `-security` and `ESM`:
 
     Unattended-Upgrade::Allowed-Origins {
@@ -214,11 +215,11 @@ Leave only `-security` and `ESM`:
             // should also install from here by default.
             "${distro_id}ESM:${distro_codename}";
     };
-    
+
 Test:
 
     unattended-upgrade -v -d --dry-run
-    
+
 Taken from:
 
 - https://gist.github.com/roybotnik/b0ec2eda2bc625e19eaf
@@ -271,7 +272,7 @@ Example:
 ## Node.js App
 
     npm install pm2 -g
-    
+
 Ensure that your Node.js application starts automatically when your server boots up
 
 ```bash
@@ -288,7 +289,6 @@ sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -
     apt-get update
     apt-get install yarn
 
-
 ### Set Up Nginx as a Reverse Proxy Server
 
 TODO: https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04#set-up-nginx-as-a-reverse-proxy-server
@@ -296,8 +296,7 @@ TODO: https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-a
 ## Install MongoDB
 
 > If running secondary on the same machine. Otherwise use bitnami [image](https://google.bitnami.com/launch/mongodb) ([docs](https://docs.bitnami.com/google/infrastructure/mongodb/))
-
->  but use SSD persistent disk 
+> but use SSD persistent disk
 
 Follow: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
 

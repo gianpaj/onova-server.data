@@ -23,7 +23,7 @@ pipelines:
                 echo "connected to `hostname` as $USER";
                 cd /var/www/server.data &&
                 git fetch &&
-                git reset --hard HEAD &&
+                git reset --hard origin/master &&
                 yarn &&
                 pm2 restart server.data --silent --no-color;
               EOF
