@@ -281,7 +281,31 @@ exit
 sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u bitbucket --hp /home/bitbucket
 ```
 
+### Install yarn
+
+    curl -sS https://dl.yarnpkg.com/debian/pubkey.gpg | sudo apt-key add -
+    echo "deb https://dl.yarnpkg.com/debian/ stable main" | sudo tee /etc/apt/sources.list.d/yarn.list
+    apt-get update
+    apt-get install yarn
+
 
 ### Set Up Nginx as a Reverse Proxy Server
 
 TODO: https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04#set-up-nginx-as-a-reverse-proxy-server
+
+## Install MongoDB
+
+> If running secondary on the same machine. Otherwise use bitnami [image](https://google.bitnami.com/launch/mongodb) ([docs](https://docs.bitnami.com/google/infrastructure/mongodb/))
+
+>  but use SSD persistent disk 
+
+Follow: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
+
+    sudo su
+    nano /opt/bitnami/mongodb/mongodb.conf
+
+    apt-get install ufw
+    ufw allow OpenSSH
+    ufw allow from 10.156.0.2/24 to any port 28025
+    ufw enable
+    ufw status numbered
