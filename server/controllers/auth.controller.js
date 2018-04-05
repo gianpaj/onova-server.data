@@ -99,10 +99,12 @@ function activate(req, res) {
         data.paragraph =
           'There was something wrong with the link you received. Note that it expires after 24 hours. Please request a new one from the App or email <a href="mailto:hello@onova.co">hello@onova.co</a> for support.';
       } else if (verDoc.user.accountStatus == 'notverified') {
+        const { displayName, username } = verDoc.user;
         data.heading = 'Account activated!';
-        data.paragraph = `Hi five ${
-          verDoc.user.displayName
-        }! Your account is now activated (${verDoc.user.emailAddress}).`;
+        data.paragraph = `Hi five ${username ||
+          displayName}! Your account is now activated (${
+          verDoc.user.emailAddress
+        }).`;
 
         //if token exists, activate user
         verDoc.user.accountStatus = 'verified';
@@ -110,10 +112,12 @@ function activate(req, res) {
 
         verDoc.remove();
       } else if (verDoc.user.accountStatus == 'verified') {
+        const { displayName, username } = verDoc.user;
         (data.heading = 'Account is already activated!'),
-          (data.paragraph = `Double hi five ${
-            verDoc.user.displayName
-          }! Your account is already activated (${verDoc.user.emailAddress}).`);
+          (data.paragraph = `Double hi five ${username ||
+            displayName}! Your account is already activated (${
+            verDoc.user.emailAddress
+          }).`);
       }
       return res.render('activation', data);
     });
