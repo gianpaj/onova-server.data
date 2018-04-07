@@ -273,7 +273,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p.length).toBe(3);
+          expect(p).toHaveLength(3);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
@@ -285,7 +285,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p.length).toBe(1);
+          expect(p).toHaveLength(1);
           expect(p[0].description).toBe(thirdProduct.description);
         });
     });
@@ -297,24 +297,39 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p.length).toBe(1);
+          expect(p).toHaveLength(1);
           expect(p[0].description).toBe(product.description);
         });
     });
 
-    it("should get only the user's products", async () => {
-      /* eslint-disable */
+    it("should get only the user's products by userid", async () => {
       return request(app)
-          // flow-disable-next-line
         .get(`/api/products/?userid=${user._id}`)
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p.length).toBe(3);
+          expect(p).toHaveLength(3);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
-      /* eslint-enable */
+    });
+
+    it("should get only the user's products by username", async () => {
+      return request(app)
+        .get(`/api/products/?username=${user.username}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(Array.isArray(p));
+          expect(p).toHaveLength(3);
+          expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
+        });
+    });
+
+    it("should not get only user's products by non existant username", async () => {
+      return request(app)
+        .get(`/api/products/?username=banana`)
+        .expect(httpStatus.NOT_FOUND);
     });
   });
 
@@ -326,7 +341,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p.length).toBe(1);
+          expect(p).toHaveLength(1);
           expect(p[0].description).toBe(product.description);
         });
     });
@@ -350,7 +365,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p.length).toBe(2);
+          expect(p).toHaveLength(2);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
