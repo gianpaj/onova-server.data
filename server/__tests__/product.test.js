@@ -10,27 +10,9 @@ import Verification from '../models/verification.model';
 import User from '../models/user.model';
 import Tag from '../models/tag.model';
 import Product from '../models/product.model';
-import { createProduct, createUserAndLogin } from './utils';
+import { createProduct, createUserAndLogin, productFields } from './utils';
 
 // jest.mock('@google-cloud/storage');
-
-// should only return these fields
-const productFields = [
-  '_id',
-  'categoryIds',
-  'createdAt',
-  'currency',
-  'description',
-  'likes',
-  'photoURIs',
-  'price',
-  'seller',
-  'status',
-  'tags',
-  'typeIds',
-  'updatedAt',
-  'uuid',
-];
 
 describe('## Product APIs', () => {
   beforeAll(done => {

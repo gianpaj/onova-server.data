@@ -22,6 +22,24 @@ const userFields = [
 // POST /api/auth/login should only return these fields
 const authFields = ['data', 'token'];
 
+// should only return these fields
+export const productFields = [
+  '_id',
+  'categoryIds',
+  'createdAt',
+  'currency',
+  'description',
+  'likes',
+  'photoURIs',
+  'price',
+  'seller',
+  'status',
+  'tags',
+  'typeIds',
+  'updatedAt',
+  'uuid',
+];
+
 /**
  * Create a user and activate it
  */
