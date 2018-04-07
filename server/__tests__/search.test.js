@@ -95,14 +95,17 @@ describe('## Search APIs', () => {
         userId = user._id;
         firstJwtToken = jwtToken;
       })
-      .then(() => {
-        return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
+      .then(async () => {
+        await Tag.create([{ _id: 'winter' }, { _id: 'summer' }]);
       })
-      .then(() => {
-        return createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
+      .then(async () => {
+        try {
+          const { user, jwtToken } = await createUserAndLogin(anotherUser);
           anotherUserId = user._id;
           anotherJwtToken = jwtToken;
-        });
+        } catch (err) {
+          console.error(err);
+        }
       })
       .then(async () => {
         const p1 = await createProduct(product, firstJwtToken);
@@ -180,6 +183,19 @@ describe('## Search APIs', () => {
         .get('/api/search')
         .expect(httpStatus.UNAUTHORIZED)
         .then();
+    });
+
+    it('should not find a deleted product', async () => {
+      return request(app)
+        .get('/api/search')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].description).not.toBe(notForSaleProduct.description);
+          expect(data[1].description).not.toBe(notForSaleProduct.description);
+          expect(data).toHaveLength(2);
+        });
     });
   });
 
