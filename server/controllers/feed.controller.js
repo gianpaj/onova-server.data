@@ -24,7 +24,7 @@ declare class session$Request extends express$Request {
  * @property {Array<string>=} req.query.tag - limited to single tag
  * @property {Array<number>=} req.query.typeIds
  * @property {MongoId} req.query.lastId (not uuid)
- * @property {number} req.query.limit Limit number of users to be returned.
+ * @property {number} req.query.limit Limit number of products to be returned.
  */
 function flat(
   req: session$Request,
@@ -45,7 +45,7 @@ function flat(
       if (typeIds) DBquery = { ...DBquery, typeIds: { $in: typeIds } };
       if (categoryIds)
         DBquery = { ...DBquery, categoryIds: { $in: categoryIds } };
-      if (tag) DBquery = { ...DBquery, tags: { $in: [tag] } };
+      if (tag) DBquery = { ...DBquery, tags: tag };
 
       // for pagination - results are excluding the lastId`
       if (lastId) {
