@@ -17,6 +17,7 @@ export default {
   listUsers: {
     query: {
       u: Joi.string()
+        .regex(validation.username)
         .min(0)
         .max(30),
       limit: Joi.number()

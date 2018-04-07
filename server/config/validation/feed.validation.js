@@ -11,7 +11,7 @@ validate.options({
 });
 
 export default {
-  // POST /api/feed/flat
+  // GET /api/feed/flat
   getFlatFeed: {
     query: {
       limit: Joi.number()

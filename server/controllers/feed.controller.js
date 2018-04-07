@@ -7,7 +7,6 @@ import APIError from '../helpers/APIError';
 import { UserDoc } from '../models/user.model';
 import Product from '../models/product.model';
 import Follow, { FollowDoc } from '../models/follow.model';
-// import Feed, { FeedDoc } from '../models/feed.model';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
