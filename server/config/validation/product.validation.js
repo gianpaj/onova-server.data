@@ -80,6 +80,9 @@ export default {
       userid: Joi.string()
         .hex()
         .length(24),
+      username: Joi.string()
+        .min(3)
+        .max(30),
       tags: Joi.array()
         .single()
         .items(

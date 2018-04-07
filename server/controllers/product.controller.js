@@ -162,6 +162,7 @@ function create(
  * @property {number} req.query.skip Number of products to be skipped.
  * @property {number} req.query.limit Limit number of products to be returned.
  * @property {string} req.query.userid
+ * @property {string} req.query.username
  * @property {array<string>|string} req.query.tags
  */
 function list(
@@ -169,7 +170,8 @@ function list(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, skip = 0, tags, userid } = req.query;
+  const { limit = 50, skip = 0, tags, userid, username } = req.query;
+  const projection = { comments: 0 };
   let query = {
     status: 'forsale',
   };
@@ -186,7 +188,21 @@ function list(
     query = { ...query, tags: { $in: tags } };
   }
 
-  const projection = { comments: 0 };
+  // only search products by seller's username
+  if (username) {
+    return User.findOne({ username })
+      .then(user => {
+        if (!user) {
+          const APIerr = new APIError('No seller found', 404);
+          return next(APIerr);
+        }
+
+        return Product.list({ query: { seller: user._id }, projection })
+          .then(products => res.json({ data: products }))
+          .catch(e => next(e));
+      })
+      .catch(e => next(e));
+  }
 
   // use static method from ProductSchema
   // flow-disable-next-line
