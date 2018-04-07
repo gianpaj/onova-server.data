@@ -6,6 +6,7 @@ import feedRoutes from './feed.route';
 import followRoutes from './follow.route';
 import orderRoutes from './order.route';
 import productRoutes from './product.route';
+import searchRoutes from './search.route';
 import userRoutes from './user.route';
 
 const router = express.Router();
@@ -32,6 +33,9 @@ router.use('/products', productRoutes);
 
 // mount product routes at /products/:uuid/comment
 router.use('/products', commentRoutes);
+
+// mount search routes at /search
+router.use('/search', searchRoutes);
 
 // mount orders routes at /orders
 router.use('/orders', orderRoutes);
