@@ -173,7 +173,7 @@ describe('## User APIs', () => {
       request(app)
         .post('/api/users')
         .send({ ...user, ...user3 })
-        .expect(httpStatus.CREATED)
+        .expect(httpStatus.BAD_REQUEST)
         .then(done())
         .catch(done);
     });
@@ -517,7 +517,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(5);
+          expect(res.body.length).toBe(4);
           expect(Object.keys(res.body[0]).sort()).toEqual(userFields.sort());
           done();
         })
@@ -538,36 +538,40 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/?u=<username>', () => {
-    const john = {
-      username: 'johnone',
-      emailAddress: 'gianpa+john@gmail.com',
-      mobileNumber: '1234567890',
-      password: 'express2',
-    };
-    const johnJuan = {
-      username: 'johntwo',
-      emailAddress: 'gianpa+two@gmail.com',
-      mobileNumber: '1234567890',
-      password: 'express2',
-    };
-    const johnPerson = {
-      username: 'johnperson',
-      emailAddress: 'gianpa+person@gmail.com',
-      mobileNumber: '1234567890',
-      password: 'express2',
-    };
+    const people = [
+      {
+        username: 'johnone',
+        emailAddress: 'gianpa+john@gmail.com',
+        mobileNumber: '1234567890',
+        password: 'express2',
+      },
+      {
+        username: 'johntwo',
+        emailAddress: 'gianpa+two@gmail.com',
+        mobileNumber: '1234567890',
+        password: 'express2',
+      },
+      {
+        username: 'johnperson',
+        emailAddress: 'gianpa+person@gmail.com',
+        mobileNumber: '1234567890',
+        password: 'express2',
+      },
+    ];
 
-    beforeAll(done => {
-      createUserAndLogin(john).then(() => {
-        createUserAndLogin(johnJuan).then(() => {
-          createUserAndLogin(johnPerson).then(() => {
-            done();
-          });
-        });
-      });
+    beforeAll(async () => {
+      for (let i = 0; i < people.length; i++) {
+        try {
+          const person = people[i];
+          const u = await createUserAndLogin(person);
+          if (u instanceof Error) throw u;
+        } catch (error) {
+          console.error(error);
+        }
+      }
     });
 
-    it('should get all users which username`s contain with first', async () => {
+    it('should get all users which username`s contains `first`', async () => {
       return request(app)
         .get('/api/users?u=first')
         .expect(httpStatus.OK)
@@ -577,7 +581,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should get all users which username`s contain with person', async () => {
+    it('should get all users which username`s contains `person`', async () => {
       return request(app)
         .get('/api/users?u=person')
         .expect(httpStatus.OK)
@@ -587,13 +591,13 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should get all users which username`s contain with john', async () => {
+    it('should get all users which username`s contains `john`', async () => {
       return request(app)
         .get('/api/users?u=john')
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.length).toBe(3);
-          expect(res.body[0].username).toBe(john.username);
+          expect(res.body[0].username).toBe(people[0].username);
         });
     });
   });
@@ -612,6 +616,12 @@ describe('## User APIs', () => {
         })
         .catch(done);
     });
+    // it('should not get users which username`s contains `віктор`', async () => {
+    //   return request(app)
+    //     .get('/api/users?u=віктор')
+    //     .expect(httpStatus.BAD_REQUEST)
+    //     .then();
+    // });
   });
 
   describe('# POST /api/users/:userId', () => {
