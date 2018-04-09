@@ -92,6 +92,12 @@ describe('## User APIs', () => {
     password: 'express3',
   };
 
+  let forthUser = {
+    username: 'forthuser',
+    emailAddress: 'gianpa+forthuser@gmail.com',
+    password: 'express3',
+  };
+
   const invalidUserCredentials = {
     emailAddress: 'gianpa-react@gmail.com',
     password: 'IDontKnow',
@@ -99,8 +105,10 @@ describe('## User APIs', () => {
 
   let userId;
   let anotherUserId;
+  let forthUserId;
   let jwtToken;
   let anotherJwtToken;
+  let forthJwtToken;
   let activationToken;
   let resetToken;
 
@@ -557,18 +565,35 @@ describe('## User APIs', () => {
         mobileNumber: '1234567890',
         password: 'express2',
       },
+      {
+        username: 'maria',
+        emailAddress: 'maria@gmail.com',
+        mobileNumber: '1234567890',
+        password: 'express2',
+      },
     ];
 
     beforeAll(async () => {
       for (let i = 0; i < people.length; i++) {
         try {
-          const person = people[i];
-          const u = await createUserAndLogin(person);
+          const u = await createUserAndLogin(people[i]);
+          people[i]._id = u.user._id;
+          people[i].jwtToken = u.jwtToken;
           if (u instanceof Error) throw u;
-        } catch (error) {
-          console.error(error);
+        } catch (err) {
+          console.error(err);
         }
       }
+
+      // delete
+      return request(app)
+        .delete(`/api/users/${people[3]._id}`)
+        .set('Authorization', people[3].jwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.emailAddress).toBe(people[3].emailAddress);
+          expect(res.body.username).toBe(people[3].username);
+        });
     });
 
     it('should get all users which username`s contains `first`', async () => {
@@ -600,9 +625,25 @@ describe('## User APIs', () => {
           expect(res.body[0].username).toBe(people[0].username);
         });
     });
+
+    it('should not find deleted users', async () => {
+      return request(app)
+        .get('/api/users?u=maria')
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.length).toBe(0);
+        });
+    });
   });
 
-  describe('# DELETE /api/users/', () => {
+  describe('# DELETE /api/users/:userId', () => {
+    beforeAll(done => {
+      createUserAndLogin(anotherUser).then(({ user }) => {
+        anotherUserId = user._id;
+        done();
+      });
+    });
+
     it('should delete user', done => {
       request(app)
         .delete(`/api/users/${userId}`)
@@ -616,21 +657,13 @@ describe('## User APIs', () => {
         })
         .catch(done);
     });
+
     // it('should not get users which username`s contains `віктор`', async () => {
     //   return request(app)
     //     .get('/api/users?u=віктор')
     //     .expect(httpStatus.BAD_REQUEST)
     //     .then();
     // });
-  });
-
-  describe('# POST /api/users/:userId', () => {
-    beforeAll(done => {
-      createUserAndLogin(anotherUser).then(({ user }) => {
-        anotherUserId = user._id;
-        done();
-      });
-    });
 
     it('first user should not delete another user', done => {
       request(app)
@@ -656,32 +689,35 @@ describe('## User APIs', () => {
 
   describe('# PUT /api/users/:userId', () => {
     beforeAll(done => {
-      createUserAndLogin(user).then(({ user, jwtToken: token }) => {
-        userId = user._id;
-        jwtToken = token;
-        done();
-      });
+      createUserAndLogin(forthUser)
+        .then(({ user, jwtToken: token }) => {
+          forthUserId = user._id;
+          forthJwtToken = token;
+          done();
+        })
+        .catch(err => {
+          console.error(err);
+          done();
+        });
     });
 
-    it('should not update an user email to an existing one', done => {
-      request(app)
-        .put(`/api/users/${userId}`)
-        .set('Authorization', jwtToken)
-        .send({ ...user, emailAddress: anotherUser.emailAddress })
+    it('should not update an user`s email to an existing one', async () => {
+      return request(app)
+        .put(`/api/users/${forthUserId}`)
+        .set('Authorization', forthJwtToken)
+        .send({ ...forthUser, emailAddress: anotherUser.emailAddress })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
             'An account with the same email address exists.'
           );
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should not update an user's username to an existing one", done => {
       request(app)
-        .put(`/api/users/${userId}`)
-        .set('Authorization', jwtToken)
+        .put(`/api/users/${forthUserId}`)
+        .set('Authorization', forthJwtToken)
         .send({
           emailAddress: 'newemail@example.com',
           username: anotherUser.username,
@@ -709,13 +745,8 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).toHaveProperty('token');
-          const token = res.body.token.split('JWT ')[1];
-          jwt.verify(token, config.jwtSecret, (err, decoded) => {
-            expect(err).toBeFalsy();
-            expect(decoded.emailAddress).toBe(anotherUser.emailAddress);
-            anotherJwtToken = res.body.token;
-            done();
-          });
+          anotherJwtToken = res.body.token;
+          done();
         })
         .catch(done);
     });
@@ -728,6 +759,15 @@ describe('## User APIs', () => {
         .set('Authorization', anotherJwtToken)
         .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
         .expect(httpStatus.OK);
+    });
+
+    it("should not update another user's details", async () => {
+      user.mobileNumber = '9876543212';
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', anotherJwtToken)
+        .send(user)
+        .expect(httpStatus.UNAUTHORIZED);
     });
   });
 
