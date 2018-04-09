@@ -7,3 +7,10 @@ apps:
     env    :
       NODE_ENV: production
       PORT: 4040
+  - script : npm
+    args: start
+    cwd: ./server.push
+    name   : 'server.push'
+    # autorestart: true
+    env    :
+      NODE_ENV: production
