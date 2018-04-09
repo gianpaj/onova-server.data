@@ -359,7 +359,7 @@ function list(
   }
 
   const regex = new RegExp(escapeRegex(u), 'gi');
-  User.find({ username: regex })
+  User.find({ username: regex, accountStatus: { $nin: ['deleted', 'banned'] } })
     .select('_id accountStatus displayName username profilePic')
     .then(users => {
       if (!users) {
@@ -390,8 +390,8 @@ function remove(
   const user = req.user;
 
   user
-    .remove()
-    .then(deletedUser => res.json(deletedUser))
+    .update({ accountStatus: 'deleted' })
+    .then(() => res.json(req.user))
     .catch(e => next(e));
 }
 
