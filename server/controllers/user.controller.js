@@ -360,7 +360,7 @@ function list(
 
   const regex = new RegExp(escapeRegex(u), 'gi');
   User.find({ username: regex, accountStatus: { $nin: ['deleted', 'banned'] } })
-    .select('_id accountStatus displayName username profilePic')
+    .select('_id accountStatus displayName username profilePic bio')
     .then(users => {
       if (!users) {
         return res.json({});

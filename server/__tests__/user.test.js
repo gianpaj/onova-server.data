@@ -585,28 +585,46 @@ describe('## User APIs', () => {
         }
       }
 
-      // delete
-      return request(app)
+      // delete `maria`
+      const m = await request(app)
         .delete(`/api/users/${people[3]._id}`)
         .set('Authorization', people[3].jwtToken)
-        .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.emailAddress).toBe(people[3].emailAddress);
-          expect(res.body.username).toBe(people[3].username);
-        });
+        .expect(httpStatus.OK);
+      expect(m.body.emailAddress).toBe(people[3].emailAddress);
+      expect(m.body.username).toBe(people[3].username);
+
+      // update profile pic of `johntwo`
+      await request(app)
+        .put(`/api/users/${people[1]._id}`)
+        .set('Authorization', people[1].jwtToken)
+        .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+        .field('displayName', 'displayName the second john')
+        .field('bio', 'bio the second john')
+        .expect(httpStatus.OK);
     });
 
-    it('should get all users which username`s contains `first`', async () => {
+    it('should get all users which username contains `johntwo`', async () => {
+      const userFields = [
+        '_id',
+        'accountStatus',
+        'bio',
+        'id',
+        'username',
+        'displayName',
+        'profilePic',
+      ];
+
       return request(app)
-        .get('/api/users?u=first')
+        .get('/api/users?u=johntwo')
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.length).toBe(1);
-          expect(res.body[0].username).toBe(user.username);
+          expect(res.body[0].username).toBe(people[1].username);
+          expect(Object.keys(res.body[0]).sort()).toEqual(userFields.sort());
         });
     });
 
-    it('should get all users which username`s contains `person`', async () => {
+    it('should get all users which username contains `person`', async () => {
       return request(app)
         .get('/api/users?u=person')
         .expect(httpStatus.OK)
@@ -616,7 +634,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should get all users which username`s contains `john`', async () => {
+    it('should get all users which username contains `john`', async () => {
       return request(app)
         .get('/api/users?u=john')
         .expect(httpStatus.OK)
