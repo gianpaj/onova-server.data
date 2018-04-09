@@ -63,8 +63,6 @@ const notForSaleProduct = {
 
 let userId;
 let anotherUserId;
-let productUuid;
-let anotherProductUuid;
 let firstJwtToken;
 let anotherJwtToken;
 
@@ -110,12 +108,10 @@ describe('## Search APIs', () => {
       .then(async () => {
         const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
-        productUuid = p1.uuid;
       })
       .then(async () => {
         const p2 = await createProduct(anotherProduct, anotherJwtToken);
         expect(p2.description).toBe(anotherProduct.description);
-        anotherProductUuid = p2.uuid;
       })
       .then(async () => {
         const p3 = await createProduct(notForSaleProduct, anotherJwtToken);
@@ -398,6 +394,81 @@ describe('## Search APIs', () => {
         .get(`/api/search?description=${really_long_string}`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST);
+    });
+  });
+
+  describe('# GET /api/search?categoryIds=&typeIds&tag', () => {
+    let descriptionProductUUID;
+
+    beforeAll(async () => {
+      const p = {
+        categoryIds: [2],
+        typeIds: [1, 3],
+        tags: ['summer'],
+        description: 'nice hoodie',
+        price: '390',
+      };
+      const pp = await createProduct(p, firstJwtToken);
+      expect(pp.description).toBe(p.description);
+      descriptionProductUUID = pp.uuid;
+    });
+
+    it('should find products by tag & categoryIds', async () => {
+      return request(app)
+        .get('/api/search?tag=summer&categoryIds=2')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].uuid).toBe(descriptionProductUUID);
+          expect(data).toHaveLength(1);
+        });
+    });
+
+    it('should not find products by tag & categoryIds (no match)', async () => {
+      return request(app)
+        .get('/api/search?tag=summer&categoryIds=1')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data).toHaveLength(0);
+        });
+    });
+
+    it('should find products by tag & typeIds', async () => {
+      return request(app)
+        .get('/api/search?tag=summer&typeIds=3')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].uuid).toBe(descriptionProductUUID);
+          expect(data).toHaveLength(1);
+        });
+    });
+
+    it('should not find products by tag & typeIds (no match)', async () => {
+      return request(app)
+        .get('/api/search?tag=summer&typeIds=2')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data).toHaveLength(0);
+        });
+    });
+
+    it('should find products by categoryIds & typeIds', async () => {
+      return request(app)
+        .get('/api/search?categoryIds=2&typeIds=3')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0].uuid).toBe(descriptionProductUUID);
+          expect(data).toHaveLength(4);
+        });
     });
   });
 });
