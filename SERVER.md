@@ -277,6 +277,12 @@ Ensure that your Node.js application starts automatically when your server boots
 
 ```bash
 sudo su - bitbucket
+
+# rotate logs (by default everyday at midnight)
+pm2 install pm2-logrotate
+# retail 30 logs for 30 days (based on rotateInterval)
+pm2 set pm2-logrotate:retain 30
+
 pm2 startup systemd
 exit
 sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -u bitbucket --hp /home/bitbucket
