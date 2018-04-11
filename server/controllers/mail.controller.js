@@ -33,7 +33,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
 
       const vars = {
         confirmation_link: `https://onova.co/api/auth/activate/${token}`,
-        displayName: user.displayName,
+        displayName: user.username,
       };
 
       var request = mailjetClient.post('send', { version: 'v3.1' }).request({
@@ -81,7 +81,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
 
       const vars = {
         confirmation_link: `https://onova.co/api/auth/activate/${token}`,
-        displayName: user.displayName,
+        displayName: user.displayName || user.username,
       };
 
       var request = mailjetClient.post('send', { version: 'v3.1' }).request({
@@ -132,7 +132,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
 
       const vars = {
         reset_link: `https://onova.co/api/auth/reset/${token}`,
-        displayName: user.displayName,
+        displayName: user.displayName || user.username,
       };
 
       var request = mailjetClient.post('send', { version: 'v3.1' }).request({
