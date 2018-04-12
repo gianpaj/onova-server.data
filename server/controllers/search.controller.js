@@ -1,9 +1,9 @@
 // @flow
 
-import httpStatus from 'http-status';
+// import httpStatus from 'http-status';
 // import stream from 'getstream-node';
 
-import APIError from '../helpers/APIError';
+// import APIError from '../helpers/APIError';
 import { UserDoc } from '../models/user.model';
 import Product from '../models/product.model';
 import config from '../config/config';
@@ -13,7 +13,7 @@ declare class session$Request extends express$Request {
 }
 
 function escapeRegex(text) {
-  return text.replace(/[^a-zA-Zа-яА-Я0-9_]/g, '\\$&');
+  return text.replace(/[^a-zA-Z0-9_]/g, '\\$&');
 }
 
 /**

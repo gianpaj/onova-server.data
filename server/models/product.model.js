@@ -83,7 +83,7 @@ var ProductSchema = new Schema(
     tags: {
       type: [String],
       ref: 'Tag',
-      // max number of 30 tags per product (see param-validation.js)
+      // max number of 30 tags per product (see product.validation.js)
     },
     typeIds: {
       type: [Number],
