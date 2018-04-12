@@ -174,7 +174,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not create product with an invalid tag', async () => {
+    it('should not create product with an invalid tag (with @)', async () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -188,12 +188,11 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not create product with another invalid tag', async () => {
-      badProduct.tags = ['my pony'];
+    it('should not create product with an invalid tag (with space)', async () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field(badProduct)
+        .field({ ...badProduct, tags: ['my pony'] })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -201,6 +200,30 @@ describe('## Product APIs', () => {
             'fails to match the required pattern'
           );
         });
+    });
+
+    it('should not create product with an invalid tag (with .)', async () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken)
+        .field({ ...badProduct, tags: ['lol.pony'] })
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain(
+            'fails to match the required pattern'
+          );
+        });
+    });
+
+    it('should create product with a valid (start with numbers)', async () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken)
+        .field({ ...product, tags: ['111pony'] })
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .expect(httpStatus.CREATED)
+        .then(() => void productsCounter++);
     });
 
     it('should not create product without a proper price', async () => {
