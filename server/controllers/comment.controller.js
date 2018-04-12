@@ -10,7 +10,7 @@ import notifCtrl, {
   NotifPayload,
 } from '../controllers/notification.controller';
 
-const mentionsRegex = /@[a-zA-Zа-яА-Я0-9\_\.]*/g;
+const mentionsRegex = /@[a-zA-Z0-9\_\.]*/g;
 
 // const i18n = {
 //   newComment: 'new comment from %s',
