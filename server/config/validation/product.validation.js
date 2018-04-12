@@ -1,6 +1,8 @@
 import Joi from 'joi';
 import validate from 'express-validation';
 
+import validation from '../../helpers/validation';
+
 // assign options
 validate.options({
   allowUnknownBody: false,
@@ -38,7 +40,7 @@ export default {
         .max(30)
         .items(
           Joi.string()
-            .regex(/^(\b[a-z][a-z0-9]*)$/i)
+            .regex(validation.hashtag)
             .min(3)
             .max(30)
         )
@@ -87,7 +89,7 @@ export default {
         .single()
         .items(
           Joi.string()
-            .regex(/^(\b[a-z][a-z0-9]*)$/i)
+            .regex(validation.hashtag)
             .min(3)
             .max(30)
         )
