@@ -85,6 +85,8 @@ describe('## Product APIs', () => {
   let anotherJwtToken;
   let anotherProdUuid;
 
+  let productsCounter = 0;
+
   // create 2 users/sellers + Tag and upload profile pic of a seller
   beforeAll(done => {
     createUserAndLogin(user)
@@ -143,6 +145,7 @@ describe('## Product APIs', () => {
             [...productFields, 'comments'].sort()
           );
           productUuid = p.uuid;
+          productsCounter++;
         });
     });
 
@@ -264,6 +267,8 @@ describe('## Product APIs', () => {
       expect(p2.tags).toEqual(expect.arrayContaining(thirdProduct.tags));
       expect(p2.tags).toHaveLength(1);
       expect(typeof p2).toBe('object');
+      productsCounter++;
+      productsCounter++;
     });
 
     it('should get all products', async () => {
@@ -273,7 +278,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p).toHaveLength(3);
+          expect(p).toHaveLength(productsCounter);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
@@ -309,7 +314,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p).toHaveLength(3);
+          expect(p).toHaveLength(productsCounter);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
@@ -321,7 +326,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p).toHaveLength(3);
+          expect(p).toHaveLength(productsCounter);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
@@ -355,6 +360,7 @@ describe('## Product APIs', () => {
         .expect(httpStatus.NO_CONTENT)
         .then(res => {
           expect(res.body).toMatchObject({});
+          productsCounter--;
         });
     });
 
@@ -365,7 +371,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p).toHaveLength(2);
+          expect(p).toHaveLength(productsCounter);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
     });
