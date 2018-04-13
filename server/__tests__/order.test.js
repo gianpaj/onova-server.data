@@ -179,6 +179,7 @@ describe('## Order APIs', () => {
       });
   });
 
+  // create 3 products and delete 1 of them
   beforeAll(done => {
     let Promises = [];
     Promises.push(
@@ -211,7 +212,6 @@ describe('## Order APIs', () => {
     });
   });
 
-  // create 3 products and delete 1 of them
   describe('# POST /api/orders', () => {
     it('should create an order', async () => {
       return request(app)

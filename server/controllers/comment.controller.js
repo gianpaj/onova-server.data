@@ -42,8 +42,6 @@ function get(req: session$Request, res: express$Response) {
 /**
  * Create new comment and create notification for seller
  *
- * TODO: create notification for @mention
- *
  * POST /api/product/:uuid/comment
  *
  * @property {*} req Express request

@@ -131,7 +131,7 @@ function create(
           .sendVerificationEmail(savedUser.emailAddress, savedUser)
           .then(() => {
             const payload = _prepareUserJson(savedUser);
-            return res.status(201).json({
+            return res.status(httpStatus.CREATED).json({
               token: `JWT ${authCtrl.generateToken(payload)}`,
               data: payload,
             });

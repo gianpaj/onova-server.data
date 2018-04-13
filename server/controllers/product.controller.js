@@ -147,7 +147,7 @@ function create(
         });
     })
     .then(savedProduct => {
-      return res.status(201).json({ data: savedProduct });
+      return res.status(httpStatus.CREATED).json({ data: savedProduct });
     })
     .catch(e => next(e));
 }
@@ -229,7 +229,7 @@ function remove(
 
   if (req.product.status !== 'forsale') {
     // item could be already sold or deleted, etc.
-    throw new APIError('Product not found', 400);
+    throw new APIError('Product not found', httpStatus.BAD_REQUEST);
   }
 
   // TODO: delete images from GSC
@@ -252,7 +252,7 @@ function remove(
     { uuid: uuid, status: 'forsale' },
     { status: 'deleted' }
   )
-    .then(() => res.status(204).json())
+    .then(() => res.status(httpStatus.NO_CONTENT).json())
     .catch(() => {
       const err = new APIError('Error deleting Product', 500);
       next(err);
