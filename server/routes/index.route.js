@@ -4,6 +4,7 @@ import authRoutes from './auth.route';
 import commentRoutes from './comment.route';
 import feedRoutes from './feed.route';
 import followRoutes from './follow.route';
+import reviewRoutes from './review.route';
 import orderRoutes from './order.route';
 import productRoutes from './product.route';
 import searchRoutes from './search.route';
@@ -27,6 +28,9 @@ router.use('/users', userRoutes);
 
 // mount user follow routes at /users/:userId/[follow/unfollow]
 router.use('/users', followRoutes);
+
+// mount users reviews routes at /users/:userId/reviews
+router.use('/users', reviewRoutes);
 
 // mount product routes at /products
 router.use('/products', productRoutes);
