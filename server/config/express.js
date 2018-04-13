@@ -110,8 +110,8 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
   return next(err);
 });
 
-// log error in winston transports in test or development
-if (config.env == 'test' || config.env == 'development') {
+// log error in winston transports in development
+if (config.env == 'development') {
   app.use(
     expressWinston.errorLogger({
       winstonInstance,
