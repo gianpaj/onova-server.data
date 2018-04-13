@@ -403,14 +403,14 @@ function remove(
 function _prepareUserJson(user: UserDoc): Object {
   return {
     _id: user._id,
+    accountStatus: user.accountStatus,
     bio: user.bio,
-    username: user.username,
     displayName: user.displayName,
     emailAddress: user.emailAddress,
-    accountStatus: user.accountStatus,
-    profilePic: user.profilePic,
     followersCount: user.followersCount,
     followingCount: user.followingCount,
+    profilePic: user.profilePic,
+    username: user.username,
   };
 }
 

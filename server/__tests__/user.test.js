@@ -121,11 +121,11 @@ describe('## User APIs', () => {
         .then(res => {
           const resUser = res.body.data;
           expect(typeof resUser._id).toBe('string');
-          expect(resUser.username).toBe(user.username);
-          expect(resUser.emailAddress).toBe(user.emailAddress);
           expect(resUser.accountStatus).toBe('notverified');
+          expect(resUser.emailAddress).toBe(user.emailAddress);
           expect(resUser.followersCount).toBe(0);
           expect(resUser.followingCount).toBe(0);
+          expect(resUser.username).toBe(user.username);
           expect(typeof res.body.token).toBe('string');
           expect(Object.keys(resUser).sort()).toEqual(userFields.sort());
 

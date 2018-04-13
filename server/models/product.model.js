@@ -93,7 +93,6 @@ var ProductSchema = new Schema(
       type: String,
       unique: true, // Unique index
     },
-    // soldAt: Date,
   },
   {
     // assigns 'createdAt' and 'updatedAt' fields to your schema
