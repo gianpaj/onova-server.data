@@ -12,7 +12,7 @@ import Verification from '../models/verification.model';
 import Follow from '../models/follow.model';
 import User from '../models/user.model';
 import DefaultFollow from '../models/defaultFollow.model';
-import { createUserAndLogin } from './utils';
+import { createUserAndLogin, userFields } from './utils';
 
 /**
  * root level hooks
@@ -24,16 +24,6 @@ afterAll(done => {
   mongoose.connection.close();
   done();
 });
-
-// GET /api/users/ should only return these fields
-const userFields = [
-  '_id',
-  'accountStatus',
-  'emailAddress',
-  'followersCount',
-  'followingCount',
-  'username',
-];
 
 // POST /api/auth/login should only return these fields
 const authFields = ['data', 'token'];

@@ -12,21 +12,7 @@ import Product from '../models/product.model';
 import Tag from '../models/tag.model';
 import User from '../models/user.model';
 import Verification from '../models/verification.model';
-import { createUserAndLogin, createProduct } from './utils';
-
-// GET & PUT /api/orders/ should only return these fields
-const orderFields = [
-  'buyer',
-  'currency',
-  'datePending',
-  'id',
-  'onovaFee',
-  'priceOfItem',
-  'product',
-  'seller',
-  'status',
-  'transactionStatus',
-];
+import { createUserAndLogin, createProduct, orderFields } from './utils';
 
 describe('## Order APIs', () => {
   beforeAll(done => {
