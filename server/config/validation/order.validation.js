@@ -25,7 +25,6 @@ export default {
       reason: Joi.string()
         .min(10)
         .max(300),
-
       // eslint-disable-next-line
       paymentMethod: Joi.string().only([
         'paypal',

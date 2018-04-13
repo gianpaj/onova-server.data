@@ -138,13 +138,15 @@ function create(
       //     console.error(err);
       //   });
 
-      return res.status(201).json({ data: savedOrder });
+      return res.status(httpStatus.CREATED).json({ data: savedOrder });
     })
     .catch(e => {
       if (e.message == 'Duplicate order') {
         Order.findOne({ buyer: req.user._id, product: foundProduct._id }).then(
           order => {
-            return res.status(400).json({ message: e.message, order });
+            return res
+              .status(httpStatus.NOT_FOUND)
+              .json({ message: e.message, order });
           }
         );
       } else {

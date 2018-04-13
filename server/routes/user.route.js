@@ -60,6 +60,7 @@ router
   .get(requireAuth, isAuthorized, userCtrl.getPersonal);
 
 // Load user when API with userId route parameter is hit
+// FIXME: verify userId before doing a DB query
 router.param('userId', userCtrl.load);
 
 export default router;

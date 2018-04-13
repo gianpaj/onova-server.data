@@ -98,7 +98,7 @@ var OrderSchema = new Schema(
         // [Only by Shipping Provider]. Item has been collected - # 4 Step in UI
         'completed',
 
-        // Buyer fails to collect or fails to pay [by Payment or Shipping Provider]
+        // Buyer fails to collect, refuses the item (not as described), or fails to pay [by Payment or Shipping Provider]
         'failed_by_buyer',
 
         // Seller fails to ship or fails to confirm [by Payment or Shipping Provider]
@@ -139,6 +139,7 @@ var OrderSchema = new Schema(
 );
 
 export class OrderDoc /*:: extends Mongoose$Document */ {
+  _id: MongoId;
   buyer: MongoId;
   currency: string;
   dateCancelled: ?Date;

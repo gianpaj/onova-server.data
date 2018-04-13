@@ -21,7 +21,7 @@ router.get('/health-check', (req, res) => res.send('OK'));
 router.get('/health-check/json', (req, res) => res.json({ ok: true }));
 
 // mount user routes at /users
-// +
+// AND
 // mount user notifications routes at /users/notifications
 router.use('/users', userRoutes);
 
