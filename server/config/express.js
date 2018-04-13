@@ -72,20 +72,12 @@ app.set('view engine', 'pug');
 // tell Express to use the remote IP address
 app.set('trust proxy', true);
 
-// enable detailed API console logging in dev env
-if (config.env === 'development') {
+// enable detailed API console logging
+if (config.env === 'test') {
   expressWinston.requestWhitelist.push('body');
   expressWinston.responseWhitelist.push('body');
-  app.use(
-    expressWinston.logger({
-      winstonInstance,
-      meta: true, // optional: log meta data about request (defaults to true)
-      msg:
-        'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
-      colorize: true, // Color the status code (default green, 3XX cyan, 4XX yellow, 5XX red).
-    })
-  );
-} else if (config.env === 'production') {
+}
+if (config.env === 'production') {
   app.use(
     expressWinston.logger({
       transports: [new winston.transports.File({ filename: 'access.log' })],
@@ -118,14 +110,15 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
   return next(err);
 });
 
-// log error in winston transports in development
-if (config.env == 'development') {
+// log error in winston transports in test or development
+if (config.env == 'test' || config.env == 'development') {
   app.use(
     expressWinston.errorLogger({
       winstonInstance,
     })
   );
-} else if (config.env == 'production') {
+}
+if (config.env == 'production') {
   // log errors to files
   app.use(
     expressWinston.errorLogger({
