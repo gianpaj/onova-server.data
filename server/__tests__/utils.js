@@ -10,13 +10,29 @@ import Verification from '../models/verification.model';
 import app from '../index';
 
 // GET /api/users/ should only return these fields
-const userFields = [
+export const userFields = [
   '_id',
   'accountStatus',
   'emailAddress',
   'followersCount',
   'followingCount',
+  'ratingAvg',
+  'reviewCount',
   'username',
+];
+
+// GET & PUT /api/orders/ should only return these fields
+export const orderFields = [
+  'buyer',
+  'currency',
+  'datePending',
+  'id',
+  'onovaFee',
+  'priceOfItem',
+  'product',
+  'seller',
+  'status',
+  'transactionStatus',
 ];
 
 // POST /api/auth/login should only return these fields
@@ -55,15 +71,7 @@ export function createUserAndLogin(
         console.error(res.body);
         throw new Error(res.body);
       }
-      const resUser = res.body.data;
-      expect(typeof resUser._id).toBe('string');
-      expect(resUser.username).toBe(user.username);
-      expect(resUser.emailAddress).toBe(user.emailAddress);
-      expect(resUser.accountStatus).toBe('notverified');
-      expect(resUser.followersCount).toBe(0);
-      expect(resUser.followingCount).toBe(0);
-      expect(typeof res.body.token).toBe('string');
-      expect(Object.keys(resUser).sort()).toEqual(userFields.sort());
+      expect(Object.keys(res.body.data).sort()).toEqual(userFields.sort());
 
       return res.body.data;
     })

@@ -145,7 +145,7 @@ function create(
         Order.findOne({ buyer: req.user._id, product: foundProduct._id }).then(
           order => {
             return res
-              .status(httpStatus.NOT_FOUND)
+              .status(httpStatus.BAD_REQUEST)
               .json({ message: e.message, order });
           }
         );
