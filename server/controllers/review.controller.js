@@ -8,6 +8,7 @@ import Review, { ReviewDoc } from '../models/review.model';
 import notifCtrl, {
   NotifPayload,
 } from '../controllers/notification.controller';
+import User, { UserDoc } from '../models/user.model';
 
 declare class session$Request extends express$Request {
   order: OrderDoc;
@@ -24,18 +25,22 @@ declare class session$Request extends express$Request {
  * @property {MongoId} req.params.userId
  */
 async function get(req: session$Request, res: express$Response, next) {
+  const { userId } = req.params;
   // const { limit = 50, lastId } = req.query;
   // TODO: paginate inside list of reviews` array using limit & lastId
 
-  const { user } = req;
-
   try {
-    const reviews = await Review.get({ targetUser: user._id });
+    const user = await User.findById(userId);
+    if (!user) {
+      const APIerr = new APIError('Invalid userId', httpStatus.BAD_REQUEST);
+      return next(APIerr);
+    }
+    const reviews = await Review.find({ targetUser: userId });
 
-    res.json({ data: { reviews } });
+    return res.json({ data: reviews });
   } catch (err) {
-    console.log(err);
-    res.json({ data: 'error' });
+    const APIerr = new APIError(err, httpStatus.BAD_REQUEST);
+    return next(APIerr);
   }
 }
 

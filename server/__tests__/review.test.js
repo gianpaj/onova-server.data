@@ -387,5 +387,159 @@ describe('## Order APIs', () => {
     });
   });
 
-  // describe('# GET /api/users/:userId/review', () => {});
+  describe('# GET /api/users/:userId/review', () => {
+    // delete Orders, Reviews and Notifications
+    beforeAll(done => {
+      const collections = [
+        Notification.collection,
+        Order.collection,
+        Review.collection,
+      ];
+
+      var todo = collections.length;
+      if (!todo) return done();
+
+      collections.forEach(collection => {
+        collection.remove({}, { safe: true }, () => {
+          if (--todo === 0) done();
+        });
+      });
+    });
+
+    let orderFour, orderFive, orderSixPending;
+
+    // userFirst buys an productShorts (seller is userAnother) and we set it as completed (manually)
+    beforeAll(async () => {
+      orderFour = await request(app)
+        .post('/api/orders')
+        .set('Authorization', userFirstJwtToken)
+        .send({ product: productShortsUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((productShorts.price * 1).toString());
+          expect(o.priceOfItem).toBe(productShorts.price);
+          expect(o.transactionStatus).toBe('pl-pending');
+          return o;
+        });
+      const o = await Order.updateOne(
+        { _id: orderFour.id },
+        { $set: { status: 'completed' } }
+      );
+      expect(o.nModified).toBe(1);
+
+      orderFive = await request(app)
+        .post('/api/orders')
+        .set('Authorization', userAnotherJwtToken)
+        .send({ product: productBootsUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => res.body.data);
+      const o2 = await Order.updateOne(
+        { _id: orderFive.id },
+        { $set: { status: 'completed' } }
+      );
+      expect(o2.nModified).toBe(1);
+
+      orderSixPending = await request(app)
+        .post('/api/orders')
+        .set('Authorization', userForthJwtToken)
+        .send({ product: productShortsUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => res.body.data);
+    });
+
+    // userFirst creates a review (as buyer)
+    // AND
+    // userAnother creates a review (as seller)
+    beforeAll(async () => {
+      await request(app)
+        .post(`/api/users/${userFirst._id}/reviews`)
+        .set('Authorization', userFirstJwtToken)
+        .send({
+          orderId: orderFour.id,
+          text: 'great seller AAA+',
+          rateNumber: 5,
+          lang: 'en',
+        })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.order).toBe(orderFour.id);
+          expect(o.fromUser).toBe(userFirst._id);
+          expect(o.targetUser).toBe(userAnother._id);
+          expect(o.text).toBe('great seller AAA+');
+          expect(o.rateNumber).toBe(5);
+          expect(o.lang).toBe('en');
+        });
+
+      await request(app)
+        .post(`/api/users/${userAnother._id}/reviews`)
+        .set('Authorization', userAnotherJwtToken)
+        .send({
+          orderId: orderFour.id,
+          text: 'great buyer AAA+',
+          rateNumber: 5,
+          lang: 'en',
+        })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.order).toBe(orderFour.id);
+          expect(o.fromUser).toBe(userAnother._id);
+          expect(o.targetUser).toBe(userFirst._id);
+          expect(o.text).toBe('great buyer AAA+');
+          expect(o.rateNumber).toBe(5);
+          expect(o.lang).toBe('en');
+        });
+    });
+
+    it('should get the reviews of a seller', async () => {
+      await request(app)
+        .get(`/api/users/${userAnother._id}/reviews`)
+        .set('Authorization', userFirstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.data).toHaveLength(1);
+          const o = res.body.data[0];
+          expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
+          expect(o.order).toBe(orderFour.id);
+          expect(o.fromUser).toBe(userFirst._id);
+          expect(o.targetUser).toBe(userAnother._id);
+          expect(o.text).toBe('great seller AAA+');
+          expect(o.rateNumber).toBe(5);
+          expect(o.lang).toBe('en');
+        });
+    });
+
+    it('should get the reviews of a buyer', async () => {
+      await request(app)
+        .get(`/api/users/${userFirst._id}/reviews`)
+        .set('Authorization', userAnotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.data).toHaveLength(1);
+          const o = res.body.data[0];
+          expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
+          expect(o.order).toBe(orderFour.id);
+          expect(o.fromUser).toBe(userAnother._id);
+          expect(o.targetUser).toBe(userFirst._id);
+          expect(o.text).toBe('great buyer AAA+');
+          expect(o.rateNumber).toBe(5);
+          expect(o.lang).toBe('en');
+        });
+    });
+
+    it('should **not** get the reviews of an invalid user', async () => {
+      await request(app)
+        .get(`/api/users/5ad104f6d07421b88545ffff/reviews`)
+        .set('Authorization', userAnotherJwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('Invalid userId');
+        });
+    });
+  });
 });
