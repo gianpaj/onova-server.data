@@ -92,6 +92,15 @@ async function create(
   }
 
   const iAmTheSeller = req.user._id.toString() == order.seller._id.toString();
+  const iAmTheBuyer = req.user._id.toString() == order.buyer._id.toString();
+
+  if (!iAmTheSeller && !iAmTheBuyer) {
+    const APIerr = new APIError(
+      `Cannot create review on an order that you're not part of`,
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
 
   let { text, rateNumber, lang } = req.body;
   const review: ReviewDoc = new Review({
