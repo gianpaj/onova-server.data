@@ -115,6 +115,8 @@ describe('## User APIs', () => {
           expect(resUser.emailAddress).toBe(user.emailAddress);
           expect(resUser.followersCount).toBe(0);
           expect(resUser.followingCount).toBe(0);
+          expect(resUser.ratingsTotal).toBe(0);
+          expect(resUser.reviewsCount).toBe(0);
           expect(resUser.username).toBe(user.username);
           expect(typeof res.body.token).toBe('string');
           expect(Object.keys(resUser).sort()).toEqual(userFields.sort());

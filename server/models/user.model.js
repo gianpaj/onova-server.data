@@ -96,6 +96,22 @@ const UserSchema = new Schema(
     },
     profilePic: String,
     pushToken: String,
+    ratingsTotal: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+    },
+    reviewsCount: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+      validate: {
+        validator: Number.isInteger,
+        message: '{VALUE} is not an integer value',
+      },
+    },
     shippingAddress: {
       firstName: String,
       lastName: String,
@@ -137,6 +153,8 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   platform: ?string;
   profilePic: ?string;
   pushToken: ?string;
+  ratingsTotal: number;
+  reviewsCount: number;
   shippingAddress: ?any;
   username: string;
 }
