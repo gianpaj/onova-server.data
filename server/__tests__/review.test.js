@@ -182,7 +182,7 @@ describe('## Order APIs', () => {
   });
 
   describe('# POST /api/users/:userId/review', () => {
-    let orderOne, orderTwo, orderThreePending;
+    let orderOne, orderTwo, orderThreePending, orderSix;
     // userFirst buys an productShorts (seller is userAnother) and we set it as completed (manually)
     beforeAll(async () => {
       orderOne = await request(app)
@@ -224,6 +224,18 @@ describe('## Order APIs', () => {
         .send({ product: productShortsUuid })
         .expect(httpStatus.CREATED)
         .then(res => res.body.data);
+
+      orderSix = await request(app)
+        .post('/api/orders')
+        .set('Authorization', userForthJwtToken)
+        .send({ product: productBootsUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => res.body.data);
+      const o6 = await Order.updateOne(
+        { _id: orderSix.id },
+        { $set: { status: 'completed' } }
+      );
+      expect(o6.nModified).toBe(1);
     });
 
     it('should create an review by the buyer', async () => {
@@ -368,6 +380,24 @@ describe('## Order APIs', () => {
         });
     });
 
+    it('should **not** create a review for an order I`m not part of', async () => {
+      return request(app)
+        .post(`/api/users/${userAnother._id}/reviews`)
+        .set('Authorization', userAnotherJwtToken)
+        .send({
+          orderId: orderSix.id,
+          text: 'greeeeeat',
+          rateNumber: 5,
+          lang: 'en',
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain(
+            `Cannot create review on an order that you're not part of`
+          );
+        });
+    });
+
     it('should **not** create a review if the order is not completed (as buyer)', async () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
@@ -406,7 +436,7 @@ describe('## Order APIs', () => {
       });
     });
 
-    let orderFour, orderFive, orderSixPending;
+    let orderFour, orderFive;
 
     // userFirst buys an productShorts (seller is userAnother) and we set it as completed (manually)
     beforeAll(async () => {
@@ -442,13 +472,6 @@ describe('## Order APIs', () => {
         { $set: { status: 'completed' } }
       );
       expect(o2.nModified).toBe(1);
-
-      orderSixPending = await request(app)
-        .post('/api/orders')
-        .set('Authorization', userForthJwtToken)
-        .send({ product: productShortsUuid })
-        .expect(httpStatus.CREATED)
-        .then(res => res.body.data);
     });
 
     // userFirst creates a review (as buyer)
