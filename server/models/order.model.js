@@ -251,19 +251,25 @@ OrderSchema.post('save', function(error: Error, doc, next) {
   next(error);
 });
 
-// Never return '__v' fields in the JSON representation
-// Note that this doesn't effect `toObject`
+function transform(doc, ret) {
+  ret.onovaFee = ret.onovaFee.toString();
+  ret.priceOfItem = ret.priceOfItem.toString();
+  // ret.taxAmount = ret.taxAmount.toString();
+  // ret.transactionFee = ret.transactionFee.toString();
+  delete ret._id;
+  delete ret.__v;
+  return ret;
+}
+
+// Never return '__v' or '_id', fields
+OrderSchema.set('toObject', {
+  getters: true,
+  transform,
+});
+
 OrderSchema.set('toJSON', {
   getters: true,
-  transform: (doc, ret) => {
-    ret.onovaFee = ret.onovaFee.toString();
-    ret.priceOfItem = ret.priceOfItem.toString();
-    // ret.taxAmount = ret.taxAmount.toString();
-    // ret.transactionFee = ret.transactionFee.toString();
-    delete ret._id;
-    delete ret.__v;
-    return ret;
-  },
+  transform,
 });
 
 OrderSchema.index({ product: 1, buyer: 1 }, { unique: true });

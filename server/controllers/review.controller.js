@@ -35,7 +35,7 @@ async function get(req: session$Request, res: express$Response, next) {
       const APIerr = new APIError('Invalid userId', httpStatus.BAD_REQUEST);
       return next(APIerr);
     }
-    const reviews = await Review.find({ targetUser: userId });
+    const reviews = await Review.find({ targetUser: userId }).populate('order');
 
     return res.json({ data: reviews });
   } catch (err) {
@@ -113,7 +113,9 @@ async function create(
   });
 
   try {
-    res.status(httpStatus.CREATED).json({ data: await review.save() });
+    let savedReview = await review.save();
+    savedReview = { ...savedReview.toJSON(), order };
+    res.status(httpStatus.CREATED).json({ data: savedReview });
   } catch (err) {
     next(err);
   }

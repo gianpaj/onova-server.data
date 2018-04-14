@@ -252,7 +252,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
-          expect(o.order).toBe(orderOne.id);
+          expect(o.order.id).toBe(orderOne.id);
           expect(o.fromUser).toBe(userFirst._id);
           expect(o.targetUser).toBe(userAnother._id);
           expect(o.text).toBe('great seller AAA+');
@@ -291,7 +291,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
-          expect(o.order).toBe(orderOne.id);
+          expect(o.order.id).toBe(orderOne.id);
           expect(o.fromUser).toBe(userAnother._id);
           expect(o.targetUser).toBe(userFirst._id);
           expect(o.text).toBe('great buyer AAA+');
@@ -490,7 +490,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           const o = res.body.data;
-          expect(o.order).toBe(orderFour.id);
+          expect(o.order.id).toBe(orderFour.id);
           expect(o.fromUser).toBe(userFirst._id);
           expect(o.targetUser).toBe(userAnother._id);
           expect(o.text).toBe('great seller AAA+');
@@ -510,7 +510,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           const o = res.body.data;
-          expect(o.order).toBe(orderFour.id);
+          expect(o.order.id).toBe(orderFour.id);
           expect(o.fromUser).toBe(userAnother._id);
           expect(o.targetUser).toBe(userFirst._id);
           expect(o.text).toBe('great buyer AAA+');
@@ -528,7 +528,8 @@ describe('## Order APIs', () => {
           expect(res.body.data).toHaveLength(1);
           const o = res.body.data[0];
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
-          expect(o.order).toBe(orderFour.id);
+          expect(o.order.id).toBe(orderFour.id);
+          expect(o.order.priceOfItem).toBe(productShorts.price);
           expect(o.fromUser).toBe(userFirst._id);
           expect(o.targetUser).toBe(userAnother._id);
           expect(o.text).toBe('great seller AAA+');
@@ -546,7 +547,8 @@ describe('## Order APIs', () => {
           expect(res.body.data).toHaveLength(1);
           const o = res.body.data[0];
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
-          expect(o.order).toBe(orderFour.id);
+          expect(o.order.id).toBe(orderFour.id);
+          expect(o.order.priceOfItem).toBe(productShorts.price);
           expect(o.fromUser).toBe(userAnother._id);
           expect(o.targetUser).toBe(userFirst._id);
           expect(o.text).toBe('great buyer AAA+');
