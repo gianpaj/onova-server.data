@@ -410,6 +410,8 @@ function _prepareUserJson(user: UserDoc): Object {
     followersCount: user.followersCount,
     followingCount: user.followingCount,
     profilePic: user.profilePic,
+    ratingsTotal: user.ratingsTotal,
+    reviewsCount: user.reviewsCount,
     username: user.username,
   };
 }

@@ -108,6 +108,10 @@ describe('## Order APIs', () => {
   let userAnotherJwtToken;
   let userNotActiveJwtToken;
   let userForthJwtToken;
+  let reviewsCountUserAnother = 0;
+  let reviewsCountUserFirst = 0;
+  let ratingsTotalUserFirst = 0;
+  let ratingsTotalUserAnother = 0;
 
   // create 3 users. 1 not activated
   beforeAll(done => {
@@ -238,7 +242,7 @@ describe('## Order APIs', () => {
       expect(o6.nModified).toBe(1);
     });
 
-    it('should create an review by the buyer', async () => {
+    it('should create a review by the buyer', async () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -250,6 +254,8 @@ describe('## Order APIs', () => {
         })
         .expect(httpStatus.CREATED)
         .then(res => {
+          ratingsTotalUserAnother += 5;
+          reviewsCountUserAnother++;
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
@@ -277,7 +283,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should create an review by the seller', async () => {
+    it('should create a review by the seller', async () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
@@ -289,6 +295,8 @@ describe('## Order APIs', () => {
         })
         .expect(httpStatus.CREATED)
         .then(res => {
+          ratingsTotalUserFirst += 5;
+          reviewsCountUserFirst++;
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
@@ -413,6 +421,28 @@ describe('## Order APIs', () => {
           expect(res.body.message).toContain(
             `Cannot create review on an order that is 'pending'`
           );
+        });
+    });
+
+    it('should update the number of reviews and rating of the buyer', async () => {
+      return request(app)
+        .get(`/api/users/${userAnother._id}`)
+        .set('Authorization', userForthJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.ratingsTotal).toBe(ratingsTotalUserFirst);
+          expect(res.body.reviewsCount).toBe(reviewsCountUserFirst);
+        });
+    });
+
+    it('should update the number of reviews and rating of the seller', async () => {
+      await request(app)
+        .get(`/api/users/${userFirst._id}`)
+        .set('Authorization', userForthJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.ratingsTotal).toBe(ratingsTotalUserAnother);
+          expect(res.body.reviewsCount).toBe(reviewsCountUserAnother);
         });
     });
   });

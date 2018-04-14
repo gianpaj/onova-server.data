@@ -115,6 +115,12 @@ async function create(
   try {
     let savedReview = await review.save();
     savedReview = { ...savedReview.toJSON(), order };
+
+    await User.findByIdAndUpdate(
+      iAmTheSeller ? order.seller._id : order.buyer._id,
+      { $inc: { reviewsCount: 1, ratingsTotal: rateNumber } }
+    );
+
     res.status(httpStatus.CREATED).json({ data: savedReview });
   } catch (err) {
     next(err);
