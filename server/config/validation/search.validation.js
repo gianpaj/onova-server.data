@@ -33,7 +33,7 @@ export default {
         .max(50),
       tag: Joi.string()
         .regex(validation.hashtag)
-        .min(3)
+        .min(2)
         .max(30),
       typeIds: Joi.array()
         .unique()
