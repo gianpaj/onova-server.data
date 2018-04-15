@@ -435,7 +435,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get mys orders', async () => {
+    it('should get my orders', async () => {
       return request(app)
         .get('/api/orders')
         .set('Authorization', anotherJwtToken)

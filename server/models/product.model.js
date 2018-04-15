@@ -222,7 +222,7 @@ ProductSchema.index({ status: 1, seller: 1 });
 const UNIQUE_RETRIES = 9999;
 
 function generateUnique(doc, next) {
-  const retries = 0;
+  let retries = 0;
   let sid;
 
   // Try to generate a unique ID,
