@@ -430,7 +430,9 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o[0]).sort()).toEqual(
+            [...orderFields, 'reviewedByBuyer', 'reviewedBySeller'].sort()
+          );
           expect(o.length).toBe(4);
         });
     });
@@ -443,7 +445,9 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o[0]).sort()).toEqual(
+            [...orderFields, 'reviewedByBuyer', 'reviewedBySeller'].sort()
+          );
           expect(Object.keys(o[0].buyer).sort()).toEqual(
             ['_id', 'accountStatus', 'id', 'profilePic', 'username'].sort()
           );
