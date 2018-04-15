@@ -228,6 +228,10 @@ OrderSchema.statics = {
         path: 'buyer',
         select: 'username accountStatus profilePic',
       })
+      .populate({
+        path: 'product',
+        select: 'currency status price uuid photoURIs',
+      })
       .skip(+skip)
       .limit(+limit)
       .then((orders: OrderDoc[]) => {
