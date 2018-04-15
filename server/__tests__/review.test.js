@@ -10,7 +10,12 @@ import Product from '../models/product.model';
 import User from '../models/user.model';
 import Verification from '../models/verification.model';
 import Review from '../models/review.model';
-import { createUserAndLogin, createProduct, orderFields } from './utils';
+import {
+  createUserAndLogin,
+  createProduct,
+  orderFields,
+  createOrder,
+} from './utils';
 
 // GET & PUT /api/orders/ should only return these fields
 const reviewFields = [
