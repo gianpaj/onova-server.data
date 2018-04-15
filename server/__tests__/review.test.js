@@ -453,7 +453,7 @@ describe('## Order APIs', () => {
   });
 
   describe('# GET /api/users/:userId/review', () => {
-    // delete Orders, Reviews and Notifications
+    // delete all Orders, Reviews and Notifications
     beforeAll(done => {
       const collections = [
         Notification.collection,
@@ -473,35 +473,28 @@ describe('## Order APIs', () => {
 
     let orderFour, orderFive;
 
-    // userFirst buys an productShorts (seller is userAnother) and we set it as completed (manually)
+    // userFirst buys from userAnother a productShorts
+    // AND
+    // we set the order as `completed` (manually)
+    //
+    // userAnother buys from userFirst a productBoots
+    // AND
+    // we set the order as `completed` (manually)
     beforeAll(async () => {
-      orderFour = await request(app)
-        .post('/api/orders')
-        .set('Authorization', userFirstJwtToken)
-        .send({ product: productShortsUuid })
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
-          expect(o.status).toBe('pending');
-          expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((productShorts.price * 1).toString());
-          expect(o.priceOfItem).toBe(productShorts.price);
-          expect(o.transactionStatus).toBe('pl-pending');
-          return o;
-        });
+      orderFour = await createOrder(
+        { ...productShorts, uuid: productShortsUuid },
+        userFirstJwtToken
+      );
       const o = await Order.updateOne(
         { _id: orderFour.id },
         { $set: { status: 'completed' } }
       );
       expect(o.nModified).toBe(1);
 
-      orderFive = await request(app)
-        .post('/api/orders')
-        .set('Authorization', userAnotherJwtToken)
-        .send({ product: productBootsUuid })
-        .expect(httpStatus.CREATED)
-        .then(res => res.body.data);
+      orderFive = await createOrder(
+        { ...productBoots, uuid: productBootsUuid },
+        userAnotherJwtToken
+      );
       const o2 = await Order.updateOne(
         { _id: orderFive.id },
         { $set: { status: 'completed' } }
@@ -509,9 +502,9 @@ describe('## Order APIs', () => {
       expect(o2.nModified).toBe(1);
     });
 
-    // userFirst creates a review (as buyer)
+    // userFirst reviews (as buyer) to userAnother
     // AND
-    // userAnother creates a review (as seller)
+    // userAnother reviews (as seller) to userFirst
     beforeAll(async () => {
       await request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
@@ -599,6 +592,28 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toContain('Invalid userId');
+        });
+    });
+
+    it('should get my orders with my review status', async () => {
+      return request(app)
+        .get('/api/orders')
+        .set('Authorization', userFirstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(res.body.data).toHaveLength(2);
+          expect(Array.isArray(o));
+          // TODO: check length of orders
+          expect(Object.keys(o[0]).sort()).toEqual(
+            [...orderFields, 'reviewedByBuyer', 'reviewedBySeller'].sort()
+          );
+          expect(Object.keys(o[0].buyer).sort()).toEqual(
+            ['_id', 'accountStatus', 'id', 'username'].sort()
+          );
+          expect(o[0].id).toBe(orderFour.id);
+          expect(o[0].reviewedByBuyer).toBe(true);
+          expect(o[0].reviewedBySeller).toBe(true);
         });
     });
   });

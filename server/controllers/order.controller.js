@@ -10,6 +10,8 @@ import { UserDoc } from '../models/user.model';
 import notifCtrl, {
   NotifPayload,
 } from '../controllers/notification.controller';
+import reviewController from './review.controller';
+import Review from '../models/review.model';
 
 declare class express$Request extends express$Request {
   order: OrderDoc;
@@ -272,7 +274,27 @@ function list(
   // use static method from orderSchema
   // flow-disable-next-line
   Order.list({ myid: req.user._id, limit, skip })
-    .then(data => res.json({ data }))
+    .then(async orders => {
+      const orderIds = orders.map(o => o.id);
+      // get all the reviews for the orders
+      let reviews = await Review.find({ order: { $in: orderIds } });
+
+      // for each order
+      orders = orders.map(o => {
+        o = o.toJSON();
+        // get only the reviews for this specific order
+        reviews = reviews.filter(r => r.order == o.id);
+
+        // check if there's a review in which the buyer is the reviewer
+        const reviewedByBuyer =
+          reviews.find(r => r.fromUser == o.buyer.id.toString()) !== undefined;
+        // check if there's a review in which the seller is the reviewer
+        const reviewedBySeller =
+          reviews.find(r => r.fromUser == o.seller.id.toString()) !== undefined;
+        return { ...o, reviewedByBuyer, reviewedBySeller };
+      });
+      res.json({ data: orders });
+    })
     .catch(e => next(e));
 }
 
