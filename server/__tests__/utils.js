@@ -6,6 +6,7 @@ import path from 'path';
 
 import { UserDoc } from '../models/user.model';
 import { CommentDoc, ProductDoc } from '../models/product.model';
+import { OrderDoc } from '../models/order.model';
 import Verification from '../models/verification.model';
 import app from '../index';
 
@@ -174,4 +175,28 @@ export function createManyComments(
   return Promise.all(Promises)
     .then(res => res)
     .catch(e => e);
+}
+
+/**
+ * Order a product
+ *
+ * @param {ProductDoc} product
+ * @param {string} jwtToken
+ * @returns {Promise<OrderDoc>}
+ */
+export function createOrder(
+  product: ProductDoc,
+  jwtToken: string
+): Promise<OrderDoc> {
+  return request(app)
+    .post('/api/orders')
+    .set('Authorization', jwtToken)
+    .send({ product: product.uuid })
+    .expect(httpStatus.CREATED)
+    .then(res => {
+      const o = res.body.data;
+      expect(o.status).toBe('pending');
+      expect(o.priceOfItem).toBe(product.price);
+      return o;
+    });
 }
