@@ -308,7 +308,7 @@ function update(
       });
     })
     .catch(err => {
-      if (!err instanceof APIError) {
+      if (!(err instanceof APIError)) {
         err = new APIError('Error updating Product', 500);
       }
       next(err);
