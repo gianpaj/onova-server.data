@@ -223,7 +223,7 @@ describe('## Order APIs', () => {
         .send({ product: thirdProductUuid })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          expect(res.body.order).toHaveProperty('id');
+          expect(res.body.data).toHaveProperty('id');
           expect(res.body.message).toContain('Duplicate order');
         });
     });
