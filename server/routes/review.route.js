@@ -16,7 +16,7 @@ router
   .route('/:userId/reviews')
 
   // GET /api/users/:userId/reviews - Get users's reviews
-  .get(requireAuth, reviewCtrl.get)
+  .get(requireAuth, reviewCtrl.list)
 
   // POST /api/users/:userId/reviews - Create users's review
   .post(validate(paramValidation.createReview), requireAuth, reviewCtrl.create);

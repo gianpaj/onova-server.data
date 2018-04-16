@@ -26,7 +26,7 @@ declare class session$Request extends express$Request {
  * @property {*} req.query - express session query
  * @property {string} req.query.as buyer|seller|both
  */
-async function get(req: session$Request, res: express$Response, next) {
+async function list(req: session$Request, res: express$Response, next) {
   const { userId } = req.params;
   const { as } = req.query;
   // const { limit = 50, lastId } = req.query;
@@ -54,6 +54,7 @@ async function get(req: session$Request, res: express$Response, next) {
     let reviews = await Review.find(query).populate({
       path: 'order',
       match,
+      populate: { path: 'product buyer seller' },
     });
 
     reviews = reviews.filter(r => r.order !== null);
@@ -149,6 +150,6 @@ async function create(
 }
 
 export default {
-  get,
+  list,
   create,
 };
