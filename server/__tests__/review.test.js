@@ -15,7 +15,19 @@ import {
   createProduct,
   orderFields,
   createOrder,
+  productFields,
+  userFields,
 } from './utils';
+
+const moreUserFields = [
+  ...userFields,
+  'createdAt',
+  'id',
+  'mobileNumber',
+  'platform',
+  'pushToken',
+  'updatedAt',
+];
 
 // GET & PUT /api/orders/ should only return these fields
 const reviewFields = [
@@ -57,6 +69,8 @@ describe('## Order APIs', () => {
     emailAddress: 'userfirst@gmail.com',
     mobileNumber: '1234567890', // optional
     password: 'expressos',
+    pushToken: 'userfirstPushToken',
+    platform: 'android',
   };
 
   let userAnother = {
@@ -558,6 +572,15 @@ describe('## Order APIs', () => {
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderFour.id);
           expect(o.order.priceOfItem).toBe(productShorts.price);
+          expect(Object.keys(o.order.product).sort()).toEqual(
+            [...productFields, 'comments'].sort()
+          );
+          expect(Object.keys(o.order.buyer).sort()).toEqual(
+            moreUserFields.sort()
+          );
+          expect(Object.keys(o.order.seller).sort()).toEqual(
+            moreUserFields.sort()
+          );
           expect(o.fromUser).toBe(userFirst._id);
           expect(o.targetUser).toBe(userAnother._id);
           expect(o.text).toBe('great seller AAA+');
