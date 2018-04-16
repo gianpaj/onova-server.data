@@ -19,6 +19,11 @@ export default {
         .length(24)
         .required(),
     },
+    query: {
+      as: Joi.string()
+        .valid(['buyer', 'seller', 'both'])
+        .default('both'),
+    },
   },
   // POST /api/users/:userId/review
   createReview: {
