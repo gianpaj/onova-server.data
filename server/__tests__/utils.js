@@ -34,6 +34,8 @@ export const orderFields = [
   'seller',
   'status',
   'transactionStatus',
+  'reviewedByBuyer',
+  'reviewedBySeller',
 ];
 
 // POST /api/auth/login should only return these fields
