@@ -605,9 +605,7 @@ describe('## Order APIs', () => {
           expect(res.body.data).toHaveLength(2);
           expect(Array.isArray(o));
           // TODO: check length of orders
-          expect(Object.keys(o[0]).sort()).toEqual(
-            [...orderFields, 'reviewedByBuyer', 'reviewedBySeller'].sort()
-          );
+          expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
           expect(Object.keys(o[0].buyer).sort()).toEqual(
             ['_id', 'accountStatus', 'id', 'username'].sort()
           );

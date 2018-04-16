@@ -10,7 +10,6 @@ import { UserDoc } from '../models/user.model';
 import notifCtrl, {
   NotifPayload,
 } from '../controllers/notification.controller';
-import reviewController from './review.controller';
 import Review from '../models/review.model';
 
 declare class express$Request extends express$Request {
@@ -40,8 +39,15 @@ function load(
   // use static method from OrderSchema
   // flow-disable-next-line
   Order.get(id)
-    .then((order: OrderDoc) => {
+    .then(async (order: OrderDoc) => {
+      const reviews = await Review.find({ order: order.id });
+      const { reviewedByBuyer, reviewedBySeller } = getIfOrderHasBeenReviewed(
+        order.toJSON(),
+        reviews
+      );
       req.order = order;
+      req.reviewedByBuyer = reviewedByBuyer;
+      req.reviewedBySeller = reviewedBySeller;
       return next();
     })
     .catch(e => next(e));
@@ -56,8 +62,14 @@ function load(
  * @property {*} req.params - Express session parameters
  * @property {string} req.params.id - The id of the order.
  */
-function get(req: express$Request, res: express$Response) {
-  return res.json({ data: req.order });
+async function get(req: express$Request, res: express$Response) {
+  return res.json({
+    data: {
+      ...req.order.toJSON(),
+      reviewedByBuyer: req.reviewedByBuyer,
+      reviewedBySeller: req.reviewedBySeller,
+    },
+  });
 }
 
 /**
@@ -140,7 +152,13 @@ function create(
       //     console.error(err);
       //   });
 
-      return res.status(httpStatus.CREATED).json({ data: savedOrder });
+      return res.status(httpStatus.CREATED).json({
+        data: {
+          ...savedOrder.toJSON(),
+          reviewedByBuyer: false,
+          reviewedBySeller: false,
+        },
+      });
     })
     .catch(e => {
       if (e.message == 'Duplicate order') {
@@ -250,8 +268,14 @@ function update(
       .catch(e => console.error(e));
   }
 
-  return foundOrder.save().then(data => {
-    return res.json({ data });
+  return foundOrder.save().then(order => {
+    return res.json({
+      data: {
+        ...order.toJSON(),
+        reviewedByBuyer: req.reviewedByBuyer,
+        reviewedBySeller: req.reviewedBySeller,
+      },
+    });
   });
 }
 
@@ -281,21 +305,35 @@ function list(
 
       // for each order
       orders = orders.map(o => {
-        o = o.toJSON();
         // get only the reviews for this specific order
         reviews = reviews.filter(r => r.order == o.id);
 
-        // check if there's a review in which the buyer is the reviewer
-        const reviewedByBuyer =
-          reviews.find(r => r.fromUser == o.buyer.id.toString()) !== undefined;
-        // check if there's a review in which the seller is the reviewer
-        const reviewedBySeller =
-          reviews.find(r => r.fromUser == o.seller.id.toString()) !== undefined;
+        o = o.toJSON();
+
+        const { reviewedByBuyer, reviewedBySeller } = getIfOrderHasBeenReviewed(
+          o,
+          reviews
+        );
+
         return { ...o, reviewedByBuyer, reviewedBySeller };
       });
       res.json({ data: orders });
     })
     .catch(e => next(e));
+}
+
+function getIfOrderHasBeenReviewed(order, reviews): any {
+  // get only the reviews for this specific order
+  reviews = reviews.filter(r => r.order == order.id);
+
+  return {
+    // check if there's a review in which the buyer is the reviewer
+    reviewedByBuyer:
+      reviews.find(r => r.fromUser == order.buyer.id.toString()) !== undefined,
+    // check if there's a review in which the seller is the reviewer
+    reviewedBySeller:
+      reviews.find(r => r.fromUser == order.seller.id.toString()) !== undefined,
+  };
 }
 
 /**
