@@ -163,10 +163,10 @@ function create(
     .catch(e => {
       if (e.message == 'Duplicate order') {
         Order.findOne({ buyer: req.user._id, product: foundProduct._id }).then(
-          order => {
+          data => {
             return res
               .status(httpStatus.BAD_REQUEST)
-              .json({ message: e.message, order });
+              .json({ message: e.message, data });
           }
         );
       } else {
