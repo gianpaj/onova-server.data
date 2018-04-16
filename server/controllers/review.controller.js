@@ -23,9 +23,12 @@ declare class session$Request extends express$Request {
  * @property {*} req - express session
  * @property {*} req.params - express session parameters
  * @property {MongoId} req.params.userId
+ * @property {*} req.query - express session query
+ * @property {string} req.query.as buyer|seller|both
  */
 async function get(req: session$Request, res: express$Response, next) {
   const { userId } = req.params;
+  const { as } = req.query;
   // const { limit = 50, lastId } = req.query;
   // TODO: paginate inside list of reviews` array using limit & lastId
 
@@ -35,7 +38,25 @@ async function get(req: session$Request, res: express$Response, next) {
       const APIerr = new APIError('Invalid userId', httpStatus.BAD_REQUEST);
       return next(APIerr);
     }
-    const reviews = await Review.find({ targetUser: userId }).populate('order');
+    let match = {};
+    let query = { targetUser: userId };
+    if ('buyer' == as) {
+      match = { buyer: userId };
+    }
+    if ('seller' == as) {
+      match = { seller: userId };
+    }
+    if ('both' == as) {
+      query = {
+        $or: [{ targetUser: userId }, { fromUser: userId }],
+      };
+    }
+    let reviews = await Review.find(query).populate({
+      path: 'order',
+      match,
+    });
+
+    reviews = reviews.filter(r => r.order !== null);
 
     return res.json({ data: reviews });
   } catch (err) {

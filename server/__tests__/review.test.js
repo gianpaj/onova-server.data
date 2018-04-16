@@ -473,11 +473,11 @@ describe('## Order APIs', () => {
 
     let orderFour, orderFive;
 
-    // userFirst buys from userAnother a productShorts
+    // userFirst buys productShorts from userAnother
     // AND
     // we set the order as `completed` (manually)
     //
-    // userAnother buys from userFirst a productBoots
+    // userAnother buys productBoots from userFirst - but NO reviews
     // AND
     // we set the order as `completed` (manually)
     beforeAll(async () => {
@@ -502,9 +502,9 @@ describe('## Order APIs', () => {
       expect(o2.nModified).toBe(1);
     });
 
-    // userFirst reviews (as buyer) to userAnother
+    // userFirst   (as buyer) reviews userAnother for orderFour
     // AND
-    // userAnother reviews (as seller) to userFirst
+    // userAnother (as seller) reviews userFirst   for orderFour
     beforeAll(async () => {
       await request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
@@ -547,10 +547,48 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get the reviews of a seller', async () => {
+    it('should get all the reviews of a userAnother', async () => {
       await request(app)
         .get(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.data).toHaveLength(2);
+          const o = res.body.data[0];
+          expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
+          expect(o.order.id).toBe(orderFour.id);
+          expect(o.order.priceOfItem).toBe(productShorts.price);
+          expect(o.fromUser).toBe(userFirst._id);
+          expect(o.targetUser).toBe(userAnother._id);
+          expect(o.text).toBe('great seller AAA+');
+          expect(o.rateNumber).toBe(5);
+          expect(o.lang).toBe('en');
+        });
+    });
+
+    it('should get all the reviews of a userFirst', async () => {
+      await request(app)
+        .get(`/api/users/${userFirst._id}/reviews`)
+        .set('Authorization', userAnotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.data).toHaveLength(2);
+          const o = res.body.data[1];
+          expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
+          expect(o.order.id).toBe(orderFour.id);
+          expect(o.order.priceOfItem).toBe(productShorts.price);
+          expect(o.fromUser).toBe(userAnother._id);
+          expect(o.targetUser).toBe(userFirst._id);
+          expect(o.text).toBe('great buyer AAA+');
+          expect(o.rateNumber).toBe(5);
+          expect(o.lang).toBe('en');
+        });
+    });
+
+    it('should get the reviews that userAnother received as a seller', async () => {
+      await request(app)
+        .get(`/api/users/${userAnother._id}/reviews/?as=seller`)
+        .set('Authorization', userAnotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.data).toHaveLength(1);
@@ -566,9 +604,9 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get the reviews of a buyer', async () => {
+    it('should get the reviews that userFirst received as a buyer', async () => {
       await request(app)
-        .get(`/api/users/${userFirst._id}/reviews`)
+        .get(`/api/users/${userFirst._id}/reviews/?as=buyer`)
         .set('Authorization', userAnotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
@@ -582,6 +620,26 @@ describe('## Order APIs', () => {
           expect(o.text).toBe('great buyer AAA+');
           expect(o.rateNumber).toBe(5);
           expect(o.lang).toBe('en');
+        });
+    });
+
+    it('should get the reviews that userFirst received as a seller', async () => {
+      await request(app)
+        .get(`/api/users/${userFirst._id}/reviews/?as=seller`)
+        .set('Authorization', userAnotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.data).toHaveLength(0);
+        });
+    });
+
+    it('should get the reviews that userAnother received as a buyer', async () => {
+      await request(app)
+        .get(`/api/users/${userAnother._id}/reviews/?as=buyer`)
+        .set('Authorization', userAnotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.data).toHaveLength(0);
         });
     });
 
@@ -612,6 +670,8 @@ describe('## Order APIs', () => {
           expect(o[0].id).toBe(orderFour.id);
           expect(o[0].reviewedByBuyer).toBe(true);
           expect(o[0].reviewedBySeller).toBe(true);
+          expect(o[1].reviewedByBuyer).toBe(false);
+          expect(o[1].reviewedBySeller).toBe(false);
         });
     });
   });
