@@ -133,8 +133,9 @@ const UserSchema = new Schema(
       trim: true,
       lowercase: true,
     },
-    // assigns 'createdAt' and 'updatedAt' fields to your schema
+    deletedAt: Date,
   },
+  // assigns 'createdAt' and 'updatedAt' fields to your schema
   { timestamps: true }
 );
 
@@ -143,6 +144,8 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   accountStatus: string;
   billingAddress: ?any;
   bio: ?string;
+  createdAt: Date;
+  deletedAt: ?Date;
   displayName: ?string;
   emailAddress: string;
   followersCount: number;
@@ -156,6 +159,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   ratingsTotal: number;
   reviewsCount: number;
   shippingAddress: ?any;
+  updatedAt: Date;
   username: string;
 }
 
