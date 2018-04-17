@@ -7,4 +7,5 @@
   "javascript.validate.enable": false,
   "flow.useNPMPackagedFlow": true,
   "flow.enabled": false,
+  "prettier.eslintIntegration": true
 }

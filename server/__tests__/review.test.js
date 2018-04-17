@@ -263,7 +263,7 @@ describe('## Order APIs', () => {
 
     it('should create a review by the buyer', async () => {
       return request(app)
-        .post(`/api/users/${userFirst._id}/reviews`)
+        .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .send({
           orderId: orderOne.id,
@@ -288,7 +288,7 @@ describe('## Order APIs', () => {
 
     it('should **not** create a duplicate review for that order (as buyer)', async () => {
       return request(app)
-        .post(`/api/users/${userFirst._id}/reviews`)
+        .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .send({
           orderId: orderOne.id,
@@ -330,7 +330,7 @@ describe('## Order APIs', () => {
     it('should **not** create a duplicate review for that order (as seller)', async () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
-        .set('Authorization', userFirstJwtToken)
+        .set('Authorization', userAnotherJwtToken)
         .send({
           orderId: orderOne.id,
           text: 'great buyer AAA+ dupe',
@@ -516,12 +516,15 @@ describe('## Order APIs', () => {
       expect(o2.nModified).toBe(1);
     });
 
-    // userFirst   (as buyer) reviews userAnother for orderFour
-    // AND
-    // userAnother (as seller) reviews userFirst   for orderFour
+    /**
+     * | source user          | action     | target user | orderVar  |
+     * | -------------------- | ---------- | ----------- | --------- |
+     * | userFirst (buyer)    | reviews -> | userAnother | orderFour |
+     * | userAnother (seller) | reviews -> | userFirst   | orderFour |
+     */
     beforeAll(async () => {
       await request(app)
-        .post(`/api/users/${userFirst._id}/reviews`)
+        .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .send({
           orderId: orderFour.id,
@@ -541,7 +544,7 @@ describe('## Order APIs', () => {
         });
 
       await request(app)
-        .post(`/api/users/${userAnother._id}/reviews`)
+        .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
         .send({
           orderId: orderFour.id,
