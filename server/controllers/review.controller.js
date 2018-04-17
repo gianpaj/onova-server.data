@@ -73,7 +73,7 @@ async function list(req: session$Request, res: express$Response, next) {
  *
  * @property {*} req Express request
  * @property {*} req.params Express params parameters
- * @property {string} req.params.userId The product userId
+ * @property {string} req.params.userId The product userId (FIXME: remove param and rewrite API route)
  * @property {*} req.body Express body parameters
  * @property {string} req.body.orderId
  * @property {string} req.body.text
@@ -124,10 +124,12 @@ async function create(
     return next(APIerr);
   }
 
+  const targetUser = iAmTheSeller ? order.buyer._id : order.seller._id;
   let { text, rateNumber, lang } = req.body;
+
   const review: ReviewDoc = new Review({
     fromUser: iAmTheSeller ? order.seller._id : order.buyer._id,
-    targetUser: iAmTheSeller ? order.buyer._id : order.seller._id,
+    targetUser,
     order: orderId,
     text,
     rateNumber,
@@ -138,10 +140,9 @@ async function create(
     let savedReview = await review.save();
     savedReview = { ...savedReview.toJSON(), order };
 
-    await User.findByIdAndUpdate(
-      iAmTheSeller ? order.seller._id : order.buyer._id,
-      { $inc: { reviewsCount: 1, ratingsTotal: rateNumber } }
-    );
+    await User.findByIdAndUpdate(targetUser, {
+      $inc: { reviewsCount: 1, ratingsTotal: rateNumber },
+    });
 
     res.status(httpStatus.CREATED).json({ data: savedReview });
   } catch (err) {
