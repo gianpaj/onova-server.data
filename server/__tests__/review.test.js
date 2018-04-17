@@ -359,6 +359,24 @@ describe('## Order APIs', () => {
         });
     });
 
+    it('should **not** create a review with invalid rateNumber', async () => {
+      return request(app)
+        .post(`/api/users/${userFirst._id}/reviews`)
+        .set('Authorization', userNotActiveJwtToken)
+        .send({
+          orderId: orderTwo.id,
+          text: 'great stuff',
+          rateNumber: 4,
+          lang: 'en',
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain(
+            'Please verify your account before creating a review'
+          );
+        });
+    });
+
     it('should **not** create a review with invalid order', async () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
