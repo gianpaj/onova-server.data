@@ -2,9 +2,9 @@
 
 Functionality:
 
-- Authentication & Authorization
-- REST API
-- Image upload to Google Cloud Storage
+* Authentication & Authorization
+* REST API
+* Image upload to Google Cloud Storage
 
 Based on [Express ES6 REST API Starter](https://github.com/kunalkapadia/express-mongoose-es6-rest-api).
 
@@ -16,21 +16,21 @@ Heavily inspired from [Egghead.io - How to Write an Open Source JavaScript Libra
 
 ### Features
 
-| Feature                                | Summary                                                                                                                                                                                                                                                                                                     |
-|----------------------------------------| ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
-| ES6 via [Babel](https://babeljs.io/) |                                                                                                                                                                                                                                                                                                             |
-| Authentication via [JsonWebToken](https://www.npmjs.com/package/jsonwebtoken)                      |                                                                                                                                                                                                                                                                                                             |
-| Code Linting                   | JavaScript code linting is done using [ESLint](http://eslint.org) - a pluggable linter tool for identifying and reporting on patterns in JavaScript. Uses ESLint with [eslint-config-prettier](https://github.com/prettier/eslint-config-prettier). Prettier is a Prettier is an opinionated code formatter.|
-| Auto server restart                    | Restart the server using [nodemon](https://github.com/remy/nodemon) in real-time anytime an edit is made, with babel compilation and eslint.                                                                                                                                                                |
-| Logs debugging via [debug](https://www.npmjs.com/package/debug)           | Instead of inserting and deleting `console.log` you can replace it with the `debug()` function and just leave it there. You can then selectively debug portions of your code by setting `DEBUG` env variable. If `DEBUG` env variable is not set, nothing is displayed to the console.                      |
-| Promisified Code via [bluebird](https://github.com/petkaantonov/bluebird)           | We love promise, don't we ? All our code is promisified and even so our tests via [supertest-as-promised](https://www.npmjs.com/package/supertest-as-promised).                                                                                                                                             |
-| API parameter validation via [express-validation](https://www.npmjs.com/package/express-validation)           | Validate body, params, query, headers and cookies of a request (via middleware) and return a response with errors; if any of the configured validation rules fail. You won't anymore need to make your route handler dirty with such validations.                                                           |
-| Secure app via [helmet](https://github.com/helmetjs/helmet)           | Helmet helps secure Express apps by setting various HTTP headers.                                                                                                                                                                                                                                           |
-| Uses [yarn](https://yarnpkg.com) over npm            | Uses new released yarn package manager by facebook. You can read more about it [here](https://code.facebook.com/posts/1840075619545360)                                                                                                                                                                     |
+| Feature                                                                                             | Summary                                                                                                                                                                                                                                                                                                      |
+| --------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| ES6 via [Babel](https://babeljs.io/)                                                                |                                                                                                                                                                                                                                                                                                              |
+| Authentication via [JsonWebToken](https://www.npmjs.com/package/jsonwebtoken)                       |                                                                                                                                                                                                                                                                                                              |
+| Code Linting                                                                                        | JavaScript code linting is done using [ESLint](http://eslint.org) - a pluggable linter tool for identifying and reporting on patterns in JavaScript. Uses ESLint with [eslint-config-prettier](https://github.com/prettier/eslint-config-prettier). Prettier is a Prettier is an opinionated code formatter. |
+| Auto server restart                                                                                 | Restart the server using [nodemon](https://github.com/remy/nodemon) in real-time anytime an edit is made, with babel compilation and eslint.                                                                                                                                                                 |
+| Logs debugging via [debug](https://www.npmjs.com/package/debug)                                     | Instead of inserting and deleting `console.log` you can replace it with the `debug()` function and just leave it there. You can then selectively debug portions of your code by setting `DEBUG` env variable. If `DEBUG` env variable is not set, nothing is displayed to the console.                       |
+| Promisified Code via [bluebird](https://github.com/petkaantonov/bluebird)                           | We love promise, don't we ? All our code is promisified and even so our tests via [supertest-as-promised](https://www.npmjs.com/package/supertest-as-promised).                                                                                                                                              |
+| API parameter validation via [express-validation](https://www.npmjs.com/package/express-validation) | Validate body, params, query, headers and cookies of a request (via middleware) and return a response with errors; if any of the configured validation rules fail. You won't anymore need to make your route handler dirty with such validations.                                                            |
+| Secure app via [helmet](https://github.com/helmetjs/helmet)                                         | Helmet helps secure Express apps by setting various HTTP headers.                                                                                                                                                                                                                                            |
+| Uses [yarn](https://yarnpkg.com) over npm                                                           | Uses new released yarn package manager by facebook. You can read more about it [here](https://code.facebook.com/posts/1840075619545360)                                                                                                                                                                      |
 
-- CORS support via [cors](https://github.com/expressjs/cors)
-- Uses [http-status](https://www.npmjs.com/package/http-status) to set http status code. It is recommended to use `httpStatus.INTERNAL_SERVER_ERROR` instead of directly using `500` when setting status code.
-- Has `.editorconfig` which helps developers define and maintain consistent coding styles between different editors and IDEs.
+* CORS support via [cors](https://github.com/expressjs/cors)
+* Uses [http-status](https://www.npmjs.com/package/http-status) to set http status code. It is recommended to use `httpStatus.INTERNAL_SERVER_ERROR` instead of directly using `500` when setting status code.
+* Has `.editorconfig` which helps developers define and maintain consistent coding styles between different editors and IDEs.
 
 ## Getting Started
 
@@ -95,8 +95,11 @@ yarn lint
 
 ### Prod Deployment
 
-We're using Google App Engine (current hostname):
-- https://onova-183307.appspot.com
+We're using Google Cloud Engine:
+
+* https://onova.co/api/
+
+e.g. https://onova.co/api/health-check
 
 ```sh
 # 1. install production dependencies only
