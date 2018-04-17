@@ -389,9 +389,12 @@ function remove(
 ) {
   const user = req.user;
 
-  user
-    .update({ accountStatus: 'deleted' })
-    .then(() => res.json(req.user))
+  User.findOneAndUpdate(
+    { _id: user._id },
+    { accountStatus: 'deleted', deletedAt: new Date() },
+    { new: true }
+  )
+    .then(updatedUser => res.json(updatedUser))
     .catch(e => next(e));
 }
 

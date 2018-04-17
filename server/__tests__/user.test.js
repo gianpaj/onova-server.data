@@ -660,9 +660,11 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe(user.mobileNumber);
-          expect(res.body.username).toBe(user.username);
+          const { body } = res;
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.mobileNumber).toBe(user.mobileNumber);
+          expect(body.username).toBe(user.username);
+          expect(body).toHaveProperty('deletedAt');
           done();
         })
         .catch(done);
