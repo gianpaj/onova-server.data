@@ -14,3 +14,10 @@ apps:
     # autorestart: true
     env    :
       NODE_ENV: production
+  - script : npm
+    args: start
+    cwd: ./server.chat
+    name   : 'server.chat'
+    # autorestart: true
+    env    :
+      NODE_ENV: production

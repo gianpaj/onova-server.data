@@ -2,7 +2,7 @@ import Joi from 'joi';
 
 const isTestEnv = process.env.NODE_ENV === 'test';
 
-// require and configure dotenv, will load vars in .env in PROCESS.ENV
+// require and configure dotenv, will load vars in .env file in process.env
 if (isTestEnv) {
   console.warn('running on `test` environment');
   require('dotenv').config({ path: '.env.test' });
