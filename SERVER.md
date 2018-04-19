@@ -314,8 +314,6 @@ nano /opt/bitnami/mongodb/mongodb.conf
 
 apt-get install ufw
 ufw allow OpenSSH
-# for server.push
-ufw allow 3030
 ufw allow from 10.156.0.2/24 to any port 28025
 ufw enable
 ufw status numbered
