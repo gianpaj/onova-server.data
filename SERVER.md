@@ -2,10 +2,10 @@
 
 > The VM is in Google Cloud Engine
 
-- project: 183307
-- name of instance: nodeserver-1-vm
-- zone: europe-west3-c
-- Linux distribution: Ubuntu 16.04.4 LTS (xenial)
+* project: 183307
+* name of instance: nodeserver-1-vm
+* zone: europe-west3-c
+* Linux distribution: Ubuntu 16.04.4 LTS (xenial)
 
 ## Initial setup
 
@@ -88,7 +88,7 @@ Configure default virtual host (for web app):
 
     server_name onova.co www.onova.co;
 
- Verify syntax of configuration files
+Verify syntax of configuration files
 
     nginx -t
 
@@ -103,13 +103,14 @@ Reload:
 
 More settings:
 
-- https://linode.com/docs/web-servers/nginx/tls-deployment-best-practices-for-nginx/
-- https://gist.github.com/plentz/6737338
-- https://cipherli.st
+* https://linode.com/docs/web-servers/nginx/tls-deployment-best-practices-for-nginx/
+* https://gist.github.com/plentz/6737338
+* https://cipherli.st
 
 ## SSL Certs
 
 Taken from: [How To Secure Nginx with Let's Encrypt on Ubuntu 16.04 | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-secure-nginx-with-let-s-encrypt-on-ubuntu-16-04)
+
 > October 27, 2017
 
 ```bash
@@ -126,6 +127,7 @@ Check cron job: `/etc/cron.d/certbot`
 ## Swap
 
 Taken from: [How To Add Swap Space on Ubuntu 16.04 | DigitalOcean](https://www.digitalocean.com/community/tutorials/how-to-add-swap-space-on-ubuntu-16-04)
+
 > April 25, 2016
 
 ```bash
@@ -222,7 +224,7 @@ Test:
 
 Taken from:
 
-- https://gist.github.com/roybotnik/b0ec2eda2bc625e19eaf
+* https://gist.github.com/roybotnik/b0ec2eda2bc625e19eaf
 
 ## Security
 
@@ -297,7 +299,7 @@ sudo env PATH=$PATH:/usr/bin /usr/lib/node_modules/pm2/bin/pm2 startup systemd -
 
 ### Set Up Nginx as a Reverse Proxy Server
 
-TODO: https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04#set-up-nginx-as-a-reverse-proxy-server
+TODO: [how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04#set-up-nginx-as-a-reverse-proxy-server](https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04#set-up-nginx-as-a-reverse-proxy-server)
 
 ## Install MongoDB
 
@@ -306,11 +308,15 @@ TODO: https://www.digitalocean.com/community/tutorials/how-to-set-up-a-node-js-a
 
 Follow: https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/
 
-    sudo su
-    nano /opt/bitnami/mongodb/mongodb.conf
+```bash
+sudo su
+nano /opt/bitnami/mongodb/mongodb.conf
 
-    apt-get install ufw
-    ufw allow OpenSSH
-    ufw allow from 10.156.0.2/24 to any port 28025
-    ufw enable
-    ufw status numbered
+apt-get install ufw
+ufw allow OpenSSH
+# for server.push
+ufw allow 3030
+ufw allow from 10.156.0.2/24 to any port 28025
+ufw enable
+ufw status numbered
+```
