@@ -1,5 +1,6 @@
 import mongoose from 'mongoose';
 import util from 'util';
+// import stream from 'getstream-node';
 
 // config should be imported before importing any other file
 import config from './config/config';
@@ -31,6 +32,11 @@ if (config.mongooseDebug) {
     debug(`${collectionName}.${method}`, util.inspect(query, false, 20), doc);
   });
 }
+
+// if (config.env == 'production') {
+//   // send the mongoose instance with registered models to StreamMongoose
+//   stream.mongoose.setupMongoose(mongoose);
+// }
 
 // module.parent check is required to support jest watch
 // https://github.com/mochajs/mocha/issues/1912
