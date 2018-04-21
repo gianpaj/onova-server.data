@@ -21,3 +21,4 @@ apps:
     # autorestart: true
     env    :
       NODE_ENV: production
+      PORT: 8142
