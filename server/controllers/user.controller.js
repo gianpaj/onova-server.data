@@ -1,6 +1,7 @@
 // @flow
 
 import httpStatus from 'http-status';
+import Chatkit from 'pusher-chatkit-server';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
@@ -11,6 +12,11 @@ import DefaultFollow from '../models/defaultFollow.model';
 import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 import followController from './follow.controller';
+
+const ckInst = new Chatkit({
+  instanceLocator: config.chatkit.instanceLocator,
+  key: config.chatkit.key,
+});
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -81,7 +87,7 @@ function getPersonal(req: session$Request, res: express$Response) {
  * @property {string=} req.body.mobileNumber
  * @property {string=} req.body.pushToken
  */
-function create(
+async function create(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -117,7 +123,7 @@ function create(
         throw APIerr;
       }
 
-      return user.save().then((savedUser: UserDoc) => {
+      return user.save().then(async (savedUser: UserDoc) => {
         // if we should Auto Follow certain users by default
         if (config.DEFAULT_USERNAMES_TO_FOLLOW.length !== 0) {
           followDefaultUsers(savedUser)
@@ -125,6 +131,16 @@ function create(
               if (num) debug(`followed ${num} default users`);
             })
             .catch(e => console.error(e));
+        }
+
+        try {
+          await ckInst.createUser({
+            id: savedUser._id,
+            name: savedUser.username,
+          });
+          console.log('chatkit user created');
+        } catch (err) {
+          console.error(err);
         }
 
         return mailCtrl

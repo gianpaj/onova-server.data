@@ -48,6 +48,12 @@ const envVarsSchema = Joi.object({
   CLOUD_BUCKET: Joi.string()
     .required()
     .description('Google Cloud Storage bucket'),
+  CHATKIT_INSTANCE: Joi.string()
+    .required()
+    .description('Chatkit instanceLocator'),
+  CHATKIT_KEY: Joi.string()
+    .required()
+    .description('Chatkit key'),
 })
   .unknown()
   .required();
@@ -76,6 +82,11 @@ const config = {
     apikeyPrivate: envVars.MJ_APIKEY_PRIVATE,
   },
   CLOUD_BUCKET: envVars.CLOUD_BUCKET,
+
+  chatkit: {
+    instanceLocator: envVars.CHATKIT_INSTANCE,
+    key: envVars.CHATKIT_KEY,
+  },
 
   // hard coded settings
   JOBNAMES: {
