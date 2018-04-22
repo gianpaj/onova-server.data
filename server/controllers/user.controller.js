@@ -133,14 +133,18 @@ async function create(
             .catch(e => console.error(e));
         }
 
-        try {
-          await ckInst.createUser({
-            id: savedUser._id,
-            name: savedUser.username,
-          });
-          console.log('chatkit user created');
-        } catch (err) {
-          console.error(err);
+        if (config.env == 'production') {
+          try {
+            await ckInst.createUser({
+              id: savedUser._id,
+              name: savedUser.username,
+            });
+            console.log('chatkit user created');
+          } catch (err) {
+            console.error(err);
+          }
+        } else {
+          debug('skipping pusher createUser()');
         }
 
         return mailCtrl
