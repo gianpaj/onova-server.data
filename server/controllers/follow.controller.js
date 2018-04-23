@@ -231,28 +231,35 @@ function listFollowers(
   // flow-disable-next-line
   Follow.list({ DBquery, limit, skip, me: req.user._id.toString() })
     .then(async followers => {
-      // get the list of followers ids of the queried User
-      const ids = followers.map(f => f.follower._id.toString());
-      // get the list of users I follow based on that list ^
-      let myFollowings = await Follow.find({
-        follower: req.user._id.toString(),
-        following: { $in: ids },
-      });
-      myFollowings = myFollowings.map(f => f.following.toString());
-      const data = followers.map((f: FollowDoc) => {
-        f = f.toJSON();
-        let doc = {
-          ...f.follower,
-          dateCreated: f.dateCreated,
-          amIAFollower: false,
-        };
-        if (myFollowings.indexOf(f.follower._id.toString()) > -1) {
-          doc.amIAFollower = true;
-        }
-        return doc;
-      });
-      res.json({ data });
-      res.json({ data });
+      if (followers) {
+        // filter followers that not longer exist (populate returns null)
+        followers = followers.filter(f => f.follower !== null);
+        // TODO: filter followers that are deleted
+        // get the list of followers ids of the queried User
+        const ids = followers.map(f => f.follower._id.toString());
+        // get the list of users I follow based on that list ^
+        let myFollowings = await Follow.find({
+          follower: req.user._id.toString(),
+          following: { $in: ids },
+        });
+        myFollowings = myFollowings.map(f => f.following.toString());
+        followers = followers.map((f: FollowDoc) => {
+          f = f.toJSON();
+          let doc = {
+            ...f.follower,
+            dateCreated: f.dateCreated,
+            amIAFollower: false,
+          };
+          if (
+            myFollowings &&
+            myFollowings.indexOf(f.follower._id.toString()) > -1
+          ) {
+            doc.amIAFollower = true;
+          }
+          return doc;
+        });
+      }
+      res.json({ data: followers });
     })
     .catch(e => next(e));
 }
@@ -282,27 +289,32 @@ function listFollowing(
   // flow-disable-next-line
   Follow.list({ DBquery, limit, skip, me: req.user._id.toString() })
     .then(async followings => {
-      // get the list ids of the queried User is following
-      const ids = followings.map(f => f.following._id.toString());
-      // get the list of users I follow based on that list ^
-      let myFollowings = await Follow.find({
-        follower: req.user._id.toString(),
-        following: { $in: ids },
-      });
-      myFollowings = myFollowings.map(f => f.following.toString());
-      const data = followings.map((f: FollowDoc) => {
-        f = f.toJSON();
-        let doc = {
-          ...f.following,
-          dateCreated: f.dateCreated,
-          amIAFollower: false,
-        };
-        if (myFollowings.indexOf(f.following._id.toString()) > -1) {
-          doc.amIAFollower = true;
-        }
-        return doc;
-      });
-      res.json({ data });
+      if (followings) {
+        // filter followers that not longer exist (populate returns null)
+        followings = followings.filter(f => f.follower !== null);
+        // TODO: filter followings that are deleted
+        // get the list ids of the queried User is following
+        const ids = followings.map(f => f.following._id.toString());
+        // get the list of users I follow based on that list ^
+        let myFollowings = await Follow.find({
+          follower: req.user._id.toString(),
+          following: { $in: ids },
+        });
+        myFollowings = myFollowings.map(f => f.following.toString());
+        followings = followings.map((f: FollowDoc) => {
+          f = f.toJSON();
+          let doc = {
+            ...f.following,
+            dateCreated: f.dateCreated,
+            amIAFollower: false,
+          };
+          if (myFollowings.indexOf(f.following._id.toString()) > -1) {
+            doc.amIAFollower = true;
+          }
+          return doc;
+        });
+      }
+      res.json({ data: followings });
     })
     .catch(e => next(e));
 }
