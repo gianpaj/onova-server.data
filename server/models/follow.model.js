@@ -60,7 +60,7 @@ FollowSchema.statics = {
       .limit(+limit)
       .populate({
         path: populateField,
-        select: 'username',
+        select: 'username profilePic',
       })
       .then((follows: Array<FollowDoc>) => {
         if (!follows) {

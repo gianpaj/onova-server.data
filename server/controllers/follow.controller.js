@@ -230,7 +230,16 @@ function listFollowers(
   // use static method from FollowSchema
   // flow-disable-next-line
   Follow.list({ DBquery, limit, skip })
-    .then(follows => res.json({ data: follows }))
+    .then(followers => {
+      const data = followers.map(f => {
+        f = f.toJSON();
+        return {
+          dateCreated: f.dateCreated,
+          ...f.follower,
+        };
+      });
+      res.json({ data });
+    })
     .catch(e => next(e));
 }
 
@@ -258,7 +267,16 @@ function listFollowing(
   // use static method from FollowSchema
   // flow-disable-next-line
   Follow.list({ DBquery, limit, skip })
-    .then(follows => res.json({ data: follows }))
+    .then(followings => {
+      const data = followings.map(f => {
+        f = f.toJSON();
+        return {
+          dateCreated: f.dateCreated,
+          ...f.following,
+        };
+      });
+      res.json({ data });
+    })
     .catch(e => next(e));
 }
 
