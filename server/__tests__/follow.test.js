@@ -65,12 +65,22 @@ describe('## Follow APIs', () => {
     platform: 'android',
   };
 
+  let forthUser = {
+    username: 'forthwheel',
+    emailAddress: 'gianpa+forth@gmail.com',
+    password: 'express3',
+    pushToken: 'forthPushToken',
+    platform: 'android',
+  };
+
   let userId;
   let anotherUserId;
   let thirdUserId;
+  let forthUserId;
   let thirdJwtToken;
   let firstJwtToken;
   let anotherJwtToken;
+  let forthUserIdJwtToken;
   let firstUserFollowersCounter = 0;
   let firstUserFollowingCounter = 0;
 
@@ -83,6 +93,10 @@ describe('## Follow APIs', () => {
     await createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
       anotherUserId = user._id;
       anotherJwtToken = jwtToken;
+    });
+    await createUserAndLogin(forthUser).then(({ user, jwtToken }) => {
+      forthUserId = user._id;
+      forthUserIdJwtToken = jwtToken;
     });
     return await createUserAndLogin(thirdUser).then(({ user, jwtToken }) => {
       thirdUserId = user._id;
