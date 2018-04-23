@@ -13,10 +13,13 @@ import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 import followController from './follow.controller';
 
-const ckInst = new Chatkit({
-  instanceLocator: config.chatkit.instanceLocator,
-  key: config.chatkit.key,
-});
+let ckInst;
+if (config.env == 'production') {
+  ckInst = new Chatkit({
+    instanceLocator: config.chatkit.instanceLocator,
+    key: config.chatkit.key,
+  });
+}
 
 declare class session$Request extends express$Request {
   user: UserDoc;

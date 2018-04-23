@@ -249,9 +249,9 @@ describe('## Follow APIs', () => {
           expect(Array.isArray(data)).toBe(true);
           expect(data.length).toBe(1);
           // expect(data[0].following).toBe(userId);
-          expect(typeof data[0].follower).toBe('object');
           expect(Object.keys(data[0]).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
+            // profilePic
+            ['username', 'dateCreated', 'id', '_id'].sort()
           );
         });
     });
@@ -267,9 +267,9 @@ describe('## Follow APIs', () => {
           expect(Array.isArray(data)).toBe(true);
           expect(data.length).toBe(1);
           // expect(data[0].follower).toBe(userId);
-          expect(typeof data[0].following).toBe('object');
           expect(Object.keys(data[0]).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
+            // profilePic
+            ['username', 'dateCreated', 'id', '_id'].sort()
           );
         });
     });
