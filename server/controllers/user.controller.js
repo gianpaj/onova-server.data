@@ -8,6 +8,7 @@ import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
 import config from '../config/config';
 import User, { UserDoc } from '../models/user.model';
+import Follow from '../models/follow.model';
 import DefaultFollow from '../models/defaultFollow.model';
 import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
@@ -54,8 +55,20 @@ function load(
  * @property {*} req.params - express session parameters
  * @property {MongoId} req.params.userId
  */
-function get(req: session$Request, res: express$Response) {
-  const doc = _prepareUserJson(req.user);
+async function get(req: session$Request, res: express$Response) {
+  let doc = _prepareUserJson(req.user);
+  const followers = await Follow.find({
+    following: req.params.userId,
+  }).populate('follower');
+  const following = await Follow.find({
+    follower: req.params.userId,
+  }).populate('following');
+
+  doc = {
+    ...doc,
+    followersCount: followers.filter(f => f.follower !== null).length,
+    followingCount: following.filter(f => f.following !== null).length,
+  };
   return res.json(doc);
 }
 
@@ -72,8 +85,8 @@ function getPersonal(req: session$Request, res: express$Response) {
   const doc = _prepareUserJson(req.user);
   return res.json({
     ...doc,
-    shippingAddress: req.user.shippingAddress,
     paymentInfo: req.user.paymentInfo,
+    shippingAddress: req.user.shippingAddress,
   });
 }
 
@@ -155,8 +168,8 @@ async function create(
           .then(() => {
             const payload = _prepareUserJson(savedUser);
             return res.status(httpStatus.CREATED).json({
-              token: `JWT ${authCtrl.generateToken(payload)}`,
               data: payload,
+              token: `JWT ${authCtrl.generateToken(payload)}`,
             });
           });
       });

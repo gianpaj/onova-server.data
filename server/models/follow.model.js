@@ -54,11 +54,11 @@ FollowSchema.statics = {
 
     const populateField = queryingForFollowing ? 'follower' : 'following';
 
-    if (queryingForFollowing) {
-      DBquery = { ...DBquery, follower: { $ne: me } };
-    } else {
-      DBquery = { ...DBquery, following: { $ne: me } };
-    }
+    // if (queryingForFollowing) {
+    //   DBquery = { ...DBquery, follower: { $ne: me } };
+    // } else {
+    //   DBquery = { ...DBquery, following: { $ne: me } };
+    // }
 
     return this.find(DBquery)
       .sort({ createdAt: -1 })
