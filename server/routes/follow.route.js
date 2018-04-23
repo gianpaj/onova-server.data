@@ -15,12 +15,12 @@ const router = express.Router();
 router
   .route('/:userId/followers')
   // GET /api/users/:userId/followers - Get list of followers of a specific user
-  .get(followCtrl.listFollowers);
+  .get(requireAuth, followCtrl.listFollowers);
 
 router
   .route('/:userId/following')
   // GET /api/users/:userId/following - Get list of users a specific user is following
-  .get(followCtrl.listFollowing);
+  .get(requireAuth, followCtrl.listFollowing);
 
 router
   .route('/:userId/follow')

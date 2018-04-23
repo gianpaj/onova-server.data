@@ -229,15 +229,29 @@ function listFollowers(
 
   // use static method from FollowSchema
   // flow-disable-next-line
-  Follow.list({ DBquery, limit, skip })
-    .then(followers => {
-      const data = followers.map(f => {
-        f = f.toJSON();
-        return {
-          dateCreated: f.dateCreated,
-          ...f.follower,
-        };
+  Follow.list({ DBquery, limit, skip, me: req.user._id.toString() })
+    .then(async followers => {
+      // get the list of followers ids of the queried User
+      const ids = followers.map(f => f.follower._id.toString());
+      // get the list of users I follow based on that list ^
+      let myFollowings = await Follow.find({
+        follower: req.user._id.toString(),
+        following: { $in: ids },
       });
+      myFollowings = myFollowings.map(f => f.following.toString());
+      const data = followers.map((f: FollowDoc) => {
+        f = f.toJSON();
+        let doc = {
+          ...f.follower,
+          dateCreated: f.dateCreated,
+          amIAFollower: false,
+        };
+        if (myFollowings.indexOf(f.follower._id.toString()) > -1) {
+          doc.amIAFollower = true;
+        }
+        return doc;
+      });
+      res.json({ data });
       res.json({ data });
     })
     .catch(e => next(e));
@@ -266,14 +280,27 @@ function listFollowing(
 
   // use static method from FollowSchema
   // flow-disable-next-line
-  Follow.list({ DBquery, limit, skip })
-    .then(followings => {
-      const data = followings.map(f => {
+  Follow.list({ DBquery, limit, skip, me: req.user._id.toString() })
+    .then(async followings => {
+      // get the list ids of the queried User is following
+      const ids = followings.map(f => f.following._id.toString());
+      // get the list of users I follow based on that list ^
+      let myFollowings = await Follow.find({
+        follower: req.user._id.toString(),
+        following: { $in: ids },
+      });
+      myFollowings = myFollowings.map(f => f.following.toString());
+      const data = followings.map((f: FollowDoc) => {
         f = f.toJSON();
-        return {
-          dateCreated: f.dateCreated,
+        let doc = {
           ...f.following,
+          dateCreated: f.dateCreated,
+          amIAFollower: false,
         };
+        if (myFollowings.indexOf(f.following._id.toString()) > -1) {
+          doc.amIAFollower = true;
+        }
+        return doc;
       });
       res.json({ data });
     })

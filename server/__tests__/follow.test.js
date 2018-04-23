@@ -68,8 +68,11 @@ describe('## Follow APIs', () => {
   let userId;
   let anotherUserId;
   let thirdUserId;
+  let thirdJwtToken;
   let firstJwtToken;
   let anotherJwtToken;
+  let firstUserFollowersCounter = 0;
+  let firstUserFollowingCounter = 0;
 
   // create 2 users/sellers
   beforeAll(async () => {
@@ -81,8 +84,9 @@ describe('## Follow APIs', () => {
       anotherUserId = user._id;
       anotherJwtToken = jwtToken;
     });
-    return await createUserAndLogin(thirdUser).then(({ user }) => {
+    return await createUserAndLogin(thirdUser).then(({ user, jwtToken }) => {
       thirdUserId = user._id;
+      thirdJwtToken = jwtToken;
     });
   });
 
@@ -99,6 +103,7 @@ describe('## Follow APIs', () => {
           expect(Object.keys(data).sort()).toEqual(
             ['follower', 'following', 'dateCreated'].sort()
           );
+          firstUserFollowingCounter++;
         });
     });
 
@@ -120,6 +125,7 @@ describe('## Follow APIs', () => {
           .expect(httpStatus.CREATED)
           .then(res => {
             expect(res.body.data.follower).toBe(userId);
+            firstUserFollowingCounter++;
           });
       });
 
@@ -188,6 +194,7 @@ describe('## Follow APIs', () => {
           expect(data.follower).toBe(anotherUserId);
           expect(data.following).toBe(userId);
           expect(data).toHaveProperty('dateCreated');
+          firstUserFollowersCounter++;
         });
     });
   });
@@ -205,6 +212,7 @@ describe('## Follow APIs', () => {
           expect(Object.keys(data).sort()).toEqual(
             ['follower', 'following', 'dateCreated'].sort()
           );
+          firstUserFollowingCounter--;
         });
     });
 
@@ -240,36 +248,64 @@ describe('## Follow APIs', () => {
   });
 
   describe('# GET /api/users/:userId/followers', () => {
-    it('should get all followers', async () => {
+    // ThirdU -- follows --> User
+    beforeAll(async () => {
+      return request(app)
+        .post(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', thirdJwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(thirdUserId);
+          expect(data.following).toBe(anotherUserId);
+        });
+    });
+
+    it('should get all the followers of user and if amIAFollower', async () => {
       return request(app)
         .get(`/api/users/${userId}/followers`)
+        .set('Authorization', thirdJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
           expect(Array.isArray(data)).toBe(true);
-          expect(data.length).toBe(1);
-          // expect(data[0].following).toBe(userId);
+          expect(data.length).toBe(firstUserFollowersCounter);
+          expect(data[0].amIAFollower).toBe(true);
           expect(Object.keys(data[0]).sort()).toEqual(
             // profilePic
-            ['username', 'dateCreated', 'id', '_id'].sort()
+            ['username', 'dateCreated', 'id', '_id', 'amIAFollower'].sort()
           );
         });
     });
   });
 
   describe('# GET /api/users/:userId/following', () => {
-    it('should get all following', async () => {
+    // AnotherU -- follows --> ThirdU
+    beforeAll(async () => {
+      return request(app)
+        .post(`/api/users/${thirdUserId}/follow`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(anotherUserId);
+          expect(data.following).toBe(thirdUserId);
+        });
+    });
+
+    it('should get a list of who the user is following and if amIAFollower', async () => {
       return request(app)
         .get(`/api/users/${userId}/following`)
+        .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
           expect(Array.isArray(data)).toBe(true);
-          expect(data.length).toBe(1);
-          // expect(data[0].follower).toBe(userId);
+          expect(data.length).toBe(firstUserFollowingCounter);
+          expect(data[0].amIAFollower).toBe(true);
           expect(Object.keys(data[0]).sort()).toEqual(
             // profilePic
-            ['username', 'dateCreated', 'id', '_id'].sort()
+            ['username', 'dateCreated', 'id', '_id', 'amIAFollower'].sort()
           );
         });
     });
