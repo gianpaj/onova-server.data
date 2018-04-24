@@ -22,3 +22,10 @@ apps:
     env    :
       NODE_ENV: production
       PORT: 8142
+  - script : npm
+    args: start-push
+    cwd: ./server.chat
+    name   : 'server.chat'
+    autorestart: true
+    env    :
+      NODE_ENV: production
