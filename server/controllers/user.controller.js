@@ -319,13 +319,21 @@ function update(
             $set: { profilePic: req.file.originalname },
           })
             .exec()
-            .then(doc => {
+            .then(async doc => {
               if (doc) {
                 debug('profilePic updated for user:', doc._id);
-                resolve(doc);
-              } else {
-                reject('no error found');
+                try {
+                  await ckInst.updateUser({
+                    id: doc._id,
+                    avatarURL: req.file.originalname,
+                  });
+                  console.log('chatkit user created');
+                } catch (err) {
+                  console.error(err);
+                }
+                return resolve(doc);
               }
+              reject('no error found');
             });
         })
       );
