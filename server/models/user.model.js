@@ -73,7 +73,7 @@ const UserSchema = new Schema(
     mobileNumber: {
       type: String,
       trim: true,
-      match: [validation.mobileNumber, 'Invalid mobile number.'],
+      // match: [validation.mobileNumber, 'Invalid mobile number.'],
     },
     password: {
       type: String,
@@ -115,6 +115,8 @@ const UserSchema = new Schema(
     shippingAddress: {
       firstName: String,
       lastName: String,
+      fathersName: String,
+      departmentNovaposhta: String,
       company: String,
       line1: String,
       line2: String,
