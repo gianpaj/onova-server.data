@@ -322,14 +322,16 @@ function update(
             .then(async doc => {
               if (doc) {
                 debug('profilePic updated for user:', doc._id);
-                try {
-                  await ckInst.updateUser({
-                    id: doc._id,
-                    avatarURL: req.file.originalname,
-                  });
-                  console.log('chatkit user created');
-                } catch (err) {
-                  console.error(err);
+                if (config.env == 'production') {
+                  try {
+                    await ckInst.updateUser({
+                      id: doc._id,
+                      avatarURL: req.file.originalname,
+                    });
+                    console.log('chatkit user created');
+                  } catch (err) {
+                    console.error(err);
+                  }
                 }
                 return resolve(doc);
               }

@@ -78,6 +78,8 @@ export default {
       shippingAddress: {
         firstName: Joi.string(),
         lastName: Joi.string(),
+        fathersName: Joi.string(),
+        departmentNovaposhta: Joi.string(),
         company: Joi.string(),
         line1: Joi.string(),
         line2: Joi.string().empty(''),

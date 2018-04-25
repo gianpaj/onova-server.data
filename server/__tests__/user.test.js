@@ -781,6 +781,22 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.UNAUTHORIZED);
     });
+
+    it("should not update another user's details", async () => {
+      anotherUser.shippingAddress = {
+        departmentNovaposhta: '#25',
+        fathersName: 'banana',
+      };
+      return request(app)
+        .put(`/api/users/${anotherUserId}`)
+        .set('Authorization', anotherJwtToken)
+        .send(anotherUser)
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.shippingAddress.departmentNovaposhta).toBe('#25');
+          expect(res.body.shippingAddress.fathersName).toBe('banana');
+        });
+    });
   });
 
   describe('# GET /api/auth/random-number', () => {
