@@ -114,7 +114,7 @@ function internalFollow(sender: UserDoc, targetUser: String): Promise<any> {
     .then(targetUser => {
       const notif: NotifPayload = {
         data: {
-          senderName: sender.displayName || sender.username,
+          senderName: sender.username,
         },
         notifI18n: i18n.newFollower,
         targetUser: targetUser._id,

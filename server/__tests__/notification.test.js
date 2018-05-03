@@ -162,9 +162,7 @@ describe('## Notification APIs', () => {
           const { data } = res.body;
           expect(Object.keys(data[0]).sort()).toEqual(notifFields.sort());
           expect(data[0].triggeredBy._id).toBe(productId);
-          expect(data[0].notifI18n).toContain(
-            'new comment from @anotherperson'
-          );
+          expect(data[0].notifI18n).toBe('commented');
           expect(data).toHaveLength(41);
         });
     });
@@ -178,7 +176,7 @@ describe('## Notification APIs', () => {
           const { data } = res.body;
           lastNotifId = data[19]._id;
           expect(data[0].triggeredBy._id).toBe(productId);
-          expect(data[0].notifI18n).toContain('new comment');
+          expect(data[0].notifI18n).toBe('commented');
           expect(data).toHaveLength(20);
         });
     });
@@ -221,7 +219,7 @@ describe('## Notification APIs', () => {
           const { data } = res.body;
           expect(Object.keys(data[0]).sort()).toEqual(notifFields.sort());
           expect(data[0].triggeredBy._id).toBe(anotherProductId);
-          expect(data[0].notifI18n).toContain('new comment');
+          expect(data[0].notifI18n).toBe('commented');
           expect(data).toHaveLength(1);
         });
     });
