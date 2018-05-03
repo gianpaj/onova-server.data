@@ -140,6 +140,7 @@ function saveComment(comment, req, res, next) {
         triggeredBy: req.product._id,
         triggeredType: 'Product',
         onlyPush: false,
+        sourceUser: req.user,
       };
 
       // if comment does not contain @mentions
@@ -170,6 +171,7 @@ function saveComment(comment, req, res, next) {
               triggeredBy: req.product._id,
               triggeredType: 'Product',
               onlyPush: false,
+              sourceUser: req.user,
             };
             notifCtrl
               .createNotification(notifForMention)

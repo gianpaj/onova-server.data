@@ -121,6 +121,7 @@ function internalFollow(sender: UserDoc, targetUser: String): Promise<any> {
         triggeredBy: sender._id,
         triggeredType: 'User',
         onlyPush: false,
+        sourceUser: sender._id,
       };
 
       notifCtrl
