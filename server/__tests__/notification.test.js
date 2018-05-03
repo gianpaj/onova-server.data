@@ -81,6 +81,8 @@ let anotherProductUuid;
 let firstJwtToken;
 let anotherJwtToken;
 let lastNotifId;
+let numberOfNotifForAnotherUser = 0;
+let numberOfNotifForFirstUser = 0;
 
 describe('## Notification APIs', () => {
   beforeAll(done => {
@@ -144,6 +146,7 @@ describe('## Notification APIs', () => {
         firstJwtToken
       );
       expect(c1.uuid).toBe(anotherProductUuid);
+      numberOfNotifForAnotherUser++;
       const c2 = await createComment(
         { text: 'thanks dude!' },
         anotherProductUuid,
@@ -151,6 +154,7 @@ describe('## Notification APIs', () => {
       );
       expect(c2.uuid).toBe(anotherProductUuid);
       await createManyComments(40, productUuid, anotherJwtToken);
+      numberOfNotifForFirstUser += 40;
     });
 
     it('should get my notifications', async () => {
@@ -163,7 +167,7 @@ describe('## Notification APIs', () => {
           expect(Object.keys(data[0]).sort()).toEqual(notifFields.sort());
           expect(data[0].triggeredBy._id).toBe(productId);
           expect(data[0].notifI18n).toBe('commented');
-          expect(data).toHaveLength(41);
+          expect(data).toHaveLength(numberOfNotifForFirstUser);
         });
     });
 
@@ -276,6 +280,7 @@ describe('## Notification APIs', () => {
           expect(Object.keys(data).sort()).toEqual(
             ['follower', 'following', 'dateCreated'].sort()
           );
+          numberOfNotifForAnotherUser++;
         });
     });
 
@@ -288,12 +293,12 @@ describe('## Notification APIs', () => {
           const { data } = res.body;
           expect(data[0].triggeredBy._id).toBe(userId);
           expect(data[0].notifI18n).toBe('started following you');
-          expect(data).toHaveLength(2);
+          expect(data).toHaveLength(numberOfNotifForAnotherUser);
         });
     });
   });
 
-  describe('# Create an order and Notify', () => {
+  describe('# Create an order and Notify cancellation', () => {
     let orderId;
     beforeAll(async () => {
       return request(app)
@@ -312,18 +317,18 @@ describe('## Notification APIs', () => {
         });
     });
 
-    it('a new order notification should have not have been created', async () => {
+    it('a new order notification should have **not** have been created', async () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data).toHaveLength(41);
+          expect(data).toHaveLength(numberOfNotifForFirstUser);
         });
     });
 
-    describe('# Cancel an order and Notify the buyer', () => {
+    describe('# Seller cancels an order and Notify the buyer', () => {
       beforeAll(async () => {
         return request(app)
           .put(`/api/orders/${orderId}`)
@@ -334,6 +339,7 @@ describe('## Notification APIs', () => {
             const o = res.body.data;
             expect(o.priceOfItem).toBe(product.price);
             expect(o.status).toBe('cancelled');
+            numberOfNotifForAnotherUser++;
           });
       });
 
@@ -346,7 +352,7 @@ describe('## Notification APIs', () => {
             const { data } = res.body;
             expect(data[0].triggeredBy.id).toBe(orderId);
             expect(data[0].notifI18n).toContain('cancelled');
-            expect(data).toHaveLength(3);
+            expect(data).toHaveLength(numberOfNotifForAnotherUser);
           });
       });
     });
@@ -360,6 +366,7 @@ describe('## Notification APIs', () => {
         productUuid,
         firstJwtToken
       );
+      numberOfNotifForAnotherUser++;
       expect(c1.uuid).toBe(productUuid);
       const c3 = await createComment(
         { text: '@anotherperson oops thats`s me!' },
@@ -372,6 +379,7 @@ describe('## Notification APIs', () => {
         anotherProductUuid,
         anotherJwtToken
       );
+      numberOfNotifForFirstUser++;
       expect(c2.uuid).toBe(anotherProductUuid);
       const c4 = await createComment(
         { text: '@hacker thanks dude!' },
@@ -384,6 +392,7 @@ describe('## Notification APIs', () => {
         anotherProductUuid,
         anotherJwtToken
       );
+      numberOfNotifForFirstUser++;
       expect(c5.uuid).toBe(anotherProductUuid);
     });
 
@@ -397,11 +406,11 @@ describe('## Notification APIs', () => {
           expect(data[0].data.text).toBe('check this out @anotherperson');
           expect(data[0].triggeredBy._id).toBe(productId);
           expect(data[0].notifI18n).toContain('@firstperson mentioned you');
-          expect(data).toHaveLength(4);
+          expect(data).toHaveLength(numberOfNotifForAnotherUser);
         });
     });
 
-    it('should get my @firstperson`s notifications', async () => {
+    it('should get my @firstperson`s notifications excluding mine', async () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', firstJwtToken)
@@ -411,23 +420,12 @@ describe('## Notification APIs', () => {
           expect(data[1].data.text).toBe('@firstperson thanks dude!');
           expect(data[1].triggeredBy._id).toBe(anotherProductId);
           expect(data[1].notifI18n).toContain('@anotherperson mentioned you');
-          expect(data).toHaveLength(43);
-        });
-    });
-
-    it('should not notify myself', async () => {
-      return request(app)
-        .get('/api/users/notifications')
-        .set('Authorization', firstJwtToken)
-        .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
           const comment = data.find(
             c => c.data.text == '@anotherperson oops thats`s me!'
           );
           expect(comment).toBeUndefined();
           expect(data[0].data.text).not.toContain('oops thats');
-          expect(data).toHaveLength(43);
+          expect(data).toHaveLength(numberOfNotifForFirstUser);
         });
     });
   });
