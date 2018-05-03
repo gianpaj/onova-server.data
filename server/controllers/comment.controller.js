@@ -132,11 +132,10 @@ function saveComment(comment, req, res, next) {
       const notif: NotifPayload = {
         data: {
           text: req.body.text,
-          senderName: req.user.displayName || req.user.username,
+          senderName: req.user.username,
           commentId: lastCommment._id,
         },
-        notifI18n: `new comment from @${req.user.displayName ||
-          req.user.username}`,
+        notifI18n: 'commented',
         targetUser: req.product.seller._id,
         triggeredBy: req.product._id,
         triggeredType: 'Product',
@@ -163,11 +162,10 @@ function saveComment(comment, req, res, next) {
             const notifForMention: NotifPayload = {
               data: {
                 text: comment.rawText,
-                senderName: req.user.displayName || req.user.username,
+                senderName: req.user.username,
                 commentId: lastCommment._id,
               },
-              notifI18n: `@${req.user.displayName ||
-                req.user.username} mentioned you`,
+              notifI18n: `@${req.user.username} mentioned you`,
               targetUser: userId,
               triggeredBy: req.product._id,
               triggeredType: 'Product',

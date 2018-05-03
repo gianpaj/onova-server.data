@@ -44,7 +44,7 @@ export function sendPush({
           pushToken: target.pushToken,
           triggeredBy: sender._id,
           triggeredType,
-          senderName: sender.displayName || sender.username,
+          senderName: sender.username,
           targetUser: target._id,
           random: shortid(), // for unique push notification
         };
