@@ -53,6 +53,7 @@ function get(
           throw new APIError('Notification not found.', httpStatus.NOT_FOUND);
         }
         Notification.find(DBquery)
+          .populate('triggeredBy')
           .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
           .limit(+limit)
           .then(data => res.json({ data }))
@@ -61,6 +62,7 @@ function get(
       .catch(e => next(e));
   } else {
     Notification.find(DBquery)
+      .populate('triggeredBy')
       .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
       .limit(+limit)
       .then(data => res.json({ data }))

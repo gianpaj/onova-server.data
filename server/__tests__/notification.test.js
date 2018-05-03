@@ -160,7 +160,8 @@ describe('## Notification APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0].triggeredBy).toBe(productId);
+          expect(Object.keys(data[0]).sort()).toEqual(notifFields.sort());
+          expect(data[0].triggeredBy._id).toBe(productId);
           expect(data[0].notifI18n).toContain(
             'new comment from @anotherperson'
           );
@@ -176,7 +177,7 @@ describe('## Notification APIs', () => {
         .then(res => {
           const { data } = res.body;
           lastNotifId = data[19]._id;
-          expect(data[0].triggeredBy).toBe(productId);
+          expect(data[0].triggeredBy._id).toBe(productId);
           expect(data[0].notifI18n).toContain('new comment');
           expect(data).toHaveLength(20);
         });
@@ -189,7 +190,7 @@ describe('## Notification APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0].triggeredBy).toBe(productId);
+          expect(data[0].triggeredBy._id).toBe(productId);
           expect(data).toHaveLength(20);
         });
     });
@@ -219,7 +220,7 @@ describe('## Notification APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(Object.keys(data[0]).sort()).toEqual(notifFields.sort());
-          expect(data[0].triggeredBy).toBe(anotherProductId);
+          expect(data[0].triggeredBy._id).toBe(anotherProductId);
           expect(data[0].notifI18n).toContain('new comment');
           expect(data).toHaveLength(1);
         });
@@ -257,7 +258,7 @@ describe('## Notification APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0].triggeredBy).toBe(anotherProductId);
+          expect(data[0].triggeredBy._id).toBe(anotherProductId);
           expect(data).toHaveLength(1);
         });
     });
@@ -287,8 +288,8 @@ describe('## Notification APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0].triggeredBy).toBe(userId);
-          expect(data[0].notifI18n).toContain('new follower');
+          expect(data[0].triggeredBy._id).toBe(userId);
+          expect(data[0].notifI18n).toBe('started following you');
           expect(data).toHaveLength(2);
         });
     });
@@ -345,7 +346,7 @@ describe('## Notification APIs', () => {
           .expect(httpStatus.OK)
           .then(res => {
             const { data } = res.body;
-            expect(data[0].triggeredBy).toBe(orderId);
+            expect(data[0].triggeredBy.id).toBe(orderId);
             expect(data[0].notifI18n).toContain('cancelled');
             expect(data).toHaveLength(3);
           });
@@ -396,7 +397,7 @@ describe('## Notification APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data[0].data.text).toBe('check this out @anotherperson');
-          expect(data[0].triggeredBy).toBe(productId);
+          expect(data[0].triggeredBy._id).toBe(productId);
           expect(data[0].notifI18n).toContain('@firstperson mentioned you');
           expect(data).toHaveLength(4);
         });
@@ -410,7 +411,7 @@ describe('## Notification APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data[1].data.text).toBe('@firstperson thanks dude!');
-          expect(data[1].triggeredBy).toBe(anotherProductId);
+          expect(data[1].triggeredBy._id).toBe(anotherProductId);
           expect(data[1].notifI18n).toContain('@anotherperson mentioned you');
           expect(data).toHaveLength(43);
         });
