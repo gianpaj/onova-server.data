@@ -12,7 +12,7 @@ import notifCtrl, {
 } from '../controllers/notification.controller';
 
 const i18n = {
-  newFollower: 'new follower from: ${senderName}',
+  newFollower: 'started following you',
 };
 
 declare class session$Request extends express$Request {
