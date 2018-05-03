@@ -170,7 +170,7 @@ export function createManyComments(
   };
 
   const Promises = [];
-  for (let i = 0; i <= num; i++) {
+  for (let i = 0; i < num; i++) {
     Promises.push(createComment(c, productUuid, jwtToken));
   }
 

@@ -45,7 +45,7 @@ function get(
 
   // for pagination - results are excluding the lastId`
   if (lastId) {
-    DBquery = { ...DBquery, _id: { $gte: lastId } };
+    DBquery = { ...DBquery, _id: { $lt: lastId } };
 
     Notification.findById(lastId)
       .then(notif => {
