@@ -166,7 +166,7 @@ function saveComment(comment, req, res, next) {
                 senderName: req.user.username,
                 commentId: lastCommment._id,
               },
-              notifI18n: `@${req.user.username} mentioned you`,
+              notifI18n: 'mentioned you',
               targetUser: userId,
               triggeredBy: req.product._id,
               triggeredType: 'Product',
