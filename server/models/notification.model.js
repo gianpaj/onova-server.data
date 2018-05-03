@@ -16,6 +16,11 @@ var NotificationSchema = new Schema({
     ref: 'User',
     required: true,
   },
+  sourceUser: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
   triggeredBy: {
     type: Schema.Types.ObjectId,
     refPath: 'triggeredType',
@@ -47,6 +52,7 @@ export class NotificationDoc /*:: extends Mongoose$Document */ {
   data: any;
   notifI18n: string;
   targetUser: MongoId;
+  sourceUser: MongoId;
   triggeredBy: MongoId;
   triggeredType: string;
   dateCreated: Date;

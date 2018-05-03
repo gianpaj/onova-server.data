@@ -356,6 +356,7 @@ function createOrderNotification(order: OrderDoc) {
         ...notif,
         notifI18n: i18n.orderPaid,
         targetUser: order.seller,
+        sourceUser: req.user,
       };
 
       return notifCtrl.createNotification(notif);
@@ -366,6 +367,7 @@ function createOrderNotification(order: OrderDoc) {
         ...notif,
         notifI18n: i18n.orderShipped,
         targetUser: order.buyer._id,
+        sourceUser: req.user,
       };
 
       return notifCtrl.createNotification(notif);
@@ -376,6 +378,7 @@ function createOrderNotification(order: OrderDoc) {
         ...notif,
         notifI18n: i18n.orderCancelled,
         targetUser: order.buyer._id,
+        sourceUser: order.seller._id,
       };
 
       return notifCtrl.createNotification(notif);

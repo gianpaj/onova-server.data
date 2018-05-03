@@ -37,6 +37,7 @@ const notifFields = [
   '_id',
   'data',
   'notifI18n',
+  'sourceUser',
   'targetUser',
   'triggeredBy',
   'triggeredType',
@@ -155,6 +156,21 @@ describe('## Notification APIs', () => {
       expect(c2.uuid).toBe(anotherProductUuid);
       await createManyComments(40, productUuid, anotherJwtToken);
       numberOfNotifForFirstUser += 40;
+    });
+
+    it('should get anotherUser`s notifications', async () => {
+      return request(app)
+        .get('/api/users/notifications')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(Object.keys(data[0]).sort()).toEqual(notifFields.sort());
+          expect(data[0].triggeredBy._id).toBe(anotherProductId);
+          expect(data[0].sourceUser._id).toBe(userId);
+          expect(data[0].notifI18n).toBe('commented');
+          expect(data).toHaveLength(numberOfNotifForAnotherUser);
+        });
     });
 
     it('should get my notifications', async () => {

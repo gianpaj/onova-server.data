@@ -20,6 +20,7 @@ export class NotifPayload {
   };
   notifI18n: string;
   targetUser: string;
+  sourceUser: string;
   triggeredBy: string;
   triggeredType: string;
   onlyPush: ?boolean;
@@ -53,7 +54,7 @@ function get(
           throw new APIError('Notification not found.', httpStatus.NOT_FOUND);
         }
         Notification.find(DBquery)
-          .populate('triggeredBy')
+          .populate('triggeredBy sourceUser')
           .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
           .limit(+limit)
           .then(data => res.json({ data }))
@@ -62,7 +63,7 @@ function get(
       .catch(e => next(e));
   } else {
     Notification.find(DBquery)
-      .populate('triggeredBy')
+      .populate('triggeredBy sourceUser')
       .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
       .limit(+limit)
       .then(data => res.json({ data }))
@@ -87,6 +88,7 @@ function createNotification(notif: notifPayload): Promise<null> {
     notifI18n,
     targetUser,
     triggeredBy,
+    sourceUser,
     triggeredType,
     onlyPush,
   } = notif;
@@ -116,6 +118,7 @@ function createNotification(notif: notifPayload): Promise<null> {
           notifI18n,
           targetUser,
           triggeredBy,
+          sourceUser,
           triggeredType,
         })
           .then(doc => {
@@ -146,6 +149,7 @@ function createNotification(notif: notifPayload): Promise<null> {
           data,
           notifI18n,
           targetUser,
+          sourceUser,
           triggeredBy,
           triggeredType,
         })
@@ -175,6 +179,7 @@ function createNotification(notif: notifPayload): Promise<null> {
         notifI18n,
         targetUser,
         triggeredBy,
+        sourceUser,
         triggeredType,
       })
         .then(doc => {
