@@ -216,11 +216,21 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should create product with a valid (start with numbers)', async () => {
+    it('should create product with a valid tag (start with numbers)', async () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
         .field({ ...product, tags: ['111pony'] })
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .expect(httpStatus.CREATED)
+        .then(() => void productsCounter++);
+    });
+
+    it('should create product with a valid tag (cyrilic)', async () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken)
+        .field({ ...product, tags: ['плнаше'] })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.CREATED)
         .then(() => void productsCounter++);
