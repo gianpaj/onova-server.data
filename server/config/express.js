@@ -84,7 +84,7 @@ if (config.env === 'development') {
     })
   );
 }
-if (config.env === 'test') {
+if (config.env == 'test') {
   expressWinston.requestWhitelist.push('body');
   expressWinston.responseWhitelist.push('body');
 }

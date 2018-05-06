@@ -234,7 +234,7 @@ function remove(
 
   // TODO: delete images from GSC
   // for (let i = 0; i < req.product.photoURIs.length; i++) {
-  //   if (config.env === 'test') break;
+  //   if (config.env == 'test') break;
 
   //   const file = req.product.photoURIs[i];
   //   bucket

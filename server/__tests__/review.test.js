@@ -270,6 +270,7 @@ describe('## Order APIs', () => {
           text: 'great seller AAA+',
           rateNumber: 5,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
         .then(res => {
@@ -295,6 +296,7 @@ describe('## Order APIs', () => {
           text: 'great seller AAA+ dupe',
           rateNumber: 3,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -311,6 +313,7 @@ describe('## Order APIs', () => {
           text: 'great buyer AAA+',
           rateNumber: 5,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
         .then(res => {
@@ -336,6 +339,7 @@ describe('## Order APIs', () => {
           text: 'great buyer AAA+ dupe',
           rateNumber: 1,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -352,6 +356,7 @@ describe('## Order APIs', () => {
           text: 'great stuff',
           rateNumber: 9,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -368,6 +373,7 @@ describe('## Order APIs', () => {
           text: 'great stuff',
           rateNumber: 4,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -386,6 +392,7 @@ describe('## Order APIs', () => {
           text: 'great stuff',
           rateNumber: 5,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -402,6 +409,7 @@ describe('## Order APIs', () => {
           text: 'great stuff',
           rateNumber: 5,
           lang: 'po',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -418,10 +426,28 @@ describe('## Order APIs', () => {
           text: 'gr',
           rateNumber: 5,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toContain('must be at least 7 characters');
+        });
+    });
+
+    it('should **not** create a review with invalid tracking number', async () => {
+      return request(app)
+        .post(`/api/users/${userFirst._id}/reviews`)
+        .set('Authorization', userFirstJwtToken)
+        .send({
+          orderId: orderTwo.id,
+          text: 'grasdfas',
+          rateNumber: 5,
+          lang: 'en',
+          trackingNumber: '204500726178',
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toContain('than or equal to 10000000000000');
         });
     });
 
@@ -434,6 +460,7 @@ describe('## Order APIs', () => {
           text: 'greeeeeat',
           rateNumber: 5,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -452,6 +479,7 @@ describe('## Order APIs', () => {
           text: 'greeeeeat',
           rateNumber: 5,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -549,6 +577,7 @@ describe('## Order APIs', () => {
           text: 'great seller AAA+',
           rateNumber: 5,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
         .then(res => {
@@ -569,6 +598,7 @@ describe('## Order APIs', () => {
           text: 'great buyer AAA+',
           rateNumber: 5,
           lang: 'en',
+          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
         .then(res => {

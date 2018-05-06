@@ -41,6 +41,11 @@ export default {
       lang: Joi.string()
         .valid(['uk', 'en'])
         .required(),
+      trackingNumber: Joi.number()
+        .integer()
+        .min(10000000000000)
+        .max(99999999999999)
+        .required(),
     },
   },
 };
