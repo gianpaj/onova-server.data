@@ -1,14 +1,14 @@
 // @flow
 
 import httpStatus from 'http-status';
+import request from 'request';
 
 import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Review, { ReviewDoc } from '../models/review.model';
-import notifCtrl, {
-  NotifPayload,
-} from '../controllers/notification.controller';
 import User, { UserDoc } from '../models/user.model';
+
+import config from '../config/config';
 
 declare class session$Request extends express$Request {
   order: OrderDoc;
@@ -77,8 +77,9 @@ async function list(req: session$Request, res: express$Response, next) {
  * @property {*} req.body Express body parameters
  * @property {string} req.body.orderId
  * @property {string} req.body.text
- * @property {string} req.body.rateNumber
+ * @property {number} req.body.rateNumber
  * @property {string} req.body.lang
+ * @property {number} req.body.trackingNumber
  */
 async function create(
   req: session$Request,
@@ -125,7 +126,30 @@ async function create(
   }
 
   const targetUser = iAmTheSeller ? order.buyer._id : order.seller._id;
-  let { text, rateNumber, lang } = req.body;
+  let { text, rateNumber, lang, trackingNumber } = req.body;
+
+  if (config.env !== 'test') {
+    try {
+      const isValid = await isValidTrackingNumber(
+        trackingNumber,
+        order.datePending
+      );
+      if (!isValid) {
+        const APIerr = new APIError(
+          'The tracking number is not valid',
+          httpStatus.BAD_REQUEST
+        );
+        return next(APIerr);
+      }
+    } catch (error) {
+      console.error(error);
+      const APIerr = new APIError(
+        'The tracking number is not valid',
+        httpStatus.INTERNAL_SERVER_ERROR
+      );
+      return next(APIerr);
+    }
+  }
 
   const review: ReviewDoc = new Review({
     fromUser: iAmTheSeller ? order.seller._id : order.buyer._id,
@@ -148,6 +172,55 @@ async function create(
   } catch (err) {
     next(err);
   }
+}
+
+/**
+ * if the tracking number schedule delivery date is greater than the date creation date (datePending)
+ */
+async function isValidTrackingNumber(
+  trackingNumber: string,
+  orderDatePending: Date
+): Promise<boolean> {
+  return new Promise((resolve, reject) => {
+    request.post(
+      'https://api.novaposhta.ua/v2.0/json/documentsTracking/',
+      {
+        json: {
+          modelName: 'TrackingDocument',
+          calledMethod: 'getStatusDocuments',
+          methodProperties: {
+            Documents: [
+              {
+                DocumentNumber: trackingNumber,
+                Phone: '',
+              },
+            ],
+          },
+        },
+      },
+      (error, response, body) => {
+        if (error) return reject(error);
+
+        if (!body.success) return reject(body);
+
+        const data = body.data[0];
+
+        // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
+        const trackingNumberDate = new Date(
+          data.ScheduledDeliveryDate.replace(
+            /(\d{2})-(\d{2})-(\d{4})/,
+            '$2/$1/$3'
+          )
+        );
+        const orderDate = new Date(orderDatePending);
+
+        if (trackingNumberDate.getTime() > orderDate.getTime()) {
+          return resolve(true);
+        }
+        resolve(false);
+      }
+    );
+  });
 }
 
 export default {
