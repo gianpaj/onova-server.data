@@ -421,7 +421,7 @@ describe('## Notification APIs', () => {
           const { data } = res.body;
           expect(data[0].data.text).toBe('check this out @anotherperson');
           expect(data[0].triggeredBy._id).toBe(productId);
-          expect(data[0].notifI18n).toContain('@firstperson mentioned you');
+          expect(data[0].notifI18n).toBe('mentioned you');
           expect(data).toHaveLength(numberOfNotifForAnotherUser);
         });
     });
@@ -435,7 +435,7 @@ describe('## Notification APIs', () => {
           const { data } = res.body;
           expect(data[1].data.text).toBe('@firstperson thanks dude!');
           expect(data[1].triggeredBy._id).toBe(anotherProductId);
-          expect(data[1].notifI18n).toContain('@anotherperson mentioned you');
+          expect(data[1].notifI18n).toBe('mentioned you');
           const comment = data.find(
             c => c.data.text == '@anotherperson oops thats`s me!'
           );
