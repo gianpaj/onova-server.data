@@ -84,6 +84,7 @@ describe('## Product APIs', () => {
   let jwtToken;
   let anotherJwtToken;
   let anotherProdUuid;
+  let thirdProdUuid;
 
   let productsCounter = 0;
 
@@ -438,6 +439,15 @@ describe('## Product APIs', () => {
   });
 
   describe('# UPDATE /api/products/:uuid', () => {
+    beforeAll(async () => {
+      const p = await createProduct(thirdProduct, jwtToken);
+      thirdProdUuid = p.uuid;
+      await Product.updateOne(
+        { uuid: thirdProdUuid },
+        { $set: { status: 'sold' } }
+      );
+    });
+
     it('should update the description, price, categoryIds and typeIds', async () => {
       product.description = 'amazing boots';
       product.price = '9.99';
@@ -475,6 +485,18 @@ describe('## Product APIs', () => {
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
           expect(res.body.message).toBe('Unauthorized');
+        });
+    });
+
+    it('should **not** update a product that has been sold', async () => {
+      return request(app)
+        .put(`/api/products/${thirdProdUuid}`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            'Cannot update a product that has been sold'
+          );
         });
     });
   });
