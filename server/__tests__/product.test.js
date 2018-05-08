@@ -95,7 +95,7 @@ describe('## Product APIs', () => {
         user._id = resUser._id;
         jwtToken = token;
       })
-      .then(async () => {
+      .then(() => {
         return request(app)
           .put(`/api/users/${user._id}`)
           .set('Authorization', jwtToken)
@@ -117,7 +117,7 @@ describe('## Product APIs', () => {
   });
 
   describe('# POST /api/products', () => {
-    it('should create a product', async () => {
+    it('should create a product', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -150,74 +150,68 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not create product with wrong file uploaded', async () => {
+    it('should not create product with wrong file uploaded', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
         .attach('photos', path.join(__dirname, 'misc.test.js'))
         .field(product)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain(
+        .then(({ body }) =>
+          expect(body.message).toContain(
             'File upload only supports the following filetypes'
-          );
-        });
+          )
+        );
     });
 
-    it('should not create product without uploading a photo', async () => {
+    it('should not create product without uploading a photo', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
         .field(product)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Product image(s) are required');
-        });
+        .then(({ body }) =>
+          expect(body.message).toBe('Product image(s) are required')
+        );
     });
 
-    it('should not create product with an invalid tag (with @)', async () => {
+    it('should not create product with an invalid tag (with @)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
         .field(badProduct)
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain(
-            'fails to match the required pattern'
-          );
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('fails to match the required pattern')
+        );
     });
 
-    it('should not create product with an invalid tag (with space)', async () => {
+    it('should not create product with an invalid tag (with space)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
         .field({ ...badProduct, tags: ['my pony'] })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain(
-            'fails to match the required pattern'
-          );
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('fails to match the required pattern')
+        );
     });
 
-    it('should not create product with an invalid tag (with .)', async () => {
+    it('should not create product with an invalid tag (with .)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
         .field({ ...badProduct, tags: ['lol.pony'] })
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain(
-            'fails to match the required pattern'
-          );
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('fails to match the required pattern')
+        );
     });
 
-    it('should create product with a valid tag (start with numbers)', async () => {
+    it('should create product with a valid tag (start with numbers)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -227,7 +221,7 @@ describe('## Product APIs', () => {
         .then(() => void productsCounter++);
     });
 
-    it('should create product with a valid tag (cyrilic)', async () => {
+    it('should create product with a valid tag (cyrilic)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -237,7 +231,7 @@ describe('## Product APIs', () => {
         .then(() => void productsCounter++);
     });
 
-    it('should not create product without a proper price', async () => {
+    it('should not create product without a proper price', () => {
       badProduct.tags = ['winter'];
       badProduct.price = '0';
       return request(app)
@@ -246,16 +240,14 @@ describe('## Product APIs', () => {
         .field(badProduct)
         .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain(
-            '"price" contains an invalid value'
-          );
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('"price" contains an invalid value')
+        );
     });
   });
 
   describe('# GET /api/products/:uuid', () => {
-    it('should get an existing product', async () => {
+    it('should get an existing product', () => {
       return request(app)
         .get(`/api/products/${productUuid}`)
         .expect(httpStatus.OK)
@@ -283,13 +275,11 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not get an non valid product', async () => {
+    it('should not get an non valid product', () => {
       return request(app)
         .get('/api/products/SkveMe9lz')
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Invalid product');
-        });
+        .then(({ body }) => expect(body.message).toBe('Invalid product'));
     });
   });
 
@@ -305,7 +295,7 @@ describe('## Product APIs', () => {
       productsCounter++;
     });
 
-    it('should get all products', async () => {
+    it('should get all products', () => {
       return request(app)
         .get('/api/products/')
         .expect(httpStatus.OK)
@@ -317,7 +307,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should get only the last product', async () => {
+    it('should get only the last product', () => {
       return request(app)
         .get('/api/products/?limit=1')
         .expect(httpStatus.OK)
@@ -329,7 +319,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should get only the first product', async () => {
+    it('should get only the first product', () => {
       return request(app)
         .get('/api/products/?limit=1&skip=2')
         .expect(httpStatus.OK)
@@ -341,7 +331,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it("should get only the user's products by userid", async () => {
+    it("should get only the user's products by userid", () => {
       return request(app)
         .get(`/api/products/?userid=${user._id}`)
         .expect(httpStatus.OK)
@@ -353,7 +343,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it("should get only the user's products by username", async () => {
+    it("should get only the user's products by username", () => {
       return request(app)
         .get(`/api/products/?username=${user.username}`)
         .expect(httpStatus.OK)
@@ -365,7 +355,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it("should not get only user's products by non existant username", async () => {
+    it("should not get only user's products by non existant username", () => {
       return request(app)
         .get(`/api/products/?username=banana`)
         .expect(httpStatus.NOT_FOUND);
@@ -373,7 +363,7 @@ describe('## Product APIs', () => {
   });
 
   describe('# GET /api/products/?tags=', () => {
-    it('should find all winter products', async () => {
+    it('should find all winter products', () => {
       return request(app)
         .get('/api/products/?tags=winter')
         .expect(httpStatus.OK)
@@ -387,18 +377,18 @@ describe('## Product APIs', () => {
   });
 
   describe('# DELETE /api/products/:uuid', () => {
-    it('should delete an existing product', async () => {
+    it('should delete an existing product', () => {
       return request(app)
         .delete(`/api/products/${productUuid}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.NO_CONTENT)
-        .then(res => {
-          expect(res.body).toMatchObject({});
+        .then(({ body }) => {
+          expect(body).toMatchObject({});
           productsCounter--;
         });
     });
 
-    it('should get all remaining products', async () => {
+    it('should get all remaining products', () => {
       return request(app)
         .get('/api/products/')
         .expect(httpStatus.OK)
@@ -410,14 +400,12 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not delete a deleted product', async () => {
+    it('should not delete a deleted product', () => {
       return request(app)
         .delete(`/api/products/${productUuid}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body).toMatchObject({});
-        });
+        .then(({ body }) => expect(body).toMatchObject({}));
     });
 
     describe('create another product', () => {
@@ -426,14 +414,12 @@ describe('## Product APIs', () => {
         anotherProdUuid = p.uuid;
       });
 
-      it('should not delete a product which is not mine', async () => {
+      it('should not delete a product which is not mine', () => {
         return request(app)
           .delete(`/api/products/${anotherProdUuid}`)
           .set('Authorization', jwtToken)
           .expect(httpStatus.UNAUTHORIZED)
-          .then(res => {
-            expect(res.body.message).toBe('Unauthorized');
-          });
+          .then(({ body }) => expect(body.message).toBe('Unauthorized'));
       });
     });
   });
@@ -448,7 +434,7 @@ describe('## Product APIs', () => {
       );
     });
 
-    it('should update the description, price, categoryIds and typeIds', async () => {
+    it('should update the description, price, categoryIds and typeIds', () => {
       product.description = 'amazing boots';
       product.price = '9.99';
       product.categoryIds = [3];
@@ -458,23 +444,23 @@ describe('## Product APIs', () => {
         .send(product)
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.data.description).toBe(product.description);
-          expect(res.body.data.price).toBe(product.price);
-          expect(res.body.data.categoryIds).toEqual(product.categoryIds);
-          expect(res.body.data.typeIds).toEqual(product.typeIds);
+        .then(({ body }) => {
+          expect(body.data.description).toBe(product.description);
+          expect(body.data.price).toBe(product.price);
+          expect(body.data.categoryIds).toEqual(product.categoryIds);
+          expect(body.data.typeIds).toEqual(product.typeIds);
         });
     });
 
-    it('should update the tags', async () => {
+    it('should update the tags', () => {
       product.tags = ['amazing', 'yolo'];
       return request(app)
         .put(`/api/products/${productUuid}`)
         .send(product)
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.data.tags).toEqual(product.tags);
+        .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
+    });
 
     it('should update the images (GCS not tested)', () => {
       return request(app)
@@ -484,7 +470,7 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
-        });
+    });
 
     it('should **not** update with invalid field', () => {
       return request(app)
@@ -495,26 +481,24 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.message).toBe('"blah" is not allowed'));
     });
 
-    it('should not update a product which is not mine', async () => {
+    it('should not update a product which is not mine', () => {
       return request(app)
         .put(`/api/products/${anotherProdUuid}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.UNAUTHORIZED)
-        .then(res => {
-          expect(res.body.message).toBe('Unauthorized');
-        });
+        .then(({ body }) => expect(body.message).toBe('Unauthorized'));
     });
 
-    it('should **not** update a product that has been sold', async () => {
+    it('should **not** update a product that has been sold', () => {
       return request(app)
         .put(`/api/products/${thirdProdUuid}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe(
+        .then(({ body }) =>
+          expect(body.message).toBe(
             'Cannot update a product that has been sold'
-          );
-        });
+          )
+        );
     });
   });
 });
