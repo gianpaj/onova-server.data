@@ -267,6 +267,12 @@ function remove(
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
  * @property {string} req.query.uuid
+ * @property {*} req.body - Express body parameters
+ * @property {Array<number>} req.body.categoryIds
+ * @property {string} req.body.description
+ * @property {string} req.body.price
+ * @property {Array<string>=} req.body.tags
+ * @property {Array<number>} req.body.typeIds
  */
 function update(
   req: session$Request,
@@ -279,6 +285,10 @@ function update(
         throw new APIError('Product not found', 400);
       }
 
+      if (foundProduct.status == 'sold') {
+        throw new APIError('Cannot update a product that has been sold', 400);
+      }
+
       // create Tag documents
       if (req.body.tags) createTags(req.body.tags);
 
@@ -289,19 +299,16 @@ function update(
       foundProduct.categoryIds = req.body.categoryIds
         ? req.body.categoryIds
         : foundProduct.categoryIds;
-      foundProduct.typeIds = req.body.typeIds
-        ? req.body.typeIds
-        : foundProduct.typeIds;
-      foundProduct.tags = req.body.tags ? req.body.tags : foundProduct.tags;
       foundProduct.description = req.body.description
         ? req.body.description
         : foundProduct.description;
-      // foundProduct.status = req.body.status
-      //   ? req.body.status
-      //   : foundProduct.status;
       foundProduct.price = req.body.price
         ? mongoose.Types.Decimal128.fromString(req.body.price)
         : foundProduct.price;
+      foundProduct.tags = req.body.tags ? req.body.tags : foundProduct.tags;
+      foundProduct.typeIds = req.body.typeIds
+        ? req.body.typeIds
+        : foundProduct.typeIds;
 
       return foundProduct.save().then(product => {
         return res.json({ data: product });
