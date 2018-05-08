@@ -475,7 +475,24 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.data.tags).toEqual(product.tags);
+
+    it('should update the images (GCS not tested)', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .field(product)
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
         });
+
+    it('should **not** update with invalid field', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send({ blah: 'dasdf' })
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toBe('"blah" is not allowed'));
     });
 
     it('should not update a product which is not mine', async () => {
