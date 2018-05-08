@@ -292,9 +292,9 @@ function update(
       // create Tag documents
       if (req.body.tags) createTags(req.body.tags);
 
-      // for the moment image cannot be updated
-      // if (req.files) {
-      // }
+      if (req.files) {
+        photos.uploadProductImages(req.product, req.files);
+      }
 
       foundProduct.categoryIds = req.body.categoryIds
         ? req.body.categoryIds

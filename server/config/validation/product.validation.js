@@ -59,7 +59,6 @@ export default {
   },
 
   // GET /api/products/:uuid
-  // PUT /api/products/:uuid
   // DELETE /api/products/:uuid
   productUUIDParam: {
     params: {
@@ -67,6 +66,52 @@ export default {
         // shortid
         .regex(/^[a-zA-Z0-9_-]{7,14}$/)
         .required(),
+    },
+  },
+
+  // PUT /api/products/:uuid
+  putProduct: {
+    params: {
+      uuid: Joi.string()
+        // shortid
+        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .required(),
+    },
+    body: {
+      categoryIds: Joi.array()
+        .unique()
+        .max(5)
+        .items(
+          Joi.number()
+            .min(0)
+            .max(5)
+        )
+        .single(),
+      typeIds: Joi.array()
+        .unique()
+        .max(5)
+        .items(
+          Joi.number()
+            .min(0)
+            .max(5)
+        )
+        .single(),
+      tags: Joi.array() // optional,
+        .max(30)
+        .items(
+          Joi.string()
+            .regex(validation.hashtag)
+            .min(3)
+            .max(30)
+        )
+        .single(),
+      description: Joi.string()
+        .min(7)
+        .max(300),
+      price: Joi.string()
+        .regex(/^\d+(\.\d{2})?$/)
+        .invalid('0')
+        .invalid('0.00'),
     },
   },
 
