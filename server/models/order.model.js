@@ -185,15 +185,15 @@ OrderSchema.statics = {
     return this.findById(id)
       .populate({
         path: 'buyer',
-        select: 'username accountStatus',
+        select: 'username accountStatus profilePic',
       })
       .populate({
         path: 'seller',
-        select: 'username accountStatus',
+        select: 'username accountStatus profilePic',
       })
       .populate({
         path: 'product',
-        select: 'currency status price uuid',
+        select: 'currency status price uuid photoURIs',
       })
       .then((order: OrderDoc) => {
         if (!order) {
