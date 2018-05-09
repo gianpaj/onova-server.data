@@ -261,7 +261,7 @@ describe('## Order APIs', () => {
       expect(o6.nModified).toBe(1);
     });
 
-    it('should create a review by the buyer', async () => {
+    it('should create a review by the buyer', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -287,7 +287,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should **not** create a duplicate review for that order (as buyer)', async () => {
+    it('should **not** create a duplicate review for that order (as buyer)', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -304,7 +304,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should create a review by the seller', async () => {
+    it('should create a review by the seller', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
@@ -330,7 +330,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should **not** create a duplicate review for that order (as seller)', async () => {
+    it('should **not** create a duplicate review for that order (as seller)', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
@@ -347,7 +347,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should **not** create a review with invalid rateNumber', async () => {
+    it('should **not** create a review with invalid rateNumber', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -359,12 +359,12 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('must be less than or equal to 5');
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('must be less than or equal to 5')
+        );
     });
 
-    it('should **not** create a review with invalid rateNumber', async () => {
+    it('should **not** create a review with invalid rateNumber', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userNotActiveJwtToken)
@@ -376,14 +376,14 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain(
+        .then(({ body }) =>
+          expect(body.message).toContain(
             'Please verify your account before creating a review'
-          );
-        });
+          )
+        );
     });
 
-    it('should **not** create a review with invalid order', async () => {
+    it('should **not** create a review with invalid order', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -395,12 +395,10 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Invalid order');
-        });
+        .then(({ body }) => expect(body.message).toBe('Invalid order'));
     });
 
-    it('should **not** create a review with invalid lang', async () => {
+    it('should **not** create a review with invalid lang', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -412,12 +410,12 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('must be one of [uk, en]');
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('must be one of [uk, en]')
+        );
     });
 
-    it('should **not** create a review with invalid text', async () => {
+    it('should **not** create a review with invalid text', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -429,12 +427,12 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('must be at least 7 characters');
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('must be at least 7 characters')
+        );
     });
 
-    it('should **not** create a review with invalid tracking number', async () => {
+    it('should **not** create a review with invalid tracking number', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -446,12 +444,12 @@ describe('## Order APIs', () => {
           trackingNumber: '204500726178',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('than or equal to 10000000000000');
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('than or equal to 10000000000000')
+        );
     });
 
-    it('should **not** create a review for an order I`m not part of', async () => {
+    it('should **not** create a review for an order I`m not part of', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
@@ -463,14 +461,14 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain(
+        .then(({ body }) =>
+          expect(body.message).toContain(
             `Cannot create review on an order that you're not part of`
-          );
-        });
+          )
+        );
     });
 
-    it('should **not** create a review if the order is not completed (as buyer)', async () => {
+    it('should **not** create a review if the order is not completed (as buyer)', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userForthJwtToken)
@@ -482,32 +480,32 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain(
+        .then(({ body }) =>
+          expect(body.message).toContain(
             `Cannot create review on an order that is 'pending'`
-          );
-        });
+          )
+        );
     });
 
-    it('should update the number of reviews and rating of the buyer', async () => {
+    it('should update the number of reviews and rating of the buyer', () => {
       return request(app)
         .get(`/api/users/${userAnother._id}`)
         .set('Authorization', userForthJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.ratingsTotal).toBe(ratingsTotalUserFirst);
-          expect(res.body.reviewsCount).toBe(reviewsCountUserFirst);
+        .then(({ body }) => {
+          expect(body.ratingsTotal).toBe(ratingsTotalUserFirst);
+          expect(body.reviewsCount).toBe(reviewsCountUserFirst);
         });
     });
 
-    it('should update the number of reviews and rating of the seller', async () => {
-      await request(app)
+    it('should update the number of reviews and rating of the seller', () => {
+      return request(app)
         .get(`/api/users/${userFirst._id}`)
         .set('Authorization', userForthJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.ratingsTotal).toBe(ratingsTotalUserAnother);
-          expect(res.body.reviewsCount).toBe(reviewsCountUserAnother);
+        .then(({ body }) => {
+          expect(body.ratingsTotal).toBe(ratingsTotalUserAnother);
+          expect(body.reviewsCount).toBe(reviewsCountUserAnother);
         });
     });
   });
@@ -612,8 +610,8 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get all the reviews of a userAnother', async () => {
-      await request(app)
+    it('should get all the reviews of a userAnother', () => {
+      return request(app)
         .get(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .expect(httpStatus.OK)
@@ -640,8 +638,8 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get all the reviews of a userFirst', async () => {
-      await request(app)
+    it('should get all the reviews of a userFirst', () => {
+      return request(app)
         .get(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
         .expect(httpStatus.OK)
@@ -659,8 +657,8 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get the reviews that userAnother received as a seller', async () => {
-      await request(app)
+    it('should get the reviews that userAnother received as a seller', () => {
+      return request(app)
         .get(`/api/users/${userAnother._id}/reviews/?as=seller`)
         .set('Authorization', userAnotherJwtToken)
         .expect(httpStatus.OK)
@@ -678,8 +676,8 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get the reviews that userFirst received as a buyer', async () => {
-      await request(app)
+    it('should get the reviews that userFirst received as a buyer', () => {
+      return request(app)
         .get(`/api/users/${userFirst._id}/reviews/?as=buyer`)
         .set('Authorization', userAnotherJwtToken)
         .expect(httpStatus.OK)
@@ -697,37 +695,31 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get the reviews that userFirst received as a seller', async () => {
-      await request(app)
+    it('should get the reviews that userFirst received as a seller', () => {
+      return request(app)
         .get(`/api/users/${userFirst._id}/reviews/?as=seller`)
         .set('Authorization', userAnotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.data).toHaveLength(0);
-        });
+        .then(({ body }) => expect(body.data).toHaveLength(0));
     });
 
-    it('should get the reviews that userAnother received as a buyer', async () => {
-      await request(app)
+    it('should get the reviews that userAnother received as a buyer', () => {
+      return request(app)
         .get(`/api/users/${userAnother._id}/reviews/?as=buyer`)
         .set('Authorization', userAnotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.data).toHaveLength(0);
-        });
+        .then(({ body }) => expect(body.data).toHaveLength(0));
     });
 
-    it('should **not** get the reviews of an invalid user', async () => {
-      await request(app)
+    it('should **not** get the reviews of an invalid user', () => {
+      return request(app)
         .get(`/api/users/5ad104f6d07421b88545ffff/reviews`)
         .set('Authorization', userAnotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('Invalid userId');
-        });
+        .then(({ body }) => expect(body.message).toContain('Invalid userId'));
     });
 
-    it('should get my orders with my review status', async () => {
+    it('should get my orders with my review status', () => {
       return request(app)
         .get('/api/orders')
         .set('Authorization', userFirstJwtToken)
