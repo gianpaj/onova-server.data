@@ -156,6 +156,7 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   seller: MongoId;
   status: string;
   taxAmount: ?number;
+  trackingNumber: ?string;
   transactionFee: ?number;
   transactionId: ?string;
   transactionStatus: ?string;

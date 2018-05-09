@@ -98,75 +98,78 @@ async function create(
 
   try {
     order = await Order.get(orderId);
-  } catch (err) {
-    return next(err);
-  }
 
-  if (
-    ['completed', 'failed_by_buyer', 'failed_by_seller', 'failed'].indexOf(
-      order.status
-    ) < 0
-  ) {
-    const APIerr = new APIError(
-      `Cannot create review on an order that is '${order.status}'`,
-      httpStatus.BAD_REQUEST
-    );
-    return next(APIerr);
-  }
-
-  const iAmTheSeller = req.user._id.toString() == order.seller._id.toString();
-  const iAmTheBuyer = req.user._id.toString() == order.buyer._id.toString();
-
-  if (!iAmTheSeller && !iAmTheBuyer) {
-    const APIerr = new APIError(
-      `Cannot create review on an order that you're not part of`,
-      httpStatus.BAD_REQUEST
-    );
-    return next(APIerr);
-  }
-
-  const targetUser = iAmTheSeller ? order.buyer._id : order.seller._id;
-  let { text, rateNumber, lang, trackingNumber } = req.body;
-
-  if (config.env !== 'test') {
-    try {
-      const isValid = await isValidTrackingNumber(
-        trackingNumber,
-        order.datePending
+    if (
+      ['completed', 'failed_by_buyer', 'failed_by_seller', 'failed'].indexOf(
+        order.status
+      ) < 0
+    ) {
+      throw new APIError(
+        `Cannot create review on an order that is '${order.status}'`,
+        httpStatus.BAD_REQUEST
       );
-      if (!isValid) {
+    }
+
+    const iAmTheSeller = req.user._id.toString() == order.seller._id.toString();
+    const iAmTheBuyer = req.user._id.toString() == order.buyer._id.toString();
+
+    if (!iAmTheSeller && !iAmTheBuyer) {
+      throw new APIError(
+        `Cannot create review on an order that you're not part of`,
+        httpStatus.BAD_REQUEST
+      );
+    }
+
+    const targetUser = iAmTheSeller ? order.buyer._id : order.seller._id;
+    let { text, rateNumber, lang, trackingNumber } = req.body;
+
+    if (config.env !== 'test') {
+      try {
+        const isValid = await isValidTrackingNumber(
+          trackingNumber,
+          order.datePending
+        );
+        if (!isValid) {
+          const APIerr = new APIError(
+            'The tracking number is not valid',
+            httpStatus.BAD_REQUEST
+          );
+          return next(APIerr);
+        }
+      } catch (error) {
+        console.error(error);
         const APIerr = new APIError(
           'The tracking number is not valid',
-          httpStatus.BAD_REQUEST
+          httpStatus.INTERNAL_SERVER_ERROR
         );
         return next(APIerr);
       }
-    } catch (error) {
-      console.error(error);
-      const APIerr = new APIError(
-        'The tracking number is not valid',
-        httpStatus.INTERNAL_SERVER_ERROR
-      );
-      return next(APIerr);
     }
-  }
 
-  const review: ReviewDoc = new Review({
-    fromUser: iAmTheSeller ? order.seller._id : order.buyer._id,
-    targetUser,
-    order: orderId,
-    text,
-    rateNumber,
-    lang,
-  });
+    const review: ReviewDoc = new Review({
+      fromUser: iAmTheSeller ? order.seller._id : order.buyer._id,
+      targetUser,
+      order: orderId,
+      text,
+      rateNumber,
+      lang,
+    });
 
-  try {
+    if (order.trackingNumber && order.trackingNumber !== trackingNumber) {
+      throw new APIError(
+        'The tracking number is not valid',
+        httpStatus.BAD_REQUEST
+      );
+    }
+
     let savedReview = await review.save();
     savedReview = { ...savedReview.toJSON(), order };
 
     await User.findByIdAndUpdate(targetUser, {
       $inc: { reviewsCount: 1, ratingsTotal: rateNumber },
     });
+
+    await Order.findByIdAndUpdate(orderId, { trackingNumber }).exec();
 
     res.status(httpStatus.CREATED).json({ data: savedReview });
   } catch (err) {

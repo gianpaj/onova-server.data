@@ -212,7 +212,7 @@ describe('## Order APIs', () => {
       lang: 'en',
       trackingNumber: '20450072617861',
     };
-    // userFirst buys an productShorts (seller is userAnother) and we set it as completed (manually)
+    // userFirst buys productShorts (from userAnother) and Order is set as completed (manually)
     beforeAll(async () => {
       orderOne = await request(app)
         .post('/api/orders')
@@ -280,7 +280,7 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
-        .then(res => {
+        .then(async res => {
           ratingsTotalUserAnother += 5;
           reviewsCountUserAnother++;
           const o = res.body.data;
@@ -291,6 +291,8 @@ describe('## Order APIs', () => {
           expect(o.text).toBe('great seller AAA+');
           expect(o.rateNumber).toBe(5);
           expect(o.lang).toBe('en');
+          const oo = await Order.findById(orderOne.id);
+          expect(oo.trackingNumber).toBe('20450072617861');
         });
     });
 
@@ -306,9 +308,24 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('Duplicate review');
-        });
+        .then(({ body }) => expect(body.message).toContain('Duplicate review'));
+    });
+
+    it('should **not** create a review for that order (as seller) with the wrong tracking number', () => {
+      return request(app)
+        .post(`/api/users/${userFirst._id}/reviews`)
+        .set('Authorization', userAnotherJwtToken)
+        .send({
+          orderId: orderOne.id,
+          text: 'great buyer AAA+ dupe',
+          rateNumber: 1,
+          lang: 'en',
+          trackingNumber: '20450072617862',
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe('The tracking number is not valid')
+        );
     });
 
     it('should create a review by the seller', () => {
@@ -349,9 +366,7 @@ describe('## Order APIs', () => {
           trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('Duplicate review');
-        });
+        .then(({ body }) => expect(body.message).toContain('Duplicate review'));
     });
 
     it('should **not** create a review with an invalid rateNumber', () => {
@@ -431,7 +446,7 @@ describe('## Order APIs', () => {
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
-          expect(body.message).toContain('than or equal to 10000000000000')
+          expect(body.message).toContain('length must be 14 characters long')
         );
     });
 
@@ -709,7 +724,9 @@ describe('## Order APIs', () => {
           expect(res.body.data).toHaveLength(2);
           expect(Array.isArray(o));
           // TODO: check length of orders
-          expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o[0]).sort()).toEqual(
+            [...orderFields, 'trackingNumber'].sort()
+          );
           expect(Object.keys(o[0].buyer).sort()).toEqual(
             ['_id', 'accountStatus', 'id', 'username'].sort()
           );
