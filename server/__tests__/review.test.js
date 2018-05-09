@@ -206,6 +206,12 @@ describe('## Order APIs', () => {
 
   describe('# POST /api/users/:userId/review', () => {
     let orderOne, orderTwo, orderThreePending, orderSix;
+    let reviewTwo = {
+      text: 'great stuff',
+      rateNumber: 5,
+      lang: 'en',
+      trackingNumber: '20450072617861',
+    };
     // userFirst buys an productShorts (seller is userAnother) and we set it as completed (manually)
     beforeAll(async () => {
       orderOne = await request(app)
@@ -239,6 +245,7 @@ describe('## Order APIs', () => {
         { _id: orderTwo.id },
         { $set: { status: 'completed' } }
       );
+      reviewTwo.orderId = orderTwo.id;
       expect(o2.nModified).toBe(1);
 
       orderThreePending = await request(app)
@@ -347,16 +354,13 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should **not** create a review with invalid rateNumber', () => {
+    it('should **not** create a review with an invalid rateNumber', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .send({
-          orderId: orderTwo.id,
-          text: 'great stuff',
+          ...reviewTwo,
           rateNumber: 9,
-          lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -364,17 +368,11 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review with invalid rateNumber', () => {
+    it('should **not** create a review without a verified account', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userNotActiveJwtToken)
-        .send({
-          orderId: orderTwo.id,
-          text: 'great stuff',
-          rateNumber: 4,
-          lang: 'en',
-          trackingNumber: '20450072617861',
-        })
+        .send(reviewTwo)
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain(
@@ -383,31 +381,25 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review with invalid order', () => {
+    it('should **not** create a review with an invalid order', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .send({
+          ...reviewTwo,
           orderId: '5ad0d405091374a087a7ffff',
-          text: 'great stuff',
-          rateNumber: 5,
-          lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toBe('Invalid order'));
     });
 
-    it('should **not** create a review with invalid lang', () => {
+    it('should **not** create a review with an invalid lang', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .send({
-          orderId: orderTwo.id,
-          text: 'great stuff',
-          rateNumber: 5,
+          ...reviewTwo,
           lang: 'po',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -415,16 +407,13 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review with invalid text', () => {
+    it('should **not** create a review with an invalid text', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .send({
-          orderId: orderTwo.id,
+          ...reviewTwo,
           text: 'gr',
-          rateNumber: 5,
-          lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -432,15 +421,12 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review with invalid tracking number', () => {
+    it('should **not** create a review with an invalid tracking number', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
         .send({
-          orderId: orderTwo.id,
-          text: 'grasdfas',
-          rateNumber: 5,
-          lang: 'en',
+          ...reviewTwo,
           trackingNumber: '204500726178',
         })
         .expect(httpStatus.BAD_REQUEST)
@@ -454,11 +440,8 @@ describe('## Order APIs', () => {
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
         .send({
+          ...reviewTwo,
           orderId: orderSix.id,
-          text: 'greeeeeat',
-          rateNumber: 5,
-          lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -473,11 +456,8 @@ describe('## Order APIs', () => {
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userForthJwtToken)
         .send({
+          ...reviewTwo,
           orderId: orderThreePending.id,
-          text: 'greeeeeat',
-          rateNumber: 5,
-          lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
