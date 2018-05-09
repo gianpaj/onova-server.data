@@ -293,7 +293,10 @@ function update(
       if (req.body.tags) createTags(req.body.tags);
 
       if (req.files) {
-        photos.uploadProductImages(req.product, req.files);
+        Product.findOneAndUpdate(
+          { _id: req.product._id },
+          { $set: { photoURIs: [] } }
+        ).then(() => photos.uploadProductImages(req.product, req.files));
       }
 
       foundProduct.categoryIds = req.body.categoryIds
@@ -316,6 +319,7 @@ function update(
     })
     .catch(err => {
       if (!(err instanceof APIError)) {
+        console.error(err);
         err = new APIError('Error updating Product', 500);
       }
       next(err);
