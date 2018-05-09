@@ -99,10 +99,15 @@ async function create(
   try {
     order = await Order.get(orderId);
 
+    // TODO: after integration with payment provider do not allow reviews on `pending` status
     if (
-      ['completed', 'failed_by_buyer', 'failed_by_seller', 'failed'].indexOf(
-        order.status
-      ) < 0
+      [
+        'completed',
+        'failed_by_buyer',
+        'failed_by_seller',
+        'failed',
+        'pending',
+      ].indexOf(order.status) < 0
     ) {
       throw new APIError(
         `Cannot create review on an order that is '${order.status}'`,
