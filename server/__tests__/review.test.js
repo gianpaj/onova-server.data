@@ -467,7 +467,7 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review if the order is not completed (as buyer)', () => {
+    it('should create a review even if the order is not completed (as buyer)', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userForthJwtToken)
@@ -475,15 +475,15 @@ describe('## Order APIs', () => {
           ...reviewTwo,
           orderId: orderThreePending.id,
         })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain(
-            `Cannot create review on an order that is 'pending'`
-          )
-        );
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.order.id).toBe(orderThreePending.id);
+          ratingsTotalUserFirst += 5;
+          reviewsCountUserFirst += 1;
+        });
     });
 
-    it('should update the number of reviews and rating of the buyer', () => {
+    it('should have updated the number of reviews and rating of the buyer', () => {
       return request(app)
         .get(`/api/users/${userAnother._id}`)
         .set('Authorization', userForthJwtToken)
@@ -494,7 +494,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should update the number of reviews and rating of the seller', () => {
+    it('should have updated the number of reviews and rating of the seller', () => {
       return request(app)
         .get(`/api/users/${userFirst._id}`)
         .set('Authorization', userForthJwtToken)
