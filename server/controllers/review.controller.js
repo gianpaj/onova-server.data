@@ -213,6 +213,10 @@ async function isValidTrackingNumber(
 
         const data = body.data[0];
 
+        // Number not found
+        if (data.StatusCode == '3' || !data.ScheduledDeliveryDate)
+          return resolve(false);
+
         // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
         const trackingNumberDate = new Date(
           data.ScheduledDeliveryDate.replace(

@@ -120,6 +120,13 @@ describe('## Order APIs', () => {
     price: '200.50',
   };
 
+  let reviewTwo = {
+    text: 'great stuff',
+    rateNumber: 5,
+    lang: 'en',
+    trackingNumber: '20450072617861',
+  };
+
   let productBootsUuid;
   let productFlipflopsUuid;
   let productShortsUuid;
@@ -206,12 +213,6 @@ describe('## Order APIs', () => {
 
   describe('# POST /api/users/:userId/review', () => {
     let orderOne, orderTwo, orderThreePending, orderSix;
-    let reviewTwo = {
-      text: 'great stuff',
-      rateNumber: 5,
-      lang: 'en',
-      trackingNumber: '20450072617861',
-    };
     // userFirst buys productShorts (from userAnother) and Order is set as completed (manually)
     beforeAll(async () => {
       orderOne = await request(app)
@@ -442,7 +443,7 @@ describe('## Order APIs', () => {
         .set('Authorization', userFirstJwtToken)
         .send({
           ...reviewTwo,
-          trackingNumber: '204500726178',
+          trackingNumber: '000000000',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
