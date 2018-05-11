@@ -215,7 +215,7 @@ describe('## Order APIs', () => {
 
   describe('# POST /api/users/:userId/review', () => {
     let orderOne, orderTwo, orderThreePending, orderSix;
-    // userFirst buys productShorts (from userAnother) and Order is set as completed (manually)
+    // userFirst buys productShorts (from userAnother)
     beforeAll(async () => {
       orderOne = await request(app)
         .post('/api/orders')
@@ -232,11 +232,11 @@ describe('## Order APIs', () => {
           expect(o.transactionStatus).toBe('pl-pending');
           return o;
         });
-      const o = await Order.updateOne(
-        { _id: orderOne.id },
-        { $set: { status: 'completed' } }
-      );
-      expect(o.nModified).toBe(1);
+      // const o = await Order.updateOne(
+      //   { _id: orderOne.id },
+      //   { $set: { status: 'completed' } }
+      // );
+      // expect(o.nModified).toBe(1);
 
       orderTwo = await request(app)
         .post('/api/orders')
@@ -244,12 +244,12 @@ describe('## Order APIs', () => {
         .send({ product: productBootsUuid })
         .expect(httpStatus.CREATED)
         .then(res => res.body.data);
-      const o2 = await Order.updateOne(
-        { _id: orderTwo.id },
-        { $set: { status: 'completed' } }
-      );
+      // const o2 = await Order.updateOne(
+      //   { _id: orderTwo.id },
+      //   { $set: { status: 'completed' } }
+      // );
       reviewTwo.orderId = orderTwo.id;
-      expect(o2.nModified).toBe(1);
+      // expect(o2.nModified).toBe(1);
 
       orderThreePending = await request(app)
         .post('/api/orders')
@@ -264,11 +264,11 @@ describe('## Order APIs', () => {
         .send({ product: productBootsUuid })
         .expect(httpStatus.CREATED)
         .then(res => res.body.data);
-      const o6 = await Order.updateOne(
-        { _id: orderSix.id },
-        { $set: { status: 'completed' } }
-      );
-      expect(o6.nModified).toBe(1);
+      // const o6 = await Order.updateOne(
+      //   { _id: orderSix.id },
+      //   { $set: { status: 'completed' } }
+      // );
+      // expect(o6.nModified).toBe(1);
     });
 
     it('should create a review by the buyer', () => {

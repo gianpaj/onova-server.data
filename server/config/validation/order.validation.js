@@ -21,6 +21,7 @@ export default {
         .required(),
     },
     body: {
+      archive: Joi.boolean(),
       status: Joi.valid(['confirmed', 'cancelled']),
       reason: Joi.string()
         .min(10)

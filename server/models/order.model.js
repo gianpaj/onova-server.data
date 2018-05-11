@@ -10,6 +10,8 @@ const Schema = mongoose.Schema;
 /** @namespace */
 var OrderSchema = new Schema(
   {
+    archivedByBuyer: Boolean,
+    archivedBySeller: Boolean,
     buyer: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -140,6 +142,8 @@ var OrderSchema = new Schema(
 
 export class OrderDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
+  archivedByBuyer: boolean;
+  archivedBySeller: boolean;
   buyer: MongoId;
   currency: string;
   dateCancelled: ?Date;
