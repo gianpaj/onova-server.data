@@ -506,7 +506,7 @@ describe('## Order APIs', () => {
       });
     });
 
-    it('should NOT update an order that`s not mine', () => {
+    it('should NOT cancel an order that`s not mine', () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
         .set('Authorization', forthJwtToken)
@@ -518,11 +518,11 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should NOT update an invalid order', () => {
+    it('should NOT cancel an invalid order', () => {
       return request(app)
         .put('/api/orders/BJCxsPOLGBJCxsPOLG')
         .set('Authorization', jwtToken)
-        .send({ status: 'paid' })
+        .send({ status: 'cancelled' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('Invalid order');
@@ -629,6 +629,45 @@ describe('## Order APIs', () => {
             '"paymentMethod" must be one of [paypal, liqpay]'
           );
           expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should NOT archive an order and change status', () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ archive: true, status: 'cancelled' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            'cannot change the status and archive at the same time'
+          );
+        });
+    });
+
+    it('should archive an order (as buyer)', () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', jwtToken)
+        .send({ archive: true })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.priceOfItem).toBe(productPOST1.price);
+          expect(o.archivedByBuyer).toBe(true);
+        });
+    });
+
+    it('should archive an order (as seller)', () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST1}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ archive: true })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.priceOfItem).toBe(productPOST1.price);
+          expect(o.archivedByBuyer).toBe(true);
         });
     });
   });

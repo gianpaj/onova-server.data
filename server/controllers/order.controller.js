@@ -191,7 +191,7 @@ function update(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { reason, status: newStatus } = req.body;
+  const { archive, reason, status: newStatus } = req.body;
 
   const iAmTheSeller =
     req.user._id.toString() == req.order.seller._id.toString();
@@ -214,6 +214,21 @@ function update(
       'cannot change the status of an order once is cancelled',
       httpStatus.BAD_REQUEST
     );
+  }
+
+  if (newStatus && archive) {
+    throw new APIError(
+      'cannot change the status and archive at the same time',
+      httpStatus.BAD_REQUEST
+    );
+  }
+
+  if (archive) {
+    if (iAmTheSeller) {
+      foundOrder.archivedBySeller = true;
+    } else {
+      foundOrder.archivedByBuyer = true;
+    }
   }
 
   // // can go only from either 'paid' or 'shipped' -> 'completed'
