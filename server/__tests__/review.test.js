@@ -4,12 +4,14 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import Notification from '../models/notification.model';
-import Order from '../models/order.model';
-import Product from '../models/product.model';
-import User from '../models/user.model';
-import Verification from '../models/verification.model';
-import Review from '../models/review.model';
+import {
+  Notification,
+  Order,
+  Product,
+  Review,
+  User,
+  Verification,
+} from '../models';
 import {
   createUserAndLogin,
   createProduct,
