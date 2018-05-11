@@ -259,8 +259,8 @@ async function isValidTrackingNumber(
         // const orderDate = new Date(orderDatePending);
 
         if (
-          differenceInCalendarDays(new Date(Date.now()), trackingNumberDate) <=
-          config.MAX_DAYS_TRACKING_NUMBER_VALID_FOR
+          differenceInCalendarDays(trackingNumberDate, new Date(Date.now())) <=
+          config.settings.MAX_DAYS_TRACKING_NUMBER_VALID_FOR
         ) {
           return resolve(true);
         }
