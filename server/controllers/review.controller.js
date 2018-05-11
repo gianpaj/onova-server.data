@@ -158,11 +158,23 @@ async function create(
       lang,
     });
 
-    if (order.trackingNumber && order.trackingNumber !== trackingNumber) {
-      throw new APIError(
-        'The tracking number is not valid',
-        httpStatus.BAD_REQUEST
-      );
+    if (order.trackingNumber) {
+      // find all the orders with this tracking number that don't match this _id
+      const orders = await Order.find({
+        trackingNumber,
+        _id: { $ne: order._id },
+      });
+
+      if (orders.length) {
+        throw new APIError('Duplicate tracking number', httpStatus.BAD_REQUEST);
+      }
+
+      if (order.trackingNumber !== trackingNumber) {
+        throw new APIError(
+          'The tracking number is not valid',
+          httpStatus.BAD_REQUEST
+        );
+      }
     }
 
     let savedReview = await review.save();
@@ -172,7 +184,8 @@ async function create(
       $inc: { reviewsCount: 1, ratingsTotal: rateNumber },
     });
 
-    await Order.findByIdAndUpdate(orderId, { trackingNumber }).exec();
+    order.trackingNumber = trackingNumber;
+    await order.save();
 
     res.status(httpStatus.CREATED).json({ data: savedReview });
   } catch (err) {
