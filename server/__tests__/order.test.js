@@ -216,7 +216,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not create a duplicate order for the same product and buyer', () => {
+    it('should NOT create a duplicate order for the same product and buyer', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', jwtToken)
@@ -245,7 +245,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not create an order with an invalid product', () => {
+    it('should NOT create an order with an invalid product', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', jwtToken)
@@ -256,7 +256,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not create an order if the product does not exist', () => {
+    it('should NOT create an order if the product does not exist', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', jwtToken)
@@ -267,7 +267,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not create an order if the product is not for sale', () => {
+    it('should NOT create an order if the product is not for sale', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', jwtToken)
@@ -280,7 +280,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not create an order if the buyer is not verified', () => {
+    it('should NOT create an order if the buyer is not verified', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', nonActiveUserJwtToken)
@@ -293,7 +293,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not create an order to my own product', () => {
+    it('should NOT create an order to my own product', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', jwtToken)
@@ -382,7 +382,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not get an order that`s not mine', () => {
+    it('should NOT get an order that`s not mine', () => {
       return request(app)
         .get(`/api/orders/${orderGET1}`)
         .set('Authorization', forthJwtToken)
@@ -422,7 +422,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not get other people`s orders (as seller and buyer)', () => {
+    it('should NOT get other people`s orders (as seller and buyer)', () => {
       return request(app)
         .get('/api/orders')
         .set('Authorization', anotherJwtToken)
@@ -506,7 +506,7 @@ describe('## Order APIs', () => {
       });
     });
 
-    it('should not update an order that`s not mine', () => {
+    it('should NOT update an order that`s not mine', () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
         .set('Authorization', forthJwtToken)
@@ -518,7 +518,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not update an invalid order', () => {
+    it('should NOT update an invalid order', () => {
       return request(app)
         .put('/api/orders/BJCxsPOLGBJCxsPOLG')
         .set('Authorization', jwtToken)
@@ -530,7 +530,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not set an order status to `shipped`', () => {
+    it('should NOT set an order status to `shipped`', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
@@ -544,7 +544,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not allow the seller to cancel the order without a reason', () => {
+    it('should NOT allow the seller to cancel the order without a reason', () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
         .set('Authorization', jwtToken)
@@ -573,7 +573,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not set an order status from `cancelled` to `shipped`, etc.', () => {
+    it('should NOT set an order status from `cancelled` to `shipped`, etc.', () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
         .set('Authorization', anotherJwtToken)
@@ -587,7 +587,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not set an order to an invalid status', () => {
+    it('should NOT set an order to an invalid status', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
@@ -618,7 +618,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not change the paymentMethod if invalid', () => {
+    it('should NOT change the paymentMethod if invalid', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', jwtToken)
@@ -698,7 +698,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not allow the buyer set an order status to `confirmed` (confirm)', () => {
+    it('should NOT allow the buyer set an order status to `confirmed` (confirm)', () => {
       return request(app)
         .put(`/api/orders/${orderPOST4}`)
         .set('Authorization', anotherJwtToken)

@@ -322,15 +322,18 @@ function list(
     .catch(e => next(e));
 }
 
-function getIfOrderHasBeenReviewed(order, reviews): any {
+function getIfOrderHasBeenReviewed(
+  order,
+  reviews
+): { reviewedByBuyer: boolean, reviewedBySeller: boolean } {
   // get only the reviews for this specific order
   reviews = reviews.filter(r => r.order == order.id);
 
   return {
-    // check if there's a review in which the buyer is the reviewer
+    // return true if there's a review in which the buyer is the reviewer
     reviewedByBuyer:
       reviews.find(r => r.fromUser == order.buyer.id.toString()) !== undefined,
-    // check if there's a review in which the seller is the reviewer
+    // return true if there's a review in which the seller is the reviewer
     reviewedBySeller:
       reviews.find(r => r.fromUser == order.seller.id.toString()) !== undefined,
   };
