@@ -35,8 +35,7 @@ async function list(req: session$Request, res: express$Response, next) {
   try {
     const user = await User.findById(userId);
     if (!user) {
-      const APIerr = new APIError('Invalid userId', httpStatus.BAD_REQUEST);
-      return next(APIerr);
+      throw new APIError('Invalid userId', httpStatus.BAD_REQUEST);
     }
     let match = {};
     let query = { targetUser: userId };
@@ -61,8 +60,7 @@ async function list(req: session$Request, res: express$Response, next) {
 
     return res.json({ data: reviews });
   } catch (err) {
-    const APIerr = new APIError(err, httpStatus.BAD_REQUEST);
-    return next(APIerr);
+    return next(err);
   }
 }
 
