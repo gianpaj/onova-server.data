@@ -297,7 +297,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should **not** create a duplicate review for that order (as buyer)', () => {
+    it('should NOT create a duplicate review for that order (as buyer)', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -312,7 +312,7 @@ describe('## Order APIs', () => {
         .then(({ body }) => expect(body.message).toContain('Duplicate review'));
     });
 
-    it('should **not** create a review for that order (as seller) with the wrong tracking number', () => {
+    it('should NOT create a review for that order (as seller) with the wrong tracking number', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
@@ -355,7 +355,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should **not** create a duplicate review for that order (as seller)', () => {
+    it('should NOT create a duplicate review for that order (as seller)', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
@@ -370,7 +370,7 @@ describe('## Order APIs', () => {
         .then(({ body }) => expect(body.message).toContain('Duplicate review'));
     });
 
-    it('should **not** create a review with an invalid rateNumber', () => {
+    it('should NOT create a review with an invalid rateNumber', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -384,7 +384,7 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review without a verified account', () => {
+    it('should NOT create a review without a verified account', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userNotActiveJwtToken)
@@ -397,7 +397,7 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review with an invalid order', () => {
+    it('should NOT create a review with an invalid order', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -409,7 +409,7 @@ describe('## Order APIs', () => {
         .then(({ body }) => expect(body.message).toBe('Invalid order'));
     });
 
-    it('should **not** create a review with an invalid lang', () => {
+    it('should NOT create a review with an invalid lang', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -423,7 +423,7 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review with an invalid text', () => {
+    it('should NOT create a review with an invalid text', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -437,7 +437,7 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review with an invalid tracking number', () => {
+    it('should NOT create a review with an invalid tracking number', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -451,7 +451,7 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should **not** create a review for an order I`m not part of', () => {
+    it('should NOT create a review for an order I`m not part of', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
@@ -707,7 +707,7 @@ describe('## Order APIs', () => {
         .then(({ body }) => expect(body.data).toHaveLength(0));
     });
 
-    it('should **not** get the reviews of an invalid user', () => {
+    it('should NOT get the reviews of an invalid user', () => {
       return request(app)
         .get(`/api/users/5ad104f6d07421b88545ffff/reviews`)
         .set('Authorization', userAnotherJwtToken)
