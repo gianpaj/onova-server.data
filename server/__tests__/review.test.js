@@ -476,6 +476,7 @@ describe('## Order APIs', () => {
         .send({
           ...reviewTwo,
           orderId: orderThreePending.id,
+          trackingNumber: '20450072617862',
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -483,6 +484,21 @@ describe('## Order APIs', () => {
           ratingsTotalUserFirst += 5;
           reviewsCountUserFirst += 1;
         });
+    });
+
+    it('should NOT create a review with a duplicate tracking number', () => {
+      return request(app)
+        .post(`/api/users/${userAnother._id}/reviews`)
+        .set('Authorization', userForthJwtToken)
+        .send({
+          ...reviewTwo,
+          orderId: orderThreePending.id,
+          trackingNumber: '20450072617861',
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Duplicate tracking number')
+        );
     });
 
     it('should have updated the number of reviews and rating of the buyer', () => {
