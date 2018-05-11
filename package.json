@@ -30,6 +30,7 @@
     "cookie-parser": "1.4.3",
     "cors": "2.8.4",
     "cross-env": "^5.1.1",
+    "date-fns": "false1.29.0",
     "debug": "^2.4.5",
     "dotenv": "^5.0.1",
     "express": "4.16.2",

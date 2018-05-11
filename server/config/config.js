@@ -101,6 +101,7 @@ const config = {
     // TODO: Wait the seller to confirm the order for 1 hour.
     // When limit is reached, the pending order is canceled.
     orderPendingFor: 3600,
+    MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
   },
   DEFAULT_USERNAMES_TO_FOLLOW: [
     'seller1',
