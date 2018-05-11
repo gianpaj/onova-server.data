@@ -186,6 +186,12 @@ async function create(
     });
 
     order.trackingNumber = trackingNumber;
+
+    // TODO: do not mark product as sold like this after integrating with payment provider
+    if (iAmTheBuyer) {
+      order.product.status = 'sold';
+      await order.product.save();
+    }
     await order.save();
 
     res.status(httpStatus.CREATED).json({ data: savedReview });
