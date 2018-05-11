@@ -2,6 +2,7 @@
 
 import httpStatus from 'http-status';
 import request from 'request';
+import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 
 import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
@@ -129,8 +130,8 @@ async function create(
     if (config.env !== 'test') {
       try {
         const isValid = await isValidTrackingNumber(
-          trackingNumber,
-          order.datePending
+          trackingNumber
+          // order.datePending
         );
         if (!isValid) {
           const APIerr = new APIError(
@@ -194,11 +195,25 @@ async function create(
 }
 
 /**
- * if the tracking number schedule delivery date is greater than the date creation date (datePending)
+ * if the tracking number schedule delivery date is within 7 days from today
+ * e.g.
+ * differenceInCalendarDays(
+ *   new Date(2018, 4, 11, 17, 0), // now
+ *   new Date(2018, 4, 4, 17, 0),  // tracking number
+ * )
+ * 7
+ * -> true
+ *
+ * differenceInCalendarDays(
+ *  new Date(2018, 4, 12, 17, 0), // now
+ *  new Date(2018, 4, 4, 17, 0),  // tracking number
+ * )
+ * 8
+ * -> false
  */
 async function isValidTrackingNumber(
-  trackingNumber: string,
-  orderDatePending: Date
+  trackingNumber: string
+  // orderDatePending: Date
 ): Promise<boolean> {
   return new Promise((resolve, reject) => {
     request.post(
@@ -235,9 +250,12 @@ async function isValidTrackingNumber(
             '$2/$1/$3'
           )
         );
-        const orderDate = new Date(orderDatePending);
+        // const orderDate = new Date(orderDatePending);
 
-        if (trackingNumberDate.getTime() > orderDate.getTime()) {
+        if (
+          differenceInCalendarDays(new Date(Date.now()), trackingNumberDate) <=
+          config.MAX_DAYS_TRACKING_NUMBER_VALID_FOR
+        ) {
           return resolve(true);
         }
         resolve(false);
