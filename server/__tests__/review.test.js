@@ -797,10 +797,11 @@ describe('## Order APIs', () => {
           expect(Array.isArray(o));
           expect(o).toHaveLength(2);
           expect(o[0].id).toBe(orderFour.id);
-          expect(o[0].reviewedByBuyer).toBe(true);
-          expect(o[0].reviewedBySeller).toBe(true);
-          expect(o[1].reviewedByBuyer).toBe(false);
-          expect(o[1].reviewedBySeller).toBe(false);
+          expect(typeof o[0].reviewFromBuyer).toBe('string');
+          expect(typeof o[0].reviewFromSeller).toBe('string');
+          expect(o[1].id).toBe(orderFive.id);
+          expect(o[1].reviewFromBuyer).toBeUndefined();
+          expect(o[1].reviewFromSeller).toBeUndefined();
         });
     });
   });

@@ -40,14 +40,7 @@ function load(
   // flow-disable-next-line
   Order.get(id)
     .then(async (order: OrderDoc) => {
-      const reviews = await Review.find({ order: order.id });
-      const { reviewedByBuyer, reviewedBySeller } = getIfOrderHasBeenReviewed(
-        order.toJSON(),
-        reviews
-      );
       req.order = order;
-      req.reviewedByBuyer = reviewedByBuyer;
-      req.reviewedBySeller = reviewedBySeller;
       return next();
     })
     .catch(e => next(e));
@@ -313,43 +306,8 @@ function list(
   // use static method from orderSchema
   // flow-disable-next-line
   Order.list({ myid: req.user._id, limit, skip })
-    .then(async orders => {
-      const orderIds = orders.map(o => o.id);
-      // get all the reviews for the orders
-      let reviews = await Review.find({ order: { $in: orderIds } });
-
-      // for each order
-      orders = orders.map(o => {
-
-        o = o.toJSON();
-
-        const { reviewedByBuyer, reviewedBySeller } = getIfOrderHasBeenReviewed(
-          o,
-          reviews
-        );
-
-        return { ...o, reviewedByBuyer, reviewedBySeller };
-      });
-      res.json({ data: orders });
-    })
+    .then(orders => res.json({ data: orders }))
     .catch(e => next(e));
-}
-
-function getIfOrderHasBeenReviewed(
-  order,
-  reviews
-): { reviewedByBuyer: boolean, reviewedBySeller: boolean } {
-  // get only the reviews for this specific order
-  reviews = reviews.filter(r => r.order == order.id);
-
-  return {
-    // return true if there's a review in which the buyer is the reviewer
-    reviewedByBuyer:
-      reviews.find(r => r.fromUser == order.buyer.id.toString()) !== undefined,
-    // return true if there's a review in which the seller is the reviewer
-    reviewedBySeller:
-      reviews.find(r => r.fromUser == order.seller.id.toString()) !== undefined,
-  };
 }
 
 /**
