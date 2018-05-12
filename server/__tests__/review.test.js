@@ -15,7 +15,6 @@ import {
 import {
   createUserAndLogin,
   createProduct,
-  orderFields,
   createOrder,
   productFields,
   userFields,
@@ -91,9 +90,9 @@ describe('## Order APIs', () => {
     password: 'expressos',
   };
 
-  let userForth = {
-    username: 'userforth',
-    emailAddress: 'userforth@gmail.com',
+  let userFour = {
+    username: 'userfour',
+    emailAddress: 'userfour@gmail.com',
     mobileNumber: '1234567890',
     password: 'expressos4',
   };
@@ -135,7 +134,7 @@ describe('## Order APIs', () => {
   let userFirstJwtToken;
   let userAnotherJwtToken;
   let userNotActiveJwtToken;
-  let userForthJwtToken;
+  let userFourJwtToken;
   let reviewsCountUserAnother = 0;
   let reviewsCountUserFirst = 0;
   let ratingsTotalUserFirst = 0;
@@ -155,9 +154,9 @@ describe('## Order APIs', () => {
         });
       })
       .then(() => {
-        return createUserAndLogin(userForth).then(({ user, jwtToken }) => {
-          userForth._id = user._id;
-          userForthJwtToken = jwtToken;
+        return createUserAndLogin(userFour).then(({ user, jwtToken }) => {
+          userFour._id = user._id;
+          userFourJwtToken = jwtToken;
         });
       })
       .then(() => {
@@ -215,7 +214,11 @@ describe('## Order APIs', () => {
 
   describe('# POST /api/users/:userId/review', () => {
     let orderOne, orderTwo, orderThreePending, orderSix;
-    // userFirst buys productShorts (from userAnother)
+
+    // userFirst   orders productShorts (from userAnother) [orderOne]
+    // userAnother orders productBoots  (from userFirst)   [orderTwo] {reviewTwo}
+    // userFour    orders productShorts (from userAnother) [orderThreePending]
+    // userFour    orders productBoots  (from userFirst)   [orderSix]
     beforeAll(async () => {
       orderOne = await createOrder(
         {
@@ -249,14 +252,14 @@ describe('## Order APIs', () => {
           uuid: productShortsUuid,
           price: productShorts.price,
         },
-        userForthJwtToken
+        userFourJwtToken
       );
       orderSix = await createOrder(
         {
           uuid: productBootsUuid,
           price: productBoots.price,
         },
-        userForthJwtToken
+        userFourJwtToken
       );
       // const o6 = await Order.updateOne(
       //   { _id: orderSix.id },
@@ -307,7 +310,8 @@ describe('## Order APIs', () => {
         .catch(e => done(new Error(e)));
     });
 
-    it('should create a review by the buyer (userFirst)', () => {
+    // userFirst reviews userAnother +5 [orderOne] with trackingNumber 20450072617861
+    it('should create a review by the buyer', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
         .set('Authorization', userFirstJwtToken)
@@ -367,7 +371,8 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should create a review by the seller (userAnother)', () => {
+    // userAnother reviews userFirst +5 [orderOne] with trackingNumber 20450072617861
+    it('should create a review by the seller', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
@@ -393,14 +398,14 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should NOT create a duplicate review for that order (as seller)', () => {
+    it('should NOT create a duplicate review for the same order (as seller)', () => {
       return request(app)
         .post(`/api/users/${userFirst._id}/reviews`)
         .set('Authorization', userAnotherJwtToken)
         .send({
           orderId: orderOne.id,
           text: 'great buyer AAA+ dupe',
-          rateNumber: 1,
+          rateNumber: 5,
           lang: 'en',
           trackingNumber: '20450072617861',
         })
@@ -501,42 +506,43 @@ describe('## Order APIs', () => {
         .then(({ body }) => expect(body.message).toBe('Invalid order'));
     });
 
-    it('should create a review, even if the order is not completed (as buyer)', () => {
+    // userFour reviews userFirst [orderSix] with trackingNumber 20450072617862
+    it('should create a review by the buyer)', () => {
+      return request(app)
+        .post(`/api/users/${userFirst._id}/reviews`)
+        .set('Authorization', userFourJwtToken)
+        .send({
+          ...reviewTwo,
+          orderId: orderSix.id,
+          trackingNumber: '20450072617862',
+        })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.order.id).toBe(orderSix.id);
+          ratingsTotalUserFirst += 5;
+          reviewsCountUserFirst++;
+        });
+    });
+
+    it('should NOT create a review on another order with a duplicate tracking number', () => {
       return request(app)
         .post(`/api/users/${userAnother._id}/reviews`)
-        .set('Authorization', userForthJwtToken)
+        .set('Authorization', userFourJwtToken)
         .send({
           ...reviewTwo,
           orderId: orderThreePending.id,
           trackingNumber: '20450072617862',
         })
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.order.id).toBe(orderThreePending.id);
-          ratingsTotalUserFirst += 5;
-          reviewsCountUserFirst += 1;
-        });
-    });
-
-    it('should NOT create a review with a duplicate tracking number', () => {
-      return request(app)
-        .post(`/api/users/${userFirst._id}/reviews`)
-        .set('Authorization', userForthJwtToken)
-        .send({
-          ...reviewTwo,
-          orderId: orderThreePending.id,
-          trackingNumber: '20450072617861',
-        })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
-          expect(body.message).toContain('Duplicate tracking number')
+          expect(body.message).toBe('Duplicate tracking number')
         );
     });
 
     it('should have updated the number of reviews and rating of the buyer', () => {
       return request(app)
-        .get(`/api/users/${userAnother._id}`)
-        .set('Authorization', userForthJwtToken)
+        .get(`/api/users/${userFirst._id}`)
+        .set('Authorization', userFourJwtToken)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.ratingsTotal).toBe(ratingsTotalUserFirst);
@@ -546,8 +552,8 @@ describe('## Order APIs', () => {
 
     it('should have updated the number of reviews and rating of the seller', () => {
       return request(app)
-        .get(`/api/users/${userFirst._id}`)
-        .set('Authorization', userForthJwtToken)
+        .get(`/api/users/${userAnother._id}`)
+        .set('Authorization', userFourJwtToken)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.ratingsTotal).toBe(ratingsTotalUserAnother);
@@ -555,7 +561,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should not show products which have been reviewed by a buyer (in the feed)', () => {
+    it('should not show products in the feed which have been reviewed by a buyer', () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', userFirstJwtToken)
@@ -588,8 +594,8 @@ describe('## Order APIs', () => {
 
     let orderFour, orderFive;
 
-    // userFirst   creates product B
-    // userAnother creates product S
+    // userFirst   lists product B
+    // userAnother lists product S
     beforeAll(async () => {
       await createProduct(productBoots, userFirstJwtToken).then(p => {
         productBootsUuid = p.uuid;
