@@ -217,33 +217,26 @@ describe('## Order APIs', () => {
     let orderOne, orderTwo, orderThreePending, orderSix;
     // userFirst buys productShorts (from userAnother)
     beforeAll(async () => {
-      orderOne = await request(app)
-        .post('/api/orders')
-        .set('Authorization', userFirstJwtToken)
-        .send({ product: productShortsUuid })
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
-          expect(o.status).toBe('pending');
-          expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((productShorts.price * 1).toString());
-          expect(o.priceOfItem).toBe(productShorts.price);
-          expect(o.transactionStatus).toBe('pl-pending');
-          return o;
-        });
+      orderOne = await createOrder(
+        {
+          uuid: productShortsUuid,
+          price: productShorts.price,
+        },
+        userFirstJwtToken
+      );
       // const o = await Order.updateOne(
       //   { _id: orderOne.id },
       //   { $set: { status: 'completed' } }
       // );
       // expect(o.nModified).toBe(1);
 
-      orderTwo = await request(app)
-        .post('/api/orders')
-        .set('Authorization', userAnotherJwtToken)
-        .send({ product: productBootsUuid })
-        .expect(httpStatus.CREATED)
-        .then(res => res.body.data);
+      orderTwo = await createOrder(
+        {
+          uuid: productBootsUuid,
+          price: productBoots.price,
+        },
+        userAnotherJwtToken
+      );
       // const o2 = await Order.updateOne(
       //   { _id: orderTwo.id },
       //   { $set: { status: 'completed' } }
@@ -251,19 +244,20 @@ describe('## Order APIs', () => {
       reviewTwo.orderId = orderTwo.id;
       // expect(o2.nModified).toBe(1);
 
-      orderThreePending = await request(app)
-        .post('/api/orders')
-        .set('Authorization', userForthJwtToken)
-        .send({ product: productShortsUuid })
-        .expect(httpStatus.CREATED)
-        .then(res => res.body.data);
-
-      orderSix = await request(app)
-        .post('/api/orders')
-        .set('Authorization', userForthJwtToken)
-        .send({ product: productBootsUuid })
-        .expect(httpStatus.CREATED)
-        .then(res => res.body.data);
+      orderThreePending = await createOrder(
+        {
+          uuid: productShortsUuid,
+          price: productShorts.price,
+        },
+        userForthJwtToken
+      );
+      orderSix = await createOrder(
+        {
+          uuid: productBootsUuid,
+          price: productBoots.price,
+        },
+        userForthJwtToken
+      );
       // const o6 = await Order.updateOne(
       //   { _id: orderSix.id },
       //   { $set: { status: 'completed' } }
@@ -598,6 +592,8 @@ describe('## Order APIs', () => {
 
     let orderFour, orderFive;
 
+    // userFirst   creates product B
+    // userAnother creates product S
     beforeAll(async () => {
       await createProduct(productBoots, userFirstJwtToken).then(p => {
         productBootsUuid = p.uuid;
@@ -607,13 +603,8 @@ describe('## Order APIs', () => {
       });
     });
 
-    // userFirst buys productShorts from userAnother
-    // AND
-    // we set the order as `completed` (manually)
-    //
-    // userAnother buys productBoots from userFirst - but NO reviews
-    // AND
-    // we set the order as `completed` (manually)
+    // userFirst   buys product S from userAnother (orderFour)
+    // userAnother buys product B from userFirst   (orderFive) but NO reviews
     beforeAll(async () => {
       try {
         orderFour = await createOrder(
@@ -641,7 +632,7 @@ describe('## Order APIs', () => {
     });
 
     /**
-     * | source user          | action     | target user | orderVar  |
+     * | from user            | action     | target user | order     |
      * | -------------------- | ---------- | ----------- | --------- |
      * | userFirst (buyer)    | reviews -> | userAnother | orderFour |
      * | userAnother (seller) | reviews -> | userFirst   | orderFour |
