@@ -92,7 +92,7 @@ async function create(
     );
     return next(APIerr);
   }
-  const { orderId } = req.body;
+  const { orderId, text, rateNumber, lang, trackingNumber } = req.body;
   let order: OrderDoc;
 
   try {
@@ -113,12 +113,6 @@ async function create(
         httpStatus.BAD_REQUEST
       );
     }
-
-    const iAmTheSeller = req.user._id.toString() == order.seller._id.toString();
-    const iAmTheBuyer = req.user._id.toString() == order.buyer._id.toString();
-
-    const targetUser = iAmTheSeller ? order.buyer._id : order.seller._id;
-    let { text, rateNumber, lang, trackingNumber } = req.body;
 
     if (config.env !== 'test') {
       try {
@@ -143,6 +137,27 @@ async function create(
       }
     }
 
+    // count all the orders with this tracking number that don't match this _id
+    const count = await Order.count({
+      trackingNumber,
+      _id: { $ne: order._id },
+    });
+
+    if (count > 0) {
+      throw new APIError('Duplicate tracking number', httpStatus.BAD_REQUEST);
+    }
+
+    if (order.trackingNumber && order.trackingNumber !== trackingNumber) {
+      throw new APIError(
+        'The tracking number is not valid',
+        httpStatus.BAD_REQUEST
+      );
+    }
+
+    const iAmTheSeller = req.user._id.toString() == order.seller._id.toString();
+    const iAmTheBuyer = req.user._id.toString() == order.buyer._id.toString();
+    const targetUser = iAmTheSeller ? order.buyer._id : order.seller._id;
+
     const review: ReviewDoc = new Review({
       fromUser: iAmTheSeller ? order.seller._id : order.buyer._id,
       targetUser,
@@ -152,27 +167,7 @@ async function create(
       lang,
     });
 
-    if (order.trackingNumber) {
-      // find all the orders with this tracking number that don't match this _id
-      const orders = await Order.find({
-        trackingNumber,
-        _id: { $ne: order._id },
-      });
-
-      if (orders.length) {
-        throw new APIError('Duplicate tracking number', httpStatus.BAD_REQUEST);
-      }
-
-      if (order.trackingNumber !== trackingNumber) {
-        throw new APIError(
-          'The tracking number is not valid',
-          httpStatus.BAD_REQUEST
-        );
-      }
-    }
-
-    let savedReview = await review.save();
-    savedReview = { ...savedReview.toJSON(), order };
+    const savedReview = await review.save();
 
     await User.findByIdAndUpdate(targetUser, {
       $inc: { reviewsCount: 1, ratingsTotal: rateNumber },
@@ -180,7 +175,7 @@ async function create(
 
     order.trackingNumber = trackingNumber;
 
-    // TODO: do not mark product as sold like this after integrating with payment provider
+    // TODO: after integrating with payment provider do not mark product as sold like this
     if (iAmTheBuyer) {
       order.product.status = 'sold';
       await order.product.save();
@@ -190,7 +185,9 @@ async function create(
     }
     await order.save();
 
-    res.status(httpStatus.CREATED).json({ data: savedReview });
+    const data = { ...savedReview.toJSON(), order };
+
+    res.status(httpStatus.CREATED).json({ data });
   } catch (err) {
     next(err);
   }
