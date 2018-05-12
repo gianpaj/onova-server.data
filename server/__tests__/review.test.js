@@ -498,11 +498,7 @@ describe('## Order APIs', () => {
           orderId: orderSix.id,
         })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain(
-            `Cannot create review on an order that you're not part of`
-          )
-        );
+        .then(({ body }) => expect(body.message).toBe('Invalid order'));
     });
 
     it('should create a review, even if the order is not completed (as buyer)', () => {

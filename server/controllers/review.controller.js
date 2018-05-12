@@ -72,7 +72,7 @@ async function list(req: session$Request, res: express$Response, next) {
  *
  * @property {*} req Express request
  * @property {*} req.params Express params parameters
- * @property {string} req.params.userId The product userId (FIXME: remove param and rewrite API route)
+ * @property {string} req.params.userId The product userId (FIXME: remove param and rewrite API route using orderId)
  * @property {*} req.body Express body parameters
  * @property {string} req.body.orderId
  * @property {string} req.body.text
@@ -96,7 +96,7 @@ async function create(
   let order: OrderDoc;
 
   try {
-    order = await Order.get(orderId);
+    order = await Order.get(orderId, req.user._id.toString());
 
     // TODO: after integration with payment provider do not allow reviews on `pending` status
     if (
@@ -116,13 +116,6 @@ async function create(
 
     const iAmTheSeller = req.user._id.toString() == order.seller._id.toString();
     const iAmTheBuyer = req.user._id.toString() == order.buyer._id.toString();
-
-    if (!iAmTheSeller && !iAmTheBuyer) {
-      throw new APIError(
-        `Cannot create review on an order that you're not part of`,
-        httpStatus.BAD_REQUEST
-      );
-    }
 
     const targetUser = iAmTheSeller ? order.buyer._id : order.seller._id;
     let { text, rateNumber, lang, trackingNumber } = req.body;

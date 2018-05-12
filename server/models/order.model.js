@@ -185,8 +185,10 @@ OrderSchema.statics = {
    * @param {MongoId} id The unique id (shortid) of order.
    * @returns {Promise<Order, APIError>}
    */
-  get(id: string): Promise<APIError> {
-    return this.findById(id)
+  get(id: string, myid?: string): Promise<APIError> {
+    let query = { _id: id };
+    if (myid) query['$or'] = [{ buyer: myid }, { seller: myid }];
+    return this.findOne(query)
       .populate({
         path: 'buyer',
         select: 'accountStatus profilePic username',
