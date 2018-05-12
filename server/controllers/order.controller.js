@@ -320,8 +320,6 @@ function list(
 
       // for each order
       orders = orders.map(o => {
-        // get only the reviews for this specific order
-        reviews = reviews.filter(r => r.order == o.id);
 
         o = o.toJSON();
 

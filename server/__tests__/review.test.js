@@ -790,22 +790,16 @@ describe('## Order APIs', () => {
         .then(({ body }) => expect(body.message).toContain('Invalid userId'));
     });
 
-    it('should get my orders with my review status', () => {
+    // userFirst's orders (as buyer and seller)
+    it('should get all my orders with my review status', () => {
       return request(app)
         .get('/api/orders')
         .set('Authorization', userFirstJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
-          expect(res.body.data).toHaveLength(2);
           expect(Array.isArray(o));
-          // TODO: check length of orders
-          expect(Object.keys(o[0]).sort()).toEqual(
-            [...orderFields, 'trackingNumber'].sort()
-          );
-          expect(Object.keys(o[0].buyer).sort()).toEqual(
-            ['_id', 'accountStatus', 'id', 'username'].sort()
-          );
+          expect(o).toHaveLength(2);
           expect(o[0].id).toBe(orderFour.id);
           expect(o[0].reviewedByBuyer).toBe(true);
           expect(o[0].reviewedBySeller).toBe(true);
