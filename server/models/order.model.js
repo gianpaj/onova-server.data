@@ -114,6 +114,14 @@ var OrderSchema = new Schema(
     reason: {
       type: String,
     },
+    reviewFromBuyer: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Review',
+    },
+    reviewFromSeller: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'Review',
+    },
     taxAmount: String,
     trackingNumber: String,
     transactionFee: Schema.Types.Decimal128,

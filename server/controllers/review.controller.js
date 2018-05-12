@@ -184,6 +184,9 @@ async function create(
     if (iAmTheBuyer) {
       order.product.status = 'sold';
       await order.product.save();
+      order.reviewFromBuyer = savedReview.id;
+    } else {
+      order.reviewFromSeller = savedReview.id;
     }
     await order.save();
 
