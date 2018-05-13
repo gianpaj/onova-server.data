@@ -143,7 +143,10 @@ function create(
         .save()
         .then(savedProduct => savedProduct)
         .catch(() => {
-          throw new APIError('Error creating Product', 500);
+          throw new APIError(
+            'Error creating Product',
+            httpStatus.INTERNAL_SERVER_ERROR
+          );
         });
     })
     .then(savedProduct => {
@@ -232,29 +235,16 @@ function remove(
     throw new APIError('Product not found', httpStatus.BAD_REQUEST);
   }
 
-  // TODO: delete images from GSC
-  // for (let i = 0; i < req.product.photoURIs.length; i++) {
-  //   if (config.env == 'test') break;
-
-  //   const file = req.product.photoURIs[i];
-  //   bucket
-  //     .file(file)
-  //     .delete()
-  //     .then(() => {
-  //       debug(`gs://${CLOUD_BUCKET}/${file} deleted.`);
-  //     })
-  //     .catch(err => {
-  //       debug('ERROR:', err);
-  //     });
-  // }
-
   Product.findOneAndUpdate(
     { uuid: uuid, status: 'forsale' },
     { status: 'deleted' }
   )
     .then(() => res.status(httpStatus.NO_CONTENT).json())
     .catch(() => {
-      const err = new APIError('Error deleting Product', 500);
+      const err = new APIError(
+        'Error deleting Product',
+        httpStatus.INTERNAL_SERVER_ERROR
+      );
       next(err);
     });
 }
@@ -320,7 +310,10 @@ function update(
     .catch(err => {
       if (!(err instanceof APIError)) {
         console.error(err);
-        err = new APIError('Error updating Product', 500);
+        err = new APIError(
+          'Error updating Product',
+          httpStatus.INTERNAL_SERVER_ERROR
+        );
       }
       next(err);
     });
