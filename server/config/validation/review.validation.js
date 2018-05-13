@@ -34,7 +34,7 @@ export default {
         .required(),
       text: Joi.string()
         .min(7)
-        .max(200),
+        .max(100),
       rateNumber: Joi.number()
         .min(1)
         .max(5),
