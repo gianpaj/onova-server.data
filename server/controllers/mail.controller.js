@@ -19,7 +19,7 @@ const mailjetClient = mailjet.connect(
  * @param {User} user
  */
 function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
-  const subject = 'Welcome to Onova - Verify your email address';
+  const subject = 'Підтвердження профілю';
 
   const token = crypto.randomBytes(8).toString('hex');
 
@@ -94,7 +94,6 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
             To: [{ Email: emailTo, Name: vars.displayName }],
             Variables: vars,
             Subject: subject,
-            TemplateID: 345696,
             TemplateLanguage: true,
             TextPart:
               'Hi {{var:displayName}},\n\nPlease verify your new email address.\n\nClick here to confirm it: {{var:confirmation_link}}.\n\nCheers, The Onova Team.',
@@ -119,7 +118,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
  * Send email via Mailjet to reset the account's password
  */
 function sendResetEmail(emailTo: string, user: Object): void {
-  const subject = 'Password reset';
+  const subject = 'Зміна паролю';
 
   const token = crypto.randomBytes(8).toString('hex');
 
@@ -146,11 +145,8 @@ function sendResetEmail(emailTo: string, user: Object): void {
             To: [{ Email: emailTo, Name: vars.displayName }],
             Variables: vars,
             Subject: subject,
+            TemplateID: 345696,
             TemplateLanguage: true,
-            TextPart:
-              "Hi {{var:displayName}},\n\nYou have requested to reset your password. If you haven't simply ignore this email.\n\nClick here to reset your password: {{var:reset_link}}.\n\nCheers, The Onova Team.",
-            HTMLPart:
-              "Hi {{var:displayName}},<p>You have requested to reset your password. If you haven't simply ignore this email.</p><p>Click here to reset your password: {{var:reset_link}}</p><p>Cheers, The Onova Team.</p>",
           },
         ],
       });
