@@ -45,7 +45,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
             },
             To: [{ Email: emailTo, Name: vars.displayName }],
             Variables: vars,
-            TemplateID: 241369,
+            TemplateID: 343433,
             TemplateLanguage: true,
             Subject: subject,
           },
@@ -81,7 +81,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
 
       const vars = {
         confirmation_link: `https://onova.co/api/auth/activate/${token}`,
-        displayName: user.displayName || user.username,
+        displayName: user.username,
       };
 
       var request = mailjetClient.post('send', { version: 'v3.1' }).request({
@@ -94,6 +94,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
             To: [{ Email: emailTo, Name: vars.displayName }],
             Variables: vars,
             Subject: subject,
+            TemplateID: 345696,
             TemplateLanguage: true,
             TextPart:
               'Hi {{var:displayName}},\n\nPlease verify your new email address.\n\nClick here to confirm it: {{var:confirmation_link}}.\n\nCheers, The Onova Team.',
@@ -132,7 +133,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
 
       const vars = {
         reset_link: `https://onova.co/api/auth/reset/${token}`,
-        displayName: user.displayName || user.username,
+        displayName: user.username,
       };
 
       var request = mailjetClient.post('send', { version: 'v3.1' }).request({
