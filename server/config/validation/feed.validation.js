@@ -42,7 +42,7 @@ export default {
         .single(),
       tag: Joi.string()
         .regex(validation.hashtag)
-        .min(2)
+        .min(1)
         .max(30),
       lastId: Joi.string()
         .hex()

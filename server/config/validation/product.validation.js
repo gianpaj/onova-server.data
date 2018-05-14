@@ -41,7 +41,7 @@ export default {
         .items(
           Joi.string()
             .regex(validation.hashtag)
-            .min(2)
+            .min(1)
             .max(30)
         )
         .single(),
@@ -101,7 +101,7 @@ export default {
         .items(
           Joi.string()
             .regex(validation.hashtag)
-            .min(2)
+            .min(1)
             .max(30)
         )
         .single(),
@@ -135,7 +135,7 @@ export default {
         .items(
           Joi.string()
             .regex(validation.hashtag)
-            .min(2)
+            .min(1)
             .max(30)
         )
         .max(10),
