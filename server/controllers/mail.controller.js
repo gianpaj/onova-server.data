@@ -118,7 +118,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
  * Send email via Mailjet to reset the account's password
  */
 function sendResetEmail(emailTo: string, user: Object): void {
-  const subject = 'Зміна паролю';
+  const subject = 'Відновлення пароля';
 
   const token = crypto.randomBytes(8).toString('hex');
 
