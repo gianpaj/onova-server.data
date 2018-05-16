@@ -147,14 +147,19 @@ function sendResetEmail(emailTo: string, user: Object): void {
             Subject: subject,
             TemplateID: 345696,
             TemplateLanguage: true,
+            TemplateErrorDeliver: true,
+            TemplateErrorReporting: {
+              Email: 'gianfranco@onova.co',
+              Name: 'gianfranco',
+            },
           },
         ],
       });
 
       request
-        // .then(res => {
-        // console.log(res.body);
-        // })
+        .then(res => {
+          console.log(res.body);
+        })
         .catch(err => {
           console.error(err.ErrorMessage);
         });
