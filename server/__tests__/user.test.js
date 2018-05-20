@@ -148,7 +148,7 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('# POST /api/users - should not create a user with an invalid username (space)', done => {
+    it('# POST /api/users - should NOT create a user with an invalid username (space)', done => {
       const user1 = { emailAddress: 'u1@gmail.com', username: 'white space' };
       request(app)
         .post('/api/users')
@@ -158,7 +158,7 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('# POST /api/users - should not create a user with an invalid username (@ char)', done => {
+    it('# POST /api/users - should NOT create a user with an invalid username (@ char)', done => {
       const user2 = { emailAddress: 'user2@gmail.com', username: 'at@sign' };
       request(app)
         .post('/api/users')
@@ -168,7 +168,7 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('# POST /api/users - should create a user with an invalid username (cyrilic alphabet)', done => {
+    it('# POST /api/users - should NOT create a user with an invalid username (cyrilic alphabet)', done => {
       const user3 = { emailAddress: 'user3@gmail.com', username: 'Кплнаше' };
       request(app)
         .post('/api/users')
@@ -185,6 +185,22 @@ describe('## User APIs', () => {
         .send({ ...user, ...user5 })
         .expect(httpStatus.CREATED)
         .then(done())
+        .catch(done);
+    });
+
+    it('# POST /api/users - should create and validate a user with email starting with onovaapp', done => {
+      const user7 = {
+        emailAddress: 'onovaapp+user7@gmail.com',
+        username: 'onovaapp',
+      };
+      request(app)
+        .post('/api/users')
+        .send({ ...user, ...user7 })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.accountStatus).toBe('verified');
+          done();
+        })
         .catch(done);
     });
 
@@ -239,7 +255,7 @@ describe('## User APIs', () => {
           .get(`/api/auth/activate/${activationToken}`)
           .expect(httpStatus.OK)
           .then(res => {
-            expect(res.text).toContain('Account activated');
+            expect(res.text).toContain('Профіль активовано');
             done();
           })
           .catch(done);
@@ -517,7 +533,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(4);
+          expect(res.body.length).toBe(5);
           expect(Object.keys(res.body[0]).sort()).toEqual(userFields.sort());
           done();
         })

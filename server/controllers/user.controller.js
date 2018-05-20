@@ -139,6 +139,10 @@ async function create(
         throw APIerr;
       }
 
+      if (body.emailAddress.startsWith('onovaapp')) {
+        user.accountStatus = 'verified';
+      }
+
       return user.save().then(async (savedUser: UserDoc) => {
         // if we should Auto Follow certain users by default
         if (config.DEFAULT_USERNAMES_TO_FOLLOW.length !== 0) {
@@ -161,6 +165,14 @@ async function create(
           }
         } else {
           debug('skipping pusher createUser()');
+        }
+
+        if (body.emailAddress.startsWith('onovaapp')) {
+          const payload = _prepareUserJson(savedUser);
+          return res.status(httpStatus.CREATED).json({
+            data: payload,
+            token: `JWT ${authCtrl.generateToken(payload)}`,
+          });
         }
 
         return mailCtrl
