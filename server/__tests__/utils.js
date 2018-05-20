@@ -92,7 +92,7 @@ export function createUserAndLogin(
         .get(`/api/auth/activate/${resetToken}`)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.text).toContain('Account activated');
+          expect(res.text).toContain('Профіль активовано');
           return resUser;
         });
     })
