@@ -50,7 +50,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
   if (config.env == 'test') return;
 
   files.forEach((image, i) => {
-    const gcsname = `products/${product.uuid}-${i + 1}.jpg`;
+    const gcsname = `products/${product.uuid}-${i + 1}-${Date.now()}.jpg`;
     const file = bucket.file(gcsname);
     const stream = file.createWriteStream({
       metadata: {
