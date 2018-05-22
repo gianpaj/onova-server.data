@@ -43,6 +43,7 @@ if (config.mongooseDebug) {
 if (!module.parent) {
   // listen on port config.port
   app.listen(config.port, '0.0.0.0', () => {
+    process.send('ready');
     console.info(`server started on port ${config.port} (${config.env})`);
   });
 }
