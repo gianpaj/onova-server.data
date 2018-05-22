@@ -76,7 +76,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
       .pipe(thumbnailUploadStream);
 
     thumbnailUploadStream.on('finish', () => {
-      thumbnailUploadStream.makePublic().then(() => {
+      file.makePublic().then(() => {
         console.log('thumbnail uploaded');
       });
     });
