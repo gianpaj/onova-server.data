@@ -4,12 +4,16 @@ import multer from 'multer';
 import path from 'path';
 import httpStatus from 'http-status';
 import Storage from '@google-cloud/storage';
+import sharp from 'sharp';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import { UserDoc } from '../models/user.model';
 import Product, { ProductDoc } from '../models/product.model';
 import APIError from './APIError';
 import config from '../config/config';
+
+const THUMB_MAX_WIDTH = 200;
+const THUMB_MAX_HEIGHT = 200;
 
 const storage = Storage({
   // Service account key: 'storage-data-server'
@@ -49,8 +53,38 @@ const uploadMulter = multer({
 function uploadProductImages(product: ProductDoc, files: Array<any>) {
   if (config.env == 'test') return;
 
+  const uploadDate = Date.now();
+
+  // generate thumbnails
   files.forEach((image, i) => {
-    const gcsname = `products/${product.uuid}-${i + 1}-${Date.now()}.jpg`;
+    const metadata = {
+      contentType: image.mimetype,
+    };
+    const thumbFilePath = `products/${product.uuid}-${i +
+      1}-${uploadDate}-thumb.jpg`;
+    const file = bucket.file(thumbFilePath);
+    const thumbnailUploadStream = file.createWriteStream(metadata);
+
+    thumbnailUploadStream.on('error', err => {
+      console.log('Error uploading thumbnail', err);
+    });
+
+    const pipeline = sharp(image.buffer);
+    pipeline
+      .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
+      .max() // preserve aspect ratio and not wider than width and height
+      .pipe(thumbnailUploadStream);
+
+    thumbnailUploadStream.on('finish', () => {
+      thumbnailUploadStream.makePublic().then(() => {
+        console.log('thumbnail uploaded');
+      });
+    });
+  });
+
+  // upload full size images
+  files.forEach((image, i) => {
+    const gcsname = `products/${product.uuid}-${i + 1}-${uploadDate}.jpg`;
     const file = bucket.file(gcsname);
     const stream = file.createWriteStream({
       metadata: {
