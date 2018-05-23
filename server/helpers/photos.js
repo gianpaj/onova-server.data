@@ -12,8 +12,8 @@ import Product, { ProductDoc } from '../models/product.model';
 import APIError from './APIError';
 import config from '../config/config';
 
-const THUMB_MAX_WIDTH = 200;
-const THUMB_MAX_HEIGHT = 200;
+const THUMB_MAX_WIDTH = 350;
+const THUMB_MAX_HEIGHT = 350;
 
 const storage = Storage({
   // Service account key: 'storage-data-server'
