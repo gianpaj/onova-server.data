@@ -23,10 +23,11 @@ passport.use(
   new LocalStrategy(
     { usernameField: 'emailAddress' },
     (email, password, done) => {
+      // mongoose changes the email to lowercase
       User.findOne({ emailAddress: email.toLowerCase() })
         .then((user: UserDoc) => {
           if (!user) {
-            return done(null, false, { error: 'Invalid email or password.' });
+            return done(new Error('invalid email'));
           }
 
           user.comparePassword(password, (err, isMatch) => {
@@ -34,7 +35,7 @@ passport.use(
 
             if (isMatch) return done(null, user);
 
-            return done(null, false, { error: 'Invalid email or password.' });
+            return done(new Error('invalid password'));
           });
         })
         .catch(err => done(err, false));

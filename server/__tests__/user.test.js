@@ -290,13 +290,28 @@ describe('## User APIs', () => {
   });
 
   describe('# POST /api/auth/login', () => {
-    it('should return Authentication error', done => {
+    it('should NOT find the email', done => {
       request(app)
         .post('/api/auth/login')
         .send(invalidUserCredentials)
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
-          expect(res.body.message).toBe('Authentication error');
+          expect(res.body.message).toBe('invalid email');
+          done();
+        })
+        .catch(done);
+    });
+
+    it('should NOT match the password', done => {
+      request(app)
+        .post('/api/auth/login')
+        .send({
+          emailAddress: user.emailAddress,
+          password: 'blahblah',
+        })
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(res => {
+          expect(res.body.message).toBe('invalid password');
           done();
         })
         .catch(done);
