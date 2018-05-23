@@ -1,12 +1,13 @@
 import Joi from 'joi';
 
+import validation from '../../helpers/validation';
+
 export default {
   // POST /api/orders
   create: {
     body: {
       product: Joi.string()
-        // shortid
-        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .regex(validation.shortid)
         .required(),
     },
   },

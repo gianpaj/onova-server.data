@@ -111,6 +111,10 @@ function create(
     uuid: shortid.generate(), // needed here for photos' filenames
   });
 
+  if (/\.\d{1}$/.test(product.price)) {
+    product.price += '0';
+  }
+
   // create Tag documents
   if (req.body.tags) createTags(req.body.tags);
 
@@ -295,6 +299,11 @@ function update(
       foundProduct.description = req.body.description
         ? req.body.description
         : foundProduct.description;
+
+      if (/\.\d{1}$/.test(req.body.price)) {
+        req.body.price += '0';
+      }
+
       foundProduct.price = req.body.price
         ? mongoose.Types.Decimal128.fromString(req.body.price)
         : foundProduct.price;

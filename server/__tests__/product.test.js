@@ -54,7 +54,7 @@ describe('## Product APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     // seller comes after the user is created
-    price: '100.99', // if no decimal points .00 will be added
+    price: '100.99', // if 1 decimal point .00 will be added
   };
 
   let anotherProduct = {
@@ -221,6 +221,19 @@ describe('## Product APIs', () => {
         .then(() => void productsCounter++);
     });
 
+    it('should create product with a valid price (once decimal point)', () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken)
+        .field({ ...product, price: '111.1' })
+        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.price).toBe('111.10');
+          productsCounter++;
+        });
+    });
+
     it('should create product with a valid tag (cyrilic)', () => {
       return request(app)
         .post('/api/products')
@@ -370,7 +383,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(p).toHaveLength(1);
+          expect(p).toHaveLength(2);
           expect(p[0].description).toBe(product.description);
         });
     });
@@ -460,6 +473,36 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
+    });
+
+    it('should update the price', () => {
+      product.price = '199.9';
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send(product)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.price).toEqual('199.90'));
+    });
+
+    it('should update the price', () => {
+      product.price = '199';
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send(product)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.price).toEqual('199'));
+    });
+
+    it('should update the price', () => {
+      product.price = '199.55';
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send(product)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.price).toEqual('199.55'));
     });
 
     it('should update the images (GCS not tested)', () => {
