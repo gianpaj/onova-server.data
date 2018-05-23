@@ -22,7 +22,8 @@ import config from '../config/config';
 function login(req, res, next) {
   passport.authenticate('local', (err, user, info) => {
     if (err) {
-      return next(err);
+      const APIerr = new APIError(err.message, httpStatus.UNAUTHORIZED);
+      return next(APIerr);
     }
     if (!user) {
       debug(info);

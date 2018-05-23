@@ -126,7 +126,8 @@ async function create(
 
   User.findOne({
     $or: [
-      { emailAddress: req.body.emailAddress },
+      // mongoose changes the email to lowercase
+      { emailAddress: req.body.emailAddress.toLowerCase() },
       { username: req.body.username },
     ],
   })
@@ -273,11 +274,12 @@ function update(
 
   // updating email address
   if (body.emailAddress && user.emailAddress !== body.emailAddress) {
-    user.emailAddress = body.emailAddress;
+    user.emailAddress = body.emailAddress.toLowerCase();
     Promises.push(
       new Promise((resolve, reject) => {
         User.findOne(
-          { emailAddress: body.emailAddress },
+          // mongoose changes the email to lowercase
+          { emailAddress: body.emailAddress.toLowerCase() },
           (err, existingUser) => {
             if (err) {
               return reject(err);
