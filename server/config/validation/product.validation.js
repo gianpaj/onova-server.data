@@ -50,7 +50,7 @@ export default {
         .max(300)
         .required(),
       price: Joi.string()
-        .regex(/^\d+(\.\d{2})?$/)
+        .regex(validation.price)
         .invalid('0')
         .invalid('0.00')
         .required(),
@@ -63,8 +63,7 @@ export default {
   productUUIDParam: {
     params: {
       uuid: Joi.string()
-        // shortid
-        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .regex(validation.shortid)
         .required(),
     },
   },
@@ -73,8 +72,7 @@ export default {
   putProduct: {
     params: {
       uuid: Joi.string()
-        // shortid
-        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .regex(validation.shortid)
         .required(),
     },
     body: {
@@ -109,7 +107,7 @@ export default {
         .min(7)
         .max(300),
       price: Joi.string()
-        .regex(/^\d+(\.\d{2})?$/)
+        .regex(validation.price)
         .invalid('0')
         .invalid('0.00'),
     },

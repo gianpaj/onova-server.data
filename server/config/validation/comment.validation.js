@@ -1,6 +1,8 @@
 import Joi from 'joi';
 import validate from 'express-validation';
 
+import validation from '../../helpers/validation';
+
 // assign options
 validate.options({
   allowUnknownBody: false,
@@ -20,8 +22,7 @@ export default {
     },
     params: {
       uuid: Joi.string()
-        // shortid
-        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .regex(validation.shortid)
         .required(),
     },
   },
@@ -30,8 +31,7 @@ export default {
   deleteComment: {
     params: {
       uuid: Joi.string()
-        // shortid
-        .regex(/^[a-zA-Z0-9_-]{7,14}$/)
+        .regex(validation.shortid)
         .required(),
       commentId: Joi.string()
         .hex()
