@@ -56,13 +56,7 @@ function load(
  * @property {string} req.params.id - The id of the order.
  */
 async function get(req: express$Request, res: express$Response) {
-  return res.json({
-    data: {
-      ...req.order.toJSON(),
-      reviewedByBuyer: req.reviewedByBuyer,
-      reviewedBySeller: req.reviewedBySeller,
-    },
-  });
+  return res.json({ data: req.order });
 }
 
 /**
@@ -145,13 +139,7 @@ function create(
       //     console.error(err);
       //   });
 
-      return res.status(httpStatus.CREATED).json({
-        data: {
-          ...savedOrder.toJSON(),
-          reviewedByBuyer: false,
-          reviewedBySeller: false,
-        },
-      });
+      return res.status(httpStatus.CREATED).json({ data: savedOrder });
     })
     .catch(e => {
       if (e.message == 'Duplicate order') {
