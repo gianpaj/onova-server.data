@@ -76,8 +76,13 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
       .pipe(thumbnailUploadStream);
 
     thumbnailUploadStream.on('finish', () => {
-      file.makePublic().then(() => {
-        console.log('thumbnail uploaded');
+      file
+        .makePublic()
+        .then(() => {
+          debug('thumbnail uploaded');
+        })
+        .catch(err => {
+          console.log('Error makePublic thumbnail', err);
       });
     });
   });
@@ -95,7 +100,9 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
       console.log('Error uploading image', err);
     });
     stream.on('finish', () => {
-      file.makePublic().then(() => {
+      file
+        .makePublic()
+        .then(() => {
         const cloudStoragePublicUrl = `http://${
           config.CLOUD_BUCKET
         }/${gcsname}`;
@@ -110,6 +117,9 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
           .catch(err => {
             console.log('Error saving product image', err);
           });
+        })
+        .catch(err => {
+          console.log('Error makePublic product image', err);
       });
     });
     stream.end(image.buffer);
