@@ -83,7 +83,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
         })
         .catch(err => {
           console.log('Error makePublic thumbnail', err);
-      });
+        });
     });
   });
 
@@ -103,24 +103,24 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
       file
         .makePublic()
         .then(() => {
-        const cloudStoragePublicUrl = `http://${
-          config.CLOUD_BUCKET
-        }/${gcsname}`;
-        debug('Saved image as', cloudStoragePublicUrl);
-        const key = `photoURIs.${i}`;
-        const updateObj = {};
-        updateObj[key] = cloudStoragePublicUrl;
-        Product.findOneAndUpdate({ _id: product._id }, { $set: updateObj })
-          .then(() => {
-            debug('photoURI updated for product:', product.uuid);
-          })
-          .catch(err => {
-            console.log('Error saving product image', err);
-          });
+          const cloudStoragePublicUrl = `http://${
+            config.CLOUD_BUCKET
+          }/${gcsname}`;
+          debug('Saved image as', cloudStoragePublicUrl);
+          const key = `photoURIs.${i}`;
+          const updateObj = {};
+          updateObj[key] = cloudStoragePublicUrl;
+          Product.findOneAndUpdate({ _id: product._id }, { $set: updateObj })
+            .then(() => {
+              debug('photoURI updated for product:', product.uuid);
+            })
+            .catch(err => {
+              console.log('Error saving product image', err);
+            });
         })
         .catch(err => {
           console.log('Error makePublic product image', err);
-      });
+        });
     });
     stream.end(image.buffer);
   });

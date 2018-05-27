@@ -31,7 +31,7 @@ LikeSchema.loadClass(LikeDoc);
 
 // Never return '__v' fields in the JSON representation
 // Note that this doesn't effect `toObject`
-OrderSchema.set('toJSON', {
+LikeSchema.set('toJSON', {
   getters: true,
   transform: (doc, ret) => {
     delete ret.id;

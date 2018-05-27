@@ -7,6 +7,7 @@ import followRoutes from './follow.route';
 import reviewRoutes from './review.route';
 import orderRoutes from './order.route';
 import productRoutes from './product.route';
+import reportRoutes from './search.route';
 import searchRoutes from './search.route';
 import userRoutes from './user.route';
 
@@ -37,6 +38,8 @@ router.use('/products', productRoutes);
 
 // mount product routes at /products/:uuid/comment
 router.use('/products', commentRoutes);
+
+router.use('/report', reportRoutes);
 
 // mount search routes at /search
 router.use('/search', searchRoutes);
