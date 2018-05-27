@@ -85,6 +85,7 @@ describe('## Default Follow methods', () => {
       await DefaultFollow.create({ user: defaultSellers[i]._id });
       console.log('default user created:', defaultSellers[i].username);
     }
+
     const { user, jwtToken } = await createUserAndLogin(firstPerson);
     firstPerson._id = user._id;
     firstPerson.jwtToken = jwtToken;

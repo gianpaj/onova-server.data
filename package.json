@@ -18,7 +18,7 @@
     "@google-cloud/storage": "1.5.0",
     "agenda": "1.0.3",
     "babel-cli": "^6.26.0",
-    "babel-core": "^6.26.0",
+    "babel-core": "^6.26.3",
     "babel-eslint": "8.2.1",
     "babel-plugin-transform-object-rest-spread": "6.26.0",
     "babel-preset-env": "1.6.1",
@@ -29,15 +29,15 @@
     "compression": "1.7.1",
     "cookie-parser": "1.4.3",
     "cors": "2.8.4",
-    "cross-env": "^5.1.1",
+    "cross-env": "^5.1.6",
     "date-fns": "1.29.0",
-    "debug": "^2.4.5",
+    "debug": "^2.6.9",
     "dotenv": "^5.0.1",
     "express": "4.16.2",
     "express-validation": "1.0.2",
     "express-winston": "2.5.0",
     "helmet": "3.10.0",
-    "http-status": "^1.0.1",
+    "http-status": "^1.1.2",
     "joi": "13.0.2",
     "jsonwebtoken": "8.1.0",
     "method-override": "^2.3.10",
@@ -48,7 +48,7 @@
     "passport": "^0.4.0",
     "passport-jwt": "^3.0.1",
     "passport-local": "^1.0.0",
-    "pug": "^2.0.0-rc.4",
+    "pug": "^2.0.3",
     "pusher-chatkit-server": "0.11.2",
     "request": "2.83.0",
     "sharp": "0.20.2",
@@ -56,7 +56,8 @@
     "winston": "2.4.1"
   },
   "devDependencies": {
-    "eslint": "^4.16.0",
+    "babel-jest": "23.0.1",
+    "eslint": "^4.19.1",
     "eslint-config-prettier": "2.9.0",
     "eslint-plugin-flowtype": "2.42.0",
     "eslint-plugin-import": "~2.8.0",
@@ -85,7 +86,7 @@
     "verbose": true,
     "forceExit": true,
     "transform": {
-      ".js": "<rootDir>/node_modules/babel-jest"
+      ".js": "babel-jest"
     },
     "testPathIgnorePatterns": [
       "node_modules",
