@@ -74,8 +74,9 @@ async function create(
   const report = new Report({ text });
 
   if (user) {
+    let foundUser;
     try {
-      const foundUser = await User.findById(user);
+      foundUser = await User.findById(user);
       if (!foundUser) {
         throw new APIError('User not found', httpStatus.NOT_FOUND);
       }
@@ -83,10 +84,10 @@ async function create(
       return next(err);
     }
 
-    report.user = user;
+    report.user = foundUser._id;
   }
 
-  if (user && product) {
+  if ((user && product) || (!user && !product)) {
     const APIerr = new APIError(
       'Report a user or product',
       httpStatus.BAD_REQUEST
@@ -95,8 +96,9 @@ async function create(
   }
 
   if (product) {
+    let foundProduct;
     try {
-      const foundProduct = await Product.findById(product);
+      foundProduct = await Product.findOne({ uuid: product });
       if (!foundProduct) {
         throw new APIError('Product not found', httpStatus.NOT_FOUND);
       }
@@ -104,7 +106,7 @@ async function create(
       return next(err);
     }
 
-    report.product = product;
+    report.product = foundProduct._id;
   }
 
   report.reporter = req.user._id;
@@ -119,6 +121,7 @@ async function create(
         console.error(err);
         err = new APIError('Error reporting', httpStatus.INTERNAL_SERVER_ERROR);
       }
+      next(err);
     });
 }
 

@@ -9,7 +9,7 @@ import Follow from '../models/follow.model';
 import User from '../models/user.model';
 import Report from '../models/report.model';
 import Verification from '../models/verification.model';
-import { createUserAndLogin } from './utils';
+import { createUserAndLogin, createProduct } from './utils';
 
 const reportFields = ['createdAt', '_id', 'text', 'reporter'];
 
@@ -47,6 +47,13 @@ describe('## Report methods', () => {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
+  };
+
+  const product = {
+    categoryIds: [2],
+    typeIds: [3],
+    description: 'nice boots',
+    price: '100.99',
   };
 
   let users = [
@@ -88,6 +95,9 @@ describe('## Report methods', () => {
     const { user, jwtToken } = await createUserAndLogin(firstPerson);
     // firstPerson._id = user._id;
     firstPerson.jwtToken = jwtToken;
+
+    const p = await createProduct(product, jwtToken);
+    product.uuid = p.uuid;
   });
 
   it('should report a user', async () => {
@@ -100,6 +110,20 @@ describe('## Report methods', () => {
         expect(body.data.text).toBe('they are a bad user');
         expect(Object.keys(body.data).sort()).toEqual(
           [...reportFields, 'user'].sort()
+        );
+      });
+  });
+
+  it('should report a product', async () => {
+    return request(app)
+      .post('/api/report')
+      .set('Authorization', firstPerson.jwtToken)
+      .send({ product: product.uuid, text: 'bad product' })
+      .expect(httpStatus.CREATED)
+      .then(({ body }) => {
+        expect(body.data.text).toBe('bad product');
+        expect(Object.keys(body.data).sort()).toEqual(
+          [...reportFields, 'product'].sort()
         );
       });
   });
