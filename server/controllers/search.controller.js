@@ -53,7 +53,10 @@ function get(
     const regex = new RegExp(escapeRegex(description), 'i');
     query = { ...query, description: regex };
   }
-  if (tag) query = { ...query, tags: tag };
+  if (tag) {
+    const regexTag = new RegExp(escapeRegex(tag), 'i');
+    query = { ...query, tags: regexTag };
+  }
   if (typeIds) query = { ...query, typeIds: { $in: typeIds } };
 
   const projection = { comments: 0 };

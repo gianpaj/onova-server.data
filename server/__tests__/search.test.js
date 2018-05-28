@@ -304,6 +304,7 @@ describe('## Search APIs', () => {
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
       tagProductUUID = pp.uuid;
+      await createProduct({ ...p, tags: ['WARM'] }, firstJwtToken);
     });
 
     it('should find products by a tag (warm)', async () => {
@@ -313,8 +314,8 @@ describe('## Search APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0].uuid).toBe(tagProductUUID);
-          expect(data).toHaveLength(1);
+          expect(data[1].uuid).toBe(tagProductUUID);
+          expect(data).toHaveLength(2);
         });
     });
 
