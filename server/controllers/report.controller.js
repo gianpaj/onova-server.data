@@ -80,19 +80,20 @@ async function create(
       if (!foundUser) {
         throw new APIError('User not found', httpStatus.NOT_FOUND);
       }
+      if (foundUser._id.toString() === req.user._id.toString()) {
+        throw new APIError('Cannot report yourself', httpStatus.BAD_REQUEST);
+      }
+      if (foundUser.accountStatus == 'deleted') {
+        throw new APIError(
+          'Cannot report a deleted user',
+          httpStatus.BAD_REQUEST
+        );
+      }
     } catch (err) {
       return next(err);
     }
 
     report.user = foundUser._id;
-  }
-
-  if ((user && product) || (!user && !product)) {
-    const APIerr = new APIError(
-      'Report a user or product',
-      httpStatus.BAD_REQUEST
-    );
-    return next(APIerr);
   }
 
   if (product) {
@@ -101,6 +102,21 @@ async function create(
       foundProduct = await Product.findOne({ uuid: product });
       if (!foundProduct) {
         throw new APIError('Product not found', httpStatus.NOT_FOUND);
+      }
+      if (
+        foundProduct.status === 'banned' ||
+        foundProduct.status === 'deleted'
+      ) {
+        throw new APIError(
+          'Product is deleted or banned',
+          httpStatus.NOT_FOUND
+        );
+      }
+      if (foundProduct.seller.toString() === req.user._id.toString()) {
+        throw new APIError(
+          'Cannot report your product',
+          httpStatus.BAD_REQUEST
+        );
       }
     } catch (err) {
       return next(err);
@@ -118,8 +134,18 @@ async function create(
     })
     .catch(err => {
       if (!(err instanceof APIError)) {
-        console.error(err);
-        err = new APIError('Error reporting', httpStatus.INTERNAL_SERVER_ERROR);
+        // mongoose validation error for neither 'user' or 'product' fields
+        if (err.name == 'ValidationError') {
+          err = new APIError(
+            'Report a user or product',
+            httpStatus.BAD_REQUEST
+          );
+        } else {
+          err = new APIError(
+            'Error reporting',
+            httpStatus.INTERNAL_SERVER_ERROR
+          );
+        }
       }
       next(err);
     });

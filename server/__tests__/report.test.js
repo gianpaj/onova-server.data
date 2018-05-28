@@ -89,15 +89,22 @@ describe('## Report methods', () => {
     for (let i = 0; i < users.length; i++) {
       const { user, jwtToken } = await createUserAndLogin(users[i]);
       users[i]._id = user._id;
-      // users[i].jwtToken = jwtToken;
+      users[i].jwtToken = jwtToken;
     }
 
     const { user, jwtToken } = await createUserAndLogin(firstPerson);
-    // firstPerson._id = user._id;
+    firstPerson._id = user._id;
     firstPerson.jwtToken = jwtToken;
 
-    const p = await createProduct(product, jwtToken);
-    product.uuid = p.uuid;
+    const p1 = await createProduct(product, jwtToken);
+    const product2 = { ...product };
+    product.uuid = p1.uuid;
+    try {
+      const p2 = await createProduct(product2, users[0].jwtToken);
+      users[0].uuid = p2.uuid;
+    } catch (err) {
+      console.error(err);
+    }
   });
 
   it('should report a user', async () => {
@@ -114,17 +121,50 @@ describe('## Report methods', () => {
       });
   });
 
+  it('should NOT report myself', async () => {
+    return request(app)
+      .post('/api/report')
+      .set('Authorization', firstPerson.jwtToken)
+      .send({ user: firstPerson._id, text: 'i am bad boy' })
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) => {
+        expect(body.message).toBe('Cannot report yourself');
+      });
+  });
+
+  it('should report a user OR a product', async () => {
+    return request(app)
+      .post('/api/report')
+      .set('Authorization', firstPerson.jwtToken)
+      .send({ text: 'everything is terrible' })
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) => {
+        expect(body.message).toBe('Report a user or product');
+      });
+  });
+
   it('should report a product', async () => {
     return request(app)
       .post('/api/report')
       .set('Authorization', firstPerson.jwtToken)
-      .send({ product: product.uuid, text: 'bad product' })
+      .send({ product: users[0].uuid, text: 'bad product' })
       .expect(httpStatus.CREATED)
       .then(({ body }) => {
         expect(body.data.text).toBe('bad product');
         expect(Object.keys(body.data).sort()).toEqual(
           [...reportFields, 'product'].sort()
         );
+      });
+  });
+
+  it('should NOT report my product', async () => {
+    return request(app)
+      .post('/api/report')
+      .set('Authorization', firstPerson.jwtToken)
+      .send({ product: product.uuid, text: 'bad product' })
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) => {
+        expect(body.message).toBe('Cannot report your product');
       });
   });
 });

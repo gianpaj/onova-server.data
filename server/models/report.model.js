@@ -15,6 +15,9 @@ const ReportSchema = new mongoose.Schema({
   product: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'Product',
+    required: function() {
+      return !this.user;
+    },
   },
   reporter: {
     type: mongoose.Schema.Types.ObjectId,
@@ -28,6 +31,9 @@ const ReportSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
     ref: 'User',
+    required: function() {
+      return !this.product;
+    },
   },
   createdAt: {
     type: Date,
