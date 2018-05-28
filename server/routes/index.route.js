@@ -4,10 +4,10 @@ import authRoutes from './auth.route';
 import commentRoutes from './comment.route';
 import feedRoutes from './feed.route';
 import followRoutes from './follow.route';
-import reviewRoutes from './review.route';
 import orderRoutes from './order.route';
 import productRoutes from './product.route';
-import reportRoutes from './search.route';
+import reportRoutes from './report.route';
+import reviewRoutes from './review.route';
 import searchRoutes from './search.route';
 import userRoutes from './user.route';
 

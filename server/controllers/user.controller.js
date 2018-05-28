@@ -345,11 +345,12 @@ function update(
                     console.log('chatkit user created');
                   } catch (err) {
                     console.error(err);
+                    return reject(err);
                   }
                 }
                 return resolve(doc);
               }
-              reject('no error found');
+              reject('no user found');
             });
         })
       );
