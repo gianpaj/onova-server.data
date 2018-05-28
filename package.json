@@ -1,7 +1,7 @@
 {
   "name": "onova.server.data",
   "version": "0.0.0",
-  "description": "API Data server for mobile app",
+  "description": "API Data server for the mobile app",
   "author": "Onova Team <hello@onova.co>",
   "scripts": {
     "start": "yarn prod:build && yarn prod:start",

@@ -127,8 +127,8 @@ async function create(
           );
           return next(APIerr);
         }
-      } catch (error) {
-        console.error(error);
+      } catch (err) {
+        console.error(err);
         const APIerr = new APIError(
           'The tracking number is not valid',
           httpStatus.INTERNAL_SERVER_ERROR
