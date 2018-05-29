@@ -74,5 +74,7 @@ NotificationSchema.set('toJSON', {
 
 NotificationSchema.index({ triggeredBy: 1, dateCreated: 1 });
 NotificationSchema.index({ targetUser: 1, dateCreated: 1 });
+// for removeNotification()
+NotificationSchema.index({ 'data.commentId': 1 });
 
 export default mongoose.model('Notification', NotificationSchema);

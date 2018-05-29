@@ -258,6 +258,7 @@ UserSchema.set('toJSON', {
 
 UserSchema.index({ emailAddress: 1 }, { unique: true });
 UserSchema.index({ username: 1 }, { unique: true });
+UserSchema.index({ createdAt: -1 });
 
 /**
  * @memberof UserSchema
