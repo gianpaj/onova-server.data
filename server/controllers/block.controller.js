@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 import User, { UserDoc } from '../models/user.model';
-import Blocked from '../models/block.model';
+import Block from '../models/block.model';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -42,30 +42,19 @@ async function create(
     return next(err);
   }
 
-  const blocked = new Blocked({
+  const block = new Block({
     targetUser: foundUser._id,
     sourceUser: req.user._id,
   });
 
-  return blocked
+  return block
     .save()
-    .then(blocked => {
-      return res.status(httpStatus.CREATED).json({ data: blocked });
+    .then(block => {
+      return res.status(httpStatus.CREATED).json({ data: block });
     })
     .catch(err => {
       if (!(err instanceof APIError)) {
-        // mongoose validation error for neither 'user' or 'product' fields
-        if (err.name == 'ValidationError') {
-          err = new APIError(
-            'Blocked a user or product',
-            httpStatus.BAD_REQUEST
-          );
-        } else {
-          err = new APIError(
-            'Error blocking',
-            httpStatus.INTERNAL_SERVER_ERROR
-          );
-        }
+        err = new APIError('Error blocking', httpStatus.INTERNAL_SERVER_ERROR);
       }
       next(err);
     });

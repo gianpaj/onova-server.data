@@ -9,7 +9,7 @@ import Follow from '../models/follow.model';
 import User from '../models/user.model';
 import Block from '../models/block.model';
 import Verification from '../models/verification.model';
-import { createUserAndLogin } from './utils';
+import { createUserAndLogin, createProduct } from './utils';
 
 const blockFields = ['createdAt', '_id', 'sourceUser', 'targetUser'];
 
@@ -43,10 +43,17 @@ describe('## Block methods', () => {
     });
   });
 
-  let firstPerson = {
-    username: 'firstperson',
+  let firstUser = {
+    username: 'firstUser',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
+  };
+
+  const product = {
+    categoryIds: [2],
+    typeIds: [3],
+    description: 'nice boots',
+    price: '100.99',
   };
 
   let users = [
@@ -85,15 +92,57 @@ describe('## Block methods', () => {
       users[i].jwtToken = jwtToken;
     }
 
-    const { user, jwtToken } = await createUserAndLogin(firstPerson);
-    firstPerson._id = user._id;
-    firstPerson.jwtToken = jwtToken;
+    const { user, jwtToken } = await createUserAndLogin(firstUser);
+    firstUser._id = user._id;
+    firstUser.jwtToken = jwtToken;
+
+    // firstUser posts an item
+    const p1 = await createProduct(product, jwtToken);
+    firstUser.productUuid = p1.uuid;
+
+    // user 0 posts an item
+    const p2 = await createProduct(product, users[0].jwtToken);
+    users[0].productUuid = p2.uuid;
+
+    // user 1 posts an item
+    const p3 = await createProduct(product, users[1].jwtToken);
+    users[1].productUuid = p3.uuid;
+
+    // firstUser -- follows --> user 0
+    await request(app)
+      .post(`/api/users/${users[0]._id}/follow`)
+      .set('Authorization', firstUser.jwtToken)
+      .then(({ body }) => {
+        expect(body.data.follower).toBe(firstUser._id);
+        firstUser.following++;
+        users[0].followers++;
+      });
+
+    // firstUser -- follows --> user 1
+    await request(app)
+      .post(`/api/users/${users[1]._id}/follow`)
+      .set('Authorization', firstUser.jwtToken)
+      .then(({ body }) => {
+        expect(body.data.follower).toBe(firstUser._id);
+        firstUser.following++;
+        users[0].followers++;
+      });
+
+    // user 0 -- follows --> firstUser
+    await request(app)
+      .post(`/api/users/${firstUser._id}/follow`)
+      .set('Authorization', users[0].jwtToken)
+      .then(({ body }) => {
+        expect(body.data.follower).toBe(users[0]._id);
+        firstUser.followers++;
+        users[0].following++;
+      });
   });
 
   it('should block a user', async () => {
     return request(app)
       .post('/api/block')
-      .set('Authorization', firstPerson.jwtToken)
+      .set('Authorization', firstUser.jwtToken)
       .send({ targetUser: users[0]._id })
       .expect(httpStatus.CREATED)
       .then(({ body }) => {
@@ -105,8 +154,8 @@ describe('## Block methods', () => {
   it('should NOT block myself', async () => {
     return request(app)
       .post('/api/block')
-      .set('Authorization', firstPerson.jwtToken)
-      .send({ targetUser: firstPerson._id })
+      .set('Authorization', firstUser.jwtToken)
+      .send({ targetUser: firstUser._id })
       .expect(httpStatus.BAD_REQUEST)
       .then(({ body }) => {
         expect(body.message).toBe('Cannot block yourself');
@@ -116,11 +165,22 @@ describe('## Block methods', () => {
   it('should NOT block an missing user', async () => {
     return request(app)
       .post('/api/block')
-      .set('Authorization', firstPerson.jwtToken)
+      .set('Authorization', firstUser.jwtToken)
       .send({ targetUser: '5afc66be741c953ef07a618a' })
       .expect(httpStatus.NOT_FOUND)
       .then(({ body }) => {
         expect(body.message).toBe('User not found');
+      });
+  });
+
+  it('should get the firstUser`s feed without the user 0`s item', async () => {
+    return request(app)
+      .get('/api/feed/flat')
+      .set('Authorization', firstUser.jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data[0].uuid).toBe(users[1].productUuid);
+        expect(body.data).toHaveLength(1);
       });
   });
 });

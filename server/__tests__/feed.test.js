@@ -156,15 +156,7 @@ describe('## Feed APIs', () => {
           .post(`/api/users/${anotherUserId}/follow`)
           .set('Authorization', firstJwtToken)
           .expect(httpStatus.CREATED)
-          .then(res => {
-            const { data } = res.body;
-            expect(data.follower).toBe(userId);
-            expect(data.following).toBe(anotherUserId);
-            expect(Object.keys(data).sort()).toEqual(
-              ['follower', 'following', 'dateCreated'].sort()
-            );
-            resolve();
-          })
+          .then(res => resolve())
           .catch(e => reject(e));
       })
     );
@@ -174,15 +166,7 @@ describe('## Feed APIs', () => {
           .post(`/api/users/${userId}/follow`)
           .set('Authorization', anotherJwtToken)
           .expect(httpStatus.CREATED)
-          .then(res => {
-            const { data } = res.body;
-            expect(data.follower).toBe(anotherUserId);
-            expect(data.following).toBe(userId);
-            expect(Object.keys(data).sort()).toEqual(
-              ['follower', 'following', 'dateCreated'].sort()
-            );
-            resolve();
-          })
+          .then(res => resolve())
           .catch(e => reject(e));
       })
     );

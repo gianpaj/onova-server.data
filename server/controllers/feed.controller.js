@@ -7,6 +7,7 @@ import APIError from '../helpers/APIError';
 import { UserDoc } from '../models/user.model';
 import Product from '../models/product.model';
 import Follow, { FollowDoc } from '../models/follow.model';
+import Block, { BlockDoc } from '../models/block.model';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -25,14 +26,18 @@ declare class session$Request extends express$Request {
  * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of products to be returned.
  */
-function flat(
+async function flat(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
   const { limit = 50, lastId, categoryIds, tag, typeIds } = req.query;
 
-  Follow.find({ follower: req.user._id })
+  const usersIamBlocking = await Block.find({ sourceUser: req.user._id });
+
+  const ids = usersIamBlocking.map(u => u.targetUser);
+
+  Follow.find({ follower: req.user._id, following: { $nin: ids } })
     .limit(1000) // following
     .then((following: Array<FollowDoc>) => {
       if (!following) return res.json({ data: [] });
