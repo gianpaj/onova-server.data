@@ -11,9 +11,9 @@ declare class session$Request extends express$Request {
 }
 
 /**
- * Blocked users (no unblocking for now)
+ * Block users (no unblocking for now)
  *
- * POST /api/blocked
+ * POST /api/block
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters

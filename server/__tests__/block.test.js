@@ -8,6 +8,7 @@ import app from '../index';
 import Follow from '../models/follow.model';
 import User from '../models/user.model';
 import Block from '../models/block.model';
+import Product from '../models/product.model';
 import Verification from '../models/verification.model';
 import { createUserAndLogin, createProduct } from './utils';
 
@@ -30,6 +31,7 @@ describe('## Block methods', () => {
       User.collection,
       Block.collection,
       Follow.collection,
+      Product.collection,
       Verification.collection,
     ];
 
@@ -137,6 +139,16 @@ describe('## Block methods', () => {
         firstUser.followers++;
         users[0].following++;
       });
+
+    // user 0 -- follows --> user 1
+    await request(app)
+      .post(`/api/users/${users[1]._id}/follow`)
+      .set('Authorization', users[0].jwtToken)
+      .then(({ body }) => {
+        expect(body.data.follower).toBe(users[0]._id);
+        firstUser.followers++;
+        users[0].following++;
+      });
   });
 
   it('should block a user', async () => {
@@ -177,6 +189,17 @@ describe('## Block methods', () => {
     return request(app)
       .get('/api/feed/flat')
       .set('Authorization', firstUser.jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data[0].uuid).toBe(users[1].productUuid);
+        expect(body.data).toHaveLength(1);
+      });
+  });
+
+  it('should get the user 0`s feed without the firstUser`s item', async () => {
+    return request(app)
+      .get('/api/feed/flat')
+      .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
         expect(body.data[0].uuid).toBe(users[1].productUuid);

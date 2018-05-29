@@ -33,11 +33,17 @@ async function flat(
 ) {
   const { limit = 50, lastId, categoryIds, tag, typeIds } = req.query;
 
+  const usersIamBlockedBy = await Block.find({ targetUser: req.user._id });
+
   const usersIamBlocking = await Block.find({ sourceUser: req.user._id });
 
-  const ids = usersIamBlocking.map(u => u.targetUser);
+  const idsA = usersIamBlockedBy.map(u => u.sourceUser);
+  const idsB = usersIamBlocking.map(u => u.targetUser);
 
-  Follow.find({ follower: req.user._id, following: { $nin: ids } })
+  Follow.find({
+    follower: req.user._id,
+    following: { $nin: [...idsA, ...idsB] },
+  })
     .limit(1000) // following
     .then((following: Array<FollowDoc>) => {
       if (!following) return res.json({ data: [] });
