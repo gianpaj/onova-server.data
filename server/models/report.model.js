@@ -6,9 +6,6 @@ import mongoose from 'mongoose';
  * User, Comment or Product reporting Schema
  */
 const ReportSchema = new mongoose.Schema({
-  blocked: {
-    type: Boolean,
-  },
   // comment: {
   //   type: mongoose.Schema.Types.ObjectId,
   // },
@@ -43,7 +40,6 @@ const ReportSchema = new mongoose.Schema({
 });
 
 export class ReportDoc /*:: extends Mongoose$Document */ {
-  blocked: Boolean;
   // comment: MongoId;
   product: MongoId;
   reporter: MongoId;
@@ -65,7 +61,7 @@ ReportSchema.set('toJSON', {
   },
 });
 
-ReportSchema.index({ reporter: 1, date: -1 });
+ReportSchema.index({ reporter: 1, createdAt: -1 });
 ReportSchema.index({ reporter: 1, user: 1 }, { unique: true });
 ReportSchema.index({ reporter: 1, product: 1 }, { unique: true });
 // ReportSchema.index({ reporter: 1, commentId: 1 }, { unique: true });
