@@ -30,6 +30,5 @@ export default {
       //   .length(24)
       //   .required(),
     },
-    params: {},
   },
 };
