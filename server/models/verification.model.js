@@ -33,5 +33,6 @@ export class VerificationDoc /*:: extends Mongoose$Document */ {
 VerificationSchema.loadClass(VerificationDoc);
 
 VerificationSchema.index({ resetToken: 1 }, { unique: true });
+VerificationSchema.index({ user: 1 });
 
 export default mongoose.model('Verification', VerificationSchema);
