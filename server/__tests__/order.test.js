@@ -393,7 +393,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get an order as a seller', () => {
+    it('should get my order as a seller', () => {
       return request(app)
         .get(`/api/orders/${orderGET1}`)
         .set('Authorization', anotherJwtToken)
