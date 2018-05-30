@@ -27,6 +27,7 @@ function get(
 ) {
   const { limit = 50, categoryIds, description, tag, typeIds } = req.body;
 
+  let query;
   if (config.env !== 'test') {
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
   }
@@ -70,6 +71,14 @@ async function create(
   next: express$NextFunction
 ) {
   const { product, text, user } = req.body;
+
+  if (req.user.accountStatus !== 'verified') {
+    const err = new APIError(
+      'Please verify your account before making a report',
+      httpStatus.BAD_REQUEST
+    );
+    return next(err);
+  }
 
   const report = new Report({ text });
 
