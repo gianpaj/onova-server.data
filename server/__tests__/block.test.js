@@ -207,4 +207,28 @@ describe('## Block methods', () => {
         expect(body.data[0].uuid).toBe(users[1].productUuid);
       });
   });
+
+  it('should find products without the firstUser`s item', async () => {
+    return request(app)
+      .get('/api/search?typeIds=3')
+      .set('Authorization', users[0].jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data[0].uuid).toBe(users[1].productUuid);
+        expect(body.data[1].uuid).toBe(users[0].productUuid);
+        expect(body.data).toHaveLength(2);
+      });
+  });
+
+  it('should find products without the user 0`s item', async () => {
+    return request(app)
+      .get('/api/search?typeIds=3')
+      .set('Authorization', firstUser.jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data[0].uuid).toBe(users[1].productUuid);
+        expect(body.data[1].uuid).toBe(firstUser.productUuid);
+        expect(body.data).toHaveLength(2);
+      });
+  });
 });
