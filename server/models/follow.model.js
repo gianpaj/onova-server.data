@@ -27,6 +27,10 @@ var FollowSchema = new Schema({
     default: Date.now,
     required: true,
   },
+  status: {
+    type: Number,
+    enum: [-1], // eg. 0 = pending, 1 = accepted, 2 = declined,
+  },
 });
 
 export class FollowDoc /*:: extends Mongoose$Document */ {
@@ -121,6 +125,7 @@ FollowSchema.set('toJSON', {
   },
 });
 
+FollowSchema.index({ follower: 1, status: 1 });
 FollowSchema.index({ follower: 1, dateCreated: 1 });
 FollowSchema.index({ following: 1, dateCreated: 1 });
 FollowSchema.index({ follower: 1, following: 1 }, { unique: true });
