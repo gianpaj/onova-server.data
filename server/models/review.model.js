@@ -82,5 +82,6 @@ ReviewSchema.set('toJSON', {
 
 ReviewSchema.index({ order: 1, fromUser: 1, targetUser: 1 }, { unique: true });
 ReviewSchema.index({ targetUser: 1 });
+ReviewSchema.index({ fromUser: 1 });
 
 export default mongoose.model('Review', ReviewSchema);
