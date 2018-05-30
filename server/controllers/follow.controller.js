@@ -226,7 +226,7 @@ function listFollowers(
 ) {
   const { limit = 50, skip = 0 } = req.query;
 
-  const DBquery = { following: req.params.userId };
+  const DBquery = { following: req.params.userId, status: { $ne: -1 } };
 
   // use static method from FollowSchema
   // flow-disable-next-line
@@ -284,7 +284,7 @@ function listFollowing(
 ) {
   const { limit = 50, skip = 0 } = req.query;
 
-  const DBquery = { follower: req.params.userId };
+  const DBquery = { follower: req.params.userId, status: { $ne: -1 } };
 
   // use static method from FollowSchema
   // flow-disable-next-line
