@@ -10,7 +10,7 @@ import Follow from '../models/follow.model';
 import Product from '../models/product.model';
 import User from '../models/user.model';
 import Verification from '../models/verification.model';
-import { createUserAndLogin, createProduct } from './utils';
+import { createUserAndLogin, createProduct, createOrder } from './utils';
 
 const blockFields = ['createdAt', '_id', 'sourceUser', 'targetUser'];
 
@@ -74,19 +74,9 @@ describe('## Block methods', () => {
       emailAddress: 'gianpa+user2@gmail.com',
       password: 'express2',
     },
-    {
-      username: 'user3',
-      emailAddress: 'gianpa+user3@gmail.com',
-      password: 'express2',
-    },
-    {
-      username: 'user4',
-      emailAddress: 'gianpa+user4@gmail.com',
-      password: 'express2',
-    },
   ];
 
-  // create 6 users
+  // create 3 users
   // create 3 products
   beforeAll(async () => {
     for (let i = 0; i < users.length; i++) {
@@ -153,10 +143,17 @@ describe('## Block methods', () => {
         users[1].following++;
         firstUser.followers++;
       });
+
+    // firstUser -- orders --> product from user 0
+    await createOrder({ ...product, uuid: p2.uuid }, firstUser.jwtToken);
+    // firstUser -- orders --> product from user 1
+    await createOrder({ ...product, uuid: p3.uuid }, firstUser.jwtToken);
+    // user 0 -- orders --> product from user 1
+    await createOrder({ ...product, uuid: p3.uuid }, users[0].jwtToken);
   });
 
   // firstUser -- blocks -> user 0
-  it('should block a user', async () => {
+  it('should block a user', () => {
     return request(app)
       .post('/api/block')
       .set('Authorization', firstUser.jwtToken)
@@ -170,7 +167,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should NOT block myself', async () => {
+  it('should NOT block myself', () => {
     return request(app)
       .post('/api/block')
       .set('Authorization', firstUser.jwtToken)
@@ -181,7 +178,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should NOT block an missing user', async () => {
+  it('should NOT block an missing user', () => {
     return request(app)
       .post('/api/block')
       .set('Authorization', firstUser.jwtToken)
@@ -192,7 +189,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should get the firstUser`s feed without the user 0`s item', async () => {
+  it('should get the firstUser`s feed without the user 0`s item', () => {
     return request(app)
       .get('/api/feed/flat')
       .set('Authorization', firstUser.jwtToken)
@@ -203,7 +200,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should get the user 0`s feed without the firstUser`s item', async () => {
+  it('should get the user 0`s feed without the firstUser`s item', () => {
     return request(app)
       .get('/api/feed/flat')
       .set('Authorization', users[0].jwtToken)
@@ -214,7 +211,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should find products without the firstUser`s item', async () => {
+  it('should find products without the firstUser`s item', () => {
     return request(app)
       .get('/api/search?typeIds=3')
       .set('Authorization', users[0].jwtToken)
@@ -226,7 +223,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should find products without the user 0`s item', async () => {
+  it('should find products without the user 0`s item', () => {
     return request(app)
       .get('/api/search?typeIds=3')
       .set('Authorization', firstUser.jwtToken)
@@ -238,7 +235,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should get who is firstUser following except user 0', async () => {
+  it('should get who is firstUser following except user 0', () => {
     return request(app)
       .get(`/api/users/${firstUser._id}/following`)
       .set('Authorization', firstUser.jwtToken)
@@ -250,7 +247,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should get who is user 0 following except firstUser', async () => {
+  it('should get who is user 0 following except firstUser', () => {
     return request(app)
       .get(`/api/users/${users[0]._id}/following`)
       .set('Authorization', users[0].jwtToken)
@@ -261,7 +258,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should get the followers of user 0 except firstUser', async () => {
+  it('should get the followers of user 0 except firstUser', () => {
     return request(app)
       .get(`/api/users/${users[0]._id}/followers`)
       .set('Authorization', users[0].jwtToken)
@@ -269,6 +266,28 @@ describe('## Block methods', () => {
       .then(({ body }) => {
         expect(Array.isArray(body.data)).toBe(true);
         expect(body.data).toHaveLength(users[0].followers);
+      });
+  });
+
+  it('should get firstUser`s orders except user 0', () => {
+    return request(app)
+      .get('/api/orders')
+      .set('Authorization', firstUser.jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data[0].seller.username).toBe('user1');
+        expect(body.data).toHaveLength(1);
+      });
+  });
+
+  it('should get user 0`s orders except firstUser', () => {
+    return request(app)
+      .get('/api/orders')
+      .set('Authorization', users[0].jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data[0].seller.username).toBe('user1');
+        expect(body.data).toHaveLength(1);
       });
   });
 });
