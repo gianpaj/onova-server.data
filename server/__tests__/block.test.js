@@ -5,10 +5,10 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import Follow from '../models/follow.model';
-import User from '../models/user.model';
 import Block from '../models/block.model';
+import Follow from '../models/follow.model';
 import Product from '../models/product.model';
+import User from '../models/user.model';
 import Verification from '../models/verification.model';
 import { createUserAndLogin, createProduct } from './utils';
 
@@ -28,10 +28,10 @@ afterAll(done => {
 describe('## Block methods', () => {
   beforeAll(done => {
     const collections = [
-      User.collection,
       Block.collection,
       Follow.collection,
       Product.collection,
+      User.collection,
       Verification.collection,
     ];
 
@@ -87,6 +87,7 @@ describe('## Block methods', () => {
   ];
 
   // create 6 users
+  // create 3 products
   beforeAll(async () => {
     for (let i = 0; i < users.length; i++) {
       const { user, jwtToken } = await createUserAndLogin(users[i]);
@@ -191,8 +192,8 @@ describe('## Block methods', () => {
       .set('Authorization', firstUser.jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data[0].uuid).toBe(users[1].productUuid);
         expect(body.data).toHaveLength(1);
+        expect(body.data[0].uuid).toBe(users[1].productUuid);
       });
   });
 
@@ -202,8 +203,8 @@ describe('## Block methods', () => {
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data[0].uuid).toBe(users[1].productUuid);
         expect(body.data).toHaveLength(1);
+        expect(body.data[0].uuid).toBe(users[1].productUuid);
       });
   });
 });

@@ -5,6 +5,7 @@ import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import User, { UserDoc } from '../models/user.model';
 import Block from '../models/block.model';
+import Follow from '../models/follow.model';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -46,6 +47,16 @@ async function create(
     targetUser: foundUser._id,
     sourceUser: req.user._id,
   });
+
+  await Follow.updateMany(
+    {
+      $or: [
+        { follower: req.user._id, following: foundUser._id },
+        { following: req.user._id, follower: foundUser._id },
+      ],
+    },
+    { status: -1 }
+  );
 
   return block
     .save()
