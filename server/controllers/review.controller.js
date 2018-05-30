@@ -51,11 +51,13 @@ async function list(req: session$Request, res: express$Response, next) {
         $or: [{ targetUser: userId }, { fromUser: userId }],
       };
     }
-    let reviews = await Review.find(query).populate({
-      path: 'order',
-      match,
-      populate: { path: 'product buyer seller' },
-    });
+    let reviews = await Review.find(query)
+      .sort({ createdAt: -1 })
+      .populate({
+        path: 'order',
+        match,
+        populate: { path: 'product buyer seller' },
+      });
 
     reviews = reviews.filter(r => r.order !== null);
 

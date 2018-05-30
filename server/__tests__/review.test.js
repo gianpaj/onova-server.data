@@ -690,7 +690,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.data).toHaveLength(2);
-          const o = res.body.data[0];
+          const o = res.body.data[1];
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderFour.id);
           expect(o.order.priceOfItem).toBe(productShorts.price);
@@ -718,7 +718,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.data).toHaveLength(2);
-          const o = res.body.data[1];
+          const o = res.body.data[0];
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderFour.id);
           expect(o.order.priceOfItem).toBe(productShorts.price);
