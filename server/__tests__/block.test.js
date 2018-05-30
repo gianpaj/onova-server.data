@@ -173,9 +173,7 @@ describe('## Block methods', () => {
       .set('Authorization', firstUser.jwtToken)
       .send({ targetUser: firstUser._id })
       .expect(httpStatus.BAD_REQUEST)
-      .then(({ body }) => {
-        expect(body.message).toBe('Cannot block yourself');
-      });
+      .then(({ body }) => expect(body.message).toBe('Cannot block yourself'));
   });
 
   it('should NOT block an missing user', () => {
@@ -184,9 +182,7 @@ describe('## Block methods', () => {
       .set('Authorization', firstUser.jwtToken)
       .send({ targetUser: '5afc66be741c953ef07a618a' })
       .expect(httpStatus.NOT_FOUND)
-      .then(({ body }) => {
-        expect(body.message).toBe('User not found');
-      });
+      .then(({ body }) => expect(body.message).toBe('User not found'));
   });
 
   it('should get the firstUser`s feed without the user 0`s item', () => {
@@ -289,5 +285,31 @@ describe('## Block methods', () => {
         expect(body.data[0].seller.username).toBe('user1');
         expect(body.data).toHaveLength(1);
       });
+  });
+
+  it('should NOT allowed to create an order when blocking the buyer', () => {
+    return request(app)
+      .post('/api/orders')
+      .set('Authorization', users[0].jwtToken)
+      .send({ product: firstUser.productUuid })
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) =>
+        expect(body.message).toBe(
+          'This product is not longer for sale or is reserved.'
+        )
+      );
+  });
+
+  it('should NOT allowed to create an order when blocking the seller', () => {
+    return request(app)
+      .post('/api/orders')
+      .set('Authorization', firstUser.jwtToken)
+      .send({ product: users[0].productUuid })
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) =>
+        expect(body.message).toBe(
+          'This product is not longer for sale or is reserved.'
+        )
+      );
   });
 });
