@@ -60,6 +60,11 @@ describe('## Block methods', () => {
 
   let users = [
     {
+      username: 'user0',
+      emailAddress: 'gianpa+user0@gmail.com',
+      password: 'express2',
+    },
+    {
       username: 'user1',
       emailAddress: 'gianpa+user1@gmail.com',
       password: 'express2',
@@ -79,11 +84,6 @@ describe('## Block methods', () => {
       emailAddress: 'gianpa+user4@gmail.com',
       password: 'express2',
     },
-    {
-      username: 'user5',
-      emailAddress: 'gianpa+user5@gmail.com',
-      password: 'express2',
-    },
   ];
 
   // create 6 users
@@ -98,6 +98,7 @@ describe('## Block methods', () => {
     const { user, jwtToken } = await createUserAndLogin(firstUser);
     firstUser._id = user._id;
     firstUser.jwtToken = jwtToken;
+    firstUser.following = 0;
 
     // firstUser posts an item
     const p1 = await createProduct(product, jwtToken);
@@ -106,10 +107,12 @@ describe('## Block methods', () => {
     // user 0 posts an item
     const p2 = await createProduct(product, users[0].jwtToken);
     users[0].productUuid = p2.uuid;
+    users[0].followers = 0;
 
     // user 1 posts an item
     const p3 = await createProduct(product, users[1].jwtToken);
     users[1].productUuid = p3.uuid;
+    users[1].followers = 0;
 
     // firstUser -- follows --> user 0
     await request(app)
@@ -128,7 +131,7 @@ describe('## Block methods', () => {
       .then(({ body }) => {
         expect(body.data.follower).toBe(firstUser._id);
         firstUser.following++;
-        users[0].followers++;
+        users[1].followers++;
       });
 
     // user 0 -- follows --> firstUser
@@ -137,8 +140,8 @@ describe('## Block methods', () => {
       .set('Authorization', users[0].jwtToken)
       .then(({ body }) => {
         expect(body.data.follower).toBe(users[0]._id);
-        firstUser.followers++;
         users[0].following++;
+        firstUser.followers++;
       });
 
     // user 0 -- follows --> user 1
@@ -147,11 +150,12 @@ describe('## Block methods', () => {
       .set('Authorization', users[0].jwtToken)
       .then(({ body }) => {
         expect(body.data.follower).toBe(users[0]._id);
+        users[1].following++;
         firstUser.followers++;
-        users[0].following++;
       });
   });
 
+  // firstUser -- blocks -> user 0
   it('should block a user', async () => {
     return request(app)
       .post('/api/block')
@@ -159,6 +163,8 @@ describe('## Block methods', () => {
       .send({ targetUser: users[0]._id })
       .expect(httpStatus.CREATED)
       .then(({ body }) => {
+        firstUser.following--;
+        users[0].followers--;
         expect(body.data.targetUser).toBe(users[0]._id);
         expect(Object.keys(body.data).sort()).toEqual(blockFields.sort());
       });
@@ -229,6 +235,40 @@ describe('## Block methods', () => {
         expect(body.data[0].uuid).toBe(users[1].productUuid);
         expect(body.data[1].uuid).toBe(firstUser.productUuid);
         expect(body.data).toHaveLength(2);
+      });
+  });
+
+  it('should get who is firstUser following except user 0', async () => {
+    return request(app)
+      .get(`/api/users/${firstUser._id}/following`)
+      .set('Authorization', firstUser.jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(Array.isArray(body.data)).toBe(true);
+        expect(body.data).toHaveLength(firstUser.following);
+        expect(body.data[0].username).toBe('user1');
+      });
+  });
+
+  it('should get who is user 0 following except firstUser', async () => {
+    return request(app)
+      .get(`/api/users/${users[0]._id}/following`)
+      .set('Authorization', users[0].jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(Array.isArray(body.data)).toBe(true);
+        expect(body.data[0].username).toBe('user1');
+      });
+  });
+
+  it('should get the followers of user 0 except firstUser', async () => {
+    return request(app)
+      .get(`/api/users/${users[0]._id}/followers`)
+      .set('Authorization', users[0].jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(Array.isArray(body.data)).toBe(true);
+        expect(body.data).toHaveLength(users[0].followers);
       });
   });
 });

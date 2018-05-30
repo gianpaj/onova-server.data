@@ -126,8 +126,9 @@ FollowSchema.set('toJSON', {
 });
 
 FollowSchema.index({ follower: 1, status: 1 });
-FollowSchema.index({ follower: 1, dateCreated: 1 });
-FollowSchema.index({ following: 1, dateCreated: 1 });
+FollowSchema.index({ following: 1, status: 1 });
+// FollowSchema.index({ follower: 1, dateCreated: 1 });
+// FollowSchema.index({ following: 1, dateCreated: 1 });
 FollowSchema.index({ follower: 1, following: 1 }, { unique: true });
 
 // FollowSchema.plugin(stream.mongoose.activity);
