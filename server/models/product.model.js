@@ -97,8 +97,6 @@ var ProductSchema = new Schema(
   {
     // assigns 'createdAt' and 'updatedAt' fields to your schema
     timestamps: true,
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
   }
 );
 
@@ -197,10 +195,8 @@ ProductSchema.pre('save', function(next) {
 // Never return '__v' fields in the JSON representation
 // Note that this doesn't effect `toObject`
 ProductSchema.set('toJSON', {
-  getters: true,
   transform: (doc, ret) => {
     ret.price = ret.price.toString();
-    delete ret.id;
     delete ret.__v;
     return ret;
   },

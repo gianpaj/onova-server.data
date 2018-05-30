@@ -8,145 +8,139 @@ import APIError from '../helpers/APIError';
 const Schema = mongoose.Schema;
 
 /** @namespace */
-var OrderSchema = new Schema(
-  {
-    archivedByBuyer: Boolean,
-    archivedBySeller: Boolean,
-    buyer: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    currency: {
-      type: String,
-      required: true,
-      default: 'UAH',
-    },
-    dateCancelled: {
-      type: Date,
-    },
-    dateCompleted: {
-      type: Date,
-    },
-    dateDelivered: {
-      type: Date,
-    },
-    datePending: {
-      type: Date,
-      required: true,
-      default: Date.now,
-    },
-    datePaid: {
-      type: Date,
-    },
-    dateConfirmed: {
-      type: Date,
-    },
-    dateShipped: {
-      type: Date,
-    },
-    dateReadyforShipment: {
-      type: Date,
-    },
-    onovaFee: {
-      type: Schema.Types.Decimal128,
-      required: true,
-    },
-    paymentMethod: {
-      type: String,
-      enum: ['paypal', 'uapay'],
-    },
-    priceOfItem: {
-      type: Schema.Types.Decimal128,
-      required: true,
-    },
-    product: {
-      type: Schema.Types.ObjectId,
-      ref: 'Product',
-      required: true,
-    },
-    seller: {
-      type: Schema.Types.ObjectId,
-      ref: 'User',
-      required: true,
-    },
-    status: {
-      type: String,
-      required: true,
-      default: 'pending',
-      enum: [
-        // Unpaid - Customer started the checkout process. Payment is not completed.
-        'pending',
-
-        // NOT ACTIVE - Seller confirmed and awaits buyer to pay – Product status is now 'reserved'. All other orders for the same item are cancelled. (Do need to send a reason, now?)
-        // 'onhold',
-
-        'paid',
-
-        // # 1 Step in UI - Product is ready for shipment. Tracking number is generated automatically
-        'confirmed',
-
-        // [Only by Shipping Provider] (i.e. NovaPohsta) - # 2 Step in UI
-        'shipped',
-
-        // Seller cancels order. Requires reason.
-        // or
-        // Buyer cancels order.
-        'cancelled',
-
-        // [Only by Shipping Provider] - # 3 Step in UI
-        'delivered',
-
-        // [Only by Shipping Provider]. Item has been collected - # 4 Step in UI
-        'completed',
-
-        // Buyer fails to collect, refuses the item (not as described), or fails to pay [by Payment or Shipping Provider]
-        'failed_by_buyer',
-
-        // Seller fails to ship or fails to confirm [by Payment or Shipping Provider]
-        'failed_by_seller',
-
-        // TODO: the holdProductFor or orderPendingFor windows expired without a response
-        // [by Internal Process]
-        'failed',
-      ],
-    },
-    reason: {
-      type: String,
-    },
-    reviewFromBuyer: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Review',
-    },
-    reviewFromSeller: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Review',
-    },
-    taxAmount: String,
-    trackingNumber: String,
-    transactionFee: Schema.Types.Decimal128,
-    transactionId: String,
-    transactionStatus: {
-      type: String,
-      default: 'pl-pending',
-      enum: [
-        'pl-pending',
-        'pl-completed',
-        'pl-cancelled',
-        'pl-refunded',
-        'pl-failed',
-      ],
-    },
-    shippingProvider: {
-      type: String,
-      enum: ['novaposhta'],
-    },
+var OrderSchema = new Schema({
+  archivedByBuyer: Boolean,
+  archivedBySeller: Boolean,
+  buyer: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
   },
-  {
-    toJSON: { virtuals: true },
-    toObject: { virtuals: true },
-  }
-);
+  currency: {
+    type: String,
+    required: true,
+    default: 'UAH',
+  },
+  dateCancelled: {
+    type: Date,
+  },
+  dateCompleted: {
+    type: Date,
+  },
+  dateDelivered: {
+    type: Date,
+  },
+  datePending: {
+    type: Date,
+    required: true,
+    default: Date.now,
+  },
+  datePaid: {
+    type: Date,
+  },
+  dateConfirmed: {
+    type: Date,
+  },
+  dateShipped: {
+    type: Date,
+  },
+  dateReadyforShipment: {
+    type: Date,
+  },
+  onovaFee: {
+    type: Schema.Types.Decimal128,
+    required: true,
+  },
+  paymentMethod: {
+    type: String,
+    enum: ['paypal', 'uapay'],
+  },
+  priceOfItem: {
+    type: Schema.Types.Decimal128,
+    required: true,
+  },
+  product: {
+    type: Schema.Types.ObjectId,
+    ref: 'Product',
+    required: true,
+  },
+  seller: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  status: {
+    type: String,
+    required: true,
+    default: 'pending',
+    enum: [
+      // Unpaid - Customer started the checkout process. Payment is not completed.
+      'pending',
+
+      // NOT ACTIVE - Seller confirmed and awaits buyer to pay – Product status is now 'reserved'. All other orders for the same item are cancelled. (Do need to send a reason, now?)
+      // 'onhold',
+
+      'paid',
+
+      // # 1 Step in UI - Product is ready for shipment. Tracking number is generated automatically
+      'confirmed',
+
+      // [Only by Shipping Provider] (i.e. NovaPohsta) - # 2 Step in UI
+      'shipped',
+
+      // Seller cancels order. Requires reason.
+      // or
+      // Buyer cancels order.
+      'cancelled',
+
+      // [Only by Shipping Provider] - # 3 Step in UI
+      'delivered',
+
+      // [Only by Shipping Provider]. Item has been collected - # 4 Step in UI
+      'completed',
+
+      // Buyer fails to collect, refuses the item (not as described), or fails to pay [by Payment or Shipping Provider]
+      'failed_by_buyer',
+
+      // Seller fails to ship or fails to confirm [by Payment or Shipping Provider]
+      'failed_by_seller',
+
+      // TODO: the holdProductFor or orderPendingFor windows expired without a response
+      // [by Internal Process]
+      'failed',
+    ],
+  },
+  reason: {
+    type: String,
+  },
+  reviewFromBuyer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review',
+  },
+  reviewFromSeller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review',
+  },
+  taxAmount: String,
+  trackingNumber: String,
+  transactionFee: Schema.Types.Decimal128,
+  transactionId: String,
+  transactionStatus: {
+    type: String,
+    default: 'pl-pending',
+    enum: [
+      'pl-pending',
+      'pl-completed',
+      'pl-cancelled',
+      'pl-refunded',
+      'pl-failed',
+    ],
+  },
+  shippingProvider: {
+    type: String,
+    enum: ['novaposhta'],
+  },
+});
 
 export class OrderDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;

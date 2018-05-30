@@ -112,9 +112,7 @@ FollowSchema.post('remove', function(doc, next) {
 // Never return these fields in the JSON representation
 // This doesn't effect `toObject` method
 FollowSchema.set('toJSON', {
-  getters: true,
   transform: (doc, ret) => {
-    delete ret.id;
     delete ret._id;
     delete ret.__v;
     return ret;
