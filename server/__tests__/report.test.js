@@ -84,7 +84,14 @@ describe('## Report methods', () => {
     },
   ];
 
-  // create 6 users
+  let nonActiveUser = {
+    username: 'thirdperson',
+    emailAddress: 'gianpa+test3@gmail.com',
+    mobileNumber: '1234567890',
+    password: 'expressos',
+  };
+
+  // create 6 users + 1 non verified
   beforeAll(async () => {
     for (let i = 0; i < users.length; i++) {
       const { user, jwtToken } = await createUserAndLogin(users[i]);
@@ -99,15 +106,35 @@ describe('## Report methods', () => {
     const p1 = await createProduct(product, jwtToken);
     const product2 = { ...product };
     product.uuid = p1.uuid;
-    try {
-      const p2 = await createProduct(product2, users[0].jwtToken);
-      users[0].uuid = p2.uuid;
-    } catch (err) {
-      console.error(err);
-    }
+    const p2 = await createProduct(product2, users[0].jwtToken);
+    users[0].uuid = p2.uuid;
+
+    await request(app)
+      .post('/api/users')
+      .send(nonActiveUser)
+      .expect(httpStatus.CREATED)
+      .then(({ body }) => {
+        expect(body.data.username).toBe(nonActiveUser.username);
+        expect(body.data.accountStatus).toBe('notverified');
+        expect(body.token).toHaveLength(376);
+        nonActiveUser.jwtToken = body.token;
+      });
   });
 
-  it('should report a user', async () => {
+  it('should NOT report a user if am not verified', () => {
+    return request(app)
+      .post('/api/report')
+      .set('Authorization', nonActiveUser.jwtToken)
+      .send({ user: users[0]._id, text: 'they are a bad user' })
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) =>
+        expect(body.message).toBe(
+          'Please verify your account before making a report'
+        )
+      );
+  });
+
+  it('should report a user', () => {
     return request(app)
       .post('/api/report')
       .set('Authorization', firstPerson.jwtToken)
@@ -121,18 +148,16 @@ describe('## Report methods', () => {
       });
   });
 
-  it('should NOT report myself', async () => {
+  it('should NOT report myself', () => {
     return request(app)
       .post('/api/report')
       .set('Authorization', firstPerson.jwtToken)
       .send({ user: firstPerson._id, text: 'i am bad boy' })
       .expect(httpStatus.BAD_REQUEST)
-      .then(({ body }) => {
-        expect(body.message).toBe('Cannot report yourself');
-      });
+      .then(({ body }) => expect(body.message).toBe('Cannot report yourself'));
   });
 
-  it('should report a user OR a product', async () => {
+  it('should report a user OR a product', () => {
     return request(app)
       .post('/api/report')
       .set('Authorization', firstPerson.jwtToken)
@@ -143,7 +168,7 @@ describe('## Report methods', () => {
       });
   });
 
-  it('should report a product', async () => {
+  it('should report a product', () => {
     return request(app)
       .post('/api/report')
       .set('Authorization', firstPerson.jwtToken)
@@ -157,7 +182,7 @@ describe('## Report methods', () => {
       });
   });
 
-  it('should NOT report my product', async () => {
+  it('should NOT report my product', () => {
     return request(app)
       .post('/api/report')
       .set('Authorization', firstPerson.jwtToken)
