@@ -4,6 +4,9 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
+import { agenda } from '../config/express';
+import config from '../config/config';
+
 import app from '../index';
 import Block from '../models/block.model';
 import Follow from '../models/follow.model';
@@ -164,6 +167,26 @@ describe('## Block methods', () => {
         users[0].followers--;
         expect(body.data.targetUser).toBe(users[0]._id);
         expect(Object.keys(body.data).sort()).toEqual(blockFields.sort());
+      });
+  });
+
+  it('it should not unfollow a blocked user', () => {
+    return request(app)
+      .post(`/api/users/${firstUser._id}/unfollow`)
+      .set('Authorization', users[0].jwtToken)
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) => {
+        expect(body.message).toBe('Error unfollowing a user');
+      });
+  });
+
+  it('it should not follow a blocked user', () => {
+    return request(app)
+      .post(`/api/users/${firstUser._id}/follow`)
+      .set('Authorization', users[0].jwtToken)
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) => {
+        expect(body.message).toBe('Error following a user');
       });
   });
 

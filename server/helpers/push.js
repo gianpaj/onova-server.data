@@ -17,13 +17,20 @@ export async function sendPush({
   triggeredType,
   message,
 }: notifPayload): Promise<null> {
-  // if (config.env == 'test') {
-  //   return Promise.resolve();
-  // }
+  let blocking = 0;
 
-  const blocking = await Block.count({
-    $or: [{ targetUser }, { sourceUser: targetUser }],
+  // New follower
+  // if (triggeredType == 'User') {
+
+  // if person A is blocking person B neither of them can send each other push notifications
+  blocking = await Block.count({
+    $or: [
+      { sourceUser: targetUser, targetUser: triggeredBy },
+      { sourceUser: triggeredBy, targetUser: targetUser },
+    ],
   });
+
+  // }
 
   if (blocking > 0) {
     console.log(`${targetUser} cannot receive push from ${triggeredBy}`);
