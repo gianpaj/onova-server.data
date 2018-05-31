@@ -4,6 +4,7 @@ import httpStatus from 'http-status';
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 import APIError from '../helpers/APIError';
+import Block from '../models/block.model';
 import User, { UserDoc } from '../models/user.model';
 import Follow, { FollowDoc } from '../models/follow.model';
 import DefaultFollow from '../models/defaultFollow.model';
@@ -66,7 +67,7 @@ function get(
  * @property {*} req.params Express params parameters
  * @property {string} req.params.userId The target user to be followed
  */
-function follow(
+async function follow(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -76,6 +77,21 @@ function follow(
   if (req.user._id.toString() === targetUserId.toString()) {
     const APIerr = new APIError(
       'Cannot follow thyself',
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
+
+  const blocking = await Block.count({
+    $or: [
+      { sourceUser: req.user._id, targetUser: targetUserId },
+      { sourceUser: targetUserId, targetUser: req.user._id },
+    ],
+  });
+
+  if (blocking > 0) {
+    const APIerr = new APIError(
+      'Error following a user',
       httpStatus.BAD_REQUEST
     );
     return next(APIerr);
@@ -196,9 +212,17 @@ function unfollow(
       return Follow.findOne({
         follower: req.user._id,
         following: targetUser._id,
+        status: { $ne: -1 },
       });
     })
     .then((followDoc: FollowDoc) => {
+      if (!followDoc) {
+        const APIerr = new APIError(
+          'Error unfollowing a user',
+          httpStatus.BAD_REQUEST
+        );
+        throw APIerr;
+      }
       return followDoc.remove();
     })
     .then(deletedDoc => {

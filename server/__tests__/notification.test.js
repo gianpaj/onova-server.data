@@ -302,10 +302,7 @@ describe('## Notification APIs', () => {
 
           // Check a Follow push notification has been scheduled
           setTimeout(() => {
-            agenda.jobs({ name: config.JOBNAMES.PUSHFOLLOW }, function(
-              err,
-              jobs
-            ) {
+            agenda.jobs({ name: config.JOBNAMES.PUSHFOLLOW }, (err, jobs) => {
               if (err) return done(err);
               expect(jobs).toHaveLength(1);
               const { data } = jobs.map(j => j.attrs)[0];
@@ -375,10 +372,7 @@ describe('## Notification APIs', () => {
 
             // Check an Order push notification has been scheduled
             setTimeout(() => {
-              agenda.jobs({ name: config.JOBNAMES.PUSHORDER }, function(
-                err,
-                jobs
-              ) {
+              agenda.jobs({ name: config.JOBNAMES.PUSHORDER }, (err, jobs) => {
                 if (err) return done(err);
                 expect(jobs).toHaveLength(1);
                 const { data } = jobs.map(j => j.attrs)[0];
@@ -446,8 +440,8 @@ describe('## Notification APIs', () => {
       expect(c5.uuid).toBe(anotherProductUuid);
 
       setTimeout(() => {
-        agenda.jobs({ name: config.JOBNAMES.PUSHCOMMENT }, function(err, jobs) {
-          // if (err) return done(err);
+        agenda.jobs({ name: config.JOBNAMES.PUSHCOMMENT }, (err, jobs) => {
+          if (err) throw new Error(err);
           expect(jobs).toHaveLength(numberOfNotifForFirstUser + 3);
           const { data } = jobs.map(j => j.attrs)[numberOfNotifForFirstUser];
           expect(data.message).toBe('check this out @anotherperson');
@@ -459,7 +453,6 @@ describe('## Notification APIs', () => {
           expect(data.targetUser.toString()).toBe(anotherUserId);
           expect(data.triggeredBy.toString()).toBe(productId);
           expect(data.triggeredType).toBe('Product');
-          // done();
         });
       }, 10);
     });

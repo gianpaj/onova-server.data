@@ -44,8 +44,8 @@ async function create(
   }
 
   const block = new Block({
-    targetUser: foundUser._id,
     sourceUser: req.user._id,
+    targetUser: foundUser._id,
   });
 
   await Follow.updateMany(
