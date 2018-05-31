@@ -3,6 +3,8 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
+import { agenda } from '../config/express';
+import config from '../config/config';
 
 import app from '../index';
 
@@ -18,6 +20,7 @@ import {
   createManyComments,
   createProduct,
   createUserAndLogin,
+  createOrder,
 } from './utils';
 
 /**
@@ -284,7 +287,7 @@ describe('## Notification APIs', () => {
 
   describe('# Follow and Notify', () => {
     // firstUser --follows--> anotherUser
-    beforeAll(async () => {
+    beforeAll(done => {
       return request(app)
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
@@ -296,6 +299,25 @@ describe('## Notification APIs', () => {
           expect(Object.keys(data).sort()).toEqual(
             ['follower', 'following', 'dateCreated'].sort()
           );
+
+          // Check a Follow push notification has been scheduled
+          setTimeout(() => {
+            agenda.jobs({ name: config.JOBNAMES.PUSHFOLLOW }, function(
+              err,
+              jobs
+            ) {
+              if (err) return done(err);
+              expect(jobs).toHaveLength(1);
+              const { data } = jobs.map(j => j.attrs)[0];
+              expect(data.senderName).toBe(user.username);
+              expect(data.targetUser.toString()).toBe(anotherUserId);
+              expect(data.triggeredBy.toString()).toBe(userId);
+              expect(data.triggeredType).toBe('User');
+              expect(typeof data.random).toBe('string');
+              done();
+            });
+          }, 10);
+
           numberOfNotifForAnotherUser++;
         });
     });
@@ -317,23 +339,17 @@ describe('## Notification APIs', () => {
   describe('# Create an order and Notify cancellation', () => {
     let orderId;
     beforeAll(async () => {
-      return request(app)
-        .post('/api/orders')
-        .set('Authorization', anotherJwtToken)
-        .send({ product: productUuid })
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const o = res.body.data;
-          orderId = o.id;
-          expect(o.status).toBe('pending');
-          expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((product.price * 1).toString());
-          expect(o.priceOfItem).toBe(product.price);
-          expect(o.transactionStatus).toBe('pl-pending');
-        });
+      // anotherUser -- orders -> productUuid from firstUser
+      const o = await createOrder(
+        { ...product, uuid: productUuid },
+        anotherJwtToken
+      );
+      orderId = o.id;
+      expect(o.status).toBe('pending');
+      expect(o.priceOfItem).toBe(product.price);
     });
 
-    it('a new order notification should have **not** have been created', async () => {
+    it('a new order notification should have **not** have been created', () => {
       return request(app)
         .get('/api/users/notifications')
         .set('Authorization', firstJwtToken)
@@ -344,8 +360,8 @@ describe('## Notification APIs', () => {
         });
     });
 
-    describe('# Seller cancels an order and Notify the buyer', () => {
-      beforeAll(async () => {
+    describe('# Seller (firstUser) cancels an order and Notify the buyer (anotherUser)', () => {
+      beforeAll(done => {
         return request(app)
           .put(`/api/orders/${orderId}`)
           .set('Authorization', firstJwtToken)
@@ -356,6 +372,24 @@ describe('## Notification APIs', () => {
             expect(o.priceOfItem).toBe(product.price);
             expect(o.status).toBe('cancelled');
             numberOfNotifForAnotherUser++;
+
+            // Check an Order push notification has been scheduled
+            setTimeout(() => {
+              agenda.jobs({ name: config.JOBNAMES.PUSHORDER }, function(
+                err,
+                jobs
+              ) {
+                if (err) return done(err);
+                expect(jobs).toHaveLength(1);
+                const { data } = jobs.map(j => j.attrs)[0];
+                expect(data.targetUser.toString()).toBe(anotherUserId);
+                expect(data.triggeredBy.toString()).toBe(orderId);
+                expect(data.triggeredType).toBe('Order');
+                expect(data.message).toContain('Your order has been cancelled');
+                expect(typeof data.random).toBe('string');
+                done();
+              });
+            }, 10);
           });
       });
 
@@ -410,6 +444,24 @@ describe('## Notification APIs', () => {
       );
       numberOfNotifForFirstUser++;
       expect(c5.uuid).toBe(anotherProductUuid);
+
+      setTimeout(() => {
+        agenda.jobs({ name: config.JOBNAMES.PUSHCOMMENT }, function(err, jobs) {
+          // if (err) return done(err);
+          expect(jobs).toHaveLength(numberOfNotifForFirstUser + 3);
+          const { data } = jobs.map(j => j.attrs)[numberOfNotifForFirstUser];
+          expect(data.message).toBe('check this out @anotherperson');
+          expect(data.hasOwnProperty('platform')).toBe(true);
+          expect(data.productUuid).toBe(productUuid);
+          expect(data.hasOwnProperty('pushToken')).toBe(true);
+          expect(typeof data.random).toBe('string');
+          expect(data.senderName).toBe(user.username);
+          expect(data.targetUser.toString()).toBe(anotherUserId);
+          expect(data.triggeredBy.toString()).toBe(productId);
+          expect(data.triggeredType).toBe('Product');
+          // done();
+        });
+      }, 10);
     });
 
     it('should get my @anotheruser`s notifications', async () => {
