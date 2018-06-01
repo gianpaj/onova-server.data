@@ -393,7 +393,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should get an order as a seller', () => {
+    it('should get my order as a seller', () => {
       return request(app)
         .get(`/api/orders/${orderGET1}`)
         .set('Authorization', anotherJwtToken)
@@ -412,13 +412,13 @@ describe('## Order APIs', () => {
 
     it('should get my orders (as seller and buyer)', () => {
       return request(app)
-        .get('/api/orders/?of=both')
+        .get('/api/orders')
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(o.length).toBe(3); // FIXME: use counters
+          expect(o.length).toBe(3); // FIXME: use variables
           expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
           expect(Object.keys(o[0].buyer).sort()).toEqual(
             ['_id', 'accountStatus', 'id', 'profilePic', 'username'].sort()

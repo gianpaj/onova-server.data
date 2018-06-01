@@ -1,14 +1,15 @@
 // @flow
+import shortid from 'shortid';
 
-import User, { UserDoc } from '../models/user.model';
-import Product, { ProductDoc } from '../models/product.model';
+import Block from '../models/block.model';
 import Order, { OrderDoc } from '../models/order.model';
+import Product, { ProductDoc } from '../models/product.model';
+import User, { UserDoc } from '../models/user.model';
 import { agenda } from '../config/express';
 import config from '../config/config';
-import shortid from 'shortid';
 import type { notifPayload } from '../controllers/notification.controller';
 
-export function sendPush({
+export async function sendPush({
   data,
   notifI18n,
   targetUser,
@@ -16,7 +17,23 @@ export function sendPush({
   triggeredType,
   message,
 }: notifPayload): Promise<null> {
-  if (config.env == 'test') {
+  let blocking = 0;
+
+  // New follower
+  // if (triggeredType == 'User') {
+
+  // if person A is blocking person B neither of them can send each other push notifications
+  blocking = await Block.count({
+    $or: [
+      { sourceUser: targetUser, targetUser: triggeredBy },
+      { sourceUser: triggeredBy, targetUser: targetUser },
+    ],
+  });
+
+  // }
+
+  if (blocking > 0) {
+    console.log(`${targetUser} cannot receive push from ${triggeredBy}`);
     return Promise.resolve();
   }
 
@@ -59,8 +76,8 @@ export function sendPush({
         console.error(e);
         return e;
       });
+    // New comment notification to seller or mention
   } else if (triggeredType == 'Product') {
-    // New comment notification to seller
     return Product.findById(triggeredBy)
       .then(product => {
         if (!product) {
@@ -99,8 +116,8 @@ export function sendPush({
         console.error(e);
         return e;
       });
-  } else if (triggeredType == 'Order') {
     // Order paid, cancelled, etc.
+  } else if (triggeredType == 'Order') {
     return Order.findById(triggeredBy)
       .then(order => {
         if (!order) {

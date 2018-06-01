@@ -6,6 +6,7 @@ import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
+import Block from '../models/block.model';
 import Product, { ProductDoc } from '../models/product.model';
 import Tag, { TagDoc } from '../models/tag.model';
 import User, { UserDoc } from '../models/user.model';
@@ -172,7 +173,7 @@ function create(
  * @property {string} req.query.username
  * @property {array<string>|string} req.query.tags
  */
-function list(
+async function list(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -188,7 +189,19 @@ function list(
   }
 
   if (userid) {
-    query = { ...query, seller: userid };
+    if (req.user) {
+      const usersIamBlocking = await Block.find({
+        sourceUser: req.user._id,
+        targetUser: userid,
+      });
+
+      const idsB = usersIamBlocking.map(u => u.targetUser.toString());
+
+      // limit by seller and exclude those blocked
+      query = { ...query, seller: { $nin: idsB, $in: [userid] } };
+    } else {
+      query = { ...query, seller: userid };
+    }
   }
 
   if (tags) {
