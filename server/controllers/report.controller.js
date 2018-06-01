@@ -1,12 +1,15 @@
 // @flow
 
 import httpStatus from 'http-status';
+const IncomingWebhook = require('@slack/client').IncomingWebhook;
 
 import APIError from '../helpers/APIError';
 import User, { UserDoc } from '../models/user.model';
 import Product from '../models/product.model';
 import Report from '../models/report.model';
 import config from '../config/config';
+
+const webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -71,6 +74,7 @@ async function create(
   next: express$NextFunction
 ) {
   const { product, text, user } = req.body;
+  let slackJSON;
 
   if (req.user.accountStatus !== 'verified') {
     const err = new APIError(
@@ -101,6 +105,20 @@ async function create(
     } catch (err) {
       return next(err);
     }
+    slackJSON = {
+      attachments: [
+        {
+          title: 'User reported',
+          pretext: `User (@${foundUser.username}) reported from @${
+            req.user.username
+          }`,
+          text:
+            `User: @${foundUser.username}\n` +
+            `Reporter: @${req.user.username}\n` +
+            `Message: ${text}`,
+        },
+      ],
+    };
 
     report.user = foundUser._id;
   }
@@ -131,6 +149,22 @@ async function create(
       return next(err);
     }
 
+    slackJSON = {
+      attachments: [
+        {
+          title: 'Item reported',
+          pretext: `Item (${foundProduct.uuid}) reported from @${
+            req.user.username
+          }`,
+          text:
+            `Item id: ${foundProduct.uuid}\n` +
+            `Owner: @${foundProduct.seller.username}\n` +
+            `Reporter: @${req.user.username}\n` +
+            `Message: ${text}`,
+        },
+      ],
+    };
+
     report.product = foundProduct._id;
   }
 
@@ -139,6 +173,12 @@ async function create(
   return report
     .save()
     .then(report => {
+      if (config.env !== 'production') {
+        webhook.send(slackJSON, err => {
+          if (err) return console.error('Slack Error:', err);
+          console.log('Report sent to Slack');
+        });
+      }
       return res.status(httpStatus.CREATED).json({ data: report });
     })
     .catch(err => {
