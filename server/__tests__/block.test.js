@@ -170,14 +170,23 @@ describe('## Block methods', () => {
       });
   });
 
+  it('should NOT block a user again', () => {
+    return request(app)
+      .post('/api/block')
+      .set('Authorization', firstUser.jwtToken)
+      .send({ targetUser: users[0]._id })
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) => expect(body.message).toBe('Duplicate block'));
+  });
+
   it('it should not unfollow a blocked user', () => {
     return request(app)
       .post(`/api/users/${firstUser._id}/unfollow`)
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.BAD_REQUEST)
-      .then(({ body }) => {
-        expect(body.message).toBe('Error unfollowing a user');
-      });
+      .then(({ body }) =>
+        expect(body.message).toBe('Error unfollowing a user')
+      );
   });
 
   it('it should not follow a blocked user', () => {

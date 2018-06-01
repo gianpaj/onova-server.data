@@ -1,6 +1,8 @@
 // @flow
-
 import mongoose from 'mongoose';
+import httpStatus from 'http-status';
+
+import APIError from '../helpers/APIError';
 
 /**
  * User blocking Schema
@@ -30,6 +32,14 @@ export class BlockDoc /*:: extends Mongoose$Document */ {
 }
 
 BlockSchema.loadClass(BlockDoc);
+
+BlockSchema.post('save', function(error: Error, doc, next) {
+  if (error.code === 11000) {
+    const APIerr = new APIError('Duplicate block', httpStatus.BAD_REQUEST);
+    return next(APIerr);
+  }
+  next(error);
+});
 
 // Never return '__v' or 'id' fields in the JSON representation
 // Note that this doesn't effect `toObject`
