@@ -148,6 +148,15 @@ describe('## Report methods', () => {
       });
   });
 
+  it('should NOT report the same user again', () => {
+    return request(app)
+      .post('/api/report')
+      .set('Authorization', firstPerson.jwtToken)
+      .send({ user: users[0]._id, text: 'they are a bad user' })
+      .expect(httpStatus.BAD_REQUEST)
+      .then(({ body }) => expect(body.message).toBe('Duplicate report'));
+  });
+
   it('should NOT report myself', () => {
     return request(app)
       .post('/api/report')
