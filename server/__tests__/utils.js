@@ -67,47 +67,36 @@ export function createUserAndLogin(
     .post('/api/users')
     .send(user)
     .expect(httpStatus.CREATED)
-    .then(res => {
-      if (!res.body.data) {
-        console.error(res.body);
-        throw new Error(res.body);
+    .then(({ body }) => {
+      if (!body.data) {
+        throw new Error(body);
       }
-      expect(Object.keys(res.body.data).sort()).toEqual(userFields.sort());
+      expect(Object.keys(body.data).sort()).toEqual(userFields.sort());
 
-      return res.body.data;
+      return { resUser: body.data, jwtToken: body.token };
     })
-    .then((resUser: UserDoc) => {
+    .then(({ resUser, jwtToken }) => {
       // flow-disable-next-line
       return Verification.findOne({ user: resUser._id }).then(verDoc => {
         if (!verDoc) {
           throw Error('no verification token found');
         }
-        return { resetToken: verDoc.resetToken, resUser };
+        return { resetToken: verDoc.resetToken, resUser, jwtToken };
       });
     })
-    .then(({ resetToken, resUser }) => {
+    .then(({ resetToken, resUser, jwtToken }) => {
       return request(app)
         .get(`/api/auth/activate/${resetToken}`)
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.text).toContain('Профіль активовано');
-          return resUser;
+        .then(({ text }) => {
+          expect(text).toContain('Профіль активовано');
+          return { user: resUser, jwtToken };
         });
     })
-    .then((resUser: UserDoc) => {
-      return request(app)
-        .post('/api/auth/login')
-        .send({
-          emailAddress: resUser.emailAddress,
-          password: user.password,
-        })
-        .expect(httpStatus.OK)
-        .then(res => {
-          expect(Object.keys(res.body).sort()).toEqual(authFields.sort());
-          return { user: resUser, jwtToken: res.body.token };
-        });
-    })
-    .catch(e => e);
+    .catch(e => {
+      console.error(e);
+      return e;
+    });
 }
 
 /**

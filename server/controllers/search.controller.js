@@ -5,6 +5,7 @@
 
 // import APIError from '../helpers/APIError';
 import { UserDoc } from '../models/user.model';
+import Block from '../models/block.model';
 import Product from '../models/product.model';
 import config from '../config/config';
 
@@ -33,7 +34,7 @@ function escapeRegex(text) {
  * @property {Array<number>=} req.query.typeIds
  * @property {number} req.query.limit Limit number of products to be returned
  */
-function get(
+async function get(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -58,6 +59,15 @@ function get(
     query = { ...query, tags: regexTag };
   }
   if (typeIds) query = { ...query, typeIds: { $in: typeIds } };
+
+  const usersIamBlockedBy = await Block.find({ targetUser: req.user._id });
+
+  const usersIamBlocking = await Block.find({ sourceUser: req.user._id });
+
+  const idsA = usersIamBlockedBy.map(u => u.sourceUser);
+  const idsB = usersIamBlocking.map(u => u.targetUser);
+
+  query.seller = { $nin: [...idsA, ...idsB] };
 
   const projection = { comments: 0 };
 

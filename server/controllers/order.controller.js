@@ -10,7 +10,7 @@ import { UserDoc } from '../models/user.model';
 import notifCtrl, {
   NotifPayload,
 } from '../controllers/notification.controller';
-import Review from '../models/review.model';
+import Block from '../models/block.model';
 
 declare class express$Request extends express$Request {
   order: OrderDoc;
@@ -84,11 +84,16 @@ function create(
 
   Product.findOne({ uuid: req.body.product })
     .populate('seller')
-    .then((product: ProductDoc) => {
+    .then(async (product: ProductDoc) => {
       if (!product) {
         throw new APIError('Product not found', 404);
       }
-      if (product.status !== 'forsale') {
+
+      const blocking = await Block.count({
+        $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
+      });
+
+      if (product.status !== 'forsale' || blocking > 0) {
         throw new APIError(
           'This product is not longer for sale or is reserved.',
           httpStatus.BAD_REQUEST

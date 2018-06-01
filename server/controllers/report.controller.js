@@ -1,0 +1,166 @@
+// @flow
+
+import httpStatus from 'http-status';
+
+import APIError from '../helpers/APIError';
+import User, { UserDoc } from '../models/user.model';
+import Product from '../models/product.model';
+import Report from '../models/report.model';
+import config from '../config/config';
+
+declare class session$Request extends express$Request {
+  user: UserDoc;
+}
+
+/**
+ * Report products, comments and users
+ *
+ * GET /api/report
+ *
+ * @property {*} req - Express request
+ * @property {*} req.body - Express body parameters
+ */
+function get(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { limit = 50, categoryIds, description, tag, typeIds } = req.body;
+
+  let query;
+  if (config.env !== 'test') {
+    query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
+  }
+
+  if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
+  if (description) {
+    query = { ...query, description: regex };
+  }
+  if (tag) query = { ...query, tags: tag };
+  if (typeIds) query = { ...query, typeIds: { $in: typeIds } };
+
+  const projection = { comments: 0 };
+
+  // use static method from ProductSchema
+  // flow-disable-next-line
+  Product.find(query, projection)
+    .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+    .populate({
+      path: 'seller',
+      select: 'username',
+    })
+    .limit(+limit)
+    .then(data => res.json({ data }))
+    .catch(e => next(e));
+}
+
+/**
+ * Report products or users
+ *
+ * POST /api/report
+ *
+ * @property {*} req - Express request
+ * @property {*} req.body - Express body parameters
+ * @property {string} req.body.product
+ * @property {string} req.body.text
+ * @property {string} req.body.user
+ */
+async function create(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { product, text, user } = req.body;
+
+  if (req.user.accountStatus !== 'verified') {
+    const err = new APIError(
+      'Please verify your account before making a report',
+      httpStatus.BAD_REQUEST
+    );
+    return next(err);
+  }
+
+  const report = new Report({ text });
+
+  if (user) {
+    let foundUser;
+    try {
+      foundUser = await User.findById(user);
+      if (!foundUser) {
+        throw new APIError('User not found', httpStatus.NOT_FOUND);
+      }
+      if (foundUser._id.toString() === req.user._id.toString()) {
+        throw new APIError('Cannot report yourself', httpStatus.BAD_REQUEST);
+      }
+      if (foundUser.accountStatus == 'deleted') {
+        throw new APIError(
+          'Cannot report a deleted user',
+          httpStatus.BAD_REQUEST
+        );
+      }
+    } catch (err) {
+      return next(err);
+    }
+
+    report.user = foundUser._id;
+  }
+
+  if (product) {
+    let foundProduct;
+    try {
+      foundProduct = await Product.findOne({ uuid: product });
+      if (!foundProduct) {
+        throw new APIError('Product not found', httpStatus.NOT_FOUND);
+      }
+      if (
+        foundProduct.status === 'banned' ||
+        foundProduct.status === 'deleted'
+      ) {
+        throw new APIError(
+          'Product is deleted or banned',
+          httpStatus.NOT_FOUND
+        );
+      }
+      if (foundProduct.seller.toString() === req.user._id.toString()) {
+        throw new APIError(
+          'Cannot report your product',
+          httpStatus.BAD_REQUEST
+        );
+      }
+    } catch (err) {
+      return next(err);
+    }
+
+    report.product = foundProduct._id;
+  }
+
+  report.reporter = req.user._id;
+
+  return report
+    .save()
+    .then(report => {
+      return res.status(httpStatus.CREATED).json({ data: report });
+    })
+    .catch(err => {
+      if (!(err instanceof APIError)) {
+        // mongoose validation error for neither 'user' or 'product' fields
+        if (err.name == 'ValidationError') {
+          err = new APIError(
+            'Report a user or product',
+            httpStatus.BAD_REQUEST
+          );
+        } else {
+          err = new APIError(
+            'Error reporting',
+            httpStatus.INTERNAL_SERVER_ERROR
+          );
+        }
+      }
+      next(err);
+    });
+}
+
+export default {
+  // get,
+  create,
+};

@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
+import Block from '../models/block.model';
 
 const Schema = mongoose.Schema;
 
@@ -224,9 +225,18 @@ OrderSchema.statics = {
    * @param {number} query.limit Limit number of orders to be returned.
    * @returns {Promise<OrderDoc[]>}
    */
-  list({ myid, skip = 0, limit = 50 }): Promise<OrderDoc[]> {
+  async list({ myid, skip = 0, limit = 50 }): Promise<OrderDoc[]> {
+    const usersIamBlockedBy = await Block.find({ targetUser: myid });
+
+    const usersIamBlocking = await Block.find({ sourceUser: myid });
+
+    const idsA = usersIamBlockedBy.map(u => u.sourceUser);
+    const idsB = usersIamBlocking.map(u => u.targetUser);
+
     return this.find({
       $or: [{ buyer: myid }, { seller: myid }],
+      buyer: { $nin: [...idsA, ...idsB] },
+      seller: { $nin: [...idsA, ...idsB] },
     })
       .sort({ createdAt: -1 })
       .populate({

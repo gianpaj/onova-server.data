@@ -25,14 +25,17 @@ declare class session$Request extends express$Request {
  * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of products to be returned.
  */
-function flat(
+async function flat(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
   const { limit = 50, lastId, categoryIds, tag, typeIds } = req.query;
 
-  Follow.find({ follower: req.user._id })
+  Follow.find({
+    follower: req.user._id,
+    status: { $ne: -1 },
+  })
     .limit(1000) // following
     .then((following: Array<FollowDoc>) => {
       if (!following) return res.json({ data: [] });
