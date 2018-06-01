@@ -1,9 +1,11 @@
 // @flow
-
 import mongoose from 'mongoose';
+import httpStatus from 'http-status';
+
+import APIError from '../helpers/APIError';
 
 /**
- * User, Comment or Product reporting Schema
+ * User or Product reporting Schema
  */
 const ReportSchema = new mongoose.Schema({
   // comment: {
@@ -49,6 +51,14 @@ export class ReportDoc /*:: extends Mongoose$Document */ {
 }
 
 ReportSchema.loadClass(ReportDoc);
+
+ReportSchema.post('save', function(error: Error, doc, next) {
+  if (error.code === 11000) {
+    const APIerr = new APIError('Duplicate report', httpStatus.BAD_REQUEST);
+    return next(APIerr);
+  }
+  next(error);
+});
 
 // Never return '__v' or 'id' fields in the JSON representation
 // Note that this doesn't effect `toObject`
