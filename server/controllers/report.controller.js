@@ -173,7 +173,7 @@ async function create(
   return report
     .save()
     .then(report => {
-      if (config.env !== 'production') {
+      if (config.env === 'production') {
         webhook.send(slackJSON, err => {
           if (err) return console.error('Slack Error:', err);
           console.log('Report sent to Slack');
