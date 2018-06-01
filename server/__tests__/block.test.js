@@ -239,7 +239,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should find products without the firstUser`s item', () => {
+  it('should search products without the firstUser`s item', () => {
     return request(app)
       .get('/api/search?typeIds=3')
       .set('Authorization', users[0].jwtToken)
@@ -251,7 +251,7 @@ describe('## Block methods', () => {
       });
   });
 
-  it('should find products without the user 0`s item', () => {
+  it('should search products without the user 0`s item', () => {
     return request(app)
       .get('/api/search?typeIds=3')
       .set('Authorization', firstUser.jwtToken)
@@ -261,6 +261,14 @@ describe('## Block methods', () => {
         expect(body.data[1].uuid).toBe(firstUser.productUuid);
         expect(body.data).toHaveLength(2);
       });
+  });
+
+  it("should NOT get user 0's products items", () => {
+    return request(app)
+      .get(`/api/products?userid=${users[0]._id}`)
+      .set('Authorization', firstUser.jwtToken)
+      .expect(httpStatus.OK)
+      .then(({ body }) => expect(body.data).toHaveLength(0));
   });
 
   it('should get who is firstUser following except user 0', () => {
