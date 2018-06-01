@@ -54,6 +54,9 @@ const envVarsSchema = Joi.object({
   CHATKIT_KEY: Joi.string()
     .required()
     .description('Chatkit key'),
+  SLACK_WEBHOOK_URL: Joi.string()
+    .required()
+    .description('Slack Webhook URL (for reporting)'),
 })
   .unknown()
   .required();
@@ -87,6 +90,8 @@ const config = {
     instanceLocator: envVars.CHATKIT_INSTANCE,
     key: envVars.CHATKIT_KEY,
   },
+
+  SLACK_WEBHOOK_URL: envVars.SLACK_WEBHOOK_URL,
 
   // hard coded settings
   JOBNAMES: {
