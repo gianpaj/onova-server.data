@@ -10,7 +10,7 @@ import Tag from '../models/tag.model';
 import User from '../models/user.model';
 import Product from '../models/product.model';
 import Verification from '../models/verification.model';
-import { createProduct, createUserAndLogin } from './utils';
+import { createProduct, createUserAndLogin, createManyProducts } from './utils';
 
 /**
  * root level hooks
@@ -319,7 +319,7 @@ describe('## Feed APIs', () => {
 
     let lastId;
 
-    it('should get feed with pagination', async () => {
+    it('should get feed without pagination', async () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', anotherJwtToken)
@@ -354,26 +354,3 @@ describe('## Feed APIs', () => {
     });
   });
 });
-
-async function createManyProducts(num: number, jwtToken: string) {
-  let p = {
-    categoryIds: [2],
-    typeIds: [1, 4],
-    tags: ['warm', 'bundle'],
-    description: 'nice pair of socks',
-  };
-
-  const items = [];
-  for (let i = 0; i <= num; i++) {
-    // $FlowFixMe
-    p.price = Math.floor(Math.random() * 50);
-    items.push(p);
-  }
-  return await Promise.all(
-    items.map(async item => {
-      await createProduct(item, jwtToken);
-    })
-  )
-    .then(res => res)
-    .catch(e => e);
-}
