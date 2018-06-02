@@ -137,7 +137,13 @@ function create(
       //   product.photoURIs.push('UPLOADING_PIC');
       // }
 
-      photos.uploadProductImages(product, req.files);
+      if (config.env == 'test') {
+        product.photoURIs = [
+          'http://assets.onova.co/products/B11zDErJQ-1-1527232263107.jpg',
+        ];
+      } else {
+        photos.uploadProductImages(product, req.files);
+      }
 
       return product
         .save()

@@ -202,3 +202,26 @@ export function createOrder(
       return o;
     });
 }
+
+export async function createManyProducts(num: number, jwtToken: string) {
+  let p = {
+    categoryIds: [2],
+    typeIds: [1],
+    tags: ['warm', 'bundle'],
+    description: 'nice pair of socks',
+  };
+
+  const items = [];
+  for (let i = 0; i <= num; i++) {
+    // $FlowFixMe
+    p.price = Math.floor(Math.random() * 50);
+    items.push(p);
+  }
+  return await Promise.all(
+    items.map(async item => {
+      await createProduct(item, jwtToken);
+    })
+  )
+    .then(res => res)
+    .catch(e => e);
+}

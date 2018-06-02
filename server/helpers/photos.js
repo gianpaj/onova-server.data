@@ -47,8 +47,6 @@ const uploadMulter = multer({
  * Upload product images to GCS
  */
 function uploadProductImages(product: ProductDoc, files: Array<any>) {
-  if (config.env == 'test') return;
-
   files.forEach((image, i) => {
     const gcsname = `products/${product.uuid}-${i + 1}.jpg`;
     const file = bucket.file(gcsname);

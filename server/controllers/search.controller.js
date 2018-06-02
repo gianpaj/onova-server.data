@@ -31,6 +31,7 @@ function escapeRegex(text) {
  * @property {string} req.query.description
  * @property {string} req.query.tag Limited to a single tag
  * @property {Array<number>=} req.query.typeIds
+ * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of products to be returned
  */
 function get(
@@ -38,7 +39,14 @@ function get(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, categoryIds, description, tag, typeIds } = req.query;
+  const {
+    limit = 50,
+    lastId,
+    categoryIds,
+    description,
+    tag,
+    typeIds,
+  } = req.query;
 
   let query = {
     status: 'forsale',
@@ -58,17 +66,36 @@ function get(
 
   const projection = { comments: 0 };
 
-  // use static method from ProductSchema
-  // flow-disable-next-line
-  Product.find(query, projection)
-    .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-    .populate({
-      path: 'seller',
-      select: 'username',
-    })
-    .limit(+limit)
-    .then(data => res.json({ data }))
-    .catch(e => next(e));
+  // for pagination - results are excluding the lastId
+  if (lastId) {
+    query = { ...query, _id: { $gte: lastId } };
+
+    return Product.findById(lastId).then(product => {
+      if (!product) {
+        throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+      }
+      return Product.find(query, projection)
+        .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+        .populate({
+          path: 'seller',
+          select: 'username',
+        })
+        .limit(+limit)
+        .then(data => res.json({ data }));
+    });
+  } else {
+    // using static method from ProductSchema
+    // flow-disable-next-line
+    Product.find(query, projection)
+      .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+      .populate({
+        path: 'seller',
+        select: 'username',
+      })
+      .limit(+limit)
+      .then(data => res.json({ data }))
+      .catch(e => next(e));
+  }
 }
 
 export default {
