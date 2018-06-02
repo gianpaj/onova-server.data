@@ -10,7 +10,12 @@ import Tag from '../models/tag.model';
 import User from '../models/user.model';
 import Product from '../models/product.model';
 import Verification from '../models/verification.model';
-import { createProduct, createUserAndLogin, productFields } from './utils';
+import {
+  createProduct,
+  createUserAndLogin,
+  productFields,
+  createManyProducts,
+} from './utils';
 
 /**
  * root level hooks
@@ -67,6 +72,7 @@ let firstJwtToken;
 let anotherJwtToken;
 
 describe('## Search APIs', () => {
+  // TODO: reset the collections for every set of tests (beforEach)
   beforeAll(done => {
     const collections = [
       Follow.collection,
@@ -469,6 +475,52 @@ describe('## Search APIs', () => {
           const { data } = res.body;
           expect(data[0].uuid).toBe(descriptionProductUUID);
           expect(data).toHaveLength(4);
+        });
+    });
+  });
+
+  describe('# GET /api/search/?lastId=', () => {
+    // delete all Products
+    beforeAll(done => {
+      const collections = [Product.collection];
+      var todo = collections.length;
+      if (!todo) return done();
+
+      collections.forEach(collection => {
+        collection.remove({}, { safe: true }, () => {
+          if (--todo === 0) done();
+        });
+      });
+    });
+
+    beforeAll(async () => {
+      const a = await createManyProducts(105, anotherJwtToken);
+      if (a instanceof Error) console.error(a);
+    });
+
+    let lastId;
+
+    it('should search without pagination', async () => {
+      return request(app)
+        .get('/api/search/?categoryIds=2')
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data).toHaveLength(50);
+          lastId = data[49]._id;
+        });
+    });
+
+    it('should get feed with load more', async () => {
+      return request(app)
+        .get(`/api/search/?categoryIds=2&lastId=${lastId}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0]._id).not.toBe(lastId);
+          expect(data).toHaveLength(50);
         });
     });
   });

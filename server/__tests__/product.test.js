@@ -134,7 +134,9 @@ describe('## Product APIs', () => {
           expect(p.description).toBe(product.description);
           expect(Array.isArray(p.likes));
           expect(p.likes).toHaveLength(0);
-          expect(p.photoURIs).toEqual([]);
+          expect(p.photoURIs).toEqual([
+            'http://assets.onova.co/products/B11zDErJQ-1-1527232263107.jpg',
+          ]);
           expect(p.price).toBe(product.price);
           // flow-disable-next-line
           expect(p.seller).toBe(user._id);
@@ -284,7 +286,7 @@ describe('## Product APIs', () => {
           expect(p.tags).toHaveLength(2);
           expect(p.typeIds.sort()).toEqual([1, 2, 3]);
           expect(p.categoryIds.sort()).toEqual([1, 2, 3]);
-          expect(p.photoURIs).toHaveLength(0);
+          expect(p.photoURIs).toHaveLength(1);
         });
     });
 

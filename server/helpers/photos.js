@@ -51,8 +51,6 @@ const uploadMulter = multer({
  * Upload product images to GCS
  */
 function uploadProductImages(product: ProductDoc, files: Array<any>) {
-  if (config.env == 'test') return;
-
   const uploadDate = Date.now();
 
   // generate thumbnails
