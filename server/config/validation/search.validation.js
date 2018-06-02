@@ -44,9 +44,9 @@ export default {
             .max(5)
         )
         .single(),
-      // lastId: Joi.string()
-      //   .hex()
-      //   .length(24),
+      lastId: Joi.string()
+        .hex()
+        .length(24),
     },
   },
 };
