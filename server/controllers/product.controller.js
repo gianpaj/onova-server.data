@@ -173,7 +173,7 @@ function create(
  *
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
- * @property {number} req.query.skip Number of products to be skipped.
+ * @property {number} req.query.lastId
  * @property {number} req.query.limit Limit number of products to be returned.
  * @property {string} req.query.userid
  * @property {string} req.query.username
@@ -184,7 +184,7 @@ async function list(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, skip = 0, tags, userid, username } = req.query;
+  const { limit = 50, lastId, tags, userid, username } = req.query;
   const projection = { comments: 0 };
   let query = {
     status: 'forsale',
@@ -230,11 +230,24 @@ async function list(
       .catch(e => next(e));
   }
 
-  // use static method from ProductSchema
-  // flow-disable-next-line
-  Product.list({ query, projection, limit, skip })
-    .then(products => res.json({ data: products }))
-    .catch(e => next(e));
+  // for pagination - results are excluding the lastId
+  if (lastId) {
+    query = { ...query, _id: { $gte: lastId } };
+
+    return Product.findById(lastId).then(product => {
+      if (!product) {
+        throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+      }
+      return Product.list({ query, projection, limit })
+        .then(data => res.json({ data }))
+        .catch(e => next(e));
+    });
+  } else {
+    // use static method from ProductSchema
+    Product.list({ query, projection, limit })
+      .then(data => res.json({ data }))
+      .catch(e => next(e));
+  }
 }
 
 /**
