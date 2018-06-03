@@ -119,9 +119,6 @@ export default {
       limit: Joi.number()
         .min(1)
         .max(50),
-      skip: Joi.number()
-        .min(1)
-        .max(50),
       userid: Joi.string()
         .hex()
         .length(24),
@@ -137,6 +134,9 @@ export default {
             .max(30)
         )
         .max(10),
+      lastId: Joi.string()
+        .hex()
+        .length(24),
     },
   },
 };

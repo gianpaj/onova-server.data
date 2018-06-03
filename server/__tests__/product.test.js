@@ -334,18 +334,6 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should get only the first product', () => {
-      return request(app)
-        .get('/api/products/?limit=1&skip=2')
-        .expect(httpStatus.OK)
-        .then(res => {
-          const p = res.body.data;
-          expect(Array.isArray(p));
-          expect(p).toHaveLength(1);
-          expect(p[0].description).toBe(product.description);
-        });
-    });
-
     it("should get only the user's products by userid", () => {
       return request(app)
         .get(`/api/products/?userid=${user._id}`)

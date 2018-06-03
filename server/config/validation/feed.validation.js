@@ -19,9 +19,6 @@ export default {
       limit: Joi.number()
         .min(1)
         .max(50),
-      skip: Joi.number()
-        .min(1)
-        .max(50),
       categoryIds: Joi.array()
         .unique()
         .max(5)
