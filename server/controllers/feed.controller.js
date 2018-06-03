@@ -51,7 +51,7 @@ async function flat(
 
       // for pagination - results are excluding the lastId
       if (lastId) {
-        DBquery = { ...DBquery, _id: { $gte: lastId } };
+        DBquery = { ...DBquery, _id: { $lt: lastId } };
 
         return Product.findById(lastId).then(product => {
           if (!product) {

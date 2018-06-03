@@ -81,7 +81,7 @@ async function get(
 
   // for pagination - results are excluding the lastId
   if (lastId) {
-    query = { ...query, _id: { $gte: lastId } };
+    query = { ...query, _id: { $lt: lastId } };
 
     return Product.findById(lastId).then(product => {
       if (!product) {

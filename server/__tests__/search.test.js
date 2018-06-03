@@ -520,6 +520,7 @@ describe('## Search APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data[0]._id).not.toBe(lastId);
+          expect(data[data.length - 1]._id).not.toBe(lastId);
           expect(data).toHaveLength(50);
         });
     });

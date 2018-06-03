@@ -319,7 +319,7 @@ describe('## Feed APIs', () => {
 
     let lastId;
 
-    it('should get feed without pagination', async () => {
+    it('should get feed without pagination', () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', anotherJwtToken)
@@ -327,19 +327,36 @@ describe('## Feed APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data).toHaveLength(50);
-          lastId = data[49]._id;
+          lastId = data[data.length - 1]._id;
         });
     });
 
-    it('should get feed with load more', async () => {
+    it('should get feed with load more', () => {
+      console.log(lastId);
       return request(app)
-        .get(`/api/feed/flat?lastId=${lastId}`)
+        .get(`/api/feed/flat?lastId=${lastId}&limit=5`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
           expect(data[0]._id).not.toBe(lastId);
-          expect(data).toHaveLength(50);
+          expect(data[data.length - 1]._id).not.toBe(lastId);
+          expect(data).toHaveLength(5);
+          lastId = data[data.length - 1]._id;
+        });
+    });
+
+    it('should get feed with load more again', () => {
+      console.log(lastId);
+      return request(app)
+        .get(`/api/feed/flat?lastId=${lastId}&limit=5`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data[0]._id).not.toBe(lastId);
+          expect(data[data.length - 1]._id).not.toBe(lastId);
+          expect(data).toHaveLength(5);
         });
     });
 
