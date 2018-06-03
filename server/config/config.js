@@ -108,13 +108,14 @@ const config = {
     orderPendingFor: 3600,
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
   },
-  DEFAULT_USERNAMES_TO_FOLLOW: [
-    'seller1',
-    'seller2',
-    'seller3',
-    'seller4',
-    'seller5',
-  ],
+  DEFAULT_FOLLOW: true,
+  // DEFAULT_USERNAMES_TO_FOLLOW: [
+  //   'seller1',
+  //   'seller2',
+  //   'seller3',
+  //   'seller4',
+  //   'seller5',
+  // ],
 };
 
 export default config;
