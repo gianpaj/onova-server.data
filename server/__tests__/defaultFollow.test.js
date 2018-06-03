@@ -3,6 +3,7 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import app from '../index';
 import Follow from '../models/follow.model';
@@ -83,7 +84,7 @@ describe('## Default Follow methods', () => {
       defaultSellers[i].jwtToken = jwtToken;
 
       await DefaultFollow.create({ user: defaultSellers[i]._id });
-      console.log('default user created:', defaultSellers[i].username);
+      debug('default user created:', defaultSellers[i].username);
     }
 
     const { user, jwtToken } = await createUserAndLogin(firstPerson);
@@ -91,7 +92,7 @@ describe('## Default Follow methods', () => {
     firstPerson.jwtToken = jwtToken;
   });
 
-  it('should follow 5 users after an account is created', async () => {
+  it('should follow 5 users after an account is created', () => {
     return request(app)
       .get(`/api/users/${firstPerson._id}`)
       .expect(httpStatus.OK)

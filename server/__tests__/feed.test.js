@@ -332,7 +332,6 @@ describe('## Feed APIs', () => {
     });
 
     it('should get feed with load more', () => {
-      console.log(lastId);
       return request(app)
         .get(`/api/feed/flat?lastId=${lastId}&limit=5`)
         .set('Authorization', anotherJwtToken)
@@ -347,7 +346,6 @@ describe('## Feed APIs', () => {
     });
 
     it('should get feed with load more again', () => {
-      console.log(lastId);
       return request(app)
         .get(`/api/feed/flat?lastId=${lastId}&limit=5`)
         .set('Authorization', anotherJwtToken)

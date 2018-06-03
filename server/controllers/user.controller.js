@@ -146,7 +146,7 @@ async function create(
 
       return user.save().then(async (savedUser: UserDoc) => {
         // if we should Auto Follow certain users by default
-        if (config.DEFAULT_USERNAMES_TO_FOLLOW.length !== 0) {
+        if (config.DEFAULT_FOLLOW) {
           followDefaultUsers(savedUser)
             .then((num: Number) => {
               if (num) debug(`followed ${num} default users`);
@@ -195,28 +195,16 @@ async function create(
  */
 function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
   return new Promise((resolve, reject) => {
-    // default users should not follow themselves
-    if (config.DEFAULT_USERNAMES_TO_FOLLOW.indexOf(newUser.username) > -1) {
-      return resolve();
-    }
-    User.find({ username: { $in: config.DEFAULT_USERNAMES_TO_FOLLOW } })
+    DefaultFollow.find()
       .then(users => {
         if (users.length == 0) {
           // FIXME: hide error in a better way - see internalFollow() method
-          return resolve();
           // return reject(new Error('there are no default users to follow'));
+          return resolve();
         }
-        return DefaultFollow.find({
-          user: {
-            $in: users.map(u => u._id),
-          },
-        });
+        return users;
       })
       .then(async follows => {
-        if (follows.length == 0) {
-          return reject(new Error('there are no default followers'));
-        }
-
         for (const follow of follows) {
           await followController
             .internalFollow(newUser, follow.user)
