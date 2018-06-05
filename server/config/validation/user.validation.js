@@ -87,6 +87,11 @@ export default {
         country: Joi.string(),
         postcode: Joi.string(),
       },
+      facebook: Joi.string(),
+      accessToken: Joi.string().when('facebook', {
+        is: Joi.exist(),
+        then: Joi.required(),
+      }),
     },
     params: {
       userId: Joi.string()

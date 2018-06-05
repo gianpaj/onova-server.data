@@ -48,6 +48,14 @@ const envVarsSchema = Joi.object({
   CLOUD_BUCKET: Joi.string()
     .required()
     .description('Google Cloud Storage bucket'),
+  FACEBOOK_APP_ID: Joi.string()
+    .required()
+    .description(
+      'Facebook APP ID for Login? and Posting item on sellers` walls'
+    ),
+  FACEBOOK_APP_SECRET: Joi.string()
+    .required()
+    .description('Facebook APP Secret'),
 })
   .unknown()
   .required();
@@ -76,6 +84,8 @@ const config = {
     apikeyPrivate: envVars.MJ_APIKEY_PRIVATE,
   },
   CLOUD_BUCKET: envVars.CLOUD_BUCKET,
+  FACEBOOK_APP_ID: envVars.FACEBOOK_APP_ID,
+  FACEBOOK_APP_SECRET: envVars.FACEBOOK_APP_SECRET,
 
   // hard coded settings
   JOBNAMES: {
