@@ -488,6 +488,28 @@ describe('## User APIs', () => {
         })
         .catch(done);
     });
+
+    it("should update user's facebook access token", () => {
+      const tempuser = {
+        ...user,
+        facebook: '101010101',
+        accessToken: 'FBaccesssToen1020Numbers',
+      };
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({
+          facebook: tempuser.facebook,
+          accessToken: tempuser.accessToken,
+        })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe(tempuser.emailAddress);
+          expect(body.username).toBe(tempuser.username);
+          expect(body.facebook).toEqual(tempuser.facebook);
+          expect(body.tokens[0].accessToken).toEqual(tempuser.accessToken);
+        });
+    });
   });
 
   describe('# GET /api/users/', () => {

@@ -50,6 +50,8 @@ const UserSchema = new Schema(
       lowercase: true,
       // validated at API level via 'Joi' and 'isEmail' npm packages
     },
+    facebook: String,
+    tokens: [{ kind: String, accessToken: String }],
     followersCount: {
       type: Number,
       required: true,
@@ -148,6 +150,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   deletedAt: ?Date;
   displayName: ?string;
   emailAddress: string;
+  facebook: string;
   followersCount: number;
   followingCount: number;
   mobileNumber: ?string;
@@ -159,6 +162,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   ratingsTotal: number;
   reviewsCount: number;
   shippingAddress: ?any;
+  tokens: Array<any>;
   updatedAt: Date;
   username: string;
 }
@@ -256,6 +260,7 @@ UserSchema.set('toJSON', {
 
 UserSchema.index({ emailAddress: 1 }, { unique: true });
 UserSchema.index({ username: 1 }, { unique: true });
+UserSchema.index({ facebook: 1 }, { unique: true, sparse: true });
 
 /**
  * @memberof UserSchema
