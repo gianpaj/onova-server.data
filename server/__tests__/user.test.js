@@ -10,7 +10,7 @@ import app from '../index';
 import config from '../config/config';
 import Verification from '../models/verification.model';
 import Follow from '../models/follow.model';
-import User from '../models/user.model';
+import User, { UserDoc } from '../models/user.model';
 import DefaultFollow from '../models/defaultFollow.model';
 import { createUserAndLogin, userFields } from './utils';
 
@@ -47,7 +47,8 @@ describe('## User APIs', () => {
     });
   });
 
-  let user = {
+  // $FlowFixMe
+  let user: UserDoc = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
@@ -69,26 +70,30 @@ describe('## User APIs', () => {
     exp_year: '20',
   };
 
-  let anotherUser = {
+  // $FlowFixMe
+  let anotherUser: UserDoc = {
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
     mobileNumber: '1234567890', // optional
     password: 'express2',
   };
 
-  let thirdUser = {
+  // $FlowFixMe
+  let thirdUser: UserDoc = {
     username: 'thirdwheel',
     emailAddress: 'gianpa+thirdwheel@gmail.com',
     password: 'express3',
   };
 
-  let forthUser = {
+  // $FlowFixMe
+  let forthUser: UserDoc = {
     username: 'forthuser',
     emailAddress: 'gianpa+forthuser@gmail.com',
     password: 'express3',
   };
 
-  const invalidUserCredentials = {
+  // $FlowFixMe
+  const invalidUserCredentials: UserDoc = {
     emailAddress: 'gianpa-react@gmail.com',
     password: 'IDontKnow',
   };
@@ -506,8 +511,21 @@ describe('## User APIs', () => {
         .then(({ body }) => {
           expect(body.emailAddress).toBe(tempuser.emailAddress);
           expect(body.username).toBe(tempuser.username);
-          expect(body.facebook).toEqual(tempuser.facebook);
-          expect(body.tokens[0].accessToken).toEqual(tempuser.accessToken);
+          expect(body.facebook).toBe(tempuser.facebook);
+          expect(body.tokens[0].accessToken).toBe(tempuser.accessToken);
+        });
+    });
+
+    it('should get the accessToken', () => {
+      return request(app)
+        .get(`/api/users/${userId}/personal`)
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.username).toBe(user.username);
+          expect(body.facebook).toBe('101010101');
+          expect(body.tokens[0].accessToken).toBe('FBaccesssToen1020Numbers');
         });
     });
   });
@@ -560,7 +578,8 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/?u=<username>', () => {
-    const people = [
+    // $FlowFixMe
+    const people: Array<UserDoc> = [
       {
         username: 'johnone',
         emailAddress: 'gianpa+john@gmail.com',
@@ -601,7 +620,7 @@ describe('## User APIs', () => {
 
       // delete `maria`
       const m = await request(app)
-        .delete(`/api/users/${people[3]._id}`)
+        .delete(`/api/users/${people[3]._id.toString()}`)
         .set('Authorization', people[3].jwtToken)
         .expect(httpStatus.OK);
       expect(m.body.emailAddress).toBe(people[3].emailAddress);
@@ -609,7 +628,7 @@ describe('## User APIs', () => {
 
       // update profile pic of `johntwo`
       await request(app)
-        .put(`/api/users/${people[1]._id}`)
+        .put(`/api/users/${people[1]._id.toString()}`)
         .set('Authorization', people[1].jwtToken)
         .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
         .field('displayName', 'displayName the second john')
@@ -617,12 +636,11 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK);
     });
 
-    it('should get all users which username contains `johntwo`', async () => {
+    it('should get all users which username contains `johntwo`', () => {
       const userFields = [
         '_id',
         'accountStatus',
         'bio',
-        'id',
         'username',
         'displayName',
         'profilePic',
@@ -638,7 +656,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should get all users which username contains `person`', async () => {
+    it('should get all users which username contains `person`', () => {
       return request(app)
         .get('/api/users?u=person')
         .expect(httpStatus.OK)
@@ -648,7 +666,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should get all users which username contains `john`', async () => {
+    it('should get all users which username contains `john`', () => {
       return request(app)
         .get('/api/users?u=john')
         .expect(httpStatus.OK)
@@ -658,7 +676,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should not find deleted users', async () => {
+    it('should not find deleted users', () => {
       return request(app)
         .get('/api/users?u=maria')
         .expect(httpStatus.OK)
@@ -789,7 +807,7 @@ describe('## User APIs', () => {
   describe('# PUT /api/users/:userId', () => {
     it("should upload the user's profile pic", async () => {
       return request(app)
-        .put(`/api/users/${anotherUserId}`)
+        .put(`/api/users/${anotherUserId.toString()}`)
         .set('Authorization', anotherJwtToken)
         .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
         .expect(httpStatus.OK);

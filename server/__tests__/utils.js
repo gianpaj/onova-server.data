@@ -19,6 +19,7 @@ export const userFields = [
   'followingCount',
   'ratingsTotal',
   'reviewsCount',
+  'tokens',
   'username',
 ];
 

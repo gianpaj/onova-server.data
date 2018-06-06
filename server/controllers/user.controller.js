@@ -219,7 +219,7 @@ function update(
     user.facebook = body.facebook;
     user.tokens.push({
       accessToken: body.accessToken,
-      type: 'facebook',
+      kind: 'facebook',
     });
   }
   if (body.shippingAddress) user.shippingAddress = body.shippingAddress;
@@ -419,6 +419,8 @@ function _prepareUserJson(user: UserDoc): Object {
     bio: user.bio,
     displayName: user.displayName,
     emailAddress: user.emailAddress,
+    facebook: user.facebook,
+    tokens: user.tokens,
     followersCount: user.followersCount,
     followingCount: user.followingCount,
     profilePic: user.profilePic,
