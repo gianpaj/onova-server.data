@@ -51,7 +51,15 @@ const UserSchema = new Schema(
       // validated at API level via 'Joi' and 'isEmail' npm packages
     },
     facebook: String,
-    tokens: [{ kind: String, accessToken: String }],
+    tokens: [
+      {
+        kind: {
+          type: String,
+          enum: ['facebook', 'vk'],
+        },
+        accessToken: String,
+      },
+    ],
     followersCount: {
       type: Number,
       required: true,
@@ -142,7 +150,7 @@ const UserSchema = new Schema(
 );
 
 export class UserDoc /*:: extends Mongoose$Document */ {
-  _id: MongoId;
+  _id: bson$ObjectId;
   accountStatus: string;
   billingAddress: ?any;
   bio: ?string;
@@ -250,7 +258,6 @@ UserSchema.pre('save', function(next) {
 // Never return these fields in the JSON representation
 // This doesn't effect `toObject` method
 UserSchema.set('toJSON', {
-  getters: true,
   transform: (doc, ret) => {
     delete ret.password;
     delete ret.__v;
