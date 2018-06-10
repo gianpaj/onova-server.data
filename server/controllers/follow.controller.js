@@ -116,7 +116,10 @@ async function follow(
  * @param {UserDoc} sender
  * @param {String} targetUser _id or username
  */
-function internalFollow(sender: UserDoc, targetUser: String): Promise<any> {
+function internalFollow(
+  sender: UserDoc,
+  targetUser: String | MongoId
+): Promise<any> {
   // search by userId and username
   return User.findOne({
     $or: [{ username: targetUser }, { _id: targetUser }],
