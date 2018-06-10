@@ -20,6 +20,9 @@ const mentionsRegex = /@[a-zA-Z0-9\_\.]*/g;
 declare class session$Request extends express$Request {
   user: UserDoc;
   product: ProductDoc;
+  body: {
+    text: string,
+  };
 }
 
 /**
@@ -80,6 +83,7 @@ function create(
     usernames = usernames.map(u => u.replace('@', ''));
     User.find({ username: { $in: usernames } })
       .then(users => {
+        // $FlowFixMe
         usernames.forEach(u => {
           const userIndex = users.map(us => us.username).indexOf(u);
           const re = new RegExp(`@${u}`, 'g');
@@ -127,8 +131,10 @@ function saveComment(comment, req, res, next) {
     { new: true }
   )
     .then((product: ProductDoc) => {
+      // $FlowFixMe
       const lastCommment: CommentDoc =
         product.comments[product.comments.length - 1];
+      // $FlowFixMe
       const notif: NotifPayload = {
         data: {
           text: req.body.text,
@@ -161,6 +167,7 @@ function saveComment(comment, req, res, next) {
         if (comment.userIds) {
           comment.userIds.forEach(userId => {
             if (userId == req.user._id.toString()) return;
+            // $FlowFixMe
             const notifForMention: NotifPayload = {
               data: {
                 text: comment.rawText,
@@ -215,6 +222,7 @@ function remove(
 ) {
   const { product } = req;
 
+  // $FlowFixMe
   const comment: CommentDoc = product.comments.find(
     c => c._id == req.params.commentId
   );

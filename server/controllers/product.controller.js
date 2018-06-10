@@ -16,6 +16,13 @@ declare class session$Request extends express$Request {
   files: Array<any>;
   user: UserDoc;
   product: ProductDoc;
+  body: {
+    categoryIds: string,
+    description: string,
+    price: string,
+    typeIds: string,
+    tags: Array<TagDoc>,
+  };
 }
 
 /**
