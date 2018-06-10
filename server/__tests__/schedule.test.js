@@ -3,6 +3,7 @@
 import request from 'supertest';
 import httpStatus from 'http-status';
 import path from 'path';
+import addDays from 'date-fns/add_days';
 
 import app from '../index';
 import { agenda } from '../config/express';
@@ -149,6 +150,17 @@ describe('## Schedule APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('must be larger than or equal')
+        );
+    });
+
+    it('should NOT scheduled an item after 3 months from today', () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken)
+        .send({ ...product, date: addDays(new Date(Date.now()), 91) })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Cannot schedule listings after 90')
         );
     });
   });
