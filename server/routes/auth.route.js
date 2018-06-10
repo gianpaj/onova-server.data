@@ -51,4 +51,13 @@ router
   // POST /api/auth/reset/:token - Change user password
   .post(validate(paramValidation.resetForm), authCtrl.resetFormSubmit);
 
+router.route('/facebook').get(passport.authenticate('facebook'));
+
+router.route('/facebook/return').get(
+  passport.authenticate('facebook', { failureRedirect: '/uploader' })
+  // function(req, res) {
+  //   res.redirect('/');
+  // }
+);
+
 export default router;

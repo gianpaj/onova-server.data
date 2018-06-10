@@ -1,5 +1,5 @@
-// flow-typed signature: 69f47432b9a1b4cecc8ff725cc94d869
-// flow-typed version: 76dc0540fb/bluebird_v3.x.x/flow_>=v0.47.x
+// flow-typed signature: bd269ca2991f26900b73dc3723b8e843
+// flow-typed version: 1cb1933212/bluebird_v3.x.x/flow_>=v0.47.x <=v0.69.x
 
 type Bluebird$RangeError = Error;
 type Bluebird$CancellationErrors = Error;

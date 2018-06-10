@@ -421,11 +421,11 @@ describe('## Order APIs', () => {
           expect(o.length).toBe(3); // FIXME: use variables
           expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
           expect(Object.keys(o[0].buyer).sort()).toEqual(
-            ['_id', 'accountStatus', 'id', 'profilePic', 'username'].sort()
+            ['_id', 'accountStatus', 'profilePic', 'username'].sort()
           );
           // this user didn't upload the profilePic
           expect(Object.keys(o[0].seller).sort()).toEqual(
-            ['_id', 'accountStatus', 'id', 'username'].sort()
+            ['_id', 'accountStatus', 'username'].sort()
           );
         });
     });

@@ -23,7 +23,6 @@ import {
 const moreUserFields = [
   ...userFields,
   'createdAt',
-  'id',
   'mobileNumber',
   'platform',
   'pushToken',
