@@ -230,6 +230,8 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
  * @property {string=} req.body.password
  * @property {string=} req.body.platform
  * @property {string=} req.body.pushToken
+ * @property {string=} req.body.facebook
+ * @property {string=} req.body.accessToken
  * @property {string=} req.body.username
  * @property {string=} req.body.exp_month
  * @property {string=} req.body.exp_year
@@ -250,6 +252,13 @@ function update(
   if (body.password) user.password = body.password;
   if (body.platform) user.platform = body.platform;
   if (body.pushToken) user.pushToken = body.pushToken;
+  if (body.facebook) {
+    user.facebook = body.facebook;
+    user.tokens.push({
+      accessToken: body.accessToken,
+      kind: 'facebook',
+    });
+  }
   if (body.shippingAddress) user.shippingAddress = body.shippingAddress;
 
   if (body.last_four || body.exp_month || body.exp_year) {
@@ -459,6 +468,8 @@ function _prepareUserJson(user: UserDoc): Object {
     bio: user.bio,
     displayName: user.displayName,
     emailAddress: user.emailAddress,
+    facebook: user.facebook,
+    tokens: user.tokens,
     followersCount: user.followersCount,
     followingCount: user.followingCount,
     profilePic: user.profilePic,

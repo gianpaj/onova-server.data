@@ -287,7 +287,7 @@ describe('## Follow APIs', () => {
           expect(data[0].amIAFollower).toBe(true);
           expect(Object.keys(data[0]).sort()).toEqual(
             // profilePic
-            ['username', 'dateCreated', 'id', '_id', 'amIAFollower'].sort()
+            ['username', 'dateCreated', '_id', 'amIAFollower'].sort()
           );
         });
     });
@@ -319,7 +319,7 @@ describe('## Follow APIs', () => {
           expect(data[0].amIAFollower).toBe(true);
           expect(Object.keys(data[0]).sort()).toEqual(
             // profilePic
-            ['username', 'dateCreated', 'id', '_id', 'amIAFollower'].sort()
+            ['username', 'dateCreated', '_id', 'amIAFollower'].sort()
           );
         });
     });

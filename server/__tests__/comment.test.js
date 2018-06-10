@@ -342,7 +342,6 @@ describe('## Comment APIs', () => {
           expect(Object.keys(data.comments[0].user).sort()).toEqual([
             '_id',
             'accountStatus',
-            'id',
             'username',
           ]);
           expect(Object.keys(data.comments[0]).sort()).toEqual(
