@@ -200,7 +200,7 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
         if (users.length == 0) {
           // FIXME: hide error in a better way - see internalFollow() method
           // return reject(new Error('there are no default users to follow'));
-          return resolve();
+          return resolve(null);
         }
         return users;
       })

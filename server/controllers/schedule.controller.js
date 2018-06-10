@@ -103,6 +103,11 @@ function create(
           400
         );
       }
+
+      if (body.socials.indexOf('fb') > -1 && !seller.facebook) {
+        throw new APIError('Please authorize with Facebook', 400);
+      }
+
       product.seller = req.user._id;
 
       // for (let i = 0; i < req.files.length; i++) {

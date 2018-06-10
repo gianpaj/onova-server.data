@@ -8,16 +8,18 @@ import addDays from 'date-fns/add_days';
 import app from '../index';
 import { agenda } from '../config/express';
 
-import Verification from '../models/verification.model';
-import User from '../models/user.model';
-import Tag from '../models/tag.model';
+import DefaultFollow from '../models/defaultFollow.model';
 import Product from '../models/product.model';
+import Tag from '../models/tag.model';
+import User from '../models/user.model';
+import Verification from '../models/verification.model';
 import { createProduct, createUserAndLogin, productFields } from './utils';
 
 describe('## Schedule APIs', () => {
   beforeAll(done => {
     const collections = [
       Product.collection,
+      DefaultFollow.collection,
       Tag.collection,
       User.collection,
       Verification.collection,
@@ -115,6 +117,34 @@ describe('## Schedule APIs', () => {
   });
 
   describe('# POST /api/schedule', () => {
+    it("should NOT scheduled an item to FB if user doesn't have a FB token", () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken)
+        .send(product)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Please authorize with Facebook')
+        );
+    });
+  });
+
+  describe('# POST /api/schedule', () => {
+    // update Facebook Token
+    beforeAll(done => {
+      user.facebook = '101010101';
+      user.accessToken = 'FBaccesssToen1020Numbers';
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({ ...user, _id: undefined })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.facebook).toBe('101010101');
+          done();
+        });
+    });
+
     it('should schedule a listing', () => {
       return request(app)
         .post('/api/schedule')
