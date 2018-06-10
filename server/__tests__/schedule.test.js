@@ -1,0 +1,155 @@
+// @flow
+
+import request from 'supertest';
+import httpStatus from 'http-status';
+import path from 'path';
+
+import app from '../index';
+import { agenda } from '../config/express';
+
+import Verification from '../models/verification.model';
+import User from '../models/user.model';
+import Tag from '../models/tag.model';
+import Product from '../models/product.model';
+import { createProduct, createUserAndLogin, productFields } from './utils';
+
+describe('## Schedule APIs', () => {
+  beforeAll(done => {
+    const collections = [
+      Product.collection,
+      Tag.collection,
+      User.collection,
+      Verification.collection,
+    ];
+
+    var todo = collections.length;
+    if (!todo) return done();
+
+    collections.forEach(collection => {
+      collection.remove({}, { safe: true }, () => {
+        if (--todo === 0) done();
+      });
+    });
+  });
+
+  let user = {
+    username: 'firstperson',
+    emailAddress: 'gianpa+test@gmail.com',
+    mobileNumber: '1234567890', // optional
+    // displayName: 'first user',
+    password: 'expressos',
+  };
+
+  let anotherUser = {
+    username: 'anotherperson',
+    emailAddress: 'gianpa+test2@gmail.com',
+    mobileNumber: '1234567890', // optional
+    password: 'express2',
+  };
+
+  let product = {
+    categoryIds: [1, 2, 3],
+    date: new Date(Date.now() + 10000),
+    typeIds: [1, 2, 3],
+    tags: ['winter', 'spring2007'], // optional
+    description: 'nice boots',
+    price: '100.99',
+    photos: ['1527232263107'],
+    socials: 'fb',
+  };
+
+  let anotherProduct = {
+    categoryIds: [1],
+    typeIds: [1, 3],
+    description: 'nice jacket',
+    price: '230.99',
+    photos: ['1527232263107'],
+    socials: ['fb'],
+  };
+
+  let thirdProduct = {
+    categoryIds: [2],
+    typeIds: [1, 3],
+    tags: ['WINTER'],
+    description: 'nice scarf',
+    price: '30',
+    photos: ['1527232263107'],
+    socials: ['fb'],
+  };
+
+  let productUuid;
+  let jwtToken;
+  let anotherJwtToken;
+  let anotherProdUuid;
+  let thirdProdUuid;
+
+  let productsCounter = 0;
+
+  // create 2 users/sellers + Tag and upload profile pic of a seller
+  beforeAll(done => {
+    createUserAndLogin(user)
+      .then(({ user: resUser, jwtToken: token }) => {
+        user._id = resUser._id;
+        jwtToken = token;
+      })
+      .then(() => {
+        return request(app)
+          .put(`/api/users/${user._id}`)
+          .set('Authorization', jwtToken)
+          .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+          .expect(httpStatus.OK);
+      })
+      .then(() => {
+        return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
+      })
+      .then(() => {
+        return createUserAndLogin(anotherUser).then(
+          ({ user: resUser, jwtToken: token }) => {
+            anotherUser._id = resUser._id;
+            anotherJwtToken = token;
+            done();
+          }
+        );
+      });
+  });
+
+  describe('# POST /api/schedule', () => {
+    it('should schedule a listing', () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken)
+        .send(product)
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const p = body.data;
+          expect(p.categoryIds.sort()).toEqual(product.categoryIds);
+          expect(p.currency).toBe('UAH');
+          expect(p.description).toBe(product.description);
+          expect(p.photoURIs).toEqual(['1527232263107']);
+          expect(p.price).toBe(product.price);
+          expect(p.seller).toBe(user._id);
+          expect(p.status).toBe('forsale');
+          // expect(p.socials).toBe(product.socials);
+          expect(Array.isArray(p.tags));
+          expect(p.tags).toEqual(product.tags);
+          expect(p.typeIds.sort()).toEqual(product.typeIds);
+          expect(Object.keys(p).sort()).toEqual(
+            [...productFields, 'comments'].sort() // TODO: socials
+          );
+          productUuid = p.uuid;
+          productsCounter++;
+        });
+    });
+
+    it('should NOT schedule a listing in the past', () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken)
+        .send({ ...product, date: new Date('2018-05-28T20:23:20.000Z') })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('must be larger than or equal')
+        );
+    });
+  });
+});
