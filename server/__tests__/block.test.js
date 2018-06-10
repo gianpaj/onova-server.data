@@ -4,9 +4,6 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
-import { agenda } from '../config/express';
-import config from '../config/config';
-
 import app from '../index';
 import Block from '../models/block.model';
 import Follow from '../models/follow.model';
