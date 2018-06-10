@@ -81,9 +81,9 @@ function create(
     product.price += '0';
   }
 
-  if (differenceInCalendarDays(body.date, new Date(Date.now())) > 90) {
+  if (differenceInCalendarDays(body.date, Date.now()) > 90) {
     const APIerr = new APIError(
-      'Cannot schedule listings 90 days from today',
+      'Cannot schedule listings after 90 days from today',
       400
     );
     return next(APIerr);
