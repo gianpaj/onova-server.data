@@ -7,6 +7,7 @@ import addDays from 'date-fns/add_days';
 
 import app from '../index';
 import { agenda } from '../config/express';
+import config from '../config/config';
 
 import DefaultFollow from '../models/defaultFollow.model';
 import Product from '../models/product.model';
@@ -52,7 +53,7 @@ describe('## Schedule APIs', () => {
 
   let product = {
     categoryIds: [1, 2, 3],
-    date: new Date(Date.now() + 10000),
+    date: addDays(new Date(Date.now()), 1),
     typeIds: [1, 2, 3],
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
@@ -145,14 +146,20 @@ describe('## Schedule APIs', () => {
         });
     });
 
-    it('should schedule a listing', () => {
-      return request(app)
+    it('should schedule a listing', done => {
+      let myProductFields = [...productFields, 'comments'];
+      myProductFields = myProductFields.filter(f => f !== 'createdAt');
+      myProductFields = myProductFields.filter(f => f !== 'updatedAt');
+
+      request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken)
         .send(product)
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
-          const p = body.data;
+          const p = body.data.data.product;
+          expect(body.data.data.socials).toEqual([product.socials]);
+          expect(body.data.nextRunAt).toBe(product.date.toISOString());
           expect(p.categoryIds.sort()).toEqual(product.categoryIds);
           expect(p.currency).toBe('UAH');
           expect(p.description).toBe(product.description);
@@ -160,15 +167,23 @@ describe('## Schedule APIs', () => {
           expect(p.price).toBe(product.price);
           expect(p.seller).toBe(user._id);
           expect(p.status).toBe('forsale');
-          // expect(p.socials).toBe(product.socials);
           expect(Array.isArray(p.tags));
           expect(p.tags).toEqual(product.tags);
           expect(p.typeIds.sort()).toEqual(product.typeIds);
-          expect(Object.keys(p).sort()).toEqual(
-            [...productFields, 'comments'].sort() // TODO: socials
-          );
+          expect(Object.keys(p).sort()).toEqual([...myProductFields].sort());
           productUuid = p.uuid;
           productsCounter++;
+
+          // Check a Follow push notification has been scheduled
+          setTimeout(() => {
+            agenda.jobs({ name: config.JOBNAMES.SCHEDULE }, (err, jobs) => {
+              if (err) return done();
+              expect(jobs).toHaveLength(1);
+              const { data } = jobs.map(j => j.attrs)[0];
+              expect(data.product.description).toBe(product.description);
+              done();
+            });
+          }, 10);
         });
     });
 

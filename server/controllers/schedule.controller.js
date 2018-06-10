@@ -4,6 +4,7 @@ import shortid from 'shortid';
 import httpStatus from 'http-status';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 
+import { agenda } from '../config/express';
 import APIError from '../helpers/APIError';
 import Product, { ProductDoc } from '../models/product.model';
 import Tag, { TagDoc } from '../models/tag.model';
@@ -125,20 +126,22 @@ function create(
 
       // Copy images to assets' bucket
 
-      // body.socials;
+      const jobData = {
+        socials: body.socials,
+        product,
+      };
 
-      return product
-        .save()
-        .then(savedProduct => savedProduct)
-        .catch(() => {
-          throw new APIError(
-            'Error scheduling a listing',
-            httpStatus.INTERNAL_SERVER_ERROR
-          );
-        });
+      return agenda.schedule(
+        body.date,
+        config.JOBNAMES.SCHEDULE,
+        jobData,
+        err => {
+          if (err) throw new APIError(`Error scheduling a listing: ${err}`);
+        }
+      );
     })
-    .then(savedProduct => {
-      return res.status(httpStatus.CREATED).json({ data: savedProduct });
+    .then(savedListing => {
+      return res.status(httpStatus.CREATED).json({ data: savedListing });
     })
     .catch(e => next(e));
 }

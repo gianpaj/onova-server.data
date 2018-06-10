@@ -108,6 +108,7 @@ const config = {
     PUSHCOMMENT: 'send-push-comment',
     PUSHFOLLOW: 'send-push-follow',
     PUSHORDER: 'send-push-order',
+    SCHEDULE: 'listing-schedule',
   },
   settings: {
     // TODO: Hold products (for 'onhold' orders) for 15 minutes.
