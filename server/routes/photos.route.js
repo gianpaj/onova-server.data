@@ -8,7 +8,7 @@ import gcsSharp from 'multer-sharp';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 // import path from 'path';
 
-import config from '../config/config';
+// import config from '../config/config';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
