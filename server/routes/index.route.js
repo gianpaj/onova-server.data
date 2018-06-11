@@ -11,6 +11,7 @@ import reportRoutes from './report.route';
 import searchRoutes from './search.route';
 import scheduleRoutes from './schedule.route';
 import userRoutes from './user.route';
+import photosRoutes from './photos.route';
 import reviewRoutes from './review.route';
 
 const router = express.Router();
@@ -46,5 +47,7 @@ router.use('/users', userRoutes);
 
 // mount users reviews routes at /users/:userId/reviews
 router.use('/users', reviewRoutes);
+
+router.use('/photos', photosRoutes);
 
 export default router;
