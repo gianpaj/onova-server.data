@@ -7,7 +7,7 @@ import httpStatus from 'http-status';
 import bcrypt from 'bcrypt';
 
 import APIError from '../helpers/APIError';
-import validation from '../helpers/validation';
+// import validation from '../helpers/validation';
 import config from '../config/config';
 
 const Schema = mongoose.Schema;
@@ -255,6 +255,17 @@ UserSchema.pre('save', function(next) {
     user.password = hash;
     next();
   });
+});
+
+UserSchema.post('save', function(error: Error, doc, next) {
+  console.log(error);
+  if (error.code === 11000 && error.message.includes('facebook_1 dup')) {
+    const APIerr = new APIError(
+      'Duplicate facebook id',
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
 });
 
 // Never return these fields in the JSON representation
