@@ -24,7 +24,7 @@ const storage = gcsSharp({
   acl: 'publicRead',
   filename: (req, file, cb) => {
     const uploadDate = Date.now();
-    cb(null, `${uploadDate}`);
+    cb(null, uploadDate.toString());
   },
   sizes: [
     {
