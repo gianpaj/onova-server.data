@@ -132,18 +132,44 @@ describe('## Schedule APIs', () => {
 
   describe('# POST /api/schedule', () => {
     // update Facebook Token
-    beforeAll(done => {
+    beforeAll(async () => {
       user.facebook = '101010101';
       user.accessToken = 'FBaccesssToen1020Numbers';
-      return request(app)
+      await request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
         .send({ ...user, _id: undefined })
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.facebook).toBe('101010101');
-          done();
         });
+      await request(app)
+        .post('/api/photos/upload')
+        .set('Authorization', jwtToken)
+        .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.originalname).toBe('boots-large.jpg');
+          expect(body.data.fieldname).toBe('photo');
+          expect(body.data.encoding).toBe('7bit');
+          expect(body.data.mimetype).toBe('image/jpeg');
+          // expect(body.data.thumb.path).toContain(
+          //   'storage.googleapis.com/temp-uploads.onova.co/'
+          // );
+          // expect(body.data.thumb.filename).toContain('thumb');
+          console.log(body.data);
+        });
+    });
+
+    it.skip('should not upload a small image', () => {
+      return request(app)
+        .post('/api/photos/upload')
+        .set('Authorization', jwtToken)
+        .attach('photo', path.join(__dirname, 'images/boots1.jpg'))
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Product image is too small')
+        );
     });
 
     it('should schedule a listing', done => {

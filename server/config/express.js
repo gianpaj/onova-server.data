@@ -84,7 +84,7 @@ if (config.env === 'development') {
     })
   );
 }
-if (config.env == 'test') {
+if (config.env === 'test') {
   expressWinston.requestWhitelist.push('body');
   expressWinston.responseWhitelist.push('body');
 }
@@ -122,14 +122,14 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
 });
 
 // log error in winston transports in development
-if (config.env == 'development') {
+if (config.env === 'development') {
   app.use(
     expressWinston.errorLogger({
       winstonInstance,
     })
   );
 }
-if (config.env == 'production') {
+if (config.env === 'production') {
   // log errors to files
   app.use(
     expressWinston.errorLogger({
