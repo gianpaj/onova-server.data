@@ -29,7 +29,8 @@ declare class session$Request extends express$Request {
   };
 }
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+const srcBucketName = 'temp-uploads.onova.co';
+const destBucketName = config.CLOUD_BUCKET;
 
 const storage = Storage({
   // Service account key: 'storage-data-server'
@@ -173,9 +174,6 @@ function create(
     })
     .catch(e => next(e));
 }
-
-const srcBucketName = 'temp-uploads.onova.co';
-const destBucketName = config.CLOUD_BUCKET;
 
 async function movePhoto(
   photo,

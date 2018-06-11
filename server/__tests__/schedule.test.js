@@ -14,7 +14,9 @@ import Product from '../models/product.model';
 import Tag from '../models/tag.model';
 import User from '../models/user.model';
 import Verification from '../models/verification.model';
-import { createProduct, createUserAndLogin, productFields } from './utils';
+import { createUserAndLogin, productFields } from './utils';
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
 
 describe('## Schedule APIs', () => {
   beforeAll(done => {
