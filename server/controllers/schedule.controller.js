@@ -137,13 +137,14 @@ function create(
       const date = Date.now();
 
       // TODO: check if images have been uploaded to GSC
-      let promises = correctPhotos.map((p, i) =>
-        movePhoto(p, product.uuid, i, date)
-      );
+      let promises = [];
 
       const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
-
       promises.push(movePhoto(thumb, product.uuid, 0, date, true));
+
+      correctPhotos.map((p, i) =>
+        promises.push(movePhoto(p, product.uuid, i, date))
+      );
 
       try {
         const photos = await Promise.all(promises);
@@ -152,8 +153,6 @@ function create(
         console.error(err);
         throw new APIError('Error moving photos', 500);
       }
-
-      // Copy images to assets' bucket
 
       const jobData = {
         socials: body.socials,
