@@ -58,7 +58,7 @@ describe('## Schedule APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     price: '100.99',
-    photos: ['1527232263107'],
+    photos: ['storage.googleapis.com/1527232263107'],
     socials: 'fb',
   };
 
@@ -67,7 +67,7 @@ describe('## Schedule APIs', () => {
     typeIds: [1, 3],
     description: 'nice jacket',
     price: '230.99',
-    photos: ['1527232263107'],
+    photos: ['storage.googleapis.com/1527232263107'],
     socials: ['fb'],
   };
 
@@ -77,7 +77,7 @@ describe('## Schedule APIs', () => {
     tags: ['WINTER'],
     description: 'nice scarf',
     price: '30',
-    photos: ['1527232263107'],
+    photos: ['storage.googleapis.com/1527232263107'],
     socials: ['fb'],
   };
 
@@ -131,6 +131,7 @@ describe('## Schedule APIs', () => {
   });
 
   describe('# POST /api/schedule', () => {
+    let pathImage1;
     // update Facebook Token
     beforeAll(async () => {
       user.facebook = '101010101';
@@ -153,11 +154,15 @@ describe('## Schedule APIs', () => {
           expect(body.data.fieldname).toBe('photo');
           expect(body.data.encoding).toBe('7bit');
           expect(body.data.mimetype).toBe('image/jpeg');
-          // expect(body.data.thumb.path).toContain(
-          //   'storage.googleapis.com/temp-uploads.onova.co/'
-          // );
-          // expect(body.data.thumb.filename).toContain('thumb');
-          console.log(body.data);
+          expect(body.data['thumb.jpeg'].path).toContain(
+            'storage.googleapis.com/temp-uploads.onova.co/'
+          );
+          expect(body.data['thumb.jpeg'].filename).toContain('thumb');
+          expect(body.data['.jpeg'].path).toContain(
+            'storage.googleapis.com/temp-uploads.onova.co/'
+          );
+          expect(body.data['.jpeg'].filename).toContain('-.jpeg');
+          pathImage1 = body.data['.jpeg'].path;
         });
     });
 
@@ -172,10 +177,21 @@ describe('## Schedule APIs', () => {
         );
     });
 
+    it('should schedule invalid images a small image', () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken)
+        .send({ ...product, photos: ['asdfasd'] })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toContain('Invalid photos'));
+    });
+
     it('should schedule a listing', done => {
       let myProductFields = [...productFields, 'comments'];
       myProductFields = myProductFields.filter(f => f !== 'createdAt');
       myProductFields = myProductFields.filter(f => f !== 'updatedAt');
+
+      product.photos = [pathImage1];
 
       request(app)
         .post('/api/schedule')
@@ -189,7 +205,7 @@ describe('## Schedule APIs', () => {
           expect(p.categoryIds.sort()).toEqual(product.categoryIds);
           expect(p.currency).toBe('UAH');
           expect(p.description).toBe(product.description);
-          expect(p.photoURIs).toEqual(['1527232263107']);
+          expect(p.photoURIs[0]).toContain('/products/');
           expect(p.price).toBe(product.price);
           expect(p.seller).toBe(user._id);
           expect(p.status).toBe('forsale');

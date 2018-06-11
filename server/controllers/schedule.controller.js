@@ -2,7 +2,9 @@
 
 import shortid from 'shortid';
 import httpStatus from 'http-status';
+import Storage from '@google-cloud/storage';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import { agenda } from '../config/express';
 import APIError from '../helpers/APIError';
@@ -26,6 +28,14 @@ declare class session$Request extends express$Request {
     socials: Array<string>,
   };
 }
+
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+
+const storage = Storage({
+  // Service account key: 'storage-data-server'
+  // id '3a339323d16ab4189e140a740f2381496686e235'
+  keyFilename: 'Onova-3a339323d16a.json',
+});
 
 /**
  * Load a product and append to req.
@@ -94,7 +104,7 @@ function create(
   if (body.tags) createTags(body.tags);
 
   User.findById(req.user._id)
-    .then(seller => {
+    .then(async seller => {
       if (!seller) {
         throw new APIError('Seller not found', 400);
       }
@@ -115,14 +125,32 @@ function create(
       //   product.photoURIs.push('UPLOADING_PIC');
       // }
 
-      if (config.env == 'test') {
-        product.photoURIs = ['1527232263107'];
-      } else {
-        product.photoURIs = body.photos;
-        // photos.uploadProductImages(product, req.files);
+      const correctPhotos = body.photos.filter(p =>
+        p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
+      );
+
+      if (correctPhotos.length < 1) {
+        throw new APIError('Invalid photos', 400);
       }
 
+      const date = Date.now();
+
       // TODO: check if images have been uploaded to GSC
+      let promises = correctPhotos.map((p, i) =>
+        movePhoto(p, product.uuid, i, date)
+      );
+
+      const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
+
+      promises.push(movePhoto(thumb, product.uuid, 0, date, true));
+
+      try {
+        const photos = await Promise.all(promises);
+        product.photoURIs = photos;
+      } catch (err) {
+        console.error(err);
+        throw new APIError('Error moving photos', 500);
+      }
 
       // Copy images to assets' bucket
 
@@ -144,6 +172,43 @@ function create(
       return res.status(httpStatus.CREATED).json({ data: savedListing });
     })
     .catch(e => next(e));
+}
+
+const srcBucketName = 'temp-uploads.onova.co';
+const destBucketName = config.CLOUD_BUCKET;
+
+async function movePhoto(
+  photo,
+  uuid: string,
+  i: number,
+  date: number,
+  thumb: boolean = false
+): Promise<string | Error> {
+  const srcFilename = photo.replace(
+    'https://storage.googleapis.com/temp-uploads.onova.co/',
+    ''
+  );
+  const destFilename = `products/${uuid}-${i + 1}-${date}${
+    thumb ? '-thumb' : ''
+  }.jpg`;
+
+  try {
+    await storage
+      .bucket(srcBucketName)
+      .file(srcFilename)
+      .move(storage.bucket(destBucketName).file(destFilename));
+    debug(
+      `gs://${srcBucketName}/${srcFilename} moved to gs://${destBucketName}/${destFilename}.`
+    );
+    await storage
+      .bucket(destBucketName)
+      .file(destFilename)
+      .makePublic();
+    return `${destBucketName}/${destFilename}`;
+  } catch (err) {
+    console.error('ERROR:', err);
+    return err;
+  }
 }
 
 function createTags(tags: Array<TagDoc>) {
