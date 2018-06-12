@@ -53,7 +53,7 @@ export default {
       photos: Joi.array()
         .unique()
         .max(6)
-        .items(Joi.string())
+        .items(Joi.string().uri())
         .single()
         .required(),
       price: Joi.string()

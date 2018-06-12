@@ -60,7 +60,7 @@ describe('## Schedule APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     price: '100.99',
-    photos: ['storage.googleapis.com/1527232263107'],
+    photos: ['http://storage.googleapis.com/1527232263107'],
     socials: 'fb',
   };
 
@@ -69,7 +69,7 @@ describe('## Schedule APIs', () => {
     typeIds: [1, 3],
     description: 'nice jacket',
     price: '230.99',
-    photos: ['storage.googleapis.com/1527232263107'],
+    photos: ['http://storage.googleapis.com/1527232263107'],
     socials: ['fb'],
   };
 
@@ -79,7 +79,7 @@ describe('## Schedule APIs', () => {
     tags: ['WINTER'],
     description: 'nice scarf',
     price: '30',
-    photos: ['storage.googleapis.com/1527232263107'],
+    photos: ['http://storage.googleapis.com/1527232263107'],
     socials: ['fb'],
   };
 
@@ -183,7 +183,7 @@ describe('## Schedule APIs', () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken)
-        .send({ ...product, photos: ['asdfasd'] })
+        .send({ ...product, photos: ['http://asdfasd'] })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
     });
