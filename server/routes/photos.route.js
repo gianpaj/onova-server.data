@@ -38,9 +38,9 @@ const storage = gcsSharp({
       height: MAX_HEIGHT,
     },
   ],
-  // crop: 16, // sharp.strategy.entropy
+  crop: 'center',
   toFormat: 'jpeg',
-  withoutEnlargement: true,
+  // withoutEnlargement: true,
 });
 const upload = multer({ storage });
 
