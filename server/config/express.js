@@ -15,56 +15,18 @@ import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
 import Agenda from 'agenda';
+import fbgraph from 'fbgraph';
 
 import winstonInstance from './winston';
 import routes from '../routes/index.route';
 import config from './config';
 import APIError from '../helpers/APIError';
-import Product from '../models/product.model';
-import User from '../models/user.model';
 
 const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
   config.mongo.jobDb
 }`;
 
 export const agenda = new Agenda({ db: { address: jobDb } });
-
-agenda.on('complete', job => {
-  console.log(`Job ${job.attrs.name} finished`);
-});
-
-agenda.on('fail', (err, job) => {
-  console.log(`Job failed with error: ${err.message}`);
-
-  console.log(job);
-});
-
-if (config.env == 'test') {
-  agenda.on('ready', () => {
-    agenda.purge((err, numRemoved) => {
-      if (err) return console.error(err);
-      console.log('jobs removed', numRemoved);
-      agenda.start();
-    });
-  });
-}
-
-agenda.on('error', () => {
-  agenda.start();
-});
-
-agenda.define(config.JOBNAMES.SCHEDULE, async (job: Agenda.Job<any>, done) => {
-  const { data } = job.attrs;
-
-  try {
-    const p = new Product(job.attrs.data.product);
-    await p.save();
-    done();
-  } catch (err) {
-    console.error(err);
-    done(err);
-  }
-});
 
 /**
  * API keys and Passport configuration.
