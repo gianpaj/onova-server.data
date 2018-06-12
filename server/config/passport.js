@@ -95,7 +95,7 @@ passport.use(
             if (err) return done(err);
 
             user.facebook = profile.id;
-            user.tokens.push({ kind: 'facebook', accessToken });
+            user.tokens.push({ kind: 'fb', accessToken });
             user.save(err => {
               req.flash('info', { msg: 'Facebook account has been linked.' });
               done(err, user);
@@ -127,7 +127,7 @@ passport.use(
       //           const user = new User();
       //           user.emailAddress = profile._json.email;
       //           user.facebook = profile.id;
-      //           user.tokens.push({ kind: 'facebook', accessToken });
+      //           user.tokens.push({ kind: 'fb', accessToken });
 
       //           user.save(err => {
       //             done(err, user);

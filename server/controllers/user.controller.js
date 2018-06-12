@@ -231,6 +231,7 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
  * @property {string=} req.body.platform
  * @property {string=} req.body.pushToken
  * @property {string=} req.body.facebook
+ * @property {string=} req.body.tokens
  * @property {string=} req.body.accessToken
  * @property {string=} req.body.username
  * @property {string=} req.body.exp_month
@@ -256,7 +257,7 @@ function update(
     user.facebook = body.facebook;
     user.tokens.push({
       accessToken: body.accessToken,
-      kind: 'facebook',
+      kind: 'fb',
     });
   }
   if (body.shippingAddress) user.shippingAddress = body.shippingAddress;

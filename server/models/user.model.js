@@ -55,7 +55,7 @@ const UserSchema = new Schema(
       {
         kind: {
           type: String,
-          enum: ['facebook', 'vk'],
+          enum: ['fb', 'vk'],
         },
         accessToken: String,
       },

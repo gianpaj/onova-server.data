@@ -16,7 +16,7 @@ import User from '../models/user.model';
 import Verification from '../models/verification.model';
 import { createUserAndLogin, productFields } from './utils';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 10000;
+jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 
 describe('## Schedule APIs', () => {
   beforeAll(done => {
@@ -55,7 +55,7 @@ describe('## Schedule APIs', () => {
 
   let product = {
     categoryIds: [1, 2, 3],
-    date: addDays(new Date(Date.now()), 1),
+    date: new Date(Date.now() + 12000), // 12 seconds
     typeIds: [1, 2, 3],
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
@@ -179,7 +179,7 @@ describe('## Schedule APIs', () => {
         );
     });
 
-    it('should schedule invalid images a small image', () => {
+    it('should NOT schedule invalid images a small image', () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken)
@@ -200,7 +200,7 @@ describe('## Schedule APIs', () => {
         .set('Authorization', jwtToken)
         .send(product)
         .expect(httpStatus.CREATED)
-        .then(({ body }) => {
+        .then(async ({ body }) => {
           const p = body.data.data.product;
           expect(body.data.data.socials).toEqual([product.socials]);
           expect(body.data.nextRunAt).toBe(product.date.toISOString());
@@ -218,16 +218,13 @@ describe('## Schedule APIs', () => {
           productUuid = p.uuid;
           productsCounter++;
 
-          // Check a Follow push notification has been scheduled
-          setTimeout(() => {
-            agenda.jobs({ name: config.JOBNAMES.SCHEDULE }, (err, jobs) => {
-              if (err) return done();
-              expect(jobs).toHaveLength(1);
-              const { data } = jobs.map(j => j.attrs)[0];
-              expect(data.product.description).toBe(product.description);
-              done();
-            });
-          }, 10);
+          let found;
+          // Check a Product notification has been created
+          do {
+            found = await Product.findOne({ uuid: productUuid });
+          } while (!found);
+          expect(found.uuid).toBe(productUuid);
+          done();
         });
     });
 
