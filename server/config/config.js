@@ -65,6 +65,12 @@ const envVarsSchema = Joi.object({
   FACEBOOK_APP_SECRET: Joi.string()
     .required()
     .description('Facebook APP Secret'),
+  VK_APP_ID: Joi.string()
+    .required()
+    .description('VK APP ID for Auth to post item on sellers` walls'),
+  VK_SECRET_KEY: Joi.string()
+    .required()
+    .description('VK APP Secret'),
 })
   .unknown()
   .required();
@@ -95,6 +101,8 @@ const config = {
   CLOUD_BUCKET: envVars.CLOUD_BUCKET,
   FACEBOOK_APP_ID: envVars.FACEBOOK_APP_ID,
   FACEBOOK_APP_SECRET: envVars.FACEBOOK_APP_SECRET,
+  VK_APP_ID: envVars.VK_APP_ID,
+  VK_SECRET_KEY: envVars.VK_SECRET_KEY,
 
   chatkit: {
     instanceLocator: envVars.CHATKIT_INSTANCE,

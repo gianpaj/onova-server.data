@@ -3,9 +3,14 @@
 import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';
+const request = require('request');
 
+import httpStatus from 'http-status';
 import paramValidation from '../config/validation/auth.validation';
 import authCtrl from '../controllers/auth.controller';
+import config from '../config/config';
+import User from '../models/user.model';
+import APIError from '../helpers/APIError';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 
@@ -51,13 +56,46 @@ router
   // POST /api/auth/reset/:token - Change user password
   .post(validate(paramValidation.resetForm), authCtrl.resetFormSubmit);
 
-router.route('/facebook').get(passport.authenticate('facebook'));
+// router.route('/facebook').get(passport.authenticate('facebook'));
 
-router.route('/facebook/return').get(
-  passport.authenticate('facebook', { failureRedirect: '/uploader' })
-  // function(req, res) {
-  //   res.redirect('/');
-  // }
-);
+// router.route('/facebook/return').get(
+//   passport.authenticate('facebook', { failureRedirect: '/uploader' })
+//   // function(req, res) {
+//   //   res.redirect('/');
+//   // }
+// );
+
+// $FlowFixMe
+router.route('/vk').get((req, res, next) => {
+  const { code, onovaUserId } = req.query;
+  const redirectURL = `http://dev.onova.co:4000/api/auth/vk%3FonovaUserId%3D${onovaUserId}`;
+
+  request(
+    `https://oauth.vk.com/access_token?client_id=${
+      config.VK_APP_ID
+    }&client_secret=${
+      config.VK_SECRET_KEY
+    }&redirect_uri=${redirectURL}&code=${code}`,
+    async (error, response, body) => {
+      try {
+        const user = await User.findById(onovaUserId);
+        if (!user) throw new APIError('Wrong User id', httpStatus.BAD_REQUEST);
+
+        const { access_token, user_id } = JSON.parse(body);
+        user.tokens.push({
+          accessToken: access_token,
+          kind: 'vk',
+        });
+        user.save();
+        res.send('Done. Close this window and refresh Onova.');
+      } catch (err) {
+        console.error(err);
+        if (!(err instanceof APIError))
+          err = new APIError('Error VK auth', 500);
+        next(err);
+      }
+    }
+  );
+});
 
 export default router;
