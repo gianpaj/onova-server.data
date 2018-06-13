@@ -4,6 +4,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import LocalStrategy from 'passport-local';
 import FacebookStrategy from 'passport-facebook';
 import passport from 'passport';
+import VKontakteTokenStrategy from 'passport-vkontakte-token';
 
 import User, { UserDoc } from '../models/user.model';
 import config from './config';
@@ -137,6 +138,26 @@ passport.use(
       //     );
       //   });
       // }
+    }
+  )
+);
+
+passport.use(
+  new VKontakteTokenStrategy(
+    {
+      clientID: config.VK_APP_ID,
+      clientSecret: config.VK_SECRET_KEY,
+      passReqToCallback: true,
+    },
+    function(req, accessToken, refreshToken, profile, next) {
+      // console.log(accessToken);
+      // console.log(refreshToken);
+      // console.log(profile);
+      // User.findOne({ 'vkontakte.id': profile.id })
+      //   .then(user => {
+      //     console.log(user);
+      //   })
+      //   .catch(err => next(err));
     }
   )
 );
