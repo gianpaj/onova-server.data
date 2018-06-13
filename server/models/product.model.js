@@ -35,8 +35,8 @@ const CommentSchema = new Schema({
 //   { label: 'Other', value: 2 },
 
 // typeIds
-//   { label: 'Man', value: 0 },
-//   { label: 'Woman', value: 1 },
+//   { label: 'Men', value: 0 },
+//   { label: 'Women', value: 1 },
 //   { label: 'Other', value: 2 },
 
 /** @namespace */
