@@ -87,7 +87,7 @@ router.route('/vk').get((req, res, next) => {
           kind: 'vk',
         });
         user.save();
-        res.send('Done. Close this window and refresh Onova.');
+        res.send('<script>window.close()</script>');
       } catch (err) {
         console.error(err);
         if (!(err instanceof APIError))

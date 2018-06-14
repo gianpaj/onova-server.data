@@ -56,8 +56,12 @@ const UserSchema = new Schema(
         kind: {
           type: String,
           enum: ['fb', 'vk'],
+          required: true,
         },
-        accessToken: String,
+        accessToken: {
+          type: String,
+          required: true,
+        },
       },
     ],
     followersCount: {
