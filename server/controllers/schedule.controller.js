@@ -201,7 +201,7 @@ async function movePhoto(
       .bucket(destBucketName)
       .file(destFilename)
       .makePublic();
-    return `${destBucketName}/${destFilename}`;
+    return `http://${destBucketName}/${destFilename}`;
   } catch (err) {
     console.error('ERROR:', err);
     return err;
