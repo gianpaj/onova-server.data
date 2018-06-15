@@ -547,6 +547,21 @@ describe('## User APIs', () => {
         });
     });
 
+    it('should update increase sharedCount', () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({
+          increaseShare: true,
+        })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.username).toBe(user.username);
+          expect(body.sharedCount).toBe(1);
+        });
+    });
+
     it('should get the accessToken', () => {
       return request(app)
         .get(`/api/users/${userId}/personal`)

@@ -253,6 +253,7 @@ function update(
   if (body.password) user.password = body.password;
   if (body.platform) user.platform = body.platform;
   if (body.pushToken) user.pushToken = body.pushToken;
+  if (body.increaseShare) user.sharedCount++;
   if (body.facebook) {
     user.facebook = body.facebook;
     user.tokens.push({
@@ -477,6 +478,7 @@ function _prepareUserJson(user: UserDoc): Object {
     ratingsTotal: user.ratingsTotal,
     reviewsCount: user.reviewsCount,
     username: user.username,
+    sharedCount: user.sharedCount,
   };
 }
 

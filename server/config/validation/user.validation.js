@@ -90,6 +90,7 @@ export default {
         postcode: Joi.string(),
       },
       facebook: Joi.string(),
+      increaseShare: Joi.boolean(),
       accessToken: Joi.string().when('facebook', {
         is: Joi.exist(),
         then: Joi.required(),
