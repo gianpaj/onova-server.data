@@ -84,6 +84,16 @@ const UserSchema = new Schema(
         message: '{VALUE} is not an integer value',
       },
     },
+    sharedCount: {
+      type: Number,
+      required: true,
+      default: 0,
+      min: 0,
+      validate: {
+        validator: Number.isInteger,
+        message: '{VALUE} is not an integer value',
+      },
+    },
     mobileNumber: {
       type: String,
       trim: true,
