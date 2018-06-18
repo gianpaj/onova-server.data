@@ -582,8 +582,7 @@ describe('## User APIs', () => {
         .get(`/api/users/${userId}/personal`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { body } = res;
+        .then(({ body }) => {
           const { shippingAddress } = userShippingAddress;
           const shipInfo = body.shippingAddress;
           expect(body.username).toBe(user.username);
@@ -592,6 +591,16 @@ describe('## User APIs', () => {
           expect(shipInfo.line1).toBe(shippingAddress.line1);
           expect(shipInfo.city).toBe(shippingAddress.city);
           expect(shipInfo.state).toBe(shippingAddress.state);
+          expect(Object.keys(body).sort()).toEqual(
+            [
+              ...userFields,
+              'createdAt',
+              'paymentInfo',
+              'shippingAddress',
+              'facebook',
+              'bio',
+            ].sort()
+          );
           done();
         })
         .catch(done);

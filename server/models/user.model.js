@@ -177,6 +177,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   facebook: string;
   followersCount: number;
   followingCount: number;
+  sharedCount: number;
   mobileNumber: ?string;
   password: string;
   paymentInfo: ?any;

@@ -87,6 +87,7 @@ function getPersonal(req: session$Request, res: express$Response) {
     ...doc,
     paymentInfo: req.user.paymentInfo,
     shippingAddress: req.user.shippingAddress,
+    createdAt: req.user.createdAt,
   });
 }
 
@@ -471,14 +472,14 @@ function _prepareUserJson(user: UserDoc): Object {
     displayName: user.displayName,
     emailAddress: user.emailAddress,
     facebook: user.facebook,
-    tokens: user.tokens,
     followersCount: user.followersCount,
     followingCount: user.followingCount,
     profilePic: user.profilePic,
     ratingsTotal: user.ratingsTotal,
     reviewsCount: user.reviewsCount,
-    username: user.username,
     sharedCount: user.sharedCount,
+    tokens: user.tokens,
+    username: user.username,
   };
 }
 
