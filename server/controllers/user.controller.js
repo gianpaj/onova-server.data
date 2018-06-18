@@ -333,21 +333,9 @@ function update(
             $set: { profilePic: req.file.originalname },
           })
             .exec()
-            .then(async doc => {
+            .then(doc => {
               if (doc) {
                 debug('profilePic updated for user:', doc._id);
-                if (config.env == 'production') {
-                  try {
-                    await ckInst.updateUser({
-                      id: doc._id,
-                      avatarURL: req.file.originalname,
-                    });
-                    console.log('chatkit user created');
-                  } catch (err) {
-                    console.error(err);
-                    return reject(err);
-                  }
-                }
                 return resolve(doc);
               }
               reject('no user found');
@@ -364,9 +352,19 @@ function update(
                 $set: { profilePic: cloudStoragePublicUrl },
               })
                 .exec()
-                .then(doc => {
+                .then(async doc => {
                   if (doc) {
                     debug('profilePic updated for user:', doc._id);
+                    try {
+                      await ckInst.updateUser({
+                        id: doc._id,
+                        avatarURL: cloudStoragePublicUrl,
+                      });
+                      console.log('chatkit user updated');
+                    } catch (err) {
+                      console.error(err);
+                      return reject(err);
+                    }
                     resolve(doc);
                   } else {
                     reject('no error found');
