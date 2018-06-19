@@ -26,7 +26,8 @@ export default {
         )
         .single()
         .required(),
-      date: Joi.date().min('now'),
+      // today
+      date: Joi.date().min(new Date(new Date().setHours(0, 0, 0, 0))),
       typeIds: Joi.array()
         .unique()
         .max(5)
