@@ -168,18 +168,18 @@ describe('## Schedule APIs', () => {
         });
     });
 
-    it.skip('should not upload a small image', () => {
-      return request(app)
-        .post('/api/photos/upload')
-        .set('Authorization', jwtToken)
-        .attach('photo', path.join(__dirname, 'images/boots1.jpg'))
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('Product image is too small')
-        );
-    });
+    // it('should not upload a small image', () => {
+    //   return request(app)
+    //     .post('/api/photos/upload')
+    //     .set('Authorization', jwtToken)
+    //     .attach('photo', path.join(__dirname, 'images/boots1.jpg'))
+    //     .expect(httpStatus.BAD_REQUEST)
+    //     .then(({ body }) =>
+    //       expect(body.message).toContain('Product image is too small')
+    //     );
+    // });
 
-    it('should NOT schedule invalid images a small image', () => {
+    it('should NOT schedule invalid images', () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken)
@@ -254,6 +254,17 @@ describe('## Schedule APIs', () => {
           expect(body.message).toContain('must be larger than or equal')
         );
     });
+
+    // it('should schedule a listing earlier today', () => {
+    //   return request(app)
+    //     .post('/api/schedule')
+    //     .set('Authorization', jwtToken)
+    //     .send({ ...product, date: new Date(new Date().setHours(1)) })
+    //     .expect(httpStatus.CREATED)
+    //     .then(({ body }) =>
+    //       expect(body.data.data.product.description).toBe(product.description)
+    //     );
+    // });
 
     it('should NOT scheduled an item after 3 months from today', () => {
       return request(app)
