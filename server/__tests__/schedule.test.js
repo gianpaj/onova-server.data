@@ -218,13 +218,29 @@ describe('## Schedule APIs', () => {
           productUuid = p.uuid;
           productsCounter++;
 
+          let count = 0;
           let found;
-          // Check a Product notification has been created
-          do {
+          const waitFor = 15; // seconds
+          const interval = Math.floor(waitFor * 10000 / 100);
+
+          // Check a Product notification has been created every 100ms for X seconds
+          const timer = setInterval(async () => {
+            count++;
             found = await Product.findOne({ uuid: productUuid });
-          } while (!found);
-          expect(found.uuid).toBe(productUuid);
-          done();
+            if (found) {
+              clearInterval(timer);
+
+              expect(found.uuid).toBe(productUuid);
+              expect(p.photoURIs[0]).not.toContain('thumb');
+              expect(p.photoURIs[0]).toContain('/products/');
+              done();
+            }
+            if (count >= waitFor) {
+              clearInterval(timer);
+              throw new Error('timeout');
+            }
+            console.log(count);
+          }, interval);
         });
     });
 

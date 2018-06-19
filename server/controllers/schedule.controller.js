@@ -148,7 +148,7 @@ function create(
 
       try {
         const photos = await Promise.all(promises);
-        product.photoURIs = photos;
+        product.photoURIs = photos.filter(photo => !photo.includes('thumb'));
       } catch (err) {
         console.error(err);
         throw new APIError('Error moving photos', 500);
