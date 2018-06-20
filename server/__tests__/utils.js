@@ -4,9 +4,11 @@ import httpStatus from 'http-status';
 import request from 'supertest';
 import path from 'path';
 
-import { UserDoc } from '../models/user.model';
-import { CommentDoc, ProductDoc } from '../models/product.model';
 import { OrderDoc } from '../models/order.model';
+import DefaultFollow from '../models/defaultFollow.model';
+import Product, { CommentDoc, ProductDoc } from '../models/product.model';
+import Tag from '../models/tag.model';
+import User, { UserDoc } from '../models/user.model';
 import Verification from '../models/verification.model';
 import app from '../index';
 
@@ -213,4 +215,23 @@ export async function createManyProducts(num: number, jwtToken: string) {
   )
     .then(res => res)
     .catch(e => e);
+}
+
+export function beforeAllTests(done: () => void) {
+  const collections = [
+    Product.collection,
+    DefaultFollow.collection,
+    Tag.collection,
+    User.collection,
+    Verification.collection,
+  ];
+
+  var todo = collections.length;
+  if (!todo) return done();
+
+  collections.forEach(collection => {
+    collection.remove({}, { safe: true }, () => {
+      if (--todo === 0) done();
+    });
+  });
 }
