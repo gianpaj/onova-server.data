@@ -9,48 +9,19 @@ import app from '../index';
 import { agenda } from '../config/express';
 import config from '../config/config';
 
-import DefaultFollow from '../models/defaultFollow.model';
 import Product from '../models/product.model';
 import Tag from '../models/tag.model';
-import User from '../models/user.model';
-import Verification from '../models/verification.model';
-import { createUserAndLogin, productFields } from './utils';
+import { createUserAndLogin, productFields, beforeAllTests } from './utils';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 
 describe('## Schedule APIs', () => {
-  beforeAll(done => {
-    const collections = [
-      Product.collection,
-      DefaultFollow.collection,
-      Tag.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   let user = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
-    mobileNumber: '1234567890', // optional
-    // displayName: 'first user',
     password: 'expressos',
-  };
-
-  let anotherUser = {
-    username: 'anotherperson',
-    emailAddress: 'gianpa+test2@gmail.com',
-    mobileNumber: '1234567890', // optional
-    password: 'express2',
   };
 
   let product = {
@@ -64,30 +35,8 @@ describe('## Schedule APIs', () => {
     socials: 'fb',
   };
 
-  let anotherProduct = {
-    categoryIds: [1],
-    typeIds: [1, 3],
-    description: 'nice jacket',
-    price: '230.99',
-    photos: ['http://storage.googleapis.com/1527232263107'],
-    socials: ['fb'],
-  };
-
-  let thirdProduct = {
-    categoryIds: [2],
-    typeIds: [1, 3],
-    tags: ['WINTER'],
-    description: 'nice scarf',
-    price: '30',
-    photos: ['http://storage.googleapis.com/1527232263107'],
-    socials: ['fb'],
-  };
-
   let productUuid;
   let jwtToken;
-  let anotherJwtToken;
-  let anotherProdUuid;
-  let thirdProdUuid;
 
   let productsCounter = 0;
 
@@ -105,18 +54,8 @@ describe('## Schedule APIs', () => {
           .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
           .expect(httpStatus.OK);
       })
-      .then(() => {
-        return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
-      })
-      .then(() => {
-        return createUserAndLogin(anotherUser).then(
-          ({ user: resUser, jwtToken: token }) => {
-            anotherUser._id = resUser._id;
-            anotherJwtToken = token;
-            done();
-          }
-        );
-      });
+      // .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
+      .then(() => done());
   });
 
   describe('# POST /api/schedule', () => {
@@ -136,12 +75,15 @@ describe('## Schedule APIs', () => {
     let pathImage1;
     // update Facebook Token
     beforeAll(async () => {
-      user.facebook = '101010101';
-      user.accessToken = 'FBaccesssToen1020Numbers';
       await request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
-        .send({ ...user, _id: undefined })
+        .send({
+          ...user,
+          _id: undefined,
+          facebook: '101010101',
+          accessToken: 'FBaccesssToen1020Numbers',
+        })
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.facebook).toBe('101010101');
@@ -152,19 +94,28 @@ describe('## Schedule APIs', () => {
         .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
-          expect(body.data.originalname).toBe('boots-large.jpg');
-          expect(body.data.fieldname).toBe('photo');
-          expect(body.data.encoding).toBe('7bit');
-          expect(body.data.mimetype).toBe('image/jpeg');
-          expect(body.data['thumb.jpeg'].path).toContain(
+          const { data } = body;
+          expect(data.fieldname).toBe('photo');
+          expect(data.originalname).toBe('boots-large.jpg');
+          expect(data.encoding).toBe('7bit');
+          expect(data.mimetype).toBe('image/jpeg');
+          expect(data['thumb.jpeg'].path).toContain(
             'storage.googleapis.com/temp-uploads.onova.co/'
           );
-          expect(body.data['thumb.jpeg'].filename).toContain('thumb');
-          expect(body.data['.jpeg'].path).toContain(
+          expect(data['thumb.jpeg'].filename).toContain('thumb');
+          expect(data['.jpeg'].path).toContain(
             'storage.googleapis.com/temp-uploads.onova.co/'
           );
-          expect(body.data['.jpeg'].filename).toContain('-.jpeg');
-          pathImage1 = body.data['.jpeg'].path;
+          expect(data['.jpeg'].filename).toContain('-.jpeg');
+          expect(Object.keys(data).sort()).toEqual([
+            '.jpeg',
+            'encoding',
+            'fieldname',
+            'mimetype',
+            'originalname',
+            'thumb.jpeg',
+          ]);
+          pathImage1 = data['.jpeg'].path;
         });
     });
 
