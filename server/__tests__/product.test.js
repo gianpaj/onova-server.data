@@ -6,32 +6,19 @@ import path from 'path';
 
 import app from '../index';
 
-import Verification from '../models/verification.model';
-import User from '../models/user.model';
 import Tag from '../models/tag.model';
 import Product from '../models/product.model';
-import { createProduct, createUserAndLogin, productFields } from './utils';
+import {
+  beforeAllTests,
+  createProduct,
+  createUserAndLogin,
+  productFields,
+} from './utils';
 
 // jest.mock('@google-cloud/storage');
 
 describe('## Product APIs', () => {
-  beforeAll(done => {
-    const collections = [
-      Product.collection,
-      Tag.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   let user = {
     username: 'firstperson',

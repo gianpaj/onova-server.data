@@ -5,12 +5,12 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import Block from '../models/block.model';
-import Follow from '../models/follow.model';
-import Product from '../models/product.model';
-import User from '../models/user.model';
-import Verification from '../models/verification.model';
-import { createUserAndLogin, createProduct, createOrder } from './utils';
+import {
+  beforeAllTests,
+  createUserAndLogin,
+  createProduct,
+  createOrder,
+} from './utils';
 
 const blockFields = ['createdAt', '_id', 'sourceUser', 'targetUser'];
 
@@ -26,24 +26,7 @@ afterAll(done => {
 });
 
 describe('## Block methods', () => {
-  beforeAll(done => {
-    const collections = [
-      Block.collection,
-      Follow.collection,
-      Product.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   let firstUser = {
     username: 'firstUser',

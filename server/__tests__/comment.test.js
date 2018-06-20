@@ -4,14 +4,16 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
-import app from '../index';
-import Follow from '../models/follow.model';
-import Tag from '../models/tag.model';
-import User from '../models/user.model';
 import Product from '../models/product.model';
-import Verification from '../models/verification.model';
-import Notification from '../models/notification.model';
-import { createComment, createProduct, createUserAndLogin } from './utils';
+import Tag from '../models/tag.model';
+
+import app from '../index';
+import {
+  beforeAllTests,
+  createComment,
+  createProduct,
+  createUserAndLogin,
+} from './utils';
 
 /**
  * root level hooks
@@ -85,25 +87,7 @@ let anotherJwtToken;
 let thirdJWTtoken;
 
 describe('## Comment APIs', () => {
-  beforeAll(done => {
-    const collections = [
-      Follow.collection,
-      Notification.collection,
-      Product.collection,
-      Tag.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   // create 2 users/sellers + 2 products
   beforeAll(done => {

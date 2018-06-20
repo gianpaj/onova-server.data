@@ -4,8 +4,11 @@ import httpStatus from 'http-status';
 import request from 'supertest';
 import path from 'path';
 
-import { OrderDoc } from '../models/order.model';
+import Block from '../models/block.model';
 import DefaultFollow from '../models/defaultFollow.model';
+import Follow from '../models/follow.model';
+import Notification from '../models/notification.model';
+import { OrderDoc } from '../models/order.model';
 import Product, { CommentDoc, ProductDoc } from '../models/product.model';
 import Tag from '../models/tag.model';
 import User, { UserDoc } from '../models/user.model';
@@ -219,8 +222,11 @@ export async function createManyProducts(num: number, jwtToken: string) {
 
 export function beforeAllTests(done: () => void) {
   const collections = [
-    Product.collection,
+    Block.collection,
+    Follow.collection,
+    Notification.collection,
     DefaultFollow.collection,
+    Product.collection,
     Tag.collection,
     User.collection,
     Verification.collection,

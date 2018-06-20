@@ -116,7 +116,7 @@ describe('## Report methods', () => {
       .then(({ body }) => {
         expect(body.data.username).toBe(nonActiveUser.username);
         expect(body.data.accountStatus).toBe('notverified');
-        expect(body.token).toHaveLength(392);
+        expect(body.token).toHaveLength(413);
         nonActiveUser.jwtToken = body.token;
       });
   });

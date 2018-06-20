@@ -15,7 +15,7 @@ import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
 import Agenda from 'agenda';
-import fbgraph from 'fbgraph';
+// import fbgraph from 'fbgraph';
 
 import winstonInstance from './winston';
 import routes from '../routes/index.route';
@@ -27,6 +27,16 @@ const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
 }`;
 
 export const agenda = new Agenda({ db: { address: jobDb } });
+
+if (config.env == 'test') {
+  agenda.on('ready', () => {
+    agenda.purge((err, numRemoved) => {
+      if (err) return console.error(err);
+      console.log('jobs removed', numRemoved);
+      agenda.start();
+    });
+  });
+}
 
 /**
  * API keys and Passport configuration.
