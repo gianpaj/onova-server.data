@@ -29,7 +29,7 @@ describe('## Photo Upload APIs', () => {
   });
 
   describe('# POST /api/photos/upload-chat-images', () => {
-    let pathImage1;
+    // let pathImage1;
     it('should send an chat image a listing', () => {
       return request(app)
         .post('/api/photos/upload-chat-images')
@@ -49,7 +49,7 @@ describe('## Photo Upload APIs', () => {
             'storage.googleapis.com/chat-images.onova.co/'
           );
           expect(body.data['.jpeg'].filename).toContain('-.jpeg');
-          pathImage1 = body.data['.jpeg'].path;
+          // pathImage1 = body.data['.jpeg'].path;
         });
     });
   });
