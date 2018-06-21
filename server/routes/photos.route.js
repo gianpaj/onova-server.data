@@ -41,6 +41,35 @@ const storage = gcsSharp({
 });
 const upload = multer({ storage });
 
+const storageForChatImages = gcsSharp({
+  bucket: 'chat-images.onova.co',
+  projectId: 'onova-183307',
+  keyFilename: 'Onova-3a339323d16a.json',
+  destination: '',
+  acl: 'publicRead',
+  filename: (req, file, cb) => {
+    // TODO: name files with the chat room name
+    const uploadDate = Date.now();
+    cb(null, uploadDate.toString());
+  },
+  sizes: [
+    {
+      suffix: 'thumb.jpeg',
+      width: MAX_WIDTH / 2,
+      height: MAX_WIDTH / 2,
+    },
+    {
+      suffix: '.jpeg',
+      width: MAX_WIDTH,
+      height: MAX_HEIGHT,
+    },
+  ],
+  // crop: 16, // sharp.strategy.entropy
+  toFormat: 'jpeg',
+  withoutEnlargement: true,
+});
+const uploadForChatImages = multer({ storage: storageForChatImages });
+
 // const metaReader = sharp()
 //   .metadata()
 //   .then(info => {
@@ -52,6 +81,14 @@ router
   .route('/upload')
   .post(upload.single('photo'), requireAuth, (req, res, next) => {
     debug('Saved image as', req.file.path);
+    res.status(httpStatus.CREATED).json({ data: req.file });
+  });
+
+// $FlowFixMe
+router
+  .route('/upload-chat-images')
+  .post(uploadForChatImages.single('photo'), requireAuth, (req, res, next) => {
+    debug('Saved chat image as', req.file.path);
     res.status(httpStatus.CREATED).json({ data: req.file });
   });
 
