@@ -25,7 +25,7 @@ declare class session$Request extends express$Request {
     typeIds: string,
     tags: Array<TagDoc>,
     photos: Array<string>,
-    socials: Array<string>,
+    // socials: Array<string>,
   };
 }
 
@@ -116,9 +116,9 @@ function create(
         );
       }
 
-      if (body.socials.indexOf('fb') > -1 && !seller.facebook) {
-        throw new APIError('Please authorize with Facebook', 400);
-      }
+      // if (body.socials.indexOf('fb') > -1 && !seller.facebook) {
+      //   throw new APIError('Please authorize with Facebook', 400);
+      // }
 
       product.seller = req.user._id;
 
@@ -155,7 +155,7 @@ function create(
       }
 
       const jobData = {
-        socials: body.socials,
+        // socials: body.socials,
         product,
       };
 
