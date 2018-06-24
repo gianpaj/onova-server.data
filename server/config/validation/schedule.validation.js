@@ -63,11 +63,11 @@ export default {
         .invalid('0.00')
         .required(),
       currency: Joi.string().valid('UAH'), // 'UAH' by default
-      // socials: Joi.array()
-      //   .unique()
-      //   .items(Joi.string().valid(['fb', 'vk']))
-      //   .single()
-      //   .required(),
+      socials: Joi.array()
+        .unique()
+        .items(Joi.string().valid(['fb', 'vk']))
+        .single()
+        .required(),
     },
   },
 };
