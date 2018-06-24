@@ -22,6 +22,8 @@ import routes from '../routes/index.route';
 import config from './config';
 import APIError from '../helpers/APIError';
 
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
+
 const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
   config.mongo.jobDb
 }`;
@@ -32,7 +34,7 @@ if (config.env == 'test') {
   agenda.on('ready', () => {
     agenda.purge((err, numRemoved) => {
       if (err) return console.error(err);
-      console.log('jobs removed', numRemoved);
+      debug('jobs removed', numRemoved);
       agenda.start();
     });
   });
