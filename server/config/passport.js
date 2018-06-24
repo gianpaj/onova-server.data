@@ -4,7 +4,7 @@ import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import LocalStrategy from 'passport-local';
 import FacebookStrategy from 'passport-facebook';
 import passport from 'passport';
-import VKontakteTokenStrategy from 'passport-vkontakte-token';
+// import VKontakteTokenStrategy from 'passport-vkontakte-token';
 
 import User, { UserDoc } from '../models/user.model';
 import config from './config';
@@ -142,6 +142,7 @@ passport.use(
   )
 );
 
+/*
 passport.use(
   new VKontakteTokenStrategy(
     {
@@ -161,3 +162,4 @@ passport.use(
     }
   )
 );
+*/
