@@ -32,7 +32,7 @@ describe('## Schedule APIs', () => {
     description: 'nice boots',
     price: '100.99',
     photos: ['http://storage.googleapis.com/1527232263107'],
-    // socials: 'fb',
+    socials: 'vk',
   };
 
   let productUuid;
@@ -153,7 +153,7 @@ describe('## Schedule APIs', () => {
         .expect(httpStatus.CREATED)
         .then(async ({ body }) => {
           const p = body.data.data.product;
-          // expect(body.data.data.socials).toEqual([product.socials]);
+          expect(body.data.data.socials).toEqual([product.socials]);
           expect(body.data.nextRunAt).toBe(product.date.toISOString());
           expect(p.categoryIds.sort()).toEqual(product.categoryIds);
           expect(p.currency).toBe('UAH');
