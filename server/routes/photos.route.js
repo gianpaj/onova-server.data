@@ -3,9 +3,9 @@
 import express from 'express';
 import passport from 'passport';
 import httpStatus from 'http-status';
-import photosCtrl from '../controllers/photos.controller';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
+import photosCtrl from '../controllers/photos.controller';
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
 
