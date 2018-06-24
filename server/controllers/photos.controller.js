@@ -1,9 +1,7 @@
 // @flow
 
 import gcsSharp from 'multer-sharp';
-import httpStatus from 'http-status';
 import multer from 'multer';
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 const MAX_WIDTH = 1440;
 const MAX_HEIGHT = 1440;
@@ -65,31 +63,7 @@ const storageForChatImages = gcsSharp({
 });
 const uploadChatImage = multer({ storage: storageForChatImages });
 
-/**
- * Upload URL image to VK
- *
- * POST /api/photos/upload-to-vk
- *
- * @property {*} req - Express request
- * @property {*} req.body - Express body parameters
- * @property {string} req.body.upload_url
- * @property {Array<string>|string} req.body.photos
- */
-function uploadToVK(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
-  // TODO: check if we have access to VK.com
-
-  debug('image uploaded to uk');
-
-  const data = {};
-  res.status(httpStatus.CREATED).json({ data });
-}
-
 export default {
   uploadProductImage,
   uploadChatImage,
-  uploadToVK,
 };
