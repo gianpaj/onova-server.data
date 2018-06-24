@@ -14,12 +14,12 @@ const router = express.Router();
  * Only check authentication and load user as `req.user` object if the header is sent.
  * This is use to get the products except the ones user's blocking
  */
-function conditionalAuth(req, res, next) {
-  if (req.get('Authorization')) {
-    return requireAuth(req, res, next);
-  }
-  next();
-}
+// function conditionalAuth(req, res, next) {
+//   if (req.get('Authorization')) {
+//     return requireAuth(req, res, next);
+//   }
+//   next();
+// }
 
 router
   .route('/')

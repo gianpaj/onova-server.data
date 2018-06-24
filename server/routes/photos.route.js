@@ -3,72 +3,11 @@
 import express from 'express';
 import passport from 'passport';
 import httpStatus from 'http-status';
-import multer from 'multer';
-import gcsSharp from 'multer-sharp';
+import photosCtrl from '../controllers/photos.controller';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
-
-const MAX_WIDTH = 1440;
-const MAX_HEIGHT = 1440;
-
-const storage = gcsSharp({
-  bucket: 'temp-uploads.onova.co',
-  projectId: 'onova-183307',
-  keyFilename: 'Onova-3a339323d16a.json',
-  destination: '',
-  acl: 'publicRead',
-  filename: (req, file, cb) => {
-    const uploadDate = Date.now();
-    cb(null, uploadDate.toString());
-  },
-  sizes: [
-    {
-      suffix: 'thumb.jpeg',
-      width: 700,
-      height: 700,
-    },
-    {
-      suffix: '.jpeg',
-      width: MAX_WIDTH,
-      height: MAX_HEIGHT,
-    },
-  ],
-  crop: 16, // sharp.strategy.entropy
-  toFormat: 'jpeg',
-  // withoutEnlargement: true,
-});
-const upload = multer({ storage });
-
-const storageForChatImages = gcsSharp({
-  bucket: 'chat-images.onova.co',
-  projectId: 'onova-183307',
-  keyFilename: 'Onova-3a339323d16a.json',
-  destination: '',
-  acl: 'publicRead',
-  filename: (req, file, cb) => {
-    // TODO: name files with the chat room name
-    const uploadDate = Date.now();
-    cb(null, uploadDate.toString());
-  },
-  sizes: [
-    {
-      suffix: 'thumb.jpeg',
-      width: MAX_WIDTH / 2,
-      height: MAX_WIDTH / 2,
-    },
-    {
-      suffix: '.jpeg',
-      width: MAX_WIDTH,
-      height: MAX_HEIGHT,
-    },
-  ],
-  // crop: 16, // sharp.strategy.entropy
-  toFormat: 'jpeg',
-  withoutEnlargement: true,
-});
-const uploadForChatImages = multer({ storage: storageForChatImages });
 
 // const metaReader = sharp()
 //   .metadata()
@@ -79,17 +18,25 @@ const uploadForChatImages = multer({ storage: storageForChatImages });
 // $FlowFixMe
 router
   .route('/upload')
-  .post(upload.single('photo'), requireAuth, (req, res, next) => {
-    debug('Saved image as', req.file.path);
-    res.status(httpStatus.CREATED).json({ data: req.file });
-  });
+  .post(
+    photosCtrl.uploadProductImage.single('photo'),
+    requireAuth,
+    (req, res, next) => {
+      debug('product image uploaded to:', req.file.path);
+      res.status(httpStatus.CREATED).json({ data: req.file });
+    }
+  );
 
 // $FlowFixMe
 router
   .route('/upload-chat-images')
-  .post(uploadForChatImages.single('photo'), requireAuth, (req, res, next) => {
-    debug('Saved chat image as', req.file.path);
-    res.status(httpStatus.CREATED).json({ data: req.file });
-  });
+  .post(
+    photosCtrl.uploadChatImage.single('photo'),
+    requireAuth,
+    (req, res, next) => {
+      debug('chat image uploaded to:', req.file.path);
+      res.status(httpStatus.CREATED).json({ data: req.file });
+    }
+  );
 
 export default router;
