@@ -25,7 +25,7 @@ declare class session$Request extends express$Request {
     typeIds: string,
     tags: Array<TagDoc>,
     photos: Array<string>,
-    socials: Array<string>,
+    // socials: Array<string>,
   };
 }
 
@@ -155,7 +155,7 @@ function create(
       }
 
       const jobData = {
-        socials: body.socials,
+        // socials: body.socials,
         product,
       };
 
