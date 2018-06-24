@@ -3,9 +3,9 @@
 import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';
+import httpStatus from 'http-status';
 const request = require('request');
 
-import httpStatus from 'http-status';
 import paramValidation from '../config/validation/auth.validation';
 import authCtrl from '../controllers/auth.controller';
 import config from '../config/config';
