@@ -28,28 +28,70 @@ describe('## Photo Upload APIs', () => {
     );
   });
 
+  describe('# POST /api/photos/upload', () => {
+    it('should upload a product image when scheduling', () => {
+      return request(app)
+        .post('/api/photos/upload')
+        .set('Authorization', jwtToken)
+        .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const { data } = body;
+          expect(data.fieldname).toBe('photo');
+          expect(data.originalname).toBe('boots-large.jpg');
+          expect(data.encoding).toBe('7bit');
+          expect(data.mimetype).toBe('image/jpeg');
+          expect(data['thumb.jpeg'].path).toContain(
+            'storage.googleapis.com/temp-uploads.onova.co/'
+          );
+          expect(data['thumb.jpeg'].filename).toContain('thumb');
+          expect(data['.jpeg'].path).toContain(
+            'storage.googleapis.com/temp-uploads.onova.co/'
+          );
+          expect(data['.jpeg'].filename).toContain('-.jpeg');
+          expect(Object.keys(data).sort()).toEqual([
+            '.jpeg',
+            'encoding',
+            'fieldname',
+            'mimetype',
+            'originalname',
+            'thumb.jpeg',
+          ]);
+        });
+    });
+  });
+
   describe('# POST /api/photos/upload-chat-images', () => {
     // let pathImage1;
-    it('should send an chat image a listing', () => {
+    it('should upload a chat image', () => {
       return request(app)
         .post('/api/photos/upload-chat-images')
         .set('Authorization', jwtToken)
         .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
-          expect(body.data.originalname).toBe('boots-large.jpg');
-          expect(body.data.fieldname).toBe('photo');
-          expect(body.data.encoding).toBe('7bit');
-          expect(body.data.mimetype).toBe('image/jpeg');
-          expect(body.data['thumb.jpeg'].path).toContain(
+          const { data } = body;
+          expect(data.originalname).toBe('boots-large.jpg');
+          expect(data.fieldname).toBe('photo');
+          expect(data.encoding).toBe('7bit');
+          expect(data.mimetype).toBe('image/jpeg');
+          expect(data['thumb.jpeg'].path).toContain(
             'storage.googleapis.com/chat-images.onova.co/'
           );
-          expect(body.data['thumb.jpeg'].filename).toContain('thumb');
-          expect(body.data['.jpeg'].path).toContain(
+          expect(data['thumb.jpeg'].filename).toContain('thumb');
+          expect(data['.jpeg'].path).toContain(
             'storage.googleapis.com/chat-images.onova.co/'
           );
-          expect(body.data['.jpeg'].filename).toContain('-.jpeg');
-          // pathImage1 = body.data['.jpeg'].path;
+          expect(data['.jpeg'].filename).toContain('-.jpeg');
+          // pathImage1 = data['.jpeg'].path;
+          expect(Object.keys(data).sort()).toEqual([
+            '.jpeg',
+            'encoding',
+            'fieldname',
+            'mimetype',
+            'originalname',
+            'thumb.jpeg',
+          ]);
         });
     });
   });
