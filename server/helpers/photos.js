@@ -144,9 +144,13 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
       file
         .makePublic()
         .then(() => {
-          const cloudStoragePublicUrl = `http://${
-            config.CLOUD_BUCKET
-          }/${gcsname}`;
+          let cloudStoragePublicUrl;
+          const path = `${config.CLOUD_BUCKET}/${gcsname}`;
+          if (config.env === 'production') {
+            cloudStoragePublicUrl = `http://${path}`;
+          } else {
+            cloudStoragePublicUrl = `https://storage.googleapis.com/${path}`;
+          }
           resolve(cloudStoragePublicUrl);
         })
         .catch(err => {
