@@ -3,9 +3,12 @@
 import express from 'express';
 import passport from 'passport';
 import httpStatus from 'http-status';
+import validate from 'express-validation';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import photosCtrl from '../controllers/photos.controller';
+import paramValidation from '../config/validation/photos.validation';
+
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
 
@@ -37,6 +40,14 @@ router
       debug('chat image uploaded to:', req.file.path);
       res.status(httpStatus.CREATED).json({ data: req.file });
     }
+  );
+
+router
+  .route('/upload-to-vk')
+  .post(
+    validate(paramValidation.uploadToVK),
+    photosCtrl.uploadToVK,
+    requireAuth
   );
 
 export default router;
