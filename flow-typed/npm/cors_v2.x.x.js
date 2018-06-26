@@ -1,5 +1,5 @@
-// flow-typed signature: 8c4ca414f9f24aa84a8f760f7f776e69
-// flow-typed version: e9b4192877/cors_v2.x.x/flow_>=v0.53.x
+// flow-typed signature: 8069c2f3f8822651cee2364cb0f777b5
+// flow-typed version: 606c536da0/cors_v2.x.x/flow_>=v0.53.x
 
 // @flow
 import type { $Request as Request, $Response as Response, NextFunction } from "express";
@@ -25,5 +25,5 @@ type CorsOptions = {
 }
 
 declare module "cors" {
-    declare export default (options?: CorsOptions) => RequestHandler;
+    declare module.exports: (options?: CorsOptions) => RequestHandler;
 }
