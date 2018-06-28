@@ -12,7 +12,7 @@ const download = require('image-downloader');
 const MAX_WIDTH = 1440;
 const MAX_HEIGHT = 1440;
 
-const storage = gcsSharp({
+const tempProductImageStorage = gcsSharp({
   bucket: 'temp-uploads.onova.co',
   projectId: 'onova-183307',
   keyFilename: 'Onova-3a339323d16a.json',
@@ -38,7 +38,7 @@ const storage = gcsSharp({
   toFormat: 'jpeg',
   // withoutEnlargement: true,
 });
-const uploadProductImage = multer({ storage });
+const tempUploadProductImage = multer({ storage: tempProductImageStorage });
 
 const storageForChatImages = gcsSharp({
   bucket: 'chat-images.onova.co',
@@ -129,7 +129,7 @@ async function uploadToVK(
 }
 
 export default {
-  uploadProductImage,
+  tempUploadProductImage,
   uploadChatImage,
   uploadToVK,
 };

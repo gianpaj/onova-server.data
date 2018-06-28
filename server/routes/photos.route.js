@@ -22,7 +22,7 @@ const router = express.Router();
 router
   .route('/upload')
   .post(
-    photosCtrl.uploadProductImage.single('photo'),
+    photosCtrl.tempUploadProductImage.single('photo'),
     requireAuth,
     (req, res, next) => {
       debug('product image uploaded to:', req.file.path);
