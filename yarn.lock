@@ -2576,7 +2576,7 @@ forever-agent@~0.6.1:
   version "0.6.1"
   resolved "https://registry.yarnpkg.com/forever-agent/-/forever-agent-0.6.1.tgz#fbc71f0c41adeb37f96c577ad1ed42d8fdacca91"
 
-form-data@^2.3.1, form-data@false2.3.2, form-data@~2.3.1:
+form-data@2.3.2, form-data@^2.3.1, form-data@~2.3.1:
   version "2.3.2"
   resolved "https://registry.yarnpkg.com/form-data/-/form-data-2.3.2.tgz#4970498be604c20c005d4f5c23aecd21d6b49099"
   dependencies:
@@ -3197,7 +3197,7 @@ ignore@^3.3.3:
   version "3.3.8"
   resolved "https://registry.yarnpkg.com/ignore/-/ignore-3.3.8.tgz#3f8e9c35d38708a3a7e0e9abb6c73e7ee7707b2b"
 
-image-downloader@false3.4.1:
+image-downloader@3.4.1:
   version "3.4.1"
   resolved "https://registry.yarnpkg.com/image-downloader/-/image-downloader-3.4.1.tgz#987b356c1628ff06635debe1af1d56c77a828b2a"
   dependencies:
