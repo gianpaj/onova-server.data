@@ -69,6 +69,11 @@ passport.use(
   })
 );
 
+/*
+When enabled add index (in user.model.js)
+
+UserSchema.index({ facebook: 1 }, { unique: true, sparse: true });
+
 passport.use(
   new FacebookStrategy(
     {
@@ -141,6 +146,7 @@ passport.use(
     }
   )
 );
+/*
 
 /*
 passport.use(
