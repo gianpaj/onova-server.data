@@ -262,7 +262,8 @@ describe('## Product APIs', () => {
           expect(Object.keys(p.seller).sort()).toEqual(
             ['_id', 'accountStatus', 'profilePic', 'username'].sort()
           );
-          expect(p.seller.profilePic).toContain('profilepic.jpg');
+          expect(p.seller.profilePic).toContain(user._id);
+          expect(p.seller.profilePic).toContain('.jpg');
           expect(p.status).toBe('forsale');
           expect(p.currency).toBe('UAH');
           expect(Array.isArray(p.likes));
