@@ -53,36 +53,37 @@ const uploadMulter = multer({
 function uploadProductImages(product: ProductDoc, files: Array<any>) {
   const uploadDate = Date.now();
 
-  // generate thumbnails
-  files.forEach((image, i) => {
-    const metadata = {
-      contentType: image.mimetype,
-    };
-    const thumbFilePath = `products/${product.uuid}-${i +
-      1}-${uploadDate}-thumb.jpg`;
-    const file = bucket.file(thumbFilePath);
-    const thumbnailUploadStream = file.createWriteStream(metadata);
+  // generate a square thumbnail for the 1st image
+  const firstImage = files[0];
+  const metadata = {
+    metadata: {
+      contentType: firstImage.mimetype,
+    },
+  };
+  const thumbFilePath = `products/${product.uuid}-1-${uploadDate}-thumb.jpg`;
+  const file = bucket.file(thumbFilePath);
+  const thumbnailUploadStream = file.createWriteStream(metadata);
 
-    thumbnailUploadStream.on('error', err => {
-      console.log('Error uploading thumbnail', err);
-    });
+  thumbnailUploadStream.on('error', err => {
+    console.log('Error uploading thumbnail', err);
+  });
 
-    const pipeline = sharp(image.buffer);
-    pipeline
-      .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
-      .max() // preserve aspect ratio and not wider than width and height
-      .pipe(thumbnailUploadStream);
+  const pipeline = sharp(firstImage.buffer);
+  pipeline
+    .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
+    .crop(sharp.strategy.entropy)
+    // .max() // preserve aspect ratio and not wider than width and height
+    .pipe(thumbnailUploadStream);
 
-    thumbnailUploadStream.on('finish', () => {
-      file
-        .makePublic()
-        .then(() => {
-          debug('thumbnail uploaded');
-        })
-        .catch(err => {
-          console.log('Error makePublic thumbnail', err);
-        });
-    });
+  thumbnailUploadStream.on('finish', () => {
+    file
+      .makePublic()
+      .then(() => {
+        debug('thumbnail uploaded');
+      })
+      .catch(err => {
+        console.log('Error makePublic thumbnail', err);
+      });
   });
 
   // upload full size images
@@ -129,8 +130,8 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
  */
 function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
   return new Promise((resolve, reject) => {
-    const gcsname = `users/${user._id}-${Date.now()}.jpg`;
-    const file = bucket.file(gcsname);
+    const gcspath = `users/${user._id}-${Date.now()}.jpg`;
+    const file = bucket.file(gcspath);
     const stream = file.createWriteStream({
       metadata: {
         contentType: image.mimetype,
@@ -144,12 +145,10 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
       file
         .makePublic()
         .then(() => {
-          let cloudStoragePublicUrl;
-          const path = `${config.CLOUD_BUCKET}/${gcsname}`;
+          const path = `${config.CLOUD_BUCKET}/${gcspath}`;
+          let cloudStoragePublicUrl = `https://storage.googleapis.com/${path}`;
           if (config.env === 'production') {
             cloudStoragePublicUrl = `http://${path}`;
-          } else {
-            cloudStoragePublicUrl = `https://storage.googleapis.com/${path}`;
           }
           resolve(cloudStoragePublicUrl);
         })
