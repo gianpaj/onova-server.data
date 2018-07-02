@@ -11,9 +11,27 @@ import User, { UserDoc } from '../models/user.model';
 
 import config from '../config/config';
 
-declare class session$Request extends express$Request {
+declare class session$RequestList extends express$Request {
   order: OrderDoc;
   user: UserDoc;
+  query: {
+    as: string,
+  };
+  params: {
+    userId: string,
+  };
+}
+
+declare class session$RequestCreate extends express$Request {
+  order: OrderDoc;
+  user: UserDoc;
+  body: {
+    orderId: string,
+    trackingNumber: string,
+    lang: string,
+    rateNumber: number,
+    text: string,
+  };
 }
 
 /**
@@ -27,7 +45,11 @@ declare class session$Request extends express$Request {
  * @property {*} req.query - express session query
  * @property {string} req.query.as buyer|seller|both
  */
-async function list(req: session$Request, res: express$Response, next) {
+async function list(
+  req: session$RequestList,
+  res: express$Response,
+  next: express$NextFunction
+) {
   const { userId } = req.params;
   const { as } = req.query;
   // const { limit = 50, lastId } = req.query;
@@ -40,13 +62,13 @@ async function list(req: session$Request, res: express$Response, next) {
     }
     let match = {};
     let query = { targetUser: userId };
-    if ('buyer' == as) {
+    if ('buyer' === as) {
       match = { buyer: userId };
     }
-    if ('seller' == as) {
+    if ('seller' === as) {
       match = { seller: userId };
     }
-    if ('both' == as) {
+    if ('both' === as) {
       query = {
         $or: [{ targetUser: userId }, { fromUser: userId }],
       };
@@ -56,7 +78,7 @@ async function list(req: session$Request, res: express$Response, next) {
       .populate({
         path: 'order',
         match,
-        populate: { path: 'product buyer seller' },
+        populate: { path: 'product buyer seller ' },
       });
 
     reviews = reviews.filter(r => r.order !== null);
@@ -83,7 +105,7 @@ async function list(req: session$Request, res: express$Response, next) {
  * @property {number} req.body.trackingNumber
  */
 async function create(
-  req: session$Request,
+  req: session$RequestCreate,
   res: express$Response,
   next: express$NextFunction
 ) {
@@ -116,27 +138,26 @@ async function create(
       );
     }
 
-    if (config.env !== 'test') {
-      try {
-        const isValid = await isValidTrackingNumber(
-          trackingNumber
-          // order.datePending
-        );
-        if (!isValid) {
-          const APIerr = new APIError(
-            'The tracking number is not valid',
-            httpStatus.BAD_REQUEST
-          );
-          return next(APIerr);
-        }
-      } catch (err) {
-        console.error(err);
+    let cities;
+    try {
+      cities = await getValidTrackingNumberCities(
+        trackingNumber
+        // order.datePending
+      );
+      if (!cities) {
         const APIerr = new APIError(
           'The tracking number is not valid',
-          httpStatus.INTERNAL_SERVER_ERROR
+          httpStatus.BAD_REQUEST
         );
         return next(APIerr);
       }
+    } catch (err) {
+      console.error(err);
+      const APIerr = new APIError(
+        'The tracking number is not valid',
+        httpStatus.INTERNAL_SERVER_ERROR
+      );
+      return next(APIerr);
     }
 
     // count all the orders with this tracking number that don't match this _id
@@ -176,6 +197,8 @@ async function create(
     });
 
     order.trackingNumber = trackingNumber;
+    order.citySender = cities.citySender;
+    order.cityRecipient = cities.cityRecipient;
 
     // TODO: after integrating with payment provider do not mark product as sold like this
     if (iAmTheBuyer) {
@@ -212,11 +235,82 @@ async function create(
  * 8
  * -> false
  */
-async function isValidTrackingNumber(
+async function getValidTrackingNumberCities(
   trackingNumber: string
   // orderDatePending: Date
-): Promise<boolean> {
+): Promise<boolean | { citySender: string, cityRecipient: string }> {
+  let data = {
+    Number: '20450072617861',
+    Redelivery: 0,
+    RedeliverySum: '',
+    RedeliveryNum: '',
+    RedeliveryPayer: '',
+    OwnerDocumentType: '',
+    LastCreatedOnTheBasisDocumentType: '',
+    LastCreatedOnTheBasisPayerType: '',
+    LastCreatedOnTheBasisDateTime: '',
+    LastTransactionStatusGM: '',
+    LastTransactionDateTimeGM: '',
+    DateCreated: '07-05-2018 12:41:31',
+    CheckWeight: 0,
+    SumBeforeCheckWeight: 0,
+    PayerType: 'Recipient',
+    RecipientFullName: '',
+    RecipientDateTime: '08.05.2018 13:36:49',
+    ScheduledDeliveryDate: '08-05-2018',
+    PaymentMethod: 'Cash',
+    CargoDescriptionString: '',
+    CargoType: 'Parcel',
+    CitySender: 'Львів',
+    CityRecipient: 'Чернівці',
+    WarehouseRecipient:
+      'Відділення №14 (до 30 кг на одне місце): вул. Небесної Сотні, 20',
+    CounterpartyType: 'PrivatePerson',
+    AfterpaymentOnGoodsCost: '',
+    ServiceType: 'WarehouseWarehouse',
+    UndeliveryReasonsSubtypeDescription: '',
+    WarehouseRecipientNumber: 14,
+    LastCreatedOnTheBasisNumber: '',
+    WarehouseRecipientInternetAddressRef:
+      '01ae25ec-e1c2-11e3-8c4a-0050568002cf',
+    MarketplacePartnerToken: '***REMOVED***',
+    ClientBarcode: '',
+    SenderAddress: '',
+    RecipientAddress: '',
+    CounterpartySenderDescription: '',
+    CounterpartyRecipientDescription: '',
+    CounterpartySenderType: 'PrivatePerson',
+    DateScan: '0001-01-01 00:00:00',
+    PaymentStatus: 'PAYED',
+    PaymentStatusDate: '06.05.2018 12:42:55',
+    AmountToPay: 58,
+    AmountPaid: 58,
+    LastAmountTransferGM: '',
+    LastAmountReceivedCommissionGM: '',
+    DocumentCost: 58,
+    DocumentWeight: 5,
+    AnnouncedPrice: '',
+    UndeliveryReasonsDate: '',
+    RecipientWarehouseTypeRef: '841339c7-591a-42e2-8233-7a0a00f0ed6f',
+    RedeliveryPaymentCardRef: '',
+    RedeliveryPaymentCardDescription: '',
+    OwnerDocumentNumber: '',
+    InternationalDeliveryType: '',
+    WarehouseSender: 'Відділення №15 (до 30 кг): вул. Героїв УПА, 6',
+    WarehouseRecipientRef: '7ddcc4e5-c432-11e1-86b4-0026b97ed48a',
+    Status: 'Відправлення отримано',
+    StatusCode: '9',
+    RefEW: 'acc06e3c-5111-11e8-aa3a-0025b501a04b',
+    CreatedOnTheBasis: '',
+    DatePayedKeeping: '',
+  };
   return new Promise((resolve, reject) => {
+    if (config.env === 'test') {
+      return resolve({
+        citySender: data.CitySender,
+        cityRecipient: data.CityRecipient,
+      });
+    }
     request.post(
       'https://api.novaposhta.ua/v2.0/json/documentsTracking/',
       {
