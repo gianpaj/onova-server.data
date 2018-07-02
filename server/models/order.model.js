@@ -17,6 +17,8 @@ var OrderSchema = new Schema({
     ref: 'User',
     required: true,
   },
+  citySender: String,
+  cityRecipient: String,
   currency: {
     type: String,
     required: true,
@@ -148,6 +150,8 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   archivedByBuyer: boolean;
   archivedBySeller: boolean;
   buyer: MongoId;
+  citySender: string;
+  cityRecipient: string;
   currency: string;
   dateCancelled: ?Date;
   dateCompleted: ?Date;

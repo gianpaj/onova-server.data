@@ -29,7 +29,7 @@ const moreUserFields = [
   'updatedAt',
 ];
 
-// GET & PUT /api/orders/ should only return these fields
+// GET & PUT /api/users/<id>/reviews should only return these fields
 const reviewFields = [
   '_id',
   'id',
@@ -328,6 +328,8 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
+          expect(o.order.citySender).toBe('Львів');
+          expect(o.order.cityRecipient).toBe('Чернівці');
           expect(o.fromUser).toBe(userFirst._id);
           expect(o.targetUser).toBe(userAnother._id);
           expect(o.text).toBe('great seller AAA+');
