@@ -351,7 +351,10 @@ async function getValidTrackingNumberCities(
           differenceInCalendarDays(trackingNumberDate, new Date(Date.now())) <=
           config.settings.MAX_DAYS_TRACKING_NUMBER_VALID_FOR
         ) {
-          return resolve(true);
+          return resolve({
+            citySender: data.CitySender,
+            cityRecipient: data.CityRecipient,
+          });
         }
         resolve(false);
       }
