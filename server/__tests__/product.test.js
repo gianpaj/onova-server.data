@@ -152,6 +152,23 @@ describe('## Product APIs', () => {
       productsCounter++;
     });
 
+    // it('should NOT create a product with invalid coordinates', () => {
+    //   return request(app)
+    //     .post('/api/products')
+    //     .set('Authorization', jwtToken)
+    //     .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
+    //     .field({
+    //       ...anotherProduct,
+    //       longitude: 0.1,
+    //       latitude: 0.1,
+    //     })
+    //     .expect(httpStatus.BAD_REQUEST)
+    //     .then(res => {
+    //       const p = res.body.data;
+    //       // console.log(p);
+    //     });
+    // });
+
     it('should not create product with wrong file uploaded', () => {
       return request(app)
         .post('/api/products')
