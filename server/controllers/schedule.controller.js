@@ -4,7 +4,11 @@ import shortid from 'shortid';
 import httpStatus from 'http-status';
 import Storage from '@google-cloud/storage';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
+import path from 'path';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const geocoder = require('offline-geocoder')({
+  database: path.join(__dirname, '../../db.sqlite'),
+});
 
 import { agenda } from '../config/express';
 import APIError from '../helpers/APIError';
@@ -26,6 +30,8 @@ declare class session$Request extends express$Request {
     tags: Array<TagDoc>,
     photos: Array<string>,
     // socials: Array<string>,
+    latitude: number,
+    longitude: number,
   };
 }
 
@@ -72,7 +78,7 @@ function load(
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
  */
-function create(
+async function create(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -88,6 +94,22 @@ function create(
     typeIds: body.typeIds,
     uuid: shortid.generate(), // needed here for photos' filenames
   });
+
+  if (body.longitude && body.latitude) {
+    product.location = {
+      type: 'Point',
+      coordinates: [body.longitude, body.latitude],
+    };
+
+    try {
+      const geodata = await geocoder.reverse(body.latitude, body.longitude);
+      product.locality = geodata.admin1.name;
+    } catch (err) {
+      console.error(err);
+      const APIerr = new APIError('Invalid location', 400);
+      return next(APIerr);
+    }
+  }
 
   if (/\.\d{1}$/.test(product.price)) {
     product.price += '0';
