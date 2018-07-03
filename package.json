@@ -51,6 +51,7 @@
     "multer-sharp": "0.5.0",
     "node-fetch": "2.1.2",
     "node-mailjet": "^3.2.1",
+    "offline-geocoder": "false0.0.1",
     "passport": "^0.4.0",
     "passport-facebook": "2.1.1",
     "passport-jwt": "^4.0.0",

@@ -109,6 +109,14 @@ yarn --production
 yarn start
 ```
 
+## Generate SQLite DB for Reverse Geocoding
+
+Taken from [here](http://download.geonames.org/export/dump/).
+
+    bash generate_geonames.sh
+
+From [generate_geonames.sh](https://github.com/lucaspiller/offline-geocoder/blob/master/scripts/generate_geonames.sh)
+
 ## Logging
 
 Universal logging library [winston](https://www.npmjs.com/package/winston) is used for logging. It has support for multiple transports. A transport is essentially a storage device for your logs. Each instance of a winston logger can have multiple transports configured at different levels. For example, one may want error logs to be stored in a persistent remote location (like a database), but all logs output to the console or a local file. We just log to the console for simplicity, you can configure more transports as per your requirement.
