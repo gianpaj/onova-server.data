@@ -30,7 +30,7 @@ const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
 
 export const agenda = new Agenda({ db: { address: jobDb } });
 
-if (config.env == 'test') {
+if (config.env === 'test') {
   agenda.on('ready', () => {
     agenda.purge((err, numRemoved) => {
       if (err) return console.error(err);

@@ -104,7 +104,7 @@ describe('## Product APIs', () => {
   });
 
   describe('# POST /api/products', () => {
-    it('should create a product', () => {
+    it('should create a product without coordinates', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -137,6 +137,19 @@ describe('## Product APIs', () => {
           productUuid = p.uuid;
           productsCounter++;
         });
+    });
+
+    it('should create a product with coordinates', async () => {
+      const p = await createProduct(
+        { ...anotherProduct, longitude: 23.9573617, latitude: 49.8134431 },
+        jwtToken
+      );
+      expect(p.locality).toBe('Lviv');
+      expect(p.description).toBe(anotherProduct.description);
+      expect(Object.keys(p).sort()).toEqual(
+        [...productFields, 'comments', 'locality'].sort()
+      );
+      productsCounter++;
     });
 
     it('should not create product with wrong file uploaded', () => {

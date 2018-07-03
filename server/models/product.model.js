@@ -27,6 +27,10 @@ const CommentSchema = new Schema({
     required: true,
   },
 });
+const GeoJSON = new Schema({
+  type: { type: String, enum: ['Point'], required: true },
+  coordinates: [Number],
+});
 
 // from mobileapp (AddProduct.js)
 // categoryIds
@@ -64,6 +68,11 @@ var ProductSchema = new Schema(
     photoURIs: {
       type: [String],
       // required: true, // added async after the images are uploaded to GSC
+    },
+    location: { type: GeoJSON, required: false },
+    locality: {
+      type: String,
+      // required: true,
     },
     price: {
       type: Schema.Types.Decimal,
@@ -109,6 +118,8 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   description: string;
   likes: Array<MongoId>;
   photoURIs: Array<string>;
+  latitude: ?number;
+  longitude: ?number;
   price: number;
   seller: string;
   status: string;
@@ -198,6 +209,7 @@ ProductSchema.set('toJSON', {
   transform: (doc, ret) => {
     ret.price = ret.price.toString();
     delete ret.__v;
+    delete ret.location;
     return ret;
   },
 });
@@ -207,6 +219,7 @@ ProductSchema.index({ status: 1, createdAt: 1 });
 ProductSchema.index({ status: 1, tags: 1 });
 ProductSchema.index({ status: 1, photoURIs: 1 });
 ProductSchema.index({ status: 1, seller: 1 });
+// ProductSchema.index({ location: '2dsphere' });
 // ProductSchema.index({ uuid: 1 }, { unique: true }); // created by `unique` schema setting above
 
 // ProductSchema.plugin(stream.mongoose.activity);

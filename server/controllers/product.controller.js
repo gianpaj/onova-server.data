@@ -11,6 +11,10 @@ import Product, { ProductDoc } from '../models/product.model';
 import Tag, { TagDoc } from '../models/tag.model';
 import User, { UserDoc } from '../models/user.model';
 import config from '../config/config';
+import path from 'path';
+const geocoder = require('offline-geocoder')({
+  database: path.join(__dirname, '../../db.sqlite'),
+});
 
 declare class session$Request extends express$Request {
   files: Array<any>;
@@ -22,6 +26,8 @@ declare class session$Request extends express$Request {
     price: string,
     typeIds: string,
     tags: Array<TagDoc>,
+    latitude: number,
+    longitude: number,
   };
 }
 
@@ -102,29 +108,46 @@ function get(req: session$Request, res: express$Response) {
  * @property {MongoId} req.body.seller
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
+ * @property {number} req.body.longitude
+ * @property {number} req.body.latitude
  */
-function create(
+async function create(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
+  const { body } = req;
   const product = new Product({
-    categoryIds: req.body.categoryIds,
-    // currency: req.body.currency,
-    description: req.body.description,
-    price: req.body.price,
-    // status: req.body.status, // 'forsale' by default
-    tags: req.body.tags,
-    typeIds: req.body.typeIds,
+    categoryIds: body.categoryIds,
+    // currency: body.currency,
+    description: body.description,
+    price: body.price,
+    // status: body.status, // 'forsale' by default
+    tags: body.tags,
+    typeIds: body.typeIds,
     uuid: shortid.generate(), // needed here for photos' filenames
   });
+
+  if (body.longitude && body.latitude) {
+    product.location = {
+      type: 'Point',
+      coordinates: [body.longitude, body.latitude],
+    };
+
+    try {
+      const geodata = await geocoder.reverse(body.latitude, body.longitude);
+      product.locality = geodata.admin1.name;
+    } catch (err) {
+      console.error(err);
+    }
+  }
 
   if (/\.\d{1}$/.test(product.price)) {
     product.price += '0';
   }
 
   // create Tag documents
-  if (req.body.tags) createTags(req.body.tags);
+  if (body.tags) createTags(body.tags);
 
   // req.files is array of `photos` files
   if (req.files.length < 1) {
@@ -160,7 +183,8 @@ function create(
       return product
         .save()
         .then(savedProduct => savedProduct)
-        .catch(() => {
+        .catch(e => {
+          console.error(e);
           throw new APIError(
             'Error creating Product',
             httpStatus.INTERNAL_SERVER_ERROR
