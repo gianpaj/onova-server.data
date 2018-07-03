@@ -72,6 +72,7 @@ describe('## Product APIs', () => {
   let anotherJwtToken;
   let anotherProdUuid;
   let thirdProdUuid;
+  let prodUuidWithLocality;
 
   let productsCounter = 0;
 
@@ -149,6 +150,7 @@ describe('## Product APIs', () => {
       expect(Object.keys(p).sort()).toEqual(
         [...productFields, 'comments', 'locality'].sort()
       );
+      prodUuidWithLocality = p.uuid;
       productsCounter++;
     });
 
@@ -313,6 +315,17 @@ describe('## Product APIs', () => {
         .get('/api/products/SkveMe9lz')
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toBe('Invalid product'));
+    });
+
+    it('should get a product with locality', () => {
+      return request(app)
+        .get(`/api/products/${prodUuidWithLocality}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(Object.keys(body.data).sort()).toEqual(
+            [...productFields, 'locality'].sort()
+          );
+        });
     });
   });
 
