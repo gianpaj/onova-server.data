@@ -139,6 +139,8 @@ async function create(
       product.locality = geodata.admin1.name;
     } catch (err) {
       console.error(err);
+      const APIerr = new APIError('Invalid location', 400);
+      return next(APIerr);
     }
   }
 
