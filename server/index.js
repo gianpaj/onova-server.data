@@ -5,6 +5,8 @@ import util from 'util';
 // config should be imported before importing any other file
 import config from './config/config';
 import app from './config/express';
+import * as https from 'https';
+import * as fs from 'fs';
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
@@ -41,10 +43,19 @@ if (config.mongooseDebug) {
 // module.parent check is required to support jest watch
 // https://github.com/mochajs/mocha/issues/1912
 if (!module.parent) {
-  // listen on port config.port
-  app.listen(config.port, '0.0.0.0', () => {
-    console.info(`server started on port ${config.port} (${config.env})`);
-  });
+  if (config.env === 'development') {
+    const httpsOptions = {
+      key: fs.readFileSync('./localhost.key'),
+      cert: fs.readFileSync('./localhost.crt'),
+    };
+    https.createServer(httpsOptions, app).listen(config.port, '0.0.0.0', () => {
+      console.info(`server started on port ${config.port} (${config.env})`);
+    });
+  } else {
+    app.listen(config.port, '0.0.0.0', () => {
+      console.info(`server started on port ${config.port} (${config.env})`);
+    });
+  }
 }
 
 export default app;
