@@ -27,6 +27,7 @@ const CommentSchema = new Schema({
     required: true,
   },
 });
+
 const GeoJSON = new Schema({
   type: { type: String, enum: ['Point'], required: true },
   coordinates: [Number],
@@ -118,8 +119,14 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   description: string;
   likes: Array<MongoId>;
   photoURIs: Array<string>;
-  latitude: ?number;
-  longitude: ?number;
+  location: {
+    type: string,
+    coordinates: {
+      latitude: ?number,
+      longitude: ?number,
+    },
+  };
+  locality: string;
   price: number;
   seller: string;
   status: string;
