@@ -68,6 +68,12 @@ yarn dev:start
 DEBUG=express-mongoose-es6-rest-api:* yarn start
 ```
 
+Start with HTTPS and different port:
+
+```sh
+HTTPS=true PORT=4000 yarn dev:start
+```
+
 Refer [debug](https://www.npmjs.com/package/debug) to know how to selectively turn on logs.
 
 Tests:
