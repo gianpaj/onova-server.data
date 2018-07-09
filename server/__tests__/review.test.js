@@ -17,17 +17,7 @@ import {
   createProduct,
   createOrder,
   productFields,
-  userFields,
 } from './utils';
-
-const moreUserFields = [
-  ...userFields,
-  'createdAt',
-  'mobileNumber',
-  'platform',
-  'pushToken',
-  'updatedAt',
-];
 
 // GET & PUT /api/users/<id>/reviews should only return these fields
 const reviewFields = [
@@ -698,12 +688,8 @@ describe('## Order APIs', () => {
           expect(Object.keys(o.order.product).sort()).toEqual(
             [...productFields, 'comments'].sort()
           );
-          expect(Object.keys(o.order.buyer).sort()).toEqual(
-            moreUserFields.sort()
-          );
-          expect(Object.keys(o.order.seller).sort()).toEqual(
-            moreUserFields.sort()
-          );
+          expect(Object.keys(o.order.buyer).sort()).toMatchSnapshot();
+          expect(Object.keys(o.order.seller).sort()).toMatchSnapshot();
           expect(o.fromUser).toBe(userFirst._id);
           expect(o.targetUser).toBe(userAnother._id);
           expect(o.text).toBe('great seller AAA+');

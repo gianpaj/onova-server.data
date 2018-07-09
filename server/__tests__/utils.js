@@ -15,20 +15,6 @@ import User, { UserDoc } from '../models/user.model';
 import Verification from '../models/verification.model';
 import app from '../index';
 
-// GET /api/users/ should only return these fields
-export const userFields = [
-  '_id',
-  'accountStatus',
-  'emailAddress',
-  'followersCount',
-  'followingCount',
-  'ratingsTotal',
-  'reviewsCount',
-  'sharedCount',
-  'tokens',
-  'username',
-];
-
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
   'buyer',
@@ -78,7 +64,7 @@ export function createUserAndLogin(
       if (!body.data) {
         throw new Error(body);
       }
-      expect(Object.keys(body.data).sort()).toEqual(userFields.sort());
+      expect(Object.keys(body.data).sort()).toMatchSnapshot();
 
       return { resUser: body.data, jwtToken: body.token };
     })

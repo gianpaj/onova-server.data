@@ -1,0 +1,86 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[` 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[` 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[` 3`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## Order APIs # GET /api/users/:userId/review should get all the reviews of a userAnother 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "createdAt",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "mobileNumber",
+  "platform",
+  "pushToken",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "updatedAt",
+  "username",
+]
+`;
+
+exports[`## Order APIs # GET /api/users/:userId/review should get all the reviews of a userAnother 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "createdAt",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "mobileNumber",
+  "platform",
+  "pushToken",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "updatedAt",
+  "username",
+]
+`;

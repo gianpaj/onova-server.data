@@ -12,7 +12,7 @@ import Verification from '../models/verification.model';
 import Follow from '../models/follow.model';
 import User, { UserDoc } from '../models/user.model';
 import DefaultFollow from '../models/defaultFollow.model';
-import { createUserAndLogin, userFields } from './utils';
+import { createUserAndLogin } from './utils';
 
 /**
  * root level hooks
@@ -124,7 +124,7 @@ describe('## User APIs', () => {
           expect(resUser.reviewsCount).toBe(0);
           expect(resUser.username).toBe(user.username);
           expect(typeof res.body.token).toBe('string');
-          expect(Object.keys(resUser).sort()).toEqual(userFields.sort());
+          expect(Object.keys(resUser).sort()).toMatchSnapshot();
 
           userId = resUser._id;
           done();
@@ -146,7 +146,7 @@ describe('## User APIs', () => {
           expect(resUser.followersCount).toBe(0);
           expect(resUser.followingCount).toBe(0);
           expect(typeof res.body.token).toBe('string');
-          expect(Object.keys(resUser).sort()).toEqual(userFields.sort());
+          expect(Object.keys(resUser).sort()).toMatchSnapshot();
 
           done();
         })
@@ -359,7 +359,7 @@ describe('## User APIs', () => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
           expect(res.body.followersCount).toBe(0);
           expect(res.body.followingCount).toBe(0);
-          expect(Object.keys(res.body).sort()).toEqual(userFields.sort());
+          expect(Object.keys(res.body).sort()).toMatchSnapshot();
           done();
         })
         .catch(done);
@@ -591,16 +591,7 @@ describe('## User APIs', () => {
           expect(shipInfo.line1).toBe(shippingAddress.line1);
           expect(shipInfo.city).toBe(shippingAddress.city);
           expect(shipInfo.state).toBe(shippingAddress.state);
-          expect(Object.keys(body).sort()).toEqual(
-            [
-              ...userFields,
-              'createdAt',
-              'paymentInfo',
-              'shippingAddress',
-              'facebook',
-              'bio',
-            ].sort()
-          );
+          expect(Object.keys(body).sort()).toMatchSnapshot();
           done();
         })
         .catch(done);
@@ -613,7 +604,7 @@ describe('## User APIs', () => {
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
           expect(res.body.length).toBe(5);
-          expect(Object.keys(res.body[0]).sort()).toEqual(userFields.sort());
+          expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
           done();
         })
         .catch(done);
@@ -692,22 +683,13 @@ describe('## User APIs', () => {
     });
 
     it('should get all users which username contains `johntwo`', () => {
-      const userFields = [
-        '_id',
-        'accountStatus',
-        'bio',
-        'username',
-        'displayName',
-        'profilePic',
-      ];
-
       return request(app)
         .get('/api/users?u=johntwo')
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.length).toBe(1);
           expect(res.body[0].username).toBe(people[1].username);
-          expect(Object.keys(res.body[0]).sort()).toEqual(userFields.sort());
+          expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
         });
     });
 

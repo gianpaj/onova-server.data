@@ -1,0 +1,182 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`## User APIs # Create and verify email address # POST /api/users - should create a new user 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # Create and verify email address # POST /api/users - should create a new user without mobile num 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # DELETE /api/users/:userId should get error when deleting invalid user 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/ should get all users (with limit) 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/ should get all users (with limit) 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/ should get all users (with limit) 3`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/ should get all users (with limit) 4`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/ should get all users 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/ should get personal info 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "bio",
+  "createdAt",
+  "emailAddress",
+  "facebook",
+  "followersCount",
+  "followingCount",
+  "paymentInfo",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "shippingAddress",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/:userId should get the user's details (public) 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/?u=<username> should get all users which username contains \`johntwo\` 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "bio",
+  "displayName",
+  "profilePic",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/?u=<username> should not find deleted users 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
