@@ -330,8 +330,7 @@ describe('## User APIs', () => {
           password: user.password,
         })
         .expect(httpStatus.OK)
-        .then(res => {
-          const { body } = res;
+        .then(({ body }) => {
           expect(body).toHaveProperty('token');
           const token = body.token.split('JWT ')[1];
           expect(Object.keys(body).sort()).toEqual(authFields.sort());
