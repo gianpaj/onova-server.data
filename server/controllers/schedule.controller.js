@@ -215,9 +215,9 @@ async function movePhoto(
     await storage
       .bucket(srcBucketName)
       .file(srcFilename)
-      .move(storage.bucket(destBucketName).file(destFilename));
+      .copy(storage.bucket(destBucketName).file(destFilename));
     debug(
-      `gs://${srcBucketName}/${srcFilename} moved to gs://${destBucketName}/${destFilename}.`
+      `gs://${srcBucketName}/${srcFilename} copied to gs://${destBucketName}/${destFilename}.`
     );
     await storage
       .bucket(destBucketName)
