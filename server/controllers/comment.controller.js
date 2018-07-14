@@ -6,9 +6,8 @@ const debug = require('debug')('express-mongoose-es6-rest-api:index');
 import APIError from '../helpers/APIError';
 import User, { UserDoc } from '../models/user.model';
 import Product, { ProductDoc, CommentDoc } from '../models/product.model';
-import notifCtrl, {
-  NotifPayload,
-} from '../controllers/notification.controller';
+import notifCtrl from '../controllers/notification.controller';
+import type { NotifPayload } from '../controllers/notification.controller';
 
 const mentionsRegex = /@[a-zA-Z0-9\_\.]*/g;
 
@@ -137,10 +136,10 @@ function saveComment(comment, req, res, next) {
       // $FlowFixMe
       const notif: NotifPayload = {
         data: {
-          text: req.body.text,
-          senderName: req.user.username,
           commentId: lastCommment._id,
           productUuid: req.product.uuid,
+          senderName: req.user.username,
+          text: req.body.text,
         },
         notifI18n: 'commented',
         targetUser: req.product.seller._id,
@@ -170,10 +169,10 @@ function saveComment(comment, req, res, next) {
             // $FlowFixMe
             const notifForMention: NotifPayload = {
               data: {
-                text: comment.rawText,
-                senderName: req.user.username,
                 commentId: lastCommment._id,
                 productUuid: req.product.uuid,
+                senderName: req.user.username,
+                text: comment.rawText,
               },
               notifI18n: 'mentioned you',
               targetUser: userId,

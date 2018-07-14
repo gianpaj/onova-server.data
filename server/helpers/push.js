@@ -7,7 +7,7 @@ import Product, { ProductDoc } from '../models/product.model';
 import User, { UserDoc } from '../models/user.model';
 import { agenda } from '../config/express';
 import config from '../config/config';
-import type { notifPayload } from '../controllers/notification.controller';
+import type { NotifPayload } from '../controllers/notification.controller';
 
 export async function sendPush({
   data,
@@ -16,7 +16,7 @@ export async function sendPush({
   triggeredBy,
   triggeredType,
   message,
-}: notifPayload): Promise<null> {
+}: NotifPayload): Promise<void> {
   let blocking = 0;
 
   // New follower

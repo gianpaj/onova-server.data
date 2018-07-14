@@ -13,18 +13,20 @@ declare class session$Request extends express$Request {
   user: UserDoc;
 }
 
-export class NotifPayload {
-  data: ?{
-    text: ?string,
+export type NotifPayload = {
+  data: {
+    commentId: ?string,
+    productUuid: ?string,
     senderName: ?string,
-  };
-  notifI18n: string;
-  targetUser: string;
-  sourceUser: string;
-  triggeredBy: string;
-  triggeredType: string;
-  onlyPush: ?boolean;
-}
+    text: ?string,
+  },
+  notifI18n: string,
+  targetUser: string,
+  sourceUser: string,
+  triggeredBy: string,
+  triggeredType: string,
+  onlyPush: ?boolean,
+};
 
 /**
  * Get user's notifications
@@ -74,7 +76,7 @@ function get(
 /**
  * Create a new notification for user's notification screen and optionally schedule a push notification
  *
- * @property {notifPayload} notif
+ * @property {NotifPayload} notif
  * @property {any} notif.data
  * @property {string} notif.notifI18n
  * @property {MongoId} notif.targetUser
@@ -82,7 +84,7 @@ function get(
  * @property {string} notif.triggeredType User|Product|Order
  * @property {boolean} notif.onlyPush (default false)
  */
-function createNotification(notif: notifPayload): Promise<null> {
+function createNotification(notif: NotifPayload): Promise<null> {
   const {
     data,
     notifI18n,
