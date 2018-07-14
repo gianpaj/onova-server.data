@@ -49,7 +49,12 @@ var NotificationSchema = new Schema({
 // });
 
 export class NotificationDoc /*:: extends Mongoose$Document */ {
-  data: any;
+  data: {
+    commentId: ?string,
+    productUuid: ?string,
+    senderName: ?string,
+    text: ?string,
+  };
   notifI18n: string;
   targetUser: MongoId;
   sourceUser: MongoId;

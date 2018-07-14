@@ -7,9 +7,8 @@ import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
 import { UserDoc } from '../models/user.model';
-import notifCtrl, {
-  NotifPayload,
-} from '../controllers/notification.controller';
+import notifCtrl from '../controllers/notification.controller';
+import type { NotifPayload } from '../controllers/notification.controller';
 import Block from '../models/block.model';
 
 declare class express$Request extends express$Request {

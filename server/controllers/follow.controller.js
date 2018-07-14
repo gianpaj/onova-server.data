@@ -8,9 +8,8 @@ import Block from '../models/block.model';
 import User, { UserDoc } from '../models/user.model';
 import Follow, { FollowDoc } from '../models/follow.model';
 import DefaultFollow from '../models/defaultFollow.model';
-import notifCtrl, {
-  NotifPayload,
-} from '../controllers/notification.controller';
+import notifCtrl from '../controllers/notification.controller';
+import type { NotifPayload } from '../controllers/notification.controller';
 
 const i18n = {
   newFollower: 'started following you',
