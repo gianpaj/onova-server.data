@@ -180,3 +180,19 @@ Array [
   "username",
 ]
 `;
+
+exports[`## User APIs # POST /api/auth/login should get valid JWT token 1`] = `
+Array [
+  "data",
+  "token",
+]
+`;
+
+exports[`## User APIs # POST /api/auth/login should get valid JWT token 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "username",
+]
+`;
