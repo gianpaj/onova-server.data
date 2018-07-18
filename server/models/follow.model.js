@@ -53,7 +53,7 @@ FollowSchema.statics = {
    * @param {number} query.skip Number of follow docs to be skipped
    * @param {number} query.limit Limit number of follow docs to be returned
    */
-  list({ DBquery, skip = 0, limit = 50, me }): Promise<FollowDoc[] | APIError> {
+  list({ DBquery, skip = 0, limit = 50 }): Promise<FollowDoc[] | APIError> {
     const queryingForFollowing = DBquery.hasOwnProperty('following');
 
     const populateField = queryingForFollowing ? 'follower' : 'following';

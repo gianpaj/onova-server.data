@@ -87,19 +87,19 @@ describe('## Follow APIs', () => {
   // create 2 users/sellers
   beforeAll(async () => {
     await createUserAndLogin(user).then(({ user, jwtToken }) => {
-      userId = user._id;
+      userId = user._id.toString();
       firstJwtToken = jwtToken;
     });
     await createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
-      anotherUserId = user._id;
+      anotherUserId = user._id.toString();
       anotherJwtToken = jwtToken;
     });
     await createUserAndLogin(forthUser).then(({ user, jwtToken }) => {
-      forthUserId = user._id;
+      forthUserId = user._id.toString();
       forthUserIdJwtToken = jwtToken;
     });
     return await createUserAndLogin(thirdUser).then(({ user, jwtToken }) => {
-      thirdUserId = user._id;
+      thirdUserId = user._id.toString();
       thirdJwtToken = jwtToken;
     });
   });
@@ -114,9 +114,7 @@ describe('## Follow APIs', () => {
           const { data } = res.body;
           expect(data.follower).toBe(userId);
           expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
-          );
+          expect(Object.keys(data).sort()).toMatchSnapshot();
           firstUserFollowingCounter++;
         });
     });
@@ -223,9 +221,7 @@ describe('## Follow APIs', () => {
           const { data } = res.body;
           expect(data.follower).toBe(userId);
           expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
-          );
+          expect(Object.keys(data).sort()).toMatchSnapshot();
           firstUserFollowingCounter--;
         });
     });
@@ -285,17 +281,31 @@ describe('## Follow APIs', () => {
           expect(Array.isArray(data)).toBe(true);
           expect(data.length).toBe(firstUserFollowersCounter);
           expect(data[0].amIAFollower).toBe(true);
-          expect(Object.keys(data[0]).sort()).toEqual(
-            // profilePic
-            ['username', 'dateCreated', '_id', 'amIAFollower'].sort()
-          );
+          expect(Object.keys(data[0]).sort()).toMatchSnapshot();
         });
     });
   });
 
   describe('# GET /api/users/:userId/following', () => {
-    // AnotherU -- follows --> ThirdU
+    // AnotherUser -- follows --> ThirdUser
+    // firstUser -- follows --> forthUser (and delete user from DB; not setting `accountStatus` as 'deleted')
     beforeAll(async () => {
+      await request(app)
+        .post(`/api/users/${forthUserId}/follow`)
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(userId);
+          expect(data.following).toBe(forthUserId);
+          firstUserFollowingCounter++;
+        });
+      // wait until the push notification has been sent.
+      // that's send asynchronously and /follow endpoint returns before the createNotification() returns
+      setTimeout(() => {
+        User.deleteOne({ _id: forthUserId });
+        firstUserFollowingCounter--;
+      }, 100);
       return request(app)
         .post(`/api/users/${thirdUserId}/follow`)
         .set('Authorization', anotherJwtToken)
@@ -317,10 +327,7 @@ describe('## Follow APIs', () => {
           expect(Array.isArray(data)).toBe(true);
           expect(data.length).toBe(firstUserFollowingCounter);
           expect(data[0].amIAFollower).toBe(true);
-          expect(Object.keys(data[0]).sort()).toEqual(
-            // profilePic
-            ['username', 'dateCreated', '_id', 'amIAFollower'].sort()
-          );
+          expect(Object.keys(data[0]).sort()).toMatchSnapshot();
         });
     });
   });
@@ -335,9 +342,7 @@ describe('## Follow APIs', () => {
           const { data } = res.body;
           expect(data.follower).toBe(userId);
           expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
-          );
+          expect(Object.keys(data).sort()).toMatchSnapshot();
         });
     });
 
@@ -350,9 +355,7 @@ describe('## Follow APIs', () => {
           const { data } = res.body;
           expect(data.follower).toBe(userId);
           expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
-          );
+          expect(Object.keys(data).sort()).toMatchSnapshot();
         });
     });
 
