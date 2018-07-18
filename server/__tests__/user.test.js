@@ -333,10 +333,8 @@ describe('## User APIs', () => {
         .then(({ body }) => {
           expect(body).toHaveProperty('token');
           const token = body.token.split('JWT ')[1];
-          expect(Object.keys(body).sort()).toEqual(authFields.sort());
-          expect(Object.keys(body.data).sort()).toEqual(
-            ['_id', 'accountStatus', 'emailAddress', 'username'].sort()
-          );
+          expect(Object.keys(body).sort()).toMatchSnapshot();
+          expect(Object.keys(body.data).sort()).toMatchSnapshot();
           jwt.verify(token, config.jwtSecret, (err, decoded) => {
             expect(err).toBeFalsy();
             expect(decoded.emailAddress).toBe(user.emailAddress);
@@ -663,7 +661,7 @@ describe('## User APIs', () => {
         }
       }
 
-      // delete `maria`
+      // delete user `maria`
       const m = await request(app)
         .delete(`/api/users/${people[3]._id.toString()}`)
         .set('Authorization', people[3].jwtToken)
