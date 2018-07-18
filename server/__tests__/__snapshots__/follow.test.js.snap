@@ -59,3 +59,53 @@ Array [
   "username",
 ]
 `;
+
+exports[`## Follow APIs # GET /api/users/:userId/follow should get that i am following a user 1`] = `
+Array [
+  "dateCreated",
+  "follower",
+  "following",
+]
+`;
+
+exports[`## Follow APIs # GET /api/users/:userId/followers should get all the followers of user and if amIAFollower 1`] = `
+Array [
+  "_id",
+  "amIAFollower",
+  "dateCreated",
+  "username",
+]
+`;
+
+exports[`## Follow APIs # GET /api/users/:userId/following should get a list of who the user is following and if amIAFollower 1`] = `
+Array [
+  "_id",
+  "amIAFollower",
+  "dateCreated",
+  "username",
+]
+`;
+
+exports[`## Follow APIs # GET /api/users/:userId/following should get a list of who the user is following and if amIAFollower 2`] = `
+Array [
+  "dateCreated",
+  "follower",
+  "following",
+]
+`;
+
+exports[`## Follow APIs # POST /api/users/:userId/follow should follow another user 1`] = `
+Array [
+  "dateCreated",
+  "follower",
+  "following",
+]
+`;
+
+exports[`## Follow APIs # POST /api/users/:userId/unfollow should unfollow another user 1`] = `
+Array [
+  "dateCreated",
+  "follower",
+  "following",
+]
+`;

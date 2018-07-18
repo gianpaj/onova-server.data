@@ -26,6 +26,7 @@ export type NotifPayload = {
   triggeredBy: string,
   triggeredType: string,
   onlyPush: ?boolean,
+  message: ?string,
 };
 
 /**

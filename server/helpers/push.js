@@ -45,14 +45,12 @@ export async function sendPush({
           throw new Error('Cannot find sender');
         }
 
-        return User.findById(targetUser)
-          .then(target => {
-            if (!target) {
-              throw new Error('Cannot find target');
-            }
-            return { sender, target };
-          })
-          .catch(e => e);
+        return User.findById(targetUser).then(target => {
+          if (!target) {
+            throw new Error('Cannot find target');
+          }
+          return { sender, target };
+        });
       })
       .then(({ sender, target }: { sender: UserDoc, target: UserDoc }) => {
         const pushData = {
@@ -84,14 +82,12 @@ export async function sendPush({
           throw new Error('Cannot find product');
         }
 
-        return User.findById(targetUser)
-          .then(target => {
-            if (!target) {
-              throw new Error('Cannot find target');
-            }
-            return { product, target };
-          })
-          .catch(e => e);
+        return User.findById(targetUser).then(target => {
+          if (!target) {
+            throw new Error('Cannot find target');
+          }
+          return { product, target };
+        });
       })
       .then(({ product, target }: { product: ProductDoc, target: UserDoc }) => {
         const pushData = {
@@ -124,14 +120,12 @@ export async function sendPush({
           throw new Error('Cannot find order');
         }
 
-        return User.findById(targetUser)
-          .then(target => {
-            if (!target) {
-              throw new Error('Cannot find target');
-            }
-            return { order, target };
-          })
-          .catch(e => e);
+        return User.findById(targetUser).then(target => {
+          if (!target) {
+            throw new Error('Cannot find target');
+          }
+          return { order, target };
+        });
       })
       .then(({ order, target }: { order: OrderDoc, target: UserDoc }) => {
         const pushData = {

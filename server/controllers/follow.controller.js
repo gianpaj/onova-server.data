@@ -102,8 +102,7 @@ async function follow(
     })
     .catch(e => {
       if (e.message == 'Error following a user') {
-        const APIerr = new APIError(e.message, httpStatus.BAD_REQUEST);
-        return next(APIerr);
+        e = new APIError(e.message, httpStatus.BAD_REQUEST);
       }
       next(e);
     });
@@ -256,7 +255,7 @@ function listFollowers(
 
   // use static method from FollowSchema
   // flow-disable-next-line
-  Follow.list({ DBquery, limit, skip, me: req.user._id.toString() })
+  Follow.list({ DBquery, limit, skip })
     .then(async followers => {
       if (followers) {
         // filter followers that not longer exist (populate returns null)
@@ -314,11 +313,11 @@ function listFollowing(
 
   // use static method from FollowSchema
   // flow-disable-next-line
-  Follow.list({ DBquery, limit, skip, me: req.user._id.toString() })
+  Follow.list({ DBquery, limit, skip })
     .then(async followings => {
       if (followings) {
         // filter followers that not longer exist (populate returns null)
-        followings = followings.filter(f => f.follower !== null);
+        followings = followings.filter(f => f.following !== null);
         // TODO: filter followings that are deleted
         // get the list ids of the queried User is following
         const ids = followings.map(f => f.following._id.toString());

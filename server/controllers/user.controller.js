@@ -149,8 +149,9 @@ async function create(
         // if we should Auto Follow certain users by default
         if (config.DEFAULT_FOLLOW) {
           followDefaultUsers(savedUser)
-            .then((num: Number) => {
-              if (num) debug(`followed ${num} default users`);
+            .then(num => {
+              if (typeof num == 'number')
+                debug(`followed ${num} default users`);
             })
             .catch(e => console.error(e));
         }
@@ -195,26 +196,25 @@ async function create(
  * A new user follows the number of users
  */
 function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
-  return new Promise((resolve, reject) => {
+  return (
     DefaultFollow.find()
-      .then(users => {
-        if (users.length == 0) {
-          // FIXME: hide error in a better way - see internalFollow() method
-          // return reject(new Error('there are no default users to follow'));
-          return resolve(null);
-        }
-        return users;
-      })
+      // .then(users => {
+      //   if (users.length == 0) {
+      //     // FIXME: hide error in a better way - see internalFollow() method
+      //     // return reject(new Error('there are no default users to follow'));
+      //     throw null;
+      //   }
+      //   return users;
+      // })
       .then(async follows => {
         for (const follow of follows) {
           await followController
             .internalFollow(newUser, follow.user)
             .catch(err => console.error(err));
         }
-        resolve(follows.length);
+        return follows.length;
       })
-      .catch(err => reject(err));
-  });
+  );
 }
 
 /**

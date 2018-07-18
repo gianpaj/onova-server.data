@@ -132,8 +132,7 @@ if (config.env === 'development') {
       winstonInstance,
     })
   );
-}
-if (config.env === 'production') {
+} else if (config.env === 'production') {
   // log errors to files
   app.use(
     expressWinston.errorLogger({
