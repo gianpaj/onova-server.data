@@ -54,7 +54,7 @@ describe('## Product APIs', () => {
   let thirdProduct = {
     categoryIds: [2],
     typeIds: [1, 3],
-    tags: ['WINTER'],
+    tags: ['spring'],
     description: 'nice scarf',
     price: '30',
   };
@@ -397,7 +397,7 @@ describe('## Product APIs', () => {
   });
 
   describe('# GET /api/products/?tags=', () => {
-    it('should find all winter products', () => {
+    it('should find products by a single tag', () => {
       return request(app)
         .get('/api/products/?tags=winter')
         .expect(httpStatus.OK)
@@ -406,6 +406,20 @@ describe('## Product APIs', () => {
           expect(Array.isArray(p));
           expect(p).toHaveLength(2);
           expect(p[0].description).toBe(product.description);
+        });
+    });
+
+    it('should find products by multiple tags', () => {
+      return request(app)
+        .get('/api/products/?tags[]=winter&tags[]=spring')
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(Array.isArray(body.data));
+          expect(body.data).toHaveLength(3);
+          expect(body.data[0].tags).toEqual(thirdProduct.tags);
+          expect(body.data[1].tags).toEqual(product.tags);
+          // not duplicated product. just the same product was added twice
+          expect(body.data[2].tags).toEqual(product.tags);
         });
     });
   });
