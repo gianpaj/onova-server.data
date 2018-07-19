@@ -132,6 +132,7 @@ export default {
         .min(3)
         .max(30),
       tags: Joi.array()
+        .unique()
         .single()
         .items(
           Joi.string()
