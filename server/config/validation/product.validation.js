@@ -140,7 +140,7 @@ export default {
             .min(1)
             .max(30)
         )
-        .max(10),
+        .max(30),
       lastId: Joi.string()
         .hex()
         .length(24),
