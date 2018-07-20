@@ -174,7 +174,7 @@ async function create(
       //   product.photoURIs.push('UPLOADING_PIC');
       // }
 
-      if (config.env == 'test') {
+      if (config.env === 'test') {
         product.photoURIs = [
           'http://assets.onova.co/products/B11zDErJQ-1-1527232263107.jpg',
         ];
@@ -352,10 +352,16 @@ function update(
       if (req.body.tags) createTags(req.body.tags);
 
       if (req.files) {
-        Product.findOneAndUpdate(
-          { _id: req.product._id },
-          { $set: { photoURIs: [] } }
-        ).then(() => photos.uploadProductImages(req.product, req.files));
+        if (config.env === 'test') {
+          foundProduct.photoURIs = [
+            'http://assets.onova.co/products/B11zDErJQ-1-1527232263107.jpg',
+          ];
+        } else {
+          Product.findOneAndUpdate(
+            { _id: req.product._id },
+            { $set: { photoURIs: [] } }
+          ).then(() => photos.uploadProductImages(req.product, req.files));
+        }
       }
 
       foundProduct.categoryIds = req.body.categoryIds

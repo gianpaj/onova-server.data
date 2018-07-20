@@ -29,7 +29,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
     resetToken: token,
   })
     .then(() => {
-      if (config.env == 'test') return;
+      if (config.env === 'test') return;
 
       const vars = {
         confirmation_link: `https://onova.co/api/auth/activate/${token}`,
@@ -77,7 +77,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
     resetToken: token,
   })
     .then(() => {
-      if (config.env == 'test') return;
+      if (config.env === 'test') return;
 
       const vars = {
         confirmation_link: `https://onova.co/api/auth/activate/${token}`,
@@ -128,7 +128,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
     resetToken: token,
   })
     .then(() => {
-      if (config.env == 'test') return;
+      if (config.env === 'test') return;
 
       const vars = {
         reset_link: `https://onova.co/api/auth/reset/${token}`,

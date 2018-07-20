@@ -126,11 +126,16 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
 }
 
 /**
- * Upload to GCS
+ * Upload profile image to GCS
  */
 function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
   return new Promise((resolve, reject) => {
-    const gcspath = `users/${user._id}-${Date.now()}.jpg`;
+    if (config.env === 'test')
+      return resolve(
+        'http://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
+      );
+
+    const gcspath = `users/${user._id.toString()}-${Date.now()}.jpg`;
     const file = bucket.file(gcspath);
     const stream = file.createWriteStream({
       metadata: {

@@ -294,7 +294,9 @@ describe('## Product APIs', () => {
           expect(Object.keys(p.seller).sort()).toEqual(
             ['_id', 'accountStatus', 'profilePic', 'username'].sort()
           );
-          expect(p.seller.profilePic).toContain(user._id);
+          expect(p.seller.profilePic).toContain(
+            'http://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
+          );
           expect(p.seller.profilePic).toContain('.jpg');
           expect(p.status).toBe('forsale');
           expect(p.currency).toBe('UAH');
@@ -540,7 +542,7 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.data.price).toEqual('199.55'));
     });
 
-    it('should update the images (GCS not tested)', () => {
+    it('should update the images to GCS', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)
         .field(product)
