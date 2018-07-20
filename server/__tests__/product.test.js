@@ -350,6 +350,9 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
+          expect(Object.keys(p[0].seller).sort()).toEqual(
+            ['_id', 'accountStatus', 'profilePic', 'username'].sort()
+          );
           expect(p).toHaveLength(productsCounter);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });

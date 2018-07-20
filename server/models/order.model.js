@@ -5,6 +5,7 @@ import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 import Block from '../models/block.model';
+import { userPopulateFields } from './user.model';
 
 const Schema = mongoose.Schema;
 
@@ -198,11 +199,11 @@ OrderSchema.statics = {
     return this.findOne(query)
       .populate({
         path: 'buyer',
-        select: 'accountStatus profilePic username',
+        select: userPopulateFields,
       })
       .populate({
         path: 'seller',
-        select: 'accountStatus profilePic username',
+        select: userPopulateFields,
       })
       .populate({
         path: 'product',
@@ -245,11 +246,11 @@ OrderSchema.statics = {
       .sort({ createdAt: -1 })
       .populate({
         path: 'seller',
-        select: 'accountStatus profilePic username',
+        select: userPopulateFields,
       })
       .populate({
         path: 'buyer',
-        select: 'accountStatus profilePic username',
+        select: userPopulateFields,
       })
       .populate({
         path: 'product',

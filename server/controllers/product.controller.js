@@ -9,9 +9,10 @@ import photos from '../helpers/photos';
 import Block from '../models/block.model';
 import Product, { ProductDoc } from '../models/product.model';
 import Tag, { TagDoc } from '../models/tag.model';
-import User, { UserDoc } from '../models/user.model';
+import User, { UserDoc, userPopulateFields } from '../models/user.model';
 import config from '../config/config';
 import path from 'path';
+
 const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
 });
@@ -62,7 +63,7 @@ function loadWithComments(
   Product.findOne({ uuid })
     .populate({
       path: 'seller',
-      select: 'username accountStatus profilePic',
+      select: userPopulateFields,
     })
     .populate({
       path: 'comments.user',
@@ -128,6 +129,12 @@ async function create(
     uuid: shortid.generate(), // needed here for photos' filenames
   });
 
+  // req.files is array of `photos` files
+  if (req.files.length < 1) {
+    const APIerr = new APIError('Product image(s) are required', 400);
+    return next(APIerr);
+  }
+
   if (body.longitude && body.latitude) {
     product.location = {
       type: 'Point',
@@ -150,12 +157,6 @@ async function create(
 
   // create Tag documents
   if (body.tags) createTags(body.tags);
-
-  // req.files is array of `photos` files
-  if (req.files.length < 1) {
-    const APIerr = new APIError('Product image(s) are required', 400);
-    return next(APIerr);
-  }
 
   User.findById(req.user._id)
     .then(seller => {
@@ -219,9 +220,7 @@ async function list(
 ) {
   const { limit = 50, lastId, tags, userid, username } = req.query;
   const projection = { comments: 0 };
-  let query = {
-    status: 'forsale',
-  };
+  let query = { status: 'forsale' };
 
   if (config.env !== 'test') {
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
@@ -256,6 +255,7 @@ async function list(
           return next(APIerr);
         }
 
+        // use static method from ProductSchema
         return Product.list({ query: { seller: user._id }, projection })
           .then(products => res.json({ data: products }))
           .catch(e => next(e));
@@ -297,17 +297,14 @@ function remove(
   res: express$Response,
   next: express$NextFunction
 ) {
-  var uuid = req.params.uuid;
-
   if (req.product.status !== 'forsale') {
     // item could be already sold or deleted, etc.
     throw new APIError('Product not found', httpStatus.BAD_REQUEST);
   }
 
-  Product.findOneAndUpdate(
-    { uuid: uuid, status: 'forsale' },
-    { status: 'deleted' }
-  )
+  const { uuid } = req.params;
+
+  Product.findOneAndUpdate({ uuid, status: 'forsale' }, { status: 'deleted' })
     .then(() => res.status(httpStatus.NO_CONTENT).json())
     .catch(() => {
       const err = new APIError(
@@ -344,7 +341,7 @@ function update(
         throw new APIError('Product not found', 400);
       }
 
-      if (foundProduct.status == 'sold') {
+      if (foundProduct.status === 'sold') {
         throw new APIError('Cannot update a product that has been sold', 400);
       }
 

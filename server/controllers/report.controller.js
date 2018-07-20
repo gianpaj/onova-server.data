@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 const IncomingWebhook = require('@slack/client').IncomingWebhook;
 
 import APIError from '../helpers/APIError';
-import User, { UserDoc } from '../models/user.model';
+import User, { UserDoc, userPopulateFields } from '../models/user.model';
 import Product from '../models/product.model';
 import Report from '../models/report.model';
 import config from '../config/config';
@@ -13,6 +13,13 @@ const webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
 
 declare class session$Request extends express$Request {
   user: UserDoc;
+  body: {
+    categoryIds: string,
+    description: string,
+    typeIds: string,
+    tag: string,
+    limit: number,
+  };
 }
 
 /**
@@ -22,7 +29,7 @@ declare class session$Request extends express$Request {
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
- */
+
 function get(
   req: session$Request,
   res: express$Response,
@@ -32,7 +39,7 @@ function get(
 
   let query;
   if (config.env !== 'test') {
-    query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
+    query = { photoURIs: { $exists: true, $not: { $size: 0 } } };
   }
 
   if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
@@ -50,12 +57,12 @@ function get(
     .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
     .populate({
       path: 'seller',
-      select: 'username',
+      select: userPopulateFields,
     })
     .limit(+limit)
     .then(data => res.json({ data }))
     .catch(e => next(e));
-}
+}*/
 
 /**
  * Report products or users
