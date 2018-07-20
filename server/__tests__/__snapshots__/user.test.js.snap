@@ -181,6 +181,21 @@ Array [
 ]
 `;
 
+exports[`## User APIs # GET /api/users/?username=username should get the user's details (public) by username 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
 exports[`## User APIs # POST /api/auth/login should get valid JWT token 1`] = `
 Array [
   "data",

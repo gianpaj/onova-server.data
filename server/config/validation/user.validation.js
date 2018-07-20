@@ -16,7 +16,13 @@ export default {
   // GET /api/users (for mentions)
   listUsers: {
     query: {
+      // to search users
       u: Joi.string()
+        .regex(validation.username)
+        .min(0)
+        .max(30),
+      // to get 1 user
+      username: Joi.string()
         .regex(validation.username)
         .min(0)
         .max(30),
