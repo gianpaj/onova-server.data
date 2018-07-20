@@ -390,7 +390,23 @@ function list(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, u } = req.query;
+  const { limit = 50, u, username } = req.query;
+
+  if (username) {
+    // flow-disable-next-line
+    return User.findOne({ username })
+      .then((user: UserDoc) => {
+        if (!user) {
+          return Promise.reject();
+        }
+        return user;
+      })
+      .then(user => res.json(_prepareUserJson(user)))
+      .catch(() => {
+        const err = new APIError('Invalid user', httpStatus.BAD_REQUEST);
+        return next(err);
+      });
+  }
 
   if (!u) {
     // use static method from UserSchema

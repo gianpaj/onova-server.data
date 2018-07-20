@@ -362,7 +362,7 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should report error with message - When user does not exists', done => {
+    it('should return error with message - When user does not exists', done => {
       request(app)
         .get('/api/users/56c787ccc67fc16ccc1a5e92')
         .expect(httpStatus.BAD_REQUEST)
@@ -371,6 +371,30 @@ describe('## User APIs', () => {
           done();
         })
         .catch(done);
+    });
+  });
+
+  describe('# GET /api/users/?username=username', () => {
+    it("should get the user's details (public) by username", () => {
+      return request(app)
+        .get(`/api/users/?username=${user.username}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.username).toBe(user.username);
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.followersCount).toBe(0);
+          expect(body.followingCount).toBe(0);
+          expect(Object.keys(body).sort()).toMatchSnapshot();
+        });
+    });
+
+    it('should return error with message - When user does not exists', () => {
+      return request(app)
+        .get('/api/users/?username=bananaz')
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('Invalid user');
+        });
     });
   });
 
@@ -723,7 +747,7 @@ describe('## User APIs', () => {
   describe('# DELETE /api/users/:userId', () => {
     beforeAll(done => {
       createUserAndLogin(anotherUser).then(({ user }) => {
-        anotherUserId = user._id;
+        anotherUserId = user._id.toString();
         done();
       });
     });
@@ -777,7 +801,7 @@ describe('## User APIs', () => {
     beforeAll(done => {
       createUserAndLogin(forthUser)
         .then(({ user, jwtToken: token }) => {
-          forthUserId = user._id;
+          forthUserId = user._id.toString();
           forthJwtToken = token;
           done();
         })
@@ -841,7 +865,7 @@ describe('## User APIs', () => {
   describe('# PUT /api/users/:userId', () => {
     it("should upload the user's profile pic", async () => {
       return request(app)
-        .put(`/api/users/${anotherUserId.toString()}`)
+        .put(`/api/users/${anotherUserId}`)
         .set('Authorization', anotherJwtToken)
         .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
         .expect(httpStatus.OK);
