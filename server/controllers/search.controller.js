@@ -4,7 +4,7 @@
 // import stream from 'getstream-node';
 
 // import APIError from '../helpers/APIError';
-import { UserDoc } from '../models/user.model';
+import { UserDoc, userPopulateFields } from '../models/user.model';
 import Block from '../models/block.model';
 import Product from '../models/product.model';
 import config from '../config/config';
@@ -91,7 +91,7 @@ async function get(
         .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
         .populate({
           path: 'seller',
-          select: 'username',
+          select: userPopulateFields,
         })
         .limit(+limit)
         .then(data => res.json({ data }));
@@ -103,7 +103,7 @@ async function get(
       .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
       .populate({
         path: 'seller',
-        select: 'username',
+        select: userPopulateFields,
       })
       .limit(+limit)
       .then(data => res.json({ data }))

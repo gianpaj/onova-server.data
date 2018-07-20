@@ -4,7 +4,7 @@ import httpStatus from 'http-status';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
-import { UserDoc } from '../models/user.model';
+import { UserDoc, userPopulateFields } from '../models/user.model';
 import Product from '../models/product.model';
 import Follow, { FollowDoc } from '../models/follow.model';
 
@@ -61,7 +61,7 @@ async function flat(
             .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
             .populate({
               path: 'seller',
-              select: 'username',
+              select: userPopulateFields,
             })
             .limit(+limit)
             .then(data => res.json({ data }));
@@ -71,7 +71,7 @@ async function flat(
           .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
           .populate({
             path: 'seller',
-            select: 'username',
+            select: userPopulateFields,
           })
           .limit(+limit)
           .then(data => res.json({ data }));

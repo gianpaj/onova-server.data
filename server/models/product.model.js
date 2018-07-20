@@ -7,6 +7,7 @@ import shortid from 'shortid';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
+import { userPopulateFields } from './user.model';
 
 const Schema = mongoose.Schema;
 // const FeedManager = stream.FeedManager;
@@ -159,7 +160,7 @@ ProductSchema.statics = {
     return this.findOne({ uuid })
       .populate({
         path: 'seller',
-        select: 'username accountStatus profilePic',
+        select: userPopulateFields,
       })
       .select('-comments')
       .then((product: ProductDoc) => {
@@ -188,6 +189,10 @@ ProductSchema.statics = {
     limit = 50,
   }): Promise<ProductDoc[] | APIError> {
     return this.find(query, projection)
+      .populate({
+        path: 'seller',
+        select: userPopulateFields,
+      })
       .sort({ createdAt: -1 })
       .skip(+skip)
       .limit(+limit)
