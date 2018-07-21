@@ -394,10 +394,28 @@ describe('## Product APIs', () => {
         });
     });
 
-    it("should not get only user's products by non existant username", () => {
+    it("should NOT get only user's products by non existent username", () => {
       return request(app)
         .get(`/api/products/?username=banana`)
         .expect(httpStatus.NOT_FOUND);
+    });
+
+    it("should NOT get only user's products by invalid username", () => {
+      return request(app)
+        .get(`/api/products/?username=ban!an`)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it("should NOT get only user's products by invalid username (too long)", () => {
+      return request(app)
+        .get(`/api/products/?username=ananbananbananbananbananbananbanan`)
+        .expect(httpStatus.BAD_REQUEST);
+    });
+
+    it("should NOT get only user's products by invalid username (too short)", () => {
+      return request(app)
+        .get(`/api/products/?username=an`)
+        .expect(httpStatus.BAD_REQUEST);
     });
   });
 

@@ -135,7 +135,7 @@ export async function sendPush({
           triggeredBy: order._id,
           triggeredType,
           targetUser: target._id,
-          random: shortid(), // unique push notification
+          random: shortid(), // for unique push notification
         };
 
         const job = agenda.create(config.JOBNAMES.PUSHORDER, pushData);
