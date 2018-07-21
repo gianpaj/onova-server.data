@@ -130,6 +130,7 @@ export default {
         .length(24),
       username: Joi.string()
         .min(3)
+        .regex(validation.username)
         .max(30),
       tags: Joi.array()
         .unique()

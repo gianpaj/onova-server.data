@@ -824,7 +824,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it("should not update an user's username to an existing one", done => {
+    it("should NOT update an user's username to an existing one", done => {
       request(app)
         .put(`/api/users/${forthUserId}`)
         .set('Authorization', forthJwtToken)
@@ -871,7 +871,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK);
     });
 
-    it("should not update another user's details", async () => {
+    it("should NOT update another user's details", async () => {
       user.mobileNumber = '9876543212';
       return request(app)
         .put(`/api/users/${userId}`)
@@ -880,7 +880,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.UNAUTHORIZED);
     });
 
-    it("should not update another user's details", async () => {
+    it("should NOT update another user's details", async () => {
       anotherUser.shippingAddress = {
         departmentNovaposhta: '#25',
         fathersName: 'banana',
