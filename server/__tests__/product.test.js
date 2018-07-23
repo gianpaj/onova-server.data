@@ -382,15 +382,27 @@ describe('## Product APIs', () => {
         });
     });
 
-    it("should get only the user's products by username", () => {
+    it('should get all the products by username', () => {
       return request(app)
         .get(`/api/products/?username=${user.username}`)
         .expect(httpStatus.OK)
         .then(res => {
-          const p = res.body.data;
-          expect(Array.isArray(p));
-          expect(p).toHaveLength(productsCounter);
-          expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
+          const { data } = res.body;
+          expect(Array.isArray(data));
+          expect(data).toHaveLength(productsCounter);
+          expect(Object.keys(data[0]).sort()).toEqual(productFields.sort());
+        });
+    });
+
+    it('should get all the products by username and categoryIds', () => {
+      return request(app)
+        .get(`/api/products/?username=${user.username}&categoryIds=2`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(Array.isArray(data));
+          expect(data).toHaveLength(5);
+          expect(Object.keys(data[0]).sort()).toEqual(productFields.sort());
         });
     });
 

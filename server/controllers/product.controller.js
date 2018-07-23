@@ -207,18 +207,19 @@ async function create(
  *
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
- * @property {number} req.query.lastId
- * @property {number} req.query.limit Limit number of products to be returned.
+ * @property {number|Array<number>=} req.query.categoryIds
+ * @property {MongoId} req.query.lastId (not uuid)
+ * @property {number} req.query.limit Limit number of products to be returned
+ * @property {array<string>|string} req.query.tags
  * @property {string} req.query.userid
  * @property {string} req.query.username
- * @property {array<string>|string} req.query.tags
  */
 async function list(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, lastId, tags, userid, username } = req.query;
+  const { categoryIds, lastId, limit = 50, tags, userid, username } = req.query;
   const projection = { comments: 0 };
   let query = { status: 'forsale' };
 
@@ -226,7 +227,7 @@ async function list(
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
   }
 
-  if (userid) {
+  if (userid && !username) {
     if (req.user) {
       const usersIamBlocking = await Block.find({
         sourceUser: req.user._id,
@@ -242,38 +243,42 @@ async function list(
     }
   }
 
-  if (tags) {
-    query = { ...query, tags: { $in: tags } };
-  }
+  // TODO: escapeRegex each tag
+  if (tags) query = { ...query, tags: { $in: tags } };
+  if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
 
-  // only search products by seller's username
-  if (username) {
+  // search products by seller's username (no pagination[lastId] yet allowed)
+  if (username && !userid) {
     return User.findOne({ username })
       .then(user => {
         if (!user) {
-          const APIerr = new APIError('No seller found', 404);
+          const APIerr = new APIError('No seller found', httpStatus.NOT_FOUND);
           return next(APIerr);
         }
 
+        query = { ...query, seller: user._id };
+
         // use static method from ProductSchema
-        return Product.list({ query: { seller: user._id }, projection })
-          .then(products => res.json({ data: products }))
-          .catch(e => next(e));
+        return Product.list({ query, projection }).then(data =>
+          res.json({ data })
+        );
       })
       .catch(e => next(e));
   }
 
   // for pagination - results are excluding the lastId
   if (lastId) {
-    query = { ...query, _id: { $lt: lastId } };
-
     return Product.findById(lastId).then(product => {
       if (!product) {
-        throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+        const APIerr = new APIError('Product not found.', httpStatus.NOT_FOUND);
+        return next(APIerr);
       }
-      return Product.list({ query, projection, limit })
-        .then(data => res.json({ data }))
-        .catch(e => next(e));
+
+      query = { ...query, _id: { $lt: lastId } };
+
+      return Product.list({ query, projection, limit }).then(data =>
+        res.json({ data })
+      );
     });
   } else {
     // use static method from ProductSchema
