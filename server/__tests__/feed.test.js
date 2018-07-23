@@ -178,7 +178,7 @@ describe('## Feed APIs', () => {
   });
 
   describe('# GET /api/feed/flat', () => {
-    it('should get the first user`s feed', async () => {
+    it('should get the first user`s feed', () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', firstJwtToken)
@@ -191,7 +191,7 @@ describe('## Feed APIs', () => {
         });
     });
 
-    it('should get another user`s feed', async () => {
+    it('should get another user`s feed', () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', anotherJwtToken)
@@ -203,7 +203,7 @@ describe('## Feed APIs', () => {
         });
     });
 
-    it('should not get my feed if i am not authenticated', async () => {
+    it('should not get my feed if i am not authenticated', () => {
       return request(app)
         .get('/api/feed/flat')
         .expect(httpStatus.UNAUTHORIZED)
@@ -227,7 +227,7 @@ describe('## Feed APIs', () => {
       categoryProductUUID = pp.uuid;
     });
 
-    it('should get feed of categoryIds', async () => {
+    it('should get feed by categoryIds', () => {
       return request(app)
         .get('/api/feed/flat?categoryIds=2')
         .set('Authorization', anotherJwtToken)
@@ -256,7 +256,7 @@ describe('## Feed APIs', () => {
       typeIdProductUUID = pp.uuid;
     });
 
-    it('should get feed of typeIds', async () => {
+    it('should get feed by typeIds', () => {
       return request(app)
         .get('/api/feed/flat?typeIds=5')
         .set('Authorization', anotherJwtToken)
@@ -285,7 +285,7 @@ describe('## Feed APIs', () => {
       tagProductUUID = pp.uuid;
     });
 
-    it('should get feed of tag', async () => {
+    it('should get feed of tag', () => {
       return request(app)
         .get('/api/feed/flat?tag=warm')
         .set('Authorization', anotherJwtToken)
@@ -358,7 +358,7 @@ describe('## Feed APIs', () => {
         });
     });
 
-    it('should not get feed with load more with a missing lastId', async () => {
+    it('should not get feed with load more with a missing lastId', () => {
       return request(app)
         .get(`/api/feed/flat?lastId=5ff999999147a8bd32ea35f6`)
         .set('Authorization', anotherJwtToken)
