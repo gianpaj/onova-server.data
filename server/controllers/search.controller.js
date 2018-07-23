@@ -1,9 +1,9 @@
 // @flow
 
-// import httpStatus from 'http-status';
+import httpStatus from 'http-status';
 // import stream from 'getstream-node';
 
-// import APIError from '../helpers/APIError';
+import APIError from '../helpers/APIError';
 import { UserDoc, userPopulateFields } from '../models/user.model';
 import Block from '../models/block.model';
 import Product from '../models/product.model';
@@ -13,7 +13,7 @@ declare class session$Request extends express$Request {
   user: UserDoc;
 }
 
-function escapeRegex(text) {
+function escapeRegex(text: string) {
   return text.replace(/[^a-zA-Z0-9_]/g, '\\$&');
 }
 
@@ -28,12 +28,12 @@ function escapeRegex(text) {
  *
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
- * @property {Array<number>=} req.query.categoryIds
+ * @property {number|Array<number>=} req.query.categoryIds
  * @property {string} req.query.description
- * @property {string} req.query.tag Limited to a single tag
- * @property {Array<number>=} req.query.typeIds
  * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of products to be returned
+ * @property {string} req.query.tag Limited to a single tag
+ * @property {Array<number>=} req.query.typeIds
  */
 async function get(
   req: session$Request,
@@ -49,9 +49,7 @@ async function get(
     typeIds,
   } = req.query;
 
-  let query = {
-    status: 'forsale',
-  };
+  let query = { status: 'forsale' };
 
   if (config.env !== 'test') {
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
@@ -85,7 +83,8 @@ async function get(
 
     return Product.findById(lastId).then(product => {
       if (!product) {
-        throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+        const APIerr = new APIError('Product not found.', httpStatus.NOT_FOUND);
+        return next(APIerr);
       }
       return Product.find(query, projection)
         .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
@@ -96,19 +95,17 @@ async function get(
         .limit(+limit)
         .then(data => res.json({ data }));
     });
-  } else {
-    // using static method from ProductSchema
-    // flow-disable-next-line
-    Product.find(query, projection)
-      .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-      .populate({
-        path: 'seller',
-        select: userPopulateFields,
-      })
-      .limit(+limit)
-      .then(data => res.json({ data }))
-      .catch(e => next(e));
   }
+  // using static method from ProductSchema
+  Product.find(query, projection)
+    .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+    .populate({
+      path: 'seller',
+      select: userPopulateFields,
+    })
+    .limit(+limit)
+    .then(data => res.json({ data }))
+    .catch(e => next(e));
 }
 
 export default {
