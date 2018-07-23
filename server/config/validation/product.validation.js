@@ -122,6 +122,15 @@ export default {
   // GET /api/products
   getProducts: {
     query: {
+      categoryIds: Joi.array()
+        .unique()
+        .max(5)
+        .items(
+          Joi.number()
+            .min(0)
+            .max(5)
+        )
+        .single(),
       limit: Joi.number()
         .min(1)
         .max(50),
