@@ -12,7 +12,8 @@ import config from '../config/config';
 
 const Schema = mongoose.Schema;
 
-export const userPopulateFields = 'username accountStatus profilePic';
+export const userPopulateFields =
+  'username accountStatus profilePic displayName';
 
 /**
  * User Schema

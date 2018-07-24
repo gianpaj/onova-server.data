@@ -29,3 +29,23 @@ Array [
   "username",
 ]
 `;
+
+exports[`## Product APIs # GET /api/products/ should get all products 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "displayName",
+  "profilePic",
+  "username",
+]
+`;
+
+exports[`## Product APIs # GET /api/products/:uuid should get an existing product 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "displayName",
+  "profilePic",
+  "username",
+]
+`;
