@@ -24,7 +24,6 @@ describe('## Product APIs', () => {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
-    // displayName: 'first user',
     password: 'expressos',
   };
 
@@ -281,6 +280,17 @@ describe('## Product APIs', () => {
   });
 
   describe('# GET /api/products/:uuid', () => {
+    // update displayName
+    beforeAll(() => {
+      const displayName = 'first user';
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({ displayName })
+        .expect(httpStatus.OK)
+        .then(res => expect(res.body.displayName).toBe(displayName));
+    });
+
     it('should get an existing product', () => {
       return request(app)
         .get(`/api/products/${productUuid}`)
@@ -291,9 +301,7 @@ describe('## Product APIs', () => {
           // flow-disable-next-line
           expect(p.seller._id).toBe(user._id);
           expect(p.seller.username).toBe(user.username);
-          expect(Object.keys(p.seller).sort()).toEqual(
-            ['_id', 'accountStatus', 'profilePic', 'username'].sort()
-          );
+          expect(Object.keys(p.seller).sort()).toMatchSnapshot();
           expect(p.seller.profilePic).toContain(
             'http://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
           );
@@ -350,9 +358,7 @@ describe('## Product APIs', () => {
         .then(res => {
           const p = res.body.data;
           expect(Array.isArray(p));
-          expect(Object.keys(p[0].seller).sort()).toEqual(
-            ['_id', 'accountStatus', 'profilePic', 'username'].sort()
-          );
+          expect(Object.keys(p[0].seller).sort()).toMatchSnapshot();
           expect(p).toHaveLength(productsCounter);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
