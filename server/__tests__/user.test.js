@@ -25,9 +25,6 @@ afterAll(done => {
   done();
 });
 
-// POST /api/auth/login should only return these fields
-const authFields = ['data', 'token'];
-
 describe('## User APIs', () => {
   beforeAll(done => {
     const collections = [
@@ -107,9 +104,9 @@ describe('## User APIs', () => {
   let activationToken;
   let resetToken;
 
-  describe('# Create and verify email address', function() {
-    it('# POST /api/users - should create a new user', done => {
-      request(app)
+  describe('# Create and verify email address', () => {
+    it('# POST /api/users - should create a new user', () => {
+      return request(app)
         .post('/api/users')
         .send(user)
         .expect(httpStatus.CREATED)
@@ -127,13 +124,11 @@ describe('## User APIs', () => {
           expect(Object.keys(resUser).sort()).toMatchSnapshot();
 
           userId = resUser._id;
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('# POST /api/users - should create a new user without mobile num', done => {
-      request(app)
+    it('# POST /api/users - should create a new user without mobile num', () => {
+      return request(app)
         .post('/api/users')
         .send(thirdUser)
         .expect(httpStatus.CREATED)
@@ -147,80 +142,65 @@ describe('## User APIs', () => {
           expect(resUser.followingCount).toBe(0);
           expect(typeof res.body.token).toBe('string');
           expect(Object.keys(resUser).sort()).toMatchSnapshot();
-
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('# POST /api/users - should NOT create a user with an invalid username (space)', done => {
+    it('# POST /api/users - should NOT create a user with an invalid username (space)', () => {
       const user1 = { emailAddress: 'u1@gmail.com', username: 'white space' };
-      request(app)
+      return request(app)
         .post('/api/users')
         .send({ ...user, ...user1 })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(done())
-        .catch(done);
+        .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('# POST /api/users - should NOT create a user with an invalid username (@ char)', done => {
+    it('# POST /api/users - should NOT create a user with an invalid username (@ char)', () => {
       const user2 = { emailAddress: 'user2@gmail.com', username: 'at@sign' };
-      request(app)
+      return request(app)
         .post('/api/users')
         .send({ ...user, ...user2 })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(done())
-        .catch(done);
+        .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('# POST /api/users - should NOT create a user with an invalid username (cyrilic alphabet)', done => {
+    it('# POST /api/users - should NOT create a user with an invalid username (cyrilic alphabet)', () => {
       const user3 = { emailAddress: 'user3@gmail.com', username: 'Кплнаше' };
-      request(app)
+      return request(app)
         .post('/api/users')
         .send({ ...user, ...user3 })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(done())
-        .catch(done);
+        .expect(httpStatus.BAD_REQUEST);
     });
 
-    it('# POST /api/users - should create a user with a valid username (. dot)', done => {
+    it('# POST /api/users - should create a user with a valid username (. dot)', () => {
       const user5 = { emailAddress: 'user5@gmail.com', username: 'user.user' };
-      request(app)
+      return request(app)
         .post('/api/users')
         .send({ ...user, ...user5 })
-        .expect(httpStatus.CREATED)
-        .then(done())
-        .catch(done);
+        .expect(httpStatus.CREATED);
     });
 
-    it('# POST /api/users - should create and validate a user with email starting with onovaapp', done => {
+    it('# POST /api/users - should create and validate a user with email starting with onovaapp', () => {
       const user7 = {
         emailAddress: 'onovaapp+user7@gmail.com',
         username: 'onovaapp',
       };
-      request(app)
+      return request(app)
         .post('/api/users')
         .send({ ...user, ...user7 })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           expect(body.data.accountStatus).toBe('verified');
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('# POST /api/users - should create a user with a valid username (_ char)', done => {
+    it('# POST /api/users - should create a user with a valid username (_ char)', () => {
       const user6 = { emailAddress: 'u6@gmail.com', username: 'under_score' };
-      request(app)
+      return request(app)
         .post('/api/users')
         .send({ ...user, ...user6 })
-        .expect(httpStatus.CREATED)
-        .then(done())
-        .catch(done);
+        .expect(httpStatus.CREATED);
     });
 
-    it('# POST /api/users - should not create a user with the same email address', done => {
-      request(app)
+    it('# POST /api/users - should not create a user with the same email address', () => {
+      return request(app)
         .post('/api/users')
         .send(user)
         .expect(httpStatus.BAD_REQUEST)
@@ -228,13 +208,11 @@ describe('## User APIs', () => {
           expect(res.body.message).toBe(
             'An account with the same email address or username exists.'
           );
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('# POST /api/users - should not create a user with a short password', done => {
-      request(app)
+    it('# POST /api/users - should not create a user with a short password', () => {
+      return request(app)
         .post('/api/users')
         .send({ ...user, password: '123' })
         .expect(httpStatus.BAD_REQUEST)
@@ -242,9 +220,7 @@ describe('## User APIs', () => {
           expect(res.body.message).toBe(
             '"password" length must be at least 8 characters long'
           );
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it('# GET /api/auth/activate/:token (page) - should activate the user', done => {
@@ -267,48 +243,42 @@ describe('## User APIs', () => {
       });
     });
 
-    it('# GET /api/auth/activate/:token (page) - should not reactivate the user', done => {
-      request(app)
+    it('# GET /api/auth/activate/:token (page) - should not reactivate the user', () => {
+      return request(app)
         .get(`/api/auth/activate/${activationToken}`)
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.text).toContain(
             'something wrong with the link you received'
           );
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('# GET /api/auth/activate/:token (page) - an expired link should not work', done => {
-      request(app)
+    it('# GET /api/auth/activate/:token (page) - an expired link should not work', () => {
+      return request(app)
         .get(`/api/auth/activate/e700760eb3d6fc65`)
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.text).toContain(
             'something wrong with the link you received'
           );
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
   describe('# POST /api/auth/login', () => {
-    it('should NOT find the email', done => {
-      request(app)
+    it('should NOT find the email', () => {
+      return request(app)
         .post('/api/auth/login')
         .send(invalidUserCredentials)
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
           expect(res.body.message).toBe('invalid email');
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('should NOT match the password', done => {
-      request(app)
+    it('should NOT match the password', () => {
+      return request(app)
         .post('/api/auth/login')
         .send({
           emailAddress: user.emailAddress,
@@ -317,9 +287,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
           expect(res.body.message).toBe('invalid password');
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it('should get valid JWT token', done => {
@@ -339,16 +307,16 @@ describe('## User APIs', () => {
             expect(err).toBeFalsy();
             expect(decoded.emailAddress).toBe(user.emailAddress);
             jwtToken = body.token;
+            done();
           });
-          done();
         })
         .catch(done);
     });
   });
 
   describe('# GET /api/users/:userId', () => {
-    it("should get the user's details (public)", done => {
-      request(app)
+    it("should get the user's details (public)", () => {
+      return request(app)
         .get(`/api/users/${userId}`)
         .expect(httpStatus.OK)
         .then(res => {
@@ -357,20 +325,16 @@ describe('## User APIs', () => {
           expect(res.body.followersCount).toBe(0);
           expect(res.body.followingCount).toBe(0);
           expect(Object.keys(res.body).sort()).toMatchSnapshot();
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('should return error with message - When user does not exists', done => {
-      request(app)
+    it('should return error with message - When user does not exists', () => {
+      return request(app)
         .get('/api/users/56c787ccc67fc16ccc1a5e92')
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('Invalid user');
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -399,9 +363,9 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
-    it("should update user's details", done => {
+    it("should update user's details", () => {
       user.mobileNumber = '9876543212';
-      request(app)
+      return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send(user)
@@ -411,14 +375,12 @@ describe('## User APIs', () => {
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it("should update user's bio", done => {
+    it("should update user's bio", () => {
       const bio = 'born to make a profit';
-      request(app)
+      return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send({ ...user, bio })
@@ -429,9 +391,7 @@ describe('## User APIs', () => {
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it('should update only the password', done => {
@@ -461,8 +421,8 @@ describe('## User APIs', () => {
         .catch(done);
     });
 
-    it('should update user email and unverify it', done => {
-      request(app)
+    it('should update user email and unverify it', () => {
+      return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send({ emailAddress: 'express123@gmail.com' })
@@ -473,17 +433,15 @@ describe('## User APIs', () => {
           expect(res.body.mobileNumber).toBe(user.mobileNumber);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('notverified');
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it("should update user's shipping info", done => {
+    it("should update user's shipping info", () => {
       const tempuser = {
         ...user,
         ...userShippingAddress,
       };
-      request(app)
+      return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send(tempuser)
@@ -498,17 +456,15 @@ describe('## User APIs', () => {
           expect(shipInfo.line1).toBe(shippingAddress.line1);
           expect(shipInfo.city).toBe(shippingAddress.city);
           expect(shipInfo.state).toBe(shippingAddress.state);
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it("should update user's payment info", done => {
+    it("should update user's payment info", () => {
       const tempuser = {
         ...user,
         ...userPaymentInfo,
       };
-      request(app)
+      return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send(tempuser)
@@ -519,17 +475,15 @@ describe('## User APIs', () => {
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
           expect(body.paymentInfo).toEqual(userPaymentInfo);
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it("should update user's pushToken", done => {
+    it("should update user's pushToken", () => {
       const tempuser = {
         ...user,
         pushToken: 'randomStringWith1020Numbers',
       };
-      request(app)
+      return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send({ pushToken: tempuser.pushToken })
@@ -541,9 +495,7 @@ describe('## User APIs', () => {
           expect(body.username).toBe(tempuser.username);
           expect(body.paymentInfo).toEqual(userPaymentInfo);
           expect(body.pushToken).toEqual(tempuser.pushToken);
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it("should update user's facebook access token", () => {
@@ -598,8 +550,8 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/', () => {
-    it('should get personal info', done => {
-      request(app)
+    it('should get personal info', () => {
+      return request(app)
         .get(`/api/users/${userId}/personal`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
@@ -613,34 +565,28 @@ describe('## User APIs', () => {
           expect(shipInfo.city).toBe(shippingAddress.city);
           expect(shipInfo.state).toBe(shippingAddress.state);
           expect(Object.keys(body).sort()).toMatchSnapshot();
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('should get all users', done => {
-      request(app)
+    it('should get all users', () => {
+      return request(app)
         .get('/api/users')
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
           expect(res.body.length).toBe(5);
           expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('should get all users (with limit)', done => {
-      request(app)
+    it('should get all users (with limit)', () => {
+      return request(app)
         .get('/api/users')
         .query({ limit: 10 })
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
@@ -745,15 +691,14 @@ describe('## User APIs', () => {
   });
 
   describe('# DELETE /api/users/:userId', () => {
-    beforeAll(done => {
-      createUserAndLogin(anotherUser).then(({ user }) => {
+    beforeAll(() => {
+      return createUserAndLogin(anotherUser).then(({ user }) => {
         anotherUserId = user._id.toString();
-        done();
       });
     });
 
-    it('should delete user', done => {
-      request(app)
+    it('should delete user', () => {
+      return request(app)
         .delete(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
@@ -763,9 +708,7 @@ describe('## User APIs', () => {
           expect(body.mobileNumber).toBe(user.mobileNumber);
           expect(body.username).toBe(user.username);
           expect(body).toHaveProperty('deletedAt');
-          done();
-        })
-        .catch(done);
+        });
     });
 
     // it('should not get users which username`s contains `віктор`', async () => {
@@ -775,43 +718,37 @@ describe('## User APIs', () => {
     //     .then();
     // });
 
-    it('first user should not delete another user', done => {
-      request(app)
+    it('first user should not delete another user', () => {
+      return request(app)
         .delete(`/api/users/${anotherUserId}`)
         .set('Authorization', jwtToken)
-        .expect(httpStatus.UNAUTHORIZED)
-        .then(done())
-        .catch(done);
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
-    it('should get error when deleting invalid user', done => {
-      request(app)
+    it('should get error when deleting invalid user', () => {
+      return request(app)
         .delete(`/api/users/59f91cac9b4645049289f6f`)
         .set('Authorization', jwtToken)
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('Invalid user');
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
   describe('# PUT /api/users/:userId', () => {
-    beforeAll(done => {
-      createUserAndLogin(forthUser)
+    beforeAll(() => {
+      return createUserAndLogin(forthUser)
         .then(({ user, jwtToken: token }) => {
           forthUserId = user._id.toString();
           forthJwtToken = token;
-          done();
         })
         .catch(err => {
           console.error(err);
-          done();
         });
     });
 
-    it('should not update an user`s email to an existing one', async () => {
+    it('should not update an user`s email to an existing one', () => {
       return request(app)
         .put(`/api/users/${forthUserId}`)
         .set('Authorization', forthJwtToken)
@@ -824,8 +761,8 @@ describe('## User APIs', () => {
         });
     });
 
-    it("should NOT update an user's username to an existing one", done => {
-      request(app)
+    it("should NOT update an user's username to an existing one", () => {
+      return request(app)
         .put(`/api/users/${forthUserId}`)
         .set('Authorization', forthJwtToken)
         .send({
@@ -838,15 +775,13 @@ describe('## User APIs', () => {
             'An account with the same username exists.'
           );
           user.username = 'firstperson';
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
   describe('# POST /api/auth/login', () => {
-    it('should get another valid JWT token', done => {
-      request(app)
+    it('should get another valid JWT token', () => {
+      return request(app)
         .post('/api/auth/login')
         .send({
           emailAddress: anotherUser.emailAddress,
@@ -856,14 +791,12 @@ describe('## User APIs', () => {
         .then(res => {
           expect(res.body).toHaveProperty('token');
           anotherJwtToken = res.body.token;
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
   describe('# PUT /api/users/:userId', () => {
-    it("should upload the user's profile pic", async () => {
+    it("should upload the user's profile pic", () => {
       return request(app)
         .put(`/api/users/${anotherUserId}`)
         .set('Authorization', anotherJwtToken)
@@ -871,7 +804,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK);
     });
 
-    it("should NOT update another user's details", async () => {
+    it("should NOT update another user's details", () => {
       user.mobileNumber = '9876543212';
       return request(app)
         .put(`/api/users/${userId}`)
@@ -880,7 +813,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.UNAUTHORIZED);
     });
 
-    it("should NOT update another user's details", async () => {
+    it("should NOT update another user's details", () => {
       anotherUser.shippingAddress = {
         departmentNovaposhta: '#25',
         fathersName: 'banana',
@@ -898,47 +831,39 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/auth/random-number', () => {
-    it('should fail to get random number because of missing Authorization', done => {
-      request(app)
+    it('should fail to get random number because of missing Authorization', () => {
+      return request(app)
         .get('/api/auth/random-number')
-        .expect(httpStatus.UNAUTHORIZED)
-        .then(done())
-        .catch(done);
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
-    it('should fail to get random number because of wrong token', done => {
-      request(app)
+    it('should fail to get random number because of wrong token', () => {
+      return request(app)
         .get('/api/auth/random-number')
         .set('Authorization', 'JWT inValidToken')
-        .expect(httpStatus.UNAUTHORIZED)
-        .then(done())
-        .catch(done);
+        .expect(httpStatus.UNAUTHORIZED);
     });
 
-    it('should get a random number', done => {
-      request(app)
+    it('should get a random number', () => {
+      return request(app)
         .get('/api/auth/random-number')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           expect(typeof res.body.num).toBe('number');
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 
   describe('Password reset', () => {
-    it('# POST /api/auth/reset - should request a password reset via email', done => {
-      request(app)
+    it('# POST /api/auth/reset - should request a password reset via email', () => {
+      return request(app)
         .post('/api/auth/reset')
         .send({ emailAddress: anotherUser.emailAddress })
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.message).toBe('Password reset email sent.');
-          done();
-        })
-        .catch(done);
+        });
     });
 
     it('# POST /api/auth/reset/:token (page) - should reset the user`s password', done => {
@@ -968,8 +893,8 @@ describe('## User APIs', () => {
       );
     });
 
-    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', done => {
-      request(app)
+    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', () => {
+      return request(app)
         .post(`/api/auth/reset/${resetToken}`)
         .send({ password: 'americano', passwordagain: 'americano' })
         .expect(httpStatus.BAD_REQUEST)
@@ -977,13 +902,11 @@ describe('## User APIs', () => {
           expect(res.text).toContain(
             'There was an issue resetting your password'
           );
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', done => {
-      request(app)
+    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', () => {
+      return request(app)
         .post(`/api/auth/reset/12343375d1`)
         .send({ password: 'americano', passwordagain: 'americano' })
         .expect(httpStatus.BAD_REQUEST)
@@ -991,13 +914,11 @@ describe('## User APIs', () => {
           expect(res.body.message).toBe(
             '"token" length must be 16 characters long'
           );
-          done();
-        })
-        .catch(done);
+        });
     });
 
-    it('# POST /api/auth/login - should authenticate again', done => {
-      request(app)
+    it('# POST /api/auth/login - should authenticate again', () => {
+      return request(app)
         .post('/api/auth/login')
         .send({
           emailAddress: anotherUser.emailAddress,
@@ -1006,9 +927,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body).toHaveProperty('token');
-          done();
-        })
-        .catch(done);
+        });
     });
   });
 });
