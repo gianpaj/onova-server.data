@@ -23,9 +23,17 @@ apps:
       NODE_ENV: production
       PORT: 8142
   - script : npm
-    args: start-push
+    args: 'run start-push'
     cwd: ./server.chat
     name   : 'server.chat-push'
+    # autorestart: true
+    env    :
+      NODE_ENV: production
+  - script : ./server.js
+    cwd: ./webapp
+    name   : webapp
     autorestart: true
+    wait_ready: true
+    listen_timeout: 3000
     env    :
       NODE_ENV: production
