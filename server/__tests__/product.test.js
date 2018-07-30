@@ -463,6 +463,20 @@ describe('## Product APIs', () => {
           expect(body.data[2].tags).toEqual(product.tags);
         });
     });
+
+    it('should find products by multiple tags with different case', () => {
+      return request(app)
+        .get('/api/products/?tags[]=Winter&tags[]=Spring')
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(Array.isArray(body.data));
+          expect(body.data).toHaveLength(3);
+          expect(body.data[0].tags).toEqual(thirdProduct.tags);
+          expect(body.data[1].tags).toEqual(product.tags);
+          // not duplicated product. just the same product was added twice
+          expect(body.data[2].tags).toEqual(product.tags);
+        });
+    });
   });
 
   describe('# DELETE /api/products/:uuid', () => {

@@ -17,6 +17,10 @@ const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
 });
 
+function escapeRegex(text: string) {
+  return text.replace(/[^a-zA-Z0-9_]/g, '\\$&');
+}
+
 declare class session$Request extends express$Request {
   files: Array<any>;
   user: UserDoc;
@@ -244,7 +248,15 @@ async function list(
   }
 
   // TODO: escapeRegex each tag
-  if (tags) query = { ...query, tags: { $in: tags } };
+  if (tags) {
+    if (Array.isArray(tags)) {
+      const regexAllTags = tags.map(tag => new RegExp(escapeRegex(tag), 'i'));
+      query = { ...query, tags: { $in: regexAllTags } };
+    } else {
+      const regexTag = new RegExp(escapeRegex(tags), 'i');
+      query = { ...query, tags: regexTag };
+    }
+  }
   if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
 
   // search products by seller's username (no pagination[lastId] yet allowed)
