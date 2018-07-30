@@ -133,7 +133,7 @@ export default {
         .single(),
       limit: Joi.number()
         .min(1)
-        .max(50),
+        .max(100),
       userid: Joi.string()
         .hex()
         .length(24),
