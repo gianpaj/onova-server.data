@@ -7,7 +7,6 @@ import passport from 'passport';
 import paramValidation from '../config/validation/product.validation';
 import productCtrl from '../controllers/product.controller';
 import APIError from '../helpers/APIError';
-import photos from '../helpers/photos';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
@@ -41,7 +40,6 @@ router
 
   // POST /api/products - Create new product
   .post(
-    photos.uploadMulter.array('photos', 6),
     validate(paramValidation.createProduct),
     requireAuth,
     productCtrl.create

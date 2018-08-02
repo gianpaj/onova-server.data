@@ -166,4 +166,50 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
   });
 }
 
-export default { uploadMulter, uploadProductImages, uploadProfilePic };
+const srcBucketName = 'temp-uploads.onova.co';
+const destBucketName = config.CLOUD_BUCKET;
+
+async function movePhoto(
+  photo: string,
+  uuid: string,
+  i: number,
+  date: number,
+  thumb: boolean = false
+): Promise<string | Error> {
+  const srcFilename = photo.replace(
+    'https://storage.googleapis.com/temp-uploads.onova.co/',
+    ''
+  );
+  const destFilename = `products/${uuid}-${i + 1}-${date}${
+    thumb ? '-thumb' : ''
+  }.jpg`;
+
+  if (config.env === 'test') {
+    return `http://${destBucketName}/${destFilename}`;
+  }
+
+  try {
+    await storage
+      .bucket(srcBucketName)
+      .file(srcFilename)
+      .copy(storage.bucket(destBucketName).file(destFilename));
+    debug(
+      `gs://${srcBucketName}/${srcFilename} copied to gs://${destBucketName}/${destFilename}.`
+    );
+    await storage
+      .bucket(destBucketName)
+      .file(destFilename)
+      .makePublic();
+    return `http://${destBucketName}/${destFilename}`;
+  } catch (err) {
+    console.error('ERROR:', err);
+    return err;
+  }
+}
+
+export default {
+  movePhoto,
+  uploadMulter,
+  uploadProductImages,
+  uploadProfilePic,
+};

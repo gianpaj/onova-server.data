@@ -41,6 +41,9 @@ describe('## Product APIs', () => {
     description: 'nice boots',
     // seller comes after the user is created
     price: '100.99', // if 1 decimal point .00 will be added
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let anotherProduct = {
@@ -48,6 +51,9 @@ describe('## Product APIs', () => {
     typeIds: [1, 3],
     description: 'nice jacket',
     price: '230.99',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let thirdProduct = {
@@ -56,6 +62,9 @@ describe('## Product APIs', () => {
     tags: ['spring'],
     description: 'nice scarf',
     price: '30',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let badProduct = {
@@ -64,6 +73,9 @@ describe('## Product APIs', () => {
     tags: ['lol@'],
     description: 'nice API',
     price: '290.00',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let productUuid;
@@ -104,13 +116,22 @@ describe('## Product APIs', () => {
   });
 
   describe('# POST /api/products', () => {
+    it('should NOT create a product with invalid images', () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken)
+        .send({ ...product, photos: ['http://asdfasd'] })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Product image(s) are required')
+        );
+    });
+
     it('should create a product without coordinates', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
-        .field(product)
+        .send(product)
         .expect(httpStatus.CREATED)
         .then(res => {
           const p = res.body.data;
@@ -121,9 +142,8 @@ describe('## Product APIs', () => {
           expect(p.description).toBe(product.description);
           expect(Array.isArray(p.likes));
           expect(p.likes).toHaveLength(0);
-          expect(p.photoURIs).toEqual([
-            'http://assets.onova.co/products/B11zDErJQ-1-1527232263107.jpg',
-          ]);
+          expect(p.photoURIs[0]).not.toContain('thumb');
+          expect(p.photoURIs[0]).toContain('/products/');
           expect(p.price).toBe(product.price);
           // flow-disable-next-line
           expect(p.seller).toBe(user._id);
@@ -151,14 +171,14 @@ describe('## Product APIs', () => {
       );
       prodUuidWithLocality = p.uuid;
       productsCounter++;
+      return p;
     });
 
     // it('should NOT create a product with invalid coordinates', () => {
     //   return request(app)
     //     .post('/api/products')
     //     .set('Authorization', jwtToken)
-    //     .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-    //     .field({
+    //     .send({
     //       ...anotherProduct,
     //       longitude: 0.1,
     //       latitude: 0.1,
@@ -170,37 +190,11 @@ describe('## Product APIs', () => {
     //     });
     // });
 
-    it('should not create product with wrong file uploaded', () => {
-      return request(app)
-        .post('/api/products')
-        .set('Authorization', jwtToken)
-        .attach('photos', path.join(__dirname, 'misc.test.js'))
-        .field(product)
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain(
-            'File upload only supports the following filetypes'
-          )
-        );
-    });
-
-    it('should not create product without uploading a photo', () => {
-      return request(app)
-        .post('/api/products')
-        .set('Authorization', jwtToken)
-        .field(product)
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toBe('Product image(s) are required')
-        );
-    });
-
     it('should not create product with an invalid tag (with @)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field(badProduct)
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .send(badProduct)
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('fails to match the required pattern')
@@ -211,8 +205,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field({ ...badProduct, tags: ['my pony'] })
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .send({ ...badProduct, tags: ['my pony'] })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('fails to match the required pattern')
@@ -223,8 +216,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field({ ...badProduct, tags: ['lol.pony'] })
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .send({ ...badProduct, tags: ['lol.pony'] })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('fails to match the required pattern')
@@ -235,8 +227,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field({ ...product, tags: ['111pony'] })
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .send({ ...product, tags: ['111pony'] })
         .expect(httpStatus.CREATED)
         .then(() => void productsCounter++);
     });
@@ -245,8 +236,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field({ ...product, price: '111.1' })
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .send({ ...product, price: '111.1' })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           expect(body.data.price).toBe('111.10');
@@ -258,8 +248,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field({ ...product, tags: ['плнаше'] })
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .send({ ...product, tags: ['плнаше'] })
         .expect(httpStatus.CREATED)
         .then(() => void productsCounter++);
     });
@@ -270,8 +259,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
-        .field(badProduct)
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
+        .send(badProduct)
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('"price" contains an invalid value')
@@ -548,10 +536,13 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.data.description).toBe(product.description);
-          expect(body.data.price).toBe(product.price);
-          expect(body.data.categoryIds).toEqual(product.categoryIds);
-          expect(body.data.typeIds).toEqual(product.typeIds);
+          const p = body.data;
+          expect(p.description).toBe(product.description);
+          expect(p.price).toBe(product.price);
+          expect(p.categoryIds).toEqual(product.categoryIds);
+          expect(p.typeIds).toEqual(product.typeIds);
+          expect(p.photoURIs[0]).not.toContain('thumb');
+          expect(p.photoURIs[0]).toContain('/products/');
         });
     });
 
@@ -595,15 +586,14 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.data.price).toEqual('199.55'));
     });
 
-    it('should update the images to GCS', () => {
-      return request(app)
-        .put(`/api/products/${productUuid}`)
-        .field(product)
-        .attach('photos', path.join(__dirname, 'images/boots2.jpg'))
-        .set('Authorization', jwtToken)
-        .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
-    });
+    // it('should update the images to GCS', () => {
+    //   return request(app)
+    //     .put(`/api/products/${productUuid}`)
+    //     .send(product)
+    //     .set('Authorization', jwtToken)
+    //     .expect(httpStatus.OK)
+    //     .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
+    // });
 
     it('should **not** update with invalid field', () => {
       return request(app)

@@ -28,6 +28,7 @@ declare class session$Request extends express$Request {
   body: {
     categoryIds: string,
     description: string,
+    photos: Array<string>,
     price: string,
     typeIds: string,
     tags: Array<TagDoc>,
@@ -109,6 +110,7 @@ function get(req: session$Request, res: express$Response) {
  * @property {Array<number>} req.body.categoryIds
  * @property {string=} [req.body.currency='UAH']
  * @property {string} req.body.description
+ * @property {Array<string>=} req.body.photos
  * @property {string} req.body.price
  * @property {MongoId} req.body.seller
  * @property {Array<string>=} req.body.tags
@@ -132,12 +134,6 @@ async function create(
     typeIds: body.typeIds,
     uuid: shortid.generate(), // needed here for photos' filenames
   });
-
-  // req.files is array of `photos` files
-  if (req.files.length < 1) {
-    const APIerr = new APIError('Product image(s) are required', 400);
-    return next(APIerr);
-  }
 
   if (body.longitude && body.latitude) {
     product.location = {
@@ -163,7 +159,7 @@ async function create(
   if (body.tags) createTags(body.tags);
 
   User.findById(req.user._id)
-    .then(seller => {
+    .then(async seller => {
       if (!seller) {
         throw new APIError('Seller not found', 400);
       }
@@ -179,12 +175,32 @@ async function create(
       //   product.photoURIs.push('UPLOADING_PIC');
       // }
 
-      if (config.env === 'test') {
-        product.photoURIs = [
-          'http://assets.onova.co/products/B11zDErJQ-1-1527232263107.jpg',
-        ];
-      } else {
-        photos.uploadProductImages(product, req.files);
+      const correctPhotos = body.photos.filter(p =>
+        p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
+      );
+
+      if (correctPhotos.length < 1) {
+        throw new APIError('Product image(s) are required', 400);
+      }
+
+      const date = Date.now();
+
+      // TODO: check if images have been uploaded to GSC
+      let promises = [];
+
+      const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
+      promises.push(photos.movePhoto(thumb, product.uuid, 0, date, true));
+
+      correctPhotos.map((p, i) =>
+        promises.push(photos.movePhoto(p, product.uuid, i, date))
+      );
+
+      try {
+        const photos = await Promise.all(promises);
+        product.photoURIs = photos.filter(photo => !photo.includes('thumb'));
+      } catch (err) {
+        console.error(err);
+        throw new APIError('Error moving photos', 500);
       }
 
       return product

@@ -49,6 +49,12 @@ export default {
         .min(7)
         .max(300)
         .required(),
+      photos: Joi.array()
+        .unique()
+        .max(6)
+        .items(Joi.string().uri())
+        .single()
+        .required(),
       price: Joi.string()
         .regex(validation.price)
         .invalid('0')

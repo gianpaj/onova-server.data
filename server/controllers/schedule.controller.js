@@ -2,16 +2,16 @@
 
 import shortid from 'shortid';
 import httpStatus from 'http-status';
-import Storage from '@google-cloud/storage';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 import path from 'path';
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+// const debug = require('debug')('express-mongoose-es6-rest-api:index');
 const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
 });
 
 import { agenda } from '../config/express';
 import APIError from '../helpers/APIError';
+import photos from '../helpers/photos';
 import Product, { ProductDoc } from '../models/product.model';
 import Tag, { TagDoc } from '../models/tag.model';
 import User, { UserDoc } from '../models/user.model';
@@ -35,15 +35,6 @@ declare class session$Request extends express$Request {
   };
 }
 
-const srcBucketName = 'temp-uploads.onova.co';
-const destBucketName = config.CLOUD_BUCKET;
-
-const storage = Storage({
-  // Service account key: 'storage-data-server'
-  // id '3a339323d16ab4189e140a740f2381496686e235'
-  keyFilename: 'Onova-3a339323d16a.json',
-});
-
 /**
  * Load a product and append to req.
  */
@@ -66,13 +57,14 @@ function load(
 /**
  * Schedule a new listing
  *
- * POST /api/products
+ * POST /api/schedule
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
  * @property {Array<number>} req.body.categoryIds
  * @property {string=} [req.body.currency='UAH']
  * @property {string} req.body.description
+ * @property {Array<string>=} req.body.photos
  * @property {string} req.body.price
  * @property {MongoId} req.body.seller
  * @property {Array<string>=} req.body.tags
@@ -162,10 +154,10 @@ async function create(
       let promises = [];
 
       const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
-      promises.push(movePhoto(thumb, product.uuid, 0, date, true));
+      promises.push(photos.movePhoto(thumb, product.uuid, 0, date, true));
 
       correctPhotos.map((p, i) =>
-        promises.push(movePhoto(p, product.uuid, i, date))
+        promises.push(photos.movePhoto(p, product.uuid, i, date))
       );
 
       try {
@@ -194,40 +186,6 @@ async function create(
       return res.status(httpStatus.CREATED).json({ data: savedListing });
     })
     .catch(e => next(e));
-}
-
-async function movePhoto(
-  photo,
-  uuid: string,
-  i: number,
-  date: number,
-  thumb: boolean = false
-): Promise<string | Error> {
-  const srcFilename = photo.replace(
-    'https://storage.googleapis.com/temp-uploads.onova.co/',
-    ''
-  );
-  const destFilename = `products/${uuid}-${i + 1}-${date}${
-    thumb ? '-thumb' : ''
-  }.jpg`;
-
-  try {
-    await storage
-      .bucket(srcBucketName)
-      .file(srcFilename)
-      .copy(storage.bucket(destBucketName).file(destFilename));
-    debug(
-      `gs://${srcBucketName}/${srcFilename} copied to gs://${destBucketName}/${destFilename}.`
-    );
-    await storage
-      .bucket(destBucketName)
-      .file(destFilename)
-      .makePublic();
-    return `http://${destBucketName}/${destFilename}`;
-  } catch (err) {
-    console.error('ERROR:', err);
-    return err;
-  }
 }
 
 function createTags(tags: Array<TagDoc>) {
