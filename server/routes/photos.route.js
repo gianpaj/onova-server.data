@@ -25,7 +25,7 @@ router
     photosCtrl.tempUploadProductImage.single('photo'),
     requireAuth,
     (req, res, next) => {
-      debug('product image uploaded to:', req.file.path);
+      debug('temp product image uploaded to:', req.file.path);
       res.status(httpStatus.CREATED).json({ data: req.file });
     }
   );
