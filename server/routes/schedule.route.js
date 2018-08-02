@@ -21,12 +21,9 @@ const router = express.Router();
 //   next();
 // }
 
+// POST /api/schedule - Schedule a listing
 router
   .route('/')
-  // // GET /api/products/schedule - Get list scheduled items
-  // .get(validate(paramValidation.getProducts), conditionalAuth, scheduleCtrl.list)
-
-  // POST /api/products - Schedule a listing
   .post(
     validate(paramValidation.createSchedule),
     requireAuth,

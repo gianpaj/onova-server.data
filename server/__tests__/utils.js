@@ -2,7 +2,6 @@
 
 import httpStatus from 'http-status';
 import request from 'supertest';
-import path from 'path';
 
 import Block from '../models/block.model';
 import DefaultFollow from '../models/defaultFollow.model';
@@ -106,8 +105,7 @@ export function createProduct(
   return request(app)
     .post('/api/products')
     .set('Authorization', jwToken)
-    .attach('photos', path.join(__dirname, 'images/boots1.jpg'))
-    .field(product)
+    .send(product)
     .expect(httpStatus.CREATED)
     .then(res => {
       if (!res.body.data) console.error(res.body);
