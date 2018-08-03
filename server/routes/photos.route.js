@@ -25,6 +25,7 @@ router
     photosCtrl.tempUploadProductImage.single('photo'),
     requireAuth,
     (req, res, next) => {
+      // FIXME: req.file.path = undefined
       debug('temp product image uploaded to:', req.file.path);
       res.status(httpStatus.CREATED).json({ data: req.file });
     }

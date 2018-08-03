@@ -185,10 +185,10 @@ async function create(
       let promises = [];
 
       const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
-      promises.push(photos.movePhoto(thumb, product.uuid, 0, date, true));
+      promises.push(photos.copyPhoto(thumb, product.uuid, 0, date, true));
 
       correctPhotos.map((p, i) =>
-        promises.push(photos.movePhoto(p, product.uuid, i, date))
+        promises.push(photos.copyPhoto(p, product.uuid, i, date))
       );
 
       try {
@@ -393,10 +393,10 @@ function update(
       let promises = [];
 
       const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
-      promises.push(photos.movePhoto(thumb, foundProduct.uuid, 0, date, true));
+      promises.push(photos.copyPhoto(thumb, foundProduct.uuid, 0, date, true));
 
       correctPhotos.map((p, i) =>
-        promises.push(photos.movePhoto(p, foundProduct.uuid, i, date))
+        promises.push(photos.copyPhoto(p, foundProduct.uuid, i, date))
       );
 
       try {
