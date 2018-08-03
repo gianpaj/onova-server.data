@@ -171,16 +171,12 @@ async function create(
       }
       product.seller = req.user._id;
 
-      // for (let i = 0; i < req.files.length; i++) {
-      //   product.photoURIs.push('UPLOADING_PIC');
-      // }
-
       const correctPhotos = body.photos.filter(p =>
         p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
       );
 
       if (correctPhotos.length < 1) {
-        throw new APIError('Product image(s) are required', 400);
+        throw new APIError('Product photo(s) are required', 400);
       }
 
       const date = Date.now();
@@ -368,8 +364,10 @@ function update(
   res: express$Response,
   next: express$NextFunction
 ) {
+  const { body } = req;
+
   Product.findOne({ uuid: req.params.uuid })
-    .then(foundProduct => {
+    .then(async foundProduct => {
       if (!foundProduct) {
         throw new APIError('Product not found', 400);
       }
@@ -379,39 +377,54 @@ function update(
       }
 
       // create Tag documents
-      if (req.body.tags) createTags(req.body.tags);
+      if (body.tags) createTags(body.tags);
 
-      if (req.files) {
-        if (config.env === 'test') {
-          foundProduct.photoURIs = [
-            'http://assets.onova.co/products/B11zDErJQ-1-1527232263107.jpg',
-          ];
-        } else {
-          Product.findOneAndUpdate(
-            { _id: req.product._id },
-            { $set: { photoURIs: [] } }
-          ).then(() => photos.uploadProductImages(req.product, req.files));
-        }
+      const correctPhotos = body.photos.filter(p =>
+        p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
+      );
+
+      if (correctPhotos.length < 1) {
+        throw new APIError('Product photo(s) are required', 400);
       }
 
-      foundProduct.categoryIds = req.body.categoryIds
-        ? req.body.categoryIds
+      const date = Date.now();
+
+      // TODO: check if images have been uploaded to GSC
+      let promises = [];
+
+      const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
+      promises.push(photos.movePhoto(thumb, foundProduct.uuid, 0, date, true));
+
+      correctPhotos.map((p, i) =>
+        promises.push(photos.movePhoto(p, foundProduct.uuid, i, date))
+      );
+
+      try {
+        const photos = await Promise.all(promises);
+        foundProduct.photoURIs = photos.filter(
+          photo => !photo.includes('thumb')
+        );
+      } catch (err) {
+        console.error(err);
+        throw new APIError('Error moving photos', 500);
+      }
+
+      foundProduct.categoryIds = body.categoryIds
+        ? body.categoryIds
         : foundProduct.categoryIds;
-      foundProduct.description = req.body.description
-        ? req.body.description
+      foundProduct.description = body.description
+        ? body.description
         : foundProduct.description;
 
-      if (/\.\d{1}$/.test(req.body.price)) {
-        req.body.price += '0';
+      if (/\.\d{1}$/.test(body.price)) {
+        body.price += '0';
       }
 
-      foundProduct.price = req.body.price
-        ? mongoose.Types.Decimal128.fromString(req.body.price)
+      foundProduct.price = body.price
+        ? mongoose.Types.Decimal128.fromString(body.price)
         : foundProduct.price;
-      foundProduct.tags = req.body.tags ? req.body.tags : foundProduct.tags;
-      foundProduct.typeIds = req.body.typeIds
-        ? req.body.typeIds
-        : foundProduct.typeIds;
+      foundProduct.tags = body.tags ? body.tags : foundProduct.tags;
+      foundProduct.typeIds = body.typeIds ? body.typeIds : foundProduct.typeIds;
 
       return foundProduct.save().then(product => {
         return res.json({ data: product });
