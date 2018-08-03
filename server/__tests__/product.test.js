@@ -116,14 +116,14 @@ describe('## Product APIs', () => {
   });
 
   describe('# POST /api/products', () => {
-    it('should NOT create a product with invalid images', () => {
+    it('should NOT create a product with invalid photos', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
         .send({ ...product, photos: ['http://asdfasd'] })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
-          expect(body.message).toContain('Product image(s) are required')
+          expect(body.message).toContain('Product photo(s) are required')
         );
     });
 
@@ -556,7 +556,7 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
     });
 
-    it('should update the price', () => {
+    it('should update the price with decimal points', () => {
       product.price = '199.9';
       return request(app)
         .put(`/api/products/${productUuid}`)
@@ -566,7 +566,7 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.data.price).toEqual('199.90'));
     });
 
-    it('should update the price', () => {
+    it('should update the price without decimal points', () => {
       product.price = '199';
       return request(app)
         .put(`/api/products/${productUuid}`)
@@ -576,24 +576,23 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.data.price).toEqual('199'));
     });
 
-    it('should update the price', () => {
-      product.price = '199.55';
+    it('should update the photos', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)
-        .send(product)
+        .send({
+          ...product,
+          photos: [
+            'https://storage.googleapis.com/temp-uploads.onova.co/1533139516448-.jpeg',
+          ],
+        })
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data.price).toEqual('199.55'));
+        .then(({ body }) => {
+          expect(body.data.photoURIs[0]).not.toContain('thumb');
+          expect(body.data.photoURIs[0]).toContain('/products/');
+          expect(body.data.tags).toEqual(product.tags);
+        });
     });
-
-    // it('should update the images to GCS', () => {
-    //   return request(app)
-    //     .put(`/api/products/${productUuid}`)
-    //     .send(product)
-    //     .set('Authorization', jwtToken)
-    //     .expect(httpStatus.OK)
-    //     .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
-    // });
 
     it('should **not** update with invalid field', () => {
       return request(app)

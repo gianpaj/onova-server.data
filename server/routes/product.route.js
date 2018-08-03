@@ -52,7 +52,6 @@ router
 
   // PUT /api/products/:uuid - Update product
   .put(
-    photos.uploadMulter.array('photos', 6),
     validate(paramValidation.putProduct),
     requireAuth,
     isAuthorized,
