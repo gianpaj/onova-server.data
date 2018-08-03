@@ -169,7 +169,7 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
 const srcBucketName = 'temp-uploads.onova.co';
 const destBucketName = config.CLOUD_BUCKET;
 
-async function movePhoto(
+async function copyPhoto(
   photo: string,
   uuid: string,
   i: number,
@@ -200,7 +200,13 @@ async function movePhoto(
       .bucket(destBucketName)
       .file(destFilename)
       .makePublic();
-    return `http://${destBucketName}/${destFilename}`;
+
+    const path = `${destBucketName}/${destFilename}`;
+    let cloudStoragePublicUrl = `https://storage.googleapis.com/${path}`;
+    if (config.env === 'production') {
+      cloudStoragePublicUrl = `http://${path}`;
+    }
+    return cloudStoragePublicUrl;
   } catch (err) {
     console.error('ERROR:', err);
     return err;
@@ -208,7 +214,7 @@ async function movePhoto(
 }
 
 export default {
-  movePhoto,
+  copyPhoto,
   uploadMulter,
   uploadProductImages,
   uploadProfilePic,
