@@ -99,7 +99,8 @@ async function follow(
   internalFollow(req.user, targetUserId)
     .then(savedDoc => res.status(httpStatus.CREATED).json({ data: savedDoc }))
     .catch(e => {
-      if (e.message == 'Error following a user') {
+      console.log(e);
+      if (e.message.startsWith('Error following a user:')) {
         e = new APIError(e.message, httpStatus.BAD_REQUEST);
       }
       next(e);

@@ -4,19 +4,13 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import {
-  Notification,
-  Order,
-  Product,
-  Review,
-  User,
-  Verification,
-} from '../models';
+import { Notification, Order, Product, Review } from '../models';
 import {
   createUserAndLogin,
   createProduct,
   createOrder,
   productFields,
+  beforeAllTests,
 } from './utils';
 
 // GET & PUT /api/users/<id>/reviews should only return these fields
@@ -33,26 +27,7 @@ const reviewFields = [
 ];
 
 describe('## Order APIs', () => {
-  beforeAll(done => {
-    // mongoose.connection.dropDatabase().then(done);
-    const collections = [
-      Notification.collection,
-      Order.collection,
-      Product.collection,
-      Review.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   let userFirst = {
     username: 'userfirst',
@@ -93,6 +68,9 @@ describe('## Order APIs', () => {
     description: 'nice boots',
     // seller id is the user who creates the product
     price: '100.99', // if no decimal points .00 will be added
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let productFlipflops = {
@@ -101,6 +79,9 @@ describe('## Order APIs', () => {
     tags: ['summer'],
     description: 'nice flipflops',
     price: '10.99',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let productShorts = {
@@ -108,6 +89,9 @@ describe('## Order APIs', () => {
     typeIds: [2, 3],
     description: 'nice shorts',
     price: '200.50',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let reviewTwo = {
@@ -261,38 +245,30 @@ describe('## Order APIs', () => {
     beforeAll(done => {
       let Promises = [];
       Promises.push(
-        new Promise((resolve, reject) => {
-          request(app)
-            .post(`/api/users/${userAnother._id}/follow`)
-            .set('Authorization', userFirstJwtToken)
-            .expect(httpStatus.CREATED)
-            .then(({ body }) => {
-              expect(body.data.follower).toBe(userFirst._id);
-              expect(body.data.following).toBe(userAnother._id);
-              expect(Object.keys(body.data).sort()).toEqual(
-                ['follower', 'following', 'dateCreated'].sort()
-              );
-              resolve();
-            })
-            .catch(e => reject(e));
-        })
+        request(app)
+          .post(`/api/users/${userAnother._id}/follow`)
+          .set('Authorization', userFirstJwtToken)
+          .expect(httpStatus.CREATED)
+          .then(({ body }) => {
+            expect(body.data.follower).toBe(userFirst._id);
+            expect(body.data.following).toBe(userAnother._id);
+            expect(Object.keys(body.data).sort()).toEqual(
+              ['follower', 'following', 'dateCreated'].sort()
+            );
+          })
       );
       Promises.push(
-        new Promise((resolve, reject) => {
-          request(app)
-            .post(`/api/users/${userFirst._id}/follow`)
-            .set('Authorization', userAnotherJwtToken)
-            .expect(httpStatus.CREATED)
-            .then(({ body }) => {
-              expect(body.data.follower).toBe(userAnother._id);
-              expect(body.data.following).toBe(userFirst._id);
-              expect(Object.keys(body.data).sort()).toEqual(
-                ['follower', 'following', 'dateCreated'].sort()
-              );
-              resolve();
-            })
-            .catch(e => reject(e));
-        })
+        request(app)
+          .post(`/api/users/${userFirst._id}/follow`)
+          .set('Authorization', userAnotherJwtToken)
+          .expect(httpStatus.CREATED)
+          .then(({ body }) => {
+            expect(body.data.follower).toBe(userAnother._id);
+            expect(body.data.following).toBe(userFirst._id);
+            expect(Object.keys(body.data).sort()).toEqual(
+              ['follower', 'following', 'dateCreated'].sort()
+            );
+          })
       );
       Promise.all(Promises)
         .then(() => done())
@@ -564,13 +540,13 @@ describe('## Order APIs', () => {
   });
 
   describe('# GET /api/users/:userId/review', () => {
-    // delete all Orders, Reviews, Products and Notifications
+    // delete all collections
     beforeAll(done => {
       const collections = [
         Notification.collection,
         Order.collection,
-        Review.collection,
         Product.collection,
+        Review.collection,
       ];
 
       var todo = collections.length;
