@@ -5,11 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import Follow from '../models/follow.model';
-import User from '../models/user.model';
-import Report from '../models/report.model';
-import Verification from '../models/verification.model';
-import { createUserAndLogin, createProduct } from './utils';
+import { createUserAndLogin, createProduct, beforeAllTests } from './utils';
 
 const reportFields = ['createdAt', '_id', 'text', 'reporter'];
 
@@ -25,23 +21,7 @@ afterAll(done => {
 });
 
 describe('## Report methods', () => {
-  beforeAll(done => {
-    const collections = [
-      User.collection,
-      Report.collection,
-      Follow.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   let firstPerson = {
     username: 'firstperson',
@@ -54,6 +34,9 @@ describe('## Report methods', () => {
     typeIds: [3],
     description: 'nice boots',
     price: '100.99',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let users = [

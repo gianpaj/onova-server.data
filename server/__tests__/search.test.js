@@ -5,16 +5,14 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import Follow from '../models/follow.model';
 import Tag from '../models/tag.model';
-import User from '../models/user.model';
 import Product from '../models/product.model';
-import Verification from '../models/verification.model';
 import {
   createProduct,
   createUserAndLogin,
   productFields,
   createManyProducts,
+  beforeAllTests,
 } from './utils';
 
 /**
@@ -35,6 +33,9 @@ const product = {
   description: 'nice boots',
   // seller comes after the user is created
   price: '100.99', // if no decimal points .00 will be added
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let anotherProduct = {
@@ -42,6 +43,9 @@ let anotherProduct = {
   typeIds: [1, 3],
   description: 'nice jacket',
   price: '230.99',
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let user = {
@@ -64,6 +68,9 @@ const notForSaleProduct = {
   tags: ['WINTER'],
   description: 'nice scarf',
   price: '30',
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let userId;
@@ -73,24 +80,7 @@ let anotherJwtToken;
 
 describe('## Search APIs', () => {
   // TODO: reset the collections for every set of tests (beforEach)
-  beforeAll(done => {
-    const collections = [
-      Follow.collection,
-      Product.collection,
-      Tag.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   // create 2 users/sellers + 2 products
   beforeAll(done => {
@@ -137,40 +127,32 @@ describe('## Search APIs', () => {
   beforeAll(done => {
     let Promises = [];
     Promises.push(
-      new Promise((resolve, reject) => {
-        request(app)
-          .post(`/api/users/${anotherUserId}/follow`)
-          .set('Authorization', firstJwtToken)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            const { data } = res.body;
-            expect(data.follower).toBe(userId);
-            expect(data.following).toBe(anotherUserId);
-            expect(Object.keys(data).sort()).toEqual(
-              ['follower', 'following', 'dateCreated'].sort()
-            );
-            resolve();
-          })
-          .catch(e => reject(e));
-      })
+      request(app)
+        .post(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(userId);
+          expect(data.following).toBe(anotherUserId);
+          expect(Object.keys(data).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
+        })
     );
     Promises.push(
-      new Promise((resolve, reject) => {
-        request(app)
-          .post(`/api/users/${userId}/follow`)
-          .set('Authorization', anotherJwtToken)
-          .expect(httpStatus.CREATED)
-          .then(res => {
-            const { data } = res.body;
-            expect(data.follower).toBe(anotherUserId);
-            expect(data.following).toBe(userId);
-            expect(Object.keys(data).sort()).toEqual(
-              ['follower', 'following', 'dateCreated'].sort()
-            );
-            resolve();
-          })
-          .catch(e => reject(e));
-      })
+      request(app)
+        .post(`/api/users/${userId}/follow`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const { data } = res.body;
+          expect(data.follower).toBe(anotherUserId);
+          expect(data.following).toBe(userId);
+          expect(Object.keys(data).sort()).toEqual(
+            ['follower', 'following', 'dateCreated'].sort()
+          );
+        })
     );
     Promise.all(Promises)
       .then(() => done())
@@ -211,6 +193,9 @@ describe('## Search APIs', () => {
         tags: ['WINTER'],
         description: 'nice jumper',
         price: '39',
+        photos: [
+          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+        ],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -258,6 +243,9 @@ describe('## Search APIs', () => {
         tags: ['WINTER'],
         description: 'nice hoodie',
         price: '69',
+        photos: [
+          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+        ],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -306,6 +294,9 @@ describe('## Search APIs', () => {
         tags: ['warm'],
         description: 'nice socks',
         price: '19',
+        photos: [
+          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+        ],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -354,6 +345,9 @@ describe('## Search APIs', () => {
         tags: ['WINTER'],
         description: 'nice hoodie',
         price: '390',
+        photos: [
+          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+        ],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -414,6 +408,9 @@ describe('## Search APIs', () => {
         tags: ['summer'],
         description: 'nice hoodie',
         price: '390',
+        photos: [
+          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+        ],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -480,7 +477,7 @@ describe('## Search APIs', () => {
   });
 
   describe('# GET /api/search/?lastId=', () => {
-    // delete all Products
+    // delete all the Products
     beforeAll(done => {
       const collections = [Product.collection];
       var todo = collections.length;

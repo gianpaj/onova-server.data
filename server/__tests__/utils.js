@@ -7,7 +7,7 @@ import Block from '../models/block.model';
 import DefaultFollow from '../models/defaultFollow.model';
 import Follow from '../models/follow.model';
 import Notification from '../models/notification.model';
-import { OrderDoc } from '../models/order.model';
+import Order, { OrderDoc } from '../models/order.model';
 import Product, { CommentDoc, ProductDoc } from '../models/product.model';
 import Tag from '../models/tag.model';
 import User, { UserDoc } from '../models/user.model';
@@ -210,6 +210,7 @@ export function beforeAllTests(done: () => void) {
     Follow.collection,
     Notification.collection,
     DefaultFollow.collection,
+    Order.collection,
     Product.collection,
     Tag.collection,
     User.collection,

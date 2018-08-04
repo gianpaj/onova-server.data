@@ -9,10 +9,8 @@ import jwt from 'jsonwebtoken';
 import app from '../index';
 import config from '../config/config';
 import Verification from '../models/verification.model';
-import Follow from '../models/follow.model';
 import User, { UserDoc } from '../models/user.model';
-import DefaultFollow from '../models/defaultFollow.model';
-import { createUserAndLogin } from './utils';
+import { createUserAndLogin, beforeAllTests } from './utils';
 
 /**
  * root level hooks
@@ -26,23 +24,7 @@ afterAll(done => {
 });
 
 describe('## User APIs', () => {
-  beforeAll(done => {
-    const collections = [
-      Follow.collection,
-      User.collection,
-      DefaultFollow.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   // $FlowFixMe
   let user: UserDoc = {
@@ -111,19 +93,19 @@ describe('## User APIs', () => {
         .send(user)
         .expect(httpStatus.CREATED)
         .then(res => {
-          const resUser = res.body.data;
-          expect(typeof resUser._id).toBe('string');
-          expect(resUser.accountStatus).toBe('notverified');
-          expect(resUser.emailAddress).toBe(user.emailAddress);
-          expect(resUser.followersCount).toBe(0);
-          expect(resUser.followingCount).toBe(0);
-          expect(resUser.ratingsTotal).toBe(0);
-          expect(resUser.reviewsCount).toBe(0);
-          expect(resUser.username).toBe(user.username);
+          const { data } = res.body;
+          expect(typeof data._id).toBe('string');
+          expect(data.accountStatus).toBe('notverified');
+          expect(data.emailAddress).toBe(user.emailAddress);
+          expect(data.followersCount).toBe(0);
+          expect(data.followingCount).toBe(0);
+          expect(data.ratingsTotal).toBe(0);
+          expect(data.reviewsCount).toBe(0);
+          expect(data.username).toBe(user.username);
           expect(typeof res.body.token).toBe('string');
-          expect(Object.keys(resUser).sort()).toMatchSnapshot();
+          expect(Object.keys(data).sort()).toMatchSnapshot();
 
-          userId = resUser._id;
+          userId = data._id;
         });
     });
 
@@ -133,15 +115,15 @@ describe('## User APIs', () => {
         .send(thirdUser)
         .expect(httpStatus.CREATED)
         .then(res => {
-          const resUser = res.body.data;
-          expect(typeof resUser._id).toBe('string');
-          expect(resUser.username).toBe(thirdUser.username);
-          expect(resUser.emailAddress).toBe(thirdUser.emailAddress);
-          expect(resUser.accountStatus).toBe('notverified');
-          expect(resUser.followersCount).toBe(0);
-          expect(resUser.followingCount).toBe(0);
+          const { data } = res.body;
+          expect(typeof data._id).toBe('string');
+          expect(data.username).toBe(thirdUser.username);
+          expect(data.emailAddress).toBe(thirdUser.emailAddress);
+          expect(data.accountStatus).toBe('notverified');
+          expect(data.followersCount).toBe(0);
+          expect(data.followingCount).toBe(0);
           expect(typeof res.body.token).toBe('string');
-          expect(Object.keys(resUser).sort()).toMatchSnapshot();
+          expect(Object.keys(data).sort()).toMatchSnapshot();
         });
     });
 

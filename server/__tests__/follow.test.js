@@ -5,10 +5,8 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import Follow from '../models/follow.model';
 import User from '../models/user.model';
-import Verification from '../models/verification.model';
-import { createUserAndLogin } from './utils';
+import { beforeAllTests, createUserAndLogin } from './utils';
 
 /**
  * root level hooks
@@ -22,22 +20,7 @@ afterAll(done => {
 });
 
 describe('## Follow APIs', () => {
-  beforeAll(done => {
-    const collections = [
-      Follow.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   let user = {
     username: 'firstperson',
@@ -80,7 +63,7 @@ describe('## Follow APIs', () => {
   let thirdJwtToken;
   let firstJwtToken;
   let anotherJwtToken;
-  let forthUserIdJwtToken;
+  // let forthUserIdJwtToken;
   let firstUserFollowersCounter = 0;
   let firstUserFollowingCounter = 0;
 
@@ -96,7 +79,7 @@ describe('## Follow APIs', () => {
     });
     await createUserAndLogin(forthUser).then(({ user, jwtToken }) => {
       forthUserId = user._id.toString();
-      forthUserIdJwtToken = jwtToken;
+      // forthUserIdJwtToken = jwtToken;
     });
     return await createUserAndLogin(thirdUser).then(({ user, jwtToken }) => {
       thirdUserId = user._id.toString();
@@ -124,9 +107,9 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('Duplicate follower<->following');
-        });
+        .then(res =>
+          expect(res.body.message).toContain('Duplicate follower<->following')
+        );
     });
 
     describe('check followers/following counters', () => {
@@ -171,9 +154,9 @@ describe('## Follow APIs', () => {
         .post('/api/users/1123123/follow')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('must be 24 characters long');
-        });
+        .then(res =>
+          expect(res.body.message).toContain('must be 24 characters long')
+        );
     });
 
     it('should not follow a user it doesn`t exist', async () => {
@@ -181,9 +164,9 @@ describe('## Follow APIs', () => {
         .post('/api/users/5aaaac09336c6735ff0346f9/follow')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Error following a user');
-        });
+        .then(res =>
+          expect(res.body.message).toContain('Error following a user')
+        );
     });
 
     it('should not follow itself', async () => {
@@ -191,9 +174,7 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Cannot follow thyself');
-        });
+        .then(res => expect(res.body.message).toBe('Cannot follow thyself'));
     });
 
     it('should follow back', async () => {
@@ -231,9 +212,9 @@ describe('## Follow APIs', () => {
         .post('/api/users/2123412d/unfollow')
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('must be 24 characters long');
-        });
+        .then(res =>
+          expect(res.body.message).toContain('must be 24 characters long')
+        );
     });
 
     it('should not unfollow a user that doesn`t exist', async () => {
@@ -241,9 +222,7 @@ describe('## Follow APIs', () => {
         .post('/api/users/5aaaac09336c6735ff0346f9/unfollow')
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Error unfollowing a user');
-        });
+        .then(res => expect(res.body.message).toBe('Error unfollowing a user'));
     });
 
     it('should not unfollow itself', async () => {
@@ -251,9 +230,7 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${anotherUserId}/unfollow`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe('Cannot unfollow thyself');
-        });
+        .then(res => expect(res.body.message).toBe('Cannot unfollow thyself'));
     });
   });
 
@@ -265,9 +242,8 @@ describe('## Follow APIs', () => {
         .set('Authorization', thirdJwtToken)
         .expect(httpStatus.CREATED)
         .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(thirdUserId);
-          expect(data.following).toBe(anotherUserId);
+          expect(res.body.data.follower).toBe(thirdUserId);
+          expect(res.body.data.following).toBe(anotherUserId);
         });
     });
 
@@ -295,9 +271,8 @@ describe('## Follow APIs', () => {
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.CREATED)
         .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(userId);
-          expect(data.following).toBe(forthUserId);
+          expect(res.body.data.follower).toBe(userId);
+          expect(res.body.data.following).toBe(forthUserId);
           firstUserFollowingCounter++;
         });
       // wait until the push notification has been sent.
@@ -311,9 +286,8 @@ describe('## Follow APIs', () => {
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.CREATED)
         .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(anotherUserId);
-          expect(data.following).toBe(thirdUserId);
+          expect(res.body.data.follower).toBe(anotherUserId);
+          expect(res.body.data.following).toBe(thirdUserId);
         });
     });
 
@@ -364,9 +338,7 @@ describe('## Follow APIs', () => {
         .get(`/api/users/5aaaac09336c6735ff0346f9/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.NOT_FOUND)
-        .then(res => {
-          expect(res.body.message).toContain('Not following');
-        });
+        .then(res => expect(res.body.message).toContain('Not following'));
     });
 
     it('should not able to check if your`re following yourself', async () => {
@@ -374,9 +346,9 @@ describe('## Follow APIs', () => {
         .get(`/api/users/${userId}/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toContain('Cannot follow thyself');
-        });
+        .then(res =>
+          expect(res.body.message).toContain('Cannot follow thyself')
+        );
     });
   });
 });
