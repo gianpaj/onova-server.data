@@ -9,7 +9,7 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 1500;
 
 describe('## Misc', () => {
   describe('# GET /api/health-check', () => {
-    it('should return OK', async () => {
+    it('should return OK', () => {
       return request(app)
         .get('/api/health-check')
         .expect(httpStatus.OK)
@@ -21,7 +21,7 @@ describe('## Misc', () => {
   });
 
   describe('# GET /api/health-check/json', () => {
-    it('should return OK', async () => {
+    it('should return OK', () => {
       return request(app)
         .get('/api/health-check/json')
         .expect(httpStatus.OK)
@@ -33,7 +33,7 @@ describe('## Misc', () => {
   });
 
   describe('# GET /api/404', () => {
-    it('should return 404 status', async () => {
+    it('should return 404 status', () => {
       return request(app)
         .get('/api/404')
         .expect(httpStatus.NOT_FOUND)
@@ -44,7 +44,7 @@ describe('## Misc', () => {
   });
 
   describe('# Error Handling', () => {
-    it('should handle Invalid user', async () => {
+    it('should handle Invalid user', () => {
       return request(app)
         .get('/api/users/56z787zzz67fc')
         .expect(httpStatus.BAD_REQUEST)
@@ -53,7 +53,7 @@ describe('## Misc', () => {
         });
     });
 
-    it('should handle express validation error - username is required', async () => {
+    it('should handle express validation error - username is required', () => {
       return request(app)
         .post('/api/users')
         .send({
