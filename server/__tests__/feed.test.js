@@ -5,12 +5,14 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import Follow from '../models/follow.model';
 import Tag from '../models/tag.model';
-import User from '../models/user.model';
 import Product from '../models/product.model';
-import Verification from '../models/verification.model';
-import { createProduct, createUserAndLogin, createManyProducts } from './utils';
+import {
+  beforeAllTests,
+  createProduct,
+  createUserAndLogin,
+  createManyProducts,
+} from './utils';
 
 /**
  * root level hooks
@@ -49,6 +51,9 @@ const product = {
   description: 'nice boots',
   // seller comes after the user is created
   price: '100.99', // if no decimal points .00 will be added
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let anotherProduct = {
@@ -56,6 +61,9 @@ let anotherProduct = {
   typeIds: [1, 3],
   description: 'nice jacket',
   price: '230.99',
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let user = {
@@ -78,6 +86,9 @@ const notForSaleProduct = {
   tags: ['WINTER'],
   description: 'nice scarf',
   price: '30',
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let userId;
@@ -88,24 +99,7 @@ let firstJwtToken;
 let anotherJwtToken;
 
 describe('## Feed APIs', () => {
-  beforeAll(done => {
-    const collections = [
-      Follow.collection,
-      Product.collection,
-      Tag.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   // create 2 users/sellers + 2 products
   beforeAll(done => {
@@ -114,15 +108,13 @@ describe('## Feed APIs', () => {
         userId = user._id;
         firstJwtToken = jwtToken;
       })
-      .then(() => {
-        return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
-      })
-      .then(() => {
-        return createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
-          anotherUserId = user._id;
+      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then())
+      .then(() =>
+        createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
+          anotherUserId = user._id.toString();
           anotherJwtToken = jwtToken;
-        });
-      })
+        })
+      )
       .then(async () => {
         const p1 = await createProduct(product, firstJwtToken);
         expect(p1.description).toBe(product.description);
@@ -151,24 +143,16 @@ describe('## Feed APIs', () => {
   beforeAll(done => {
     let Promises = [];
     Promises.push(
-      new Promise((resolve, reject) => {
-        request(app)
-          .post(`/api/users/${anotherUserId}/follow`)
-          .set('Authorization', firstJwtToken)
-          .expect(httpStatus.CREATED)
-          .then(res => resolve())
-          .catch(e => reject(e));
-      })
+      request(app)
+        .post(`/api/users/${anotherUserId}/follow`)
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.CREATED)
     );
     Promises.push(
-      new Promise((resolve, reject) => {
-        request(app)
-          .post(`/api/users/${userId}/follow`)
-          .set('Authorization', anotherJwtToken)
-          .expect(httpStatus.CREATED)
-          .then(res => resolve())
-          .catch(e => reject(e));
-      })
+      request(app)
+        .post(`/api/users/${userId}/follow`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.CREATED)
     );
     Promise.all(Promises)
       .then(() => done())
@@ -221,6 +205,9 @@ describe('## Feed APIs', () => {
         tags: ['WINTER'],
         description: 'nice jumper',
         price: '39',
+        photos: [
+          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+        ],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -250,6 +237,9 @@ describe('## Feed APIs', () => {
         tags: ['WINTER'],
         description: 'nice hoodie',
         price: '69',
+        photos: [
+          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+        ],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);
@@ -279,6 +269,9 @@ describe('## Feed APIs', () => {
         tags: ['warm'],
         description: 'nice socks',
         price: '19',
+        photos: [
+          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+        ],
       };
       const pp = await createProduct(p, firstJwtToken);
       expect(pp.description).toBe(p.description);

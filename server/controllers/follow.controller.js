@@ -97,9 +97,7 @@ async function follow(
   }
 
   internalFollow(req.user, targetUserId)
-    .then(savedDoc => {
-      return res.status(httpStatus.CREATED).json({ data: savedDoc });
-    })
+    .then(savedDoc => res.status(httpStatus.CREATED).json({ data: savedDoc }))
     .catch(e => {
       if (e.message == 'Error following a user') {
         e = new APIError(e.message, httpStatus.BAD_REQUEST);
@@ -122,19 +120,19 @@ function internalFollow(
   return User.findOne({
     $or: [{ username: targetUser }, { _id: targetUser }],
   })
-    .then((targetUser: UserDoc) => {
-      if (!targetUser) {
-        throw new Error('Error following a user');
+    .then((user: UserDoc) => {
+      if (!user) {
+        throw new Error(`Error following a user: ${targetUser}`);
       }
-      return targetUser;
+      return user;
     })
-    .then(targetUser => {
+    .then(user => {
       const notif: NotifPayload = {
         data: {
           senderName: sender.username,
         },
         notifI18n: i18n.newFollower,
-        targetUser: targetUser._id,
+        targetUser: user._id,
         triggeredBy: sender._id,
         triggeredType: 'User',
         onlyPush: false,
@@ -152,7 +150,7 @@ function internalFollow(
 
       const doc = new Follow({
         follower: sender._id,
-        following: targetUser._id,
+        following: user._id,
       });
 
       return doc.save();

@@ -28,9 +28,6 @@ export const orderFields = [
   'transactionStatus',
 ];
 
-// POST /api/auth/login should only return these fields
-const authFields = ['data', 'token'];
-
 // should only return these fields
 export const productFields = [
   '_id',
@@ -187,12 +184,15 @@ export async function createManyProducts(num: number, jwtToken: string) {
     typeIds: [1],
     tags: ['warm', 'bundle'],
     description: 'nice pair of socks',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   const items = [];
   for (let i = 0; i <= num; i++) {
     // $FlowFixMe
-    p.price = Math.floor(Math.random() * 50);
+    p.price = Math.floor(Math.random() * 50).toString();
     items.push(p);
   }
   return await Promise.all(
