@@ -132,7 +132,7 @@ export default {
 
   // GET /api/products
   getProducts: {
-    query: {
+    query: Joi.object({
       categoryIds: Joi.array()
         .unique()
         .max(5)
@@ -165,6 +165,6 @@ export default {
       lastId: Joi.string()
         .hex()
         .length(24),
-    },
+    }).nand('username', 'userid'),
   },
 };
