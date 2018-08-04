@@ -190,7 +190,7 @@ describe('## Product APIs', () => {
     //     });
     // });
 
-    it('should not create product with an invalid tag (with @)', () => {
+    it('should NOT create product with an invalid tag (with @)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -201,7 +201,7 @@ describe('## Product APIs', () => {
         );
     });
 
-    it('should not create product with an invalid tag (with space)', () => {
+    it('should NOT create product with an invalid tag (with space)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -212,7 +212,7 @@ describe('## Product APIs', () => {
         );
     });
 
-    it('should not create product with an invalid tag (with .)', () => {
+    it('should NOT create product with an invalid tag (with .)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken)
@@ -253,7 +253,7 @@ describe('## Product APIs', () => {
         .then(() => void productsCounter++);
     });
 
-    it('should not create product without a proper price', () => {
+    it('should NOT create product without a proper price', () => {
       badProduct.tags = ['winter'];
       badProduct.price = '0';
       return request(app)
@@ -308,7 +308,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not get an non valid product', () => {
+    it('should NOT get an non valid product', () => {
       return request(app)
         .get('/api/products/SkveMe9lz')
         .expect(httpStatus.BAD_REQUEST)
@@ -491,7 +491,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should not delete a deleted product', () => {
+    it('should NOT delete a deleted product', () => {
       return request(app)
         .delete(`/api/products/${productUuid}`)
         .set('Authorization', jwtToken)
@@ -505,7 +505,7 @@ describe('## Product APIs', () => {
         anotherProdUuid = p.uuid;
       });
 
-      it('should not delete a product which is not mine', () => {
+      it('should NOT delete a product which is not mine', () => {
         return request(app)
           .delete(`/api/products/${anotherProdUuid}`)
           .set('Authorization', jwtToken)
@@ -567,6 +567,7 @@ describe('## Product APIs', () => {
     });
 
     it('should update the price without decimal points', () => {
+      delete product.photos;
       product.price = '199';
       return request(app)
         .put(`/api/products/${productUuid}`)
@@ -576,7 +577,7 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.data.price).toEqual('199'));
     });
 
-    it('should update the photos', () => {
+    it('should replace the photos', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)
         .send({
@@ -589,12 +590,32 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.data.photoURIs[0]).not.toContain('thumb');
+          expect(body.data.photoURIs[0]).not.toContain('temp-uploads');
           expect(body.data.photoURIs[0]).toContain('/products/');
           expect(body.data.tags).toEqual(product.tags);
         });
     });
 
-    it('should **not** update with invalid field', () => {
+    it('should update one photo', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send({
+          ...product,
+          photos: [
+            `http://staging.onova-183307.appspot.com/products/${productUuid}-0-1533380822160.jpg`,
+            'https://storage.googleapis.com/temp-uploads.onova.co/1533139516448-.jpeg',
+          ],
+        })
+        .set('Authorization', jwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.photoURIs[1]).not.toContain('temp-uploads');
+          expect(body.data.photoURIs[1]).toContain('/products/');
+          expect(body.data.tags).toEqual(product.tags);
+        });
+    });
+
+    it('should NOT update with invalid field', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)
         .send({ blah: 'dasdf' })
@@ -603,7 +624,7 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.message).toBe('"blah" is not allowed'));
     });
 
-    it('should not update a product which is not mine', () => {
+    it('should NOT update a product which is not mine', () => {
       return request(app)
         .put(`/api/products/${anotherProdUuid}`)
         .set('Authorization', jwtToken)
@@ -611,7 +632,7 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.message).toBe('Unauthorized'));
     });
 
-    it('should **not** update a product that has been sold', () => {
+    it('should NOT update a product that has been sold', () => {
       return request(app)
         .put(`/api/products/${thirdProdUuid}`)
         .set('Authorization', jwtToken)

@@ -165,7 +165,7 @@ async function create(
         product.photoURIs = photos.filter(photo => !photo.includes('thumb'));
       } catch (err) {
         console.error(err);
-        throw new APIError('Error moving photos', 500);
+        throw new APIError('Error copying photos', 500);
       }
 
       const jobData = {

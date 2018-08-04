@@ -110,7 +110,7 @@ function get(req: session$Request, res: express$Response) {
  * @property {Array<number>} req.body.categoryIds
  * @property {string=} [req.body.currency='UAH']
  * @property {string} req.body.description
- * @property {Array<string>=} req.body.photos
+ * @property {Array<string>} req.body.photos
  * @property {string} req.body.price
  * @property {MongoId} req.body.seller
  * @property {Array<string>=} req.body.tags
@@ -196,7 +196,7 @@ async function create(
         product.photoURIs = photos.filter(photo => !photo.includes('thumb'));
       } catch (err) {
         console.error(err);
-        throw new APIError('Error moving photos', 500);
+        throw new APIError('Error copying photos', 500);
       }
 
       return product
@@ -355,6 +355,7 @@ function remove(
  * @property {*} req.body - Express body parameters
  * @property {Array<number>} req.body.categoryIds
  * @property {string} req.body.description
+ * @property {Array<string>} req.body.photos
  * @property {string} req.body.price
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
@@ -379,34 +380,42 @@ function update(
       // create Tag documents
       if (body.tags) createTags(body.tags);
 
-      const correctPhotos = body.photos.filter(p =>
-        p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
-      );
+      let photosToCopy = [];
 
-      if (correctPhotos.length < 1) {
-        throw new APIError('Product photo(s) are required', 400);
-      }
-
-      const date = Date.now();
-
-      // TODO: check if images have been uploaded to GSC
-      let promises = [];
-
-      const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
-      promises.push(photos.copyPhoto(thumb, foundProduct.uuid, 0, date, true));
-
-      correctPhotos.map((p, i) =>
-        promises.push(photos.copyPhoto(p, foundProduct.uuid, i, date))
-      );
-
-      try {
-        const photos = await Promise.all(promises);
-        foundProduct.photoURIs = photos.filter(
-          photo => !photo.includes('thumb')
+      if (body.photos)
+        photosToCopy = body.photos.filter(p =>
+          p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
         );
-      } catch (err) {
-        console.error(err);
-        throw new APIError('Error moving photos', 500);
+
+      if (photosToCopy.length > 0) {
+        const date = Date.now();
+
+        // TODO: check if images have been uploaded to GSC
+        try {
+          for (let i = 0; i < body.photos.length; i++) {
+            const photo = body.photos[i];
+
+            if (photo.indexOf('/temp-uploads') !== -1) {
+              // if the first image is updated, generate a thumbnail
+              if (i === 0) {
+                const thumb = photo.replace('.jpeg', 'thumb.jpeg');
+                await photos.copyPhoto(thumb, foundProduct.uuid, 0, date, true);
+              }
+              const p = await photos.copyPhoto(
+                photo,
+                foundProduct.uuid,
+                i,
+                date
+              );
+              foundProduct.photoURIs[i] = p;
+            } else {
+              foundProduct.photoURIs[i] = photo;
+            }
+          }
+        } catch (err) {
+          console.error(err);
+          throw new APIError('Error copying photos', 500);
+        }
       }
 
       foundProduct.categoryIds = body.categoryIds
