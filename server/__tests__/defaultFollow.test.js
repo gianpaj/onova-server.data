@@ -12,6 +12,10 @@ import DefaultFollow from '../models/defaultFollow.model';
 import Verification from '../models/verification.model';
 import { createUserAndLogin } from './utils';
 
+const sleep = ms => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
+
 /**
  * root level hooks
  */
@@ -92,7 +96,9 @@ describe('## Default Follow methods', () => {
     firstPerson.jwtToken = jwtToken;
   });
 
-  it('should follow 5 users after an account is created', () => {
+  it('should follow 5 users after an account is created', async () => {
+    // wait for async Auto following (followDefaultUsers)
+    await sleep(100);
     return request(app)
       .get(`/api/users/${firstPerson._id}`)
       .expect(httpStatus.OK)

@@ -197,7 +197,7 @@ async function create(
  */
 function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
   return (
-    DefaultFollow.find()
+    DefaultFollow.find({}, { user: 1 })
       // .then(users => {
       //   if (users.length == 0) {
       //     // FIXME: hide error in a better way - see internalFollow() method
@@ -207,10 +207,13 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
       //   return users;
       // })
       .then(async follows => {
-        for (const follow of follows) {
-          await followController
-            .internalFollow(newUser, follow.user)
-            .catch(err => console.error(err));
+        const promises = follows.map(f =>
+          followController.internalFollow(newUser, f.user)
+        );
+        try {
+          await Promise.all(promises);
+        } catch (err) {
+          console.error(err);
         }
         return follows.length;
       })

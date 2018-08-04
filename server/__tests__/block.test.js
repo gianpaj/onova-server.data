@@ -39,6 +39,9 @@ describe('## Block methods', () => {
     typeIds: [3],
     description: 'nice boots',
     price: '100.99',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let users = [
@@ -62,77 +65,81 @@ describe('## Block methods', () => {
   // create 3 users
   // create 3 products
   beforeAll(async () => {
-    for (let i = 0; i < users.length; i++) {
-      const { user, jwtToken } = await createUserAndLogin(users[i]);
-      users[i]._id = user._id;
-      users[i].jwtToken = jwtToken;
+    try {
+      for (let i = 0; i < users.length; i++) {
+        const { user, jwtToken } = await createUserAndLogin(users[i]);
+        users[i]._id = user._id;
+        users[i].jwtToken = jwtToken;
+      }
+
+      const { user, jwtToken } = await createUserAndLogin(firstUser);
+      firstUser._id = user._id;
+      firstUser.jwtToken = jwtToken;
+      firstUser.following = 0;
+
+      // firstUser posts an item
+      const p1 = await createProduct(product, jwtToken);
+      firstUser.productUuid = p1.uuid;
+
+      // user 0 posts an item
+      const p2 = await createProduct(product, users[0].jwtToken);
+      users[0].productUuid = p2.uuid;
+      users[0].followers = 0;
+
+      // user 1 posts an item
+      const p3 = await createProduct(product, users[1].jwtToken);
+      users[1].productUuid = p3.uuid;
+      users[1].followers = 0;
+
+      // firstUser -- follows --> user 0
+      await request(app)
+        .post(`/api/users/${users[0]._id}/follow`)
+        .set('Authorization', firstUser.jwtToken)
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(firstUser._id);
+          firstUser.following++;
+          users[0].followers++;
+        });
+
+      // firstUser -- follows --> user 1
+      await request(app)
+        .post(`/api/users/${users[1]._id}/follow`)
+        .set('Authorization', firstUser.jwtToken)
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(firstUser._id);
+          firstUser.following++;
+          users[1].followers++;
+        });
+
+      // user 0 -- follows --> firstUser
+      await request(app)
+        .post(`/api/users/${firstUser._id}/follow`)
+        .set('Authorization', users[0].jwtToken)
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(users[0]._id);
+          users[0].following++;
+          firstUser.followers++;
+        });
+
+      // user 0 -- follows --> user 1
+      await request(app)
+        .post(`/api/users/${users[1]._id}/follow`)
+        .set('Authorization', users[0].jwtToken)
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(users[0]._id);
+          users[1].following++;
+          firstUser.followers++;
+        });
+
+      // firstUser -- orders --> product from user 0
+      await createOrder({ ...product, uuid: p2.uuid }, firstUser.jwtToken);
+      // firstUser -- orders --> product from user 1
+      await createOrder({ ...product, uuid: p3.uuid }, firstUser.jwtToken);
+      // user 0 -- orders --> product from user 1
+      await createOrder({ ...product, uuid: p3.uuid }, users[0].jwtToken);
+    } catch (error) {
+      console.error(error);
     }
-
-    const { user, jwtToken } = await createUserAndLogin(firstUser);
-    firstUser._id = user._id;
-    firstUser.jwtToken = jwtToken;
-    firstUser.following = 0;
-
-    // firstUser posts an item
-    const p1 = await createProduct(product, jwtToken);
-    firstUser.productUuid = p1.uuid;
-
-    // user 0 posts an item
-    const p2 = await createProduct(product, users[0].jwtToken);
-    users[0].productUuid = p2.uuid;
-    users[0].followers = 0;
-
-    // user 1 posts an item
-    const p3 = await createProduct(product, users[1].jwtToken);
-    users[1].productUuid = p3.uuid;
-    users[1].followers = 0;
-
-    // firstUser -- follows --> user 0
-    await request(app)
-      .post(`/api/users/${users[0]._id}/follow`)
-      .set('Authorization', firstUser.jwtToken)
-      .then(({ body }) => {
-        expect(body.data.follower).toBe(firstUser._id);
-        firstUser.following++;
-        users[0].followers++;
-      });
-
-    // firstUser -- follows --> user 1
-    await request(app)
-      .post(`/api/users/${users[1]._id}/follow`)
-      .set('Authorization', firstUser.jwtToken)
-      .then(({ body }) => {
-        expect(body.data.follower).toBe(firstUser._id);
-        firstUser.following++;
-        users[1].followers++;
-      });
-
-    // user 0 -- follows --> firstUser
-    await request(app)
-      .post(`/api/users/${firstUser._id}/follow`)
-      .set('Authorization', users[0].jwtToken)
-      .then(({ body }) => {
-        expect(body.data.follower).toBe(users[0]._id);
-        users[0].following++;
-        firstUser.followers++;
-      });
-
-    // user 0 -- follows --> user 1
-    await request(app)
-      .post(`/api/users/${users[1]._id}/follow`)
-      .set('Authorization', users[0].jwtToken)
-      .then(({ body }) => {
-        expect(body.data.follower).toBe(users[0]._id);
-        users[1].following++;
-        firstUser.followers++;
-      });
-
-    // firstUser -- orders --> product from user 0
-    await createOrder({ ...product, uuid: p2.uuid }, firstUser.jwtToken);
-    // firstUser -- orders --> product from user 1
-    await createOrder({ ...product, uuid: p3.uuid }, firstUser.jwtToken);
-    // user 0 -- orders --> product from user 1
-    await createOrder({ ...product, uuid: p3.uuid }, users[0].jwtToken);
   });
 
   // firstUser -- blocks -> user 0

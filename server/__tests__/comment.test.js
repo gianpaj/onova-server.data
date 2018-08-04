@@ -36,6 +36,9 @@ const product = {
   description: 'nice boots',
   // seller comes after the user is created
   price: '100.99', // if no decimal points .00 will be added
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let anotherProduct = {
@@ -43,6 +46,9 @@ let anotherProduct = {
   typeIds: [1, 3],
   description: 'nice jacket',
   price: '230.99',
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let user = {
@@ -77,6 +83,9 @@ const notForSaleProduct = {
   tags: ['WINTER'],
   description: 'nice scarf',
   price: '30',
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let productUuid;
