@@ -15,7 +15,7 @@ validate.options({
 export default {
   // POST /api/products
   createProduct: {
-    body: {
+    body: Joi.object({
       categoryIds: Joi.array()
         .unique()
         .max(5)
@@ -67,7 +67,7 @@ export default {
       longitude: Joi.number()
         .min(-180)
         .max(180),
-    },
+    }).and('latitude', 'longitude'),
   },
 
   // GET /api/products/:uuid
