@@ -6,11 +6,8 @@ import httpStatus from 'http-status';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import app from '../index';
-import Follow from '../models/follow.model';
-import User from '../models/user.model';
 import DefaultFollow from '../models/defaultFollow.model';
-import Verification from '../models/verification.model';
-import { createUserAndLogin } from './utils';
+import { beforeAllTests, createUserAndLogin } from './utils';
 
 const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
@@ -28,23 +25,7 @@ afterAll(done => {
 });
 
 describe('## Default Follow methods', () => {
-  beforeAll(done => {
-    const collections = [
-      User.collection,
-      DefaultFollow.collection,
-      Follow.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   let firstPerson = {
     username: 'firstperson',

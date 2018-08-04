@@ -6,35 +6,16 @@ import path from 'path';
 
 import app from '../index';
 // import config from '../config/config';
-import Notification from '../models/notification.model';
-import Order from '../models/order.model';
-import Product from '../models/product.model';
 import Tag from '../models/tag.model';
-import User from '../models/user.model';
-import Verification from '../models/verification.model';
-import { createUserAndLogin, createProduct, orderFields } from './utils';
+import {
+  beforeAllTests,
+  createUserAndLogin,
+  createProduct,
+  orderFields,
+} from './utils';
 
 describe('## Order APIs', () => {
-  beforeAll(done => {
-    // mongoose.connection.dropDatabase().then(done);
-    const collections = [
-      Notification.collection,
-      Order.collection,
-      Product.collection,
-      Tag.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   let user = {
     username: 'firstperson',
@@ -73,6 +54,9 @@ describe('## Order APIs', () => {
     description: 'nice boots',
     // seller id is the user who creates the product
     price: '100.99', // if no decimal points .00 will be added
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let anotherProduct = {
@@ -81,6 +65,9 @@ describe('## Order APIs', () => {
     tags: ['summer'],
     description: 'nice flipflops',
     price: '10.99',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let thirdProduct = {
@@ -88,6 +75,9 @@ describe('## Order APIs', () => {
     typeIds: [2, 3],
     description: 'nice shorts',
     price: '200.50',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+    ],
   };
 
   let productUuid;
@@ -311,6 +301,9 @@ describe('## Order APIs', () => {
       typeIds: [1, 2],
       description: 'nice bo0ts',
       price: '900.99',
+      photos: [
+        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+      ],
     };
     let orderGET1;
 
@@ -319,6 +312,9 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'shiny shoes',
       price: '440.99',
+      photos: [
+        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+      ],
     };
 
     beforeAll(done => {
@@ -462,12 +458,18 @@ describe('## Order APIs', () => {
       typeIds: [1, 3],
       description: 'best bo0ts',
       price: '1900.59',
+      photos: [
+        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+      ],
     };
     const productPOST2 = {
       categoryIds: [2],
       typeIds: [1],
       description: 'my old panties',
       price: '99900.59',
+      photos: [
+        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+      ],
     };
     let orderPOST1;
     let orderPOST2;
@@ -683,6 +685,9 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'my old panties',
       price: '99900.59',
+      photos: [
+        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+      ],
     };
     let orderPOST3;
     let orderPOST4;
