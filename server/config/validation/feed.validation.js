@@ -16,34 +16,13 @@ export default {
   // GET /api/feed/flat
   getFlatFeed: {
     query: {
+      categoryIds: validation.categoriesOrTypes,
+      lastId: validation.objectId,
       limit: Joi.number()
         .min(1)
         .max(50),
-      categoryIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single(),
-      typeIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single(),
-      tag: Joi.string()
-        .regex(validation.hashtag)
-        .min(1)
-        .max(30),
-      lastId: Joi.string()
-        .hex()
-        .length(24),
+      tag: validation.tag,
+      typeIds: validation.categoriesOrTypes,
     },
   },
 };

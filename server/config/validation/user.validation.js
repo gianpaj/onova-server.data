@@ -15,31 +15,23 @@ validate.options({
 export default {
   // GET /api/users (for mentions)
   listUsers: {
-    query: {
-      // to search users
-      u: Joi.string()
-        .regex(validation.username)
-        .min(0)
-        .max(30),
-      // to get 1 user
-      username: Joi.string()
-        .regex(validation.username)
-        .min(0)
-        .max(30),
-      limit: Joi.number()
-        .min(1)
-        .max(50),
-    },
+    query: Joi.object()
+      .keys({
+        // to search users
+        u: validation.username,
+        // to get 1 user
+        username: validation.username,
+        limit: Joi.number()
+          .min(1)
+          .max(50),
+      })
+      .nand('u', 'username'),
   },
 
   // POST /api/users
   createUser: {
     body: {
-      username: Joi.string()
-        .regex(validation.username)
-        .min(3)
-        .max(30)
-        .required(),
+      username: validation.username.required(),
       mobileNumber: Joi.string().regex(validation.mobileNumber),
       emailAddress: Joi.string()
         .email()
@@ -60,10 +52,7 @@ export default {
       displayName: Joi.string()
         .min(3)
         .max(30),
-      username: Joi.string()
-        .regex(validation.username)
-        .min(3)
-        .max(30),
+      username: validation.username,
       mobileNumber: Joi.string().regex(validation.mobileNumber),
       emailAddress: Joi.string().email(),
       password: Joi.string()
@@ -103,10 +92,7 @@ export default {
       }),
     },
     params: {
-      userId: Joi.string()
-        .hex()
-        .length(24)
-        .required(),
+      userId: validation.objectId.required(),
     },
   },
   notif: {
@@ -114,9 +100,7 @@ export default {
       limit: Joi.number()
         .min(1)
         .max(50),
-      lastId: Joi.string()
-        .hex()
-        .length(24),
+      lastId: validation.objectId,
     },
   },
 };

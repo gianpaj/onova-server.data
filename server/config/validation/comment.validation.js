@@ -21,22 +21,15 @@ export default {
         .required(),
     },
     params: {
-      uuid: Joi.string()
-        .regex(validation.shortid)
-        .required(),
+      uuid: validation.uuid.required(),
     },
   },
 
   // DELETE /api/products/:uuid/comments
   deleteComment: {
     params: {
-      uuid: Joi.string()
-        .regex(validation.shortid)
-        .required(),
-      commentId: Joi.string()
-        .hex()
-        .length(24)
-        .required(),
+      uuid: validation.uuid.required(),
+      commentId: validation.objectId.required(),
     },
   },
 };

@@ -16,52 +16,14 @@ export default {
   // POST /api/schedule
   createSchedule: {
     body: {
-      categoryIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single()
-        .required(),
+      categoryIds: validation.categoriesOrTypes.required(),
       // today
       date: Joi.date().min(new Date(new Date().setHours(0, 0, 0, 0))),
-      typeIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single()
-        .required(),
-      tags: Joi.array() // optional,
-        .max(30)
-        .items(
-          Joi.string()
-            .regex(validation.hashtag)
-            .min(1)
-            .max(30)
-        )
-        .single(),
-      description: Joi.string()
-        .min(7)
-        .max(300)
-        .required(),
-      photos: Joi.array()
-        .unique()
-        .max(6)
-        .items(Joi.string().uri())
-        .single()
-        .required(),
-      price: Joi.string()
-        .regex(validation.price)
-        .invalid('0')
-        .invalid('0.00')
-        .required(),
+      typeIds: validation.categoriesOrTypes.required(),
+      tags: validation.tags,
+      description: validation.description.required(),
+      photos: validation.photos.required(),
+      price: validation.price.required(),
       currency: Joi.string().valid('UAH'), // 'UAH' by default
       // socials: Joi.array()
       //   .unique()
