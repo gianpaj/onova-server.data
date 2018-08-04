@@ -8,14 +8,9 @@ import config from '../config/config';
 
 import app from '../index';
 
-import Follow from '../models/follow.model';
 import Tag from '../models/tag.model';
-import User from '../models/user.model';
-import Order from '../models/order.model';
-import Product from '../models/product.model';
-import Notification from '../models/notification.model';
-import Verification from '../models/verification.model';
 import {
+  beforeAllTests,
   createComment,
   createManyComments,
   createProduct,
@@ -67,6 +62,9 @@ const product = {
   description: 'nice boots',
   // seller comes after the user is created
   price: '100.99', // if no decimal points .00 will be added
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let anotherProduct = {
@@ -74,6 +72,9 @@ let anotherProduct = {
   typeIds: [1, 3],
   description: 'nice jacket',
   price: '230.99',
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
 };
 
 let userId;
@@ -89,26 +90,7 @@ let numberOfNotifForAnotherUser = 0;
 let numberOfNotifForFirstUser = 0;
 
 describe('## Notification APIs', () => {
-  beforeAll(done => {
-    const collections = [
-      Follow.collection,
-      Notification.collection,
-      Order.collection,
-      Product.collection,
-      Tag.collection,
-      User.collection,
-      Verification.collection,
-    ];
-
-    var todo = collections.length;
-    if (!todo) return done();
-
-    collections.forEach(collection => {
-      collection.remove({}, { safe: true }, () => {
-        if (--todo === 0) done();
-      });
-    });
-  });
+  beforeAll(beforeAllTests);
 
   // create 2 users/sellers + 2 products
   beforeAll(done => {
