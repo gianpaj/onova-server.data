@@ -190,6 +190,22 @@ describe('## Product APIs', () => {
     //     });
     // });
 
+    it('should NOT create a product with invalid coordinates', () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken)
+        .send({
+          ...anotherProduct,
+          longitude: 0.1,
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain(
+            '[longitude] without its required peers [latitude]'
+          )
+        );
+    });
+
     it('should NOT create product with an invalid tag (with @)', () => {
       return request(app)
         .post('/api/products')
