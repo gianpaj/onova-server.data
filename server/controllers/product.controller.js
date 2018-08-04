@@ -224,11 +224,11 @@ async function create(
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
  * @property {number|Array<number>=} req.query.categoryIds
- * @property {MongoId} req.query.lastId (not uuid)
- * @property {number} req.query.limit Limit number of products to be returned
- * @property {array<string>|string} req.query.tags
- * @property {string} req.query.userid
- * @property {string} req.query.username
+ * @property {MongoId=} req.query.lastId (not uuid)
+ * @property {number=} req.query.limit Limit number of products to be returned
+ * @property {array<string>|string=} req.query.tags
+ * @property {string=} req.query.userid (or username)
+ * @property {string=} req.query.username (or userid)
  */
 async function list(
   req: session$Request,
@@ -243,7 +243,19 @@ async function list(
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
   }
 
-  if (userid && !username) {
+  // TODO: escapeRegex each tag
+  if (tags) {
+    if (Array.isArray(tags)) {
+      const regexAllTags = tags.map(tag => new RegExp(escapeRegex(tag), 'i'));
+      query = { ...query, tags: { $in: regexAllTags } };
+    } else {
+      const regexTag = new RegExp(escapeRegex(tags), 'i');
+      query = { ...query, tags: regexTag };
+    }
+  }
+  if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
+
+  if (userid) {
     if (req.user) {
       const usersIamBlocking = await Block.find({
         sourceUser: req.user._id,
@@ -257,22 +269,8 @@ async function list(
     } else {
       query = { ...query, seller: userid };
     }
-  }
-
-  // TODO: escapeRegex each tag
-  if (tags) {
-    if (Array.isArray(tags)) {
-      const regexAllTags = tags.map(tag => new RegExp(escapeRegex(tag), 'i'));
-      query = { ...query, tags: { $in: regexAllTags } };
-    } else {
-      const regexTag = new RegExp(escapeRegex(tags), 'i');
-      query = { ...query, tags: regexTag };
-    }
-  }
-  if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
-
-  // search products by seller's username (no pagination[lastId] yet allowed)
-  if (username && !userid) {
+  } else if (username) {
+    // search products by seller's username (no pagination[lastId] yet allowed)
     return User.findOne({ username })
       .then(user => {
         if (!user) {

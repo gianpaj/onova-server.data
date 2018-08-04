@@ -400,6 +400,17 @@ describe('## Product APIs', () => {
         });
     });
 
+    it("should NOT get only user's products by username and userid", () => {
+      return request(app)
+        .get(`/api/products/?username=banana&userid=${user._id}`)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe(
+            '"username" must not exist simultaneously with [userid]'
+          )
+        );
+    });
+
     it("should NOT get only user's products by non existent username", () => {
       return request(app)
         .get(`/api/products/?username=banana`)
