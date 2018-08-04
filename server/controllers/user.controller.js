@@ -387,6 +387,8 @@ function escapeRegex(text) {
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
  * @property {number} req.query.limit Limit number of users to be returned.
+ * @property {string} req.query.username
+ * @property {string} req.query.u
  */
 function list(
   req: session$Request,

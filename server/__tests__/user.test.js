@@ -631,6 +631,17 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK);
     });
 
+    it('should NOT search by `u` and `username`', () => {
+      return request(app)
+        .get('/api/users?u=johntwo&username=johnuser')
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain(
+            '"u" must not exist simultaneously with [username]'
+          )
+        );
+    });
+
     it('should get all users which username contains `johntwo`', () => {
       return request(app)
         .get('/api/users?u=johntwo')

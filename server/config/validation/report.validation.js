@@ -16,19 +16,14 @@ export default {
   // POST /api/report/
   createReport: {
     body: {
-      product: Joi.string().regex(validation.shortid),
+      product: validation.uuid,
       text: Joi.string()
         .min(7)
         .max(300)
         .required(),
       // userId
-      user: Joi.string()
-        .hex()
-        .length(24),
-      // comment: Joi.string()
-      //   .hex()
-      //   .length(24)
-      //   .required(),
+      user: validation.objectId,
+      // comment: validation.objectId.required(),
     },
   },
 };

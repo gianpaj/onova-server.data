@@ -16,50 +16,12 @@ export default {
   // POST /api/products
   createProduct: {
     body: Joi.object({
-      categoryIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single()
-        .required(),
-      typeIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single()
-        .required(),
-      tags: Joi.array() // optional,
-        .max(30)
-        .items(
-          Joi.string()
-            .regex(validation.hashtag)
-            .min(1)
-            .max(30)
-        )
-        .single(),
-      description: Joi.string()
-        .min(7)
-        .max(300)
-        .required(),
-      photos: Joi.array()
-        .unique()
-        .max(6)
-        .items(Joi.string().uri())
-        .single()
-        .required(),
-      price: Joi.string()
-        .regex(validation.price)
-        .invalid('0')
-        .invalid('0.00')
-        .required(),
+      categoryIds: validation.categoriesOrTypes.required(),
+      typeIds: validation.categoriesOrTypes.required(),
+      tags: validation.tags.single(),
+      description: validation.description.required(),
+      photos: validation.photos.required(),
+      price: validation.price.required(),
       currency: Joi.string().valid('UAH'), // 'UAH' by default
       latitude: Joi.number()
         .min(-90)
@@ -74,97 +36,36 @@ export default {
   // DELETE /api/products/:uuid
   productUUIDParam: {
     params: {
-      uuid: Joi.string()
-        .regex(validation.shortid)
-        .required(),
+      uuid: validation.uuid,
     },
   },
 
   // PUT /api/products/:uuid
   putProduct: {
     params: {
-      uuid: Joi.string()
-        .regex(validation.shortid)
-        .required(),
+      uuid: validation.uuid,
     },
     body: {
-      categoryIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single(),
-      typeIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single(),
-      tags: Joi.array() // optional,
-        .max(30)
-        .items(
-          Joi.string()
-            .regex(validation.hashtag)
-            .min(1)
-            .max(30)
-        )
-        .single(),
-      description: Joi.string()
-        .min(7)
-        .max(300),
-      photos: Joi.array()
-        .unique()
-        .max(6)
-        .items(Joi.string().uri())
-        .single(),
-      price: Joi.string()
-        .regex(validation.price)
-        .invalid('0')
-        .invalid('0.00'),
+      categoryIds: validation.categoriesOrTypes,
+      typeIds: validation.categoriesOrTypes,
+      tags: validation.tags.single(),
+      description: validation.description,
+      photos: validation.photos,
+      price: validation.price,
     },
   },
 
   // GET /api/products
   getProducts: {
     query: Joi.object({
-      categoryIds: Joi.array()
-        .unique()
-        .max(5)
-        .items(
-          Joi.number()
-            .min(0)
-            .max(5)
-        )
-        .single(),
+      categoryIds: validation.categoriesOrTypes,
       limit: Joi.number()
         .min(1)
         .max(100),
-      userid: Joi.string()
-        .hex()
-        .length(24),
-      username: Joi.string()
-        .min(3)
-        .regex(validation.username)
-        .max(30),
-      tags: Joi.array()
-        .unique()
-        .single()
-        .items(
-          Joi.string()
-            .regex(validation.hashtag)
-            .min(1)
-            .max(30)
-        )
-        .max(30),
-      lastId: Joi.string()
-        .hex()
-        .length(24),
+      userid: validation.objectId,
+      username: validation.username.min(3),
+      tags: validation.tags.unique(),
+      lastId: validation.objectId,
     }).nand('username', 'userid'),
   },
 };
