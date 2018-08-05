@@ -5,6 +5,7 @@ import path from 'path';
 import httpStatus from 'http-status';
 import Storage from '@google-cloud/storage';
 import sharp from 'sharp';
+const request = require('request').defaults({ encoding: null });
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import { UserDoc } from '../models/user.model';
@@ -89,6 +90,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
   // upload full size images
   files.forEach((image, i) => {
     const gcsname = `products/${product.uuid}-${i + 1}-${uploadDate}.jpg`;
+    const cloudStoragePublicUrl = `http://${config.CLOUD_BUCKET}/${gcsname}`;
     const file = bucket.file(gcsname);
     const stream = file.createWriteStream({
       metadata: {
@@ -102,9 +104,6 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
       file
         .makePublic()
         .then(() => {
-          const cloudStoragePublicUrl = `http://${
-            config.CLOUD_BUCKET
-          }/${gcsname}`;
           debug('Saved image as', cloudStoragePublicUrl);
           const key = `photoURIs.${i}`;
           const updateObj = {};
@@ -169,6 +168,59 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
 const srcBucketName = 'temp-uploads.onova.co';
 const destBucketName = config.CLOUD_BUCKET;
 
+/**
+ * Generate a square thumbnail when an image is re-ordered
+ * @param {string} photo URL
+ */
+function generateThumbnail(photo: string): Promise<string | Error> {
+  return new Promise((resolve, reject) => {
+    request.get(photo, (err, res, buffer) => {
+      if (err) return reject(err);
+
+      const filename = photo
+        .split('/')
+        [photo.split('/').length - 1].replace('.jpg', '');
+
+      const metadata = {
+        metadata: {
+          contentType: buffer.mimetype, // image/jpeg
+        },
+      };
+      const thumbFilePath = `products/${filename}-thumb.jpg`;
+      const file = bucket.file(thumbFilePath);
+      const thumbnailUploadStream = file.createWriteStream(metadata);
+
+      let cloudStoragePublicUrl = photo.split('products/')[0];
+      cloudStoragePublicUrl = `${cloudStoragePublicUrl}products/${thumbFilePath}`;
+
+      thumbnailUploadStream.on('error', err => {
+        console.error('Error generating thumbnail');
+        reject(err);
+      });
+
+      const pipeline = sharp(buffer);
+      pipeline
+        .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
+        .crop(sharp.strategy.entropy)
+        // .max() // preserve aspect ratio and not wider than width and height
+        .pipe(thumbnailUploadStream);
+
+      thumbnailUploadStream.on('finish', () => {
+        file
+          .makePublic()
+          .then(() => {
+            debug('thumbnail uploaded');
+            resolve(cloudStoragePublicUrl);
+          })
+          .catch(err => {
+            console.log('Error makePublic thumbnail');
+            reject(err);
+          });
+      });
+    });
+  });
+}
+
 async function copyPhoto(
   photo: string,
   uuid: string,
@@ -215,6 +267,7 @@ async function copyPhoto(
 
 export default {
   copyPhoto,
+  generateThumbnail,
   uploadMulter,
   uploadProductImages,
   uploadProfilePic,
