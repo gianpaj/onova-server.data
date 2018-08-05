@@ -543,6 +543,7 @@ describe('## Product APIs', () => {
   });
 
   describe('# UPDATE /api/products/:uuid', () => {
+    let photoURIs;
     beforeAll(async () => {
       const p = await createProduct(thirdProduct, jwtToken);
       thirdProdUuid = p.uuid;
@@ -553,6 +554,7 @@ describe('## Product APIs', () => {
     });
 
     it('should update the description, price, categoryIds and typeIds', () => {
+      delete product.photos;
       product.description = 'amazing boots';
       product.price = '9.99';
       product.categoryIds = [3];
@@ -594,7 +596,6 @@ describe('## Product APIs', () => {
     });
 
     it('should update the price without decimal points', () => {
-      delete product.photos;
       product.price = '199';
       return request(app)
         .put(`/api/products/${productUuid}`)
@@ -616,10 +617,12 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken)
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.data.photoURIs[0]).not.toContain('thumb');
-          expect(body.data.photoURIs[0]).not.toContain('temp-uploads');
-          expect(body.data.photoURIs[0]).toContain('/products/');
-          expect(body.data.tags).toEqual(product.tags);
+          const p = body.data;
+          expect(p.photoURIs[0]).not.toContain('thumb');
+          expect(p.photoURIs[0]).not.toContain('temp-uploads');
+          expect(p.photoURIs[0]).toContain('/products/');
+          expect(p.tags).toEqual(product.tags);
+          photoURIs = p.photoURIs;
         });
     });
 
@@ -629,7 +632,7 @@ describe('## Product APIs', () => {
         .send({
           ...product,
           photos: [
-            `http://staging.onova-183307.appspot.com/products/${productUuid}-0-1533380822160.jpg`,
+            photoURIs[0],
             'https://storage.googleapis.com/temp-uploads.onova.co/1533139516448-.jpeg',
           ],
         })

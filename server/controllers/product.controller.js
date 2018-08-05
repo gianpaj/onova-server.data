@@ -378,38 +378,40 @@ function update(
       // create Tag documents
       if (body.tags) createTags(body.tags);
 
-      let photosToCopy = [];
-
-      if (body.photos)
-        photosToCopy = body.photos.filter(p =>
-          p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
-        );
-
-      if (photosToCopy.length > 0) {
+      if (body.photos) {
         const date = Date.now();
 
-        // TODO: check if images have been uploaded to GSC
+        // TODO: check if photos have been uploaded to GSC
         try {
+          const newPhotos = [];
           for (let i = 0; i < body.photos.length; i++) {
             const photo = body.photos[i];
 
-            if (photo.indexOf('/temp-uploads') !== -1) {
-              // if the first image is updated, generate a thumbnail
-              if (i === 0) {
+            if (i === 0) {
+              const firstPhoto = body.photos[i];
+              // if the first existing photo is re-sorted, re-generate the thumbnail
+              if (
+                firstPhoto !== foundProduct.photoURIs[i] &&
+                firstPhoto.indexOf('/temp-uploads') === -1
+              ) {
+                await photos.generateThumbnail(firstPhoto);
+              } else {
+                // if the first photo is new copy the thumbnail (from temp)
                 const thumb = photo.replace('.jpeg', 'thumb.jpeg');
                 await photos.copyPhoto(thumb, foundProduct.uuid, 0, date, true);
               }
-              const p = await photos.copyPhoto(
-                photo,
-                foundProduct.uuid,
-                i,
-                date
-              );
-              foundProduct.photoURIs[i] = p;
-            } else {
-              foundProduct.photoURIs[i] = photo;
             }
+
+            // if the photo is not new
+            if (photo.indexOf('/temp-uploads') === -1) {
+              newPhotos[i] = photo;
+              continue;
+            }
+
+            const p = await photos.copyPhoto(photo, foundProduct.uuid, i, date);
+            newPhotos[i] = p;
           }
+          foundProduct.photoURIs = newPhotos;
         } catch (err) {
           console.error(err);
           throw new APIError('Error copying photos', 500);
@@ -433,9 +435,10 @@ function update(
       foundProduct.tags = body.tags ? body.tags : foundProduct.tags;
       foundProduct.typeIds = body.typeIds ? body.typeIds : foundProduct.typeIds;
 
-      return foundProduct.save().then(product => {
-        return res.json({ data: product });
-      });
+      return foundProduct.save();
+    })
+    .then(product => {
+      return res.json({ data: product });
     })
     .catch(err => {
       if (!(err instanceof APIError)) {
