@@ -1,16 +1,25 @@
 // @flow
 
 import gcsSharp from 'multer-sharp';
+import sharp from 'sharp';
 import httpStatus from 'http-status';
 import multer from 'multer';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
+
+import APIError from '../helpers/APIError';
+import config from '../config/config';
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 const download = require('image-downloader');
 
 const MAX_WIDTH = 1440;
 const MAX_HEIGHT = 1440;
+const MAX_WIDTH_AP = MAX_WIDTH / 3 * 4;
+const MAX_HEIGHT_AP = MAX_WIDTH / 3 * 4;
+const THUMB_MAX_WIDTH = 350;
+const THUMB_MAX_HEIGHT = 350;
+const TEMP_PATH = '/tmp/test_images';
 
 const tempProductImageStorage = gcsSharp({
   bucket: 'temp-uploads.onova.co',
@@ -38,7 +47,80 @@ const tempProductImageStorage = gcsSharp({
   toFormat: 'jpeg',
   // withoutEnlargement: true,
 });
-const tempUploadProductImage = multer({ storage: tempProductImageStorage });
+
+async function tempUploadProductImage(
+  req: express$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { file } = req;
+  const uploadDate = Date.now();
+
+  const pipeline = sharp(file.buffer);
+  const metadata = await pipeline.metadata();
+
+  if (metadata.width < MAX_WIDTH || metadata.height < MAX_HEIGHT) {
+    const APIerr = new APIError(
+      `Image too small. Min width and height 1440 px`,
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
+  // generate a square thumbnail
+
+  // save locally for test
+  if (config.env === 'test') {
+    pipeline
+      .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
+      .crop(sharp.strategy.entropy)
+      .on('error', err => {
+        console.log('Error generating thumbnail', err);
+      })
+      .toFile(`${TEMP_PATH}/${uploadDate}-thumb.jpg`)
+      .then(() => {
+        debug('temp thumbnail generated');
+      })
+      .catch(err => {
+        console.error(err);
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
+      });
+
+    let height, width;
+
+    // if square image, do not change aspect ratio
+    if (metadata.width === metadata.height) {
+      height = MAX_HEIGHT;
+      width = MAX_HEIGHT;
+    } else if (metadata.width < metadata.height) {
+      // if portrait pic, resize to width of 1440 and height of up to aspect ratio of 3:4
+      height = Math.min(metadata.height, MAX_HEIGHT_AP);
+      width = MAX_WIDTH;
+    } else {
+      // if landscape pic, resize to height of 1440 and width of up to aspect ratio of 4:3
+      height = MAX_HEIGHT;
+      width = Math.min(metadata.width, MAX_WIDTH_AP);
+    }
+
+    pipeline
+      .resize(width, height)
+      .crop(sharp.strategy.entropy)
+      .on('error', err => {
+        console.log('Error cropping', err);
+      })
+      .toFile(`${TEMP_PATH}/${uploadDate}.jpg`)
+      .then(info => {
+        debug('temp product image uploaded to:', info);
+        res.status(httpStatus.CREATED).json({ data: info });
+      })
+      .catch(err => {
+        console.error(err);
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
+      });
+  } else {
+  }
+
+  // FIXME: req.file.path = undefined
+}
 
 const storageForChatImages = gcsSharp({
   bucket: 'chat-images.onova.co',

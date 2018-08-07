@@ -22,7 +22,6 @@ function escapeRegex(text: string) {
 }
 
 declare class session$Request extends express$Request {
-  files: Array<any>;
   user: UserDoc;
   product: ProductDoc;
   body: {
