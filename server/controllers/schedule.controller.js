@@ -18,7 +18,6 @@ import User, { UserDoc } from '../models/user.model';
 import config from '../config/config';
 
 declare class session$Request extends express$Request {
-  files: Array<any>;
   user: UserDoc;
   product: ProductDoc;
   body: {
@@ -135,10 +134,6 @@ async function create(
       // }
 
       product.seller = req.user._id;
-
-      // for (let i = 0; i < req.files.length; i++) {
-      //   product.photoURIs.push('UPLOADING_PIC');
-      // }
 
       const correctPhotos = body.photos.filter(p =>
         p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')

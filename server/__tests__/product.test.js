@@ -3,6 +3,7 @@
 import request from 'supertest';
 import httpStatus from 'http-status';
 import path from 'path';
+import rimraf from 'rimraf';
 
 import app from '../index';
 
@@ -15,7 +16,7 @@ import {
   productFields,
 } from './utils';
 
-// jest.mock('@google-cloud/storage');
+const TEMP_PATH = '/tmp/test_images/*';
 
 describe('## Product APIs', () => {
   beforeAll(beforeAllTests);
@@ -115,6 +116,89 @@ describe('## Product APIs', () => {
       });
   });
 
+  describe('# POST /api/photos/upload', () => {
+    beforeAll(done =>
+      rimraf(TEMP_PATH, err => {
+        if (err) throw err;
+        done();
+      })
+    );
+
+    it('should NOT accept a small image', () => {
+      return request(app)
+        .post('/api/photos/upload')
+        .set('Authorization', jwtToken)
+        .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe(
+            'Image too small. Min width and height 1440 px'
+          )
+        );
+    });
+
+    it('should upload a square and not resize it', () => {
+      return request(app)
+        .post('/api/photos/upload')
+        .set('Authorization', jwtToken)
+        .attach('photo', path.join(__dirname, 'images/boots-larger.jpeg'))
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const { data } = body;
+          expect(data.format).toBe('jpeg');
+          expect(data.width).toBe(1440);
+          expect(data.height).toBe(1440);
+          // expect(data.premultiplied).toBe(false);
+        });
+    });
+
+    it('should upload a portrait image and resize to 3:4', () => {
+      return request(app)
+        .post('/api/photos/upload')
+        .set('Authorization', jwtToken)
+        .attach('photo', path.join(__dirname, 'images/1440x2160.jpg'))
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const { data } = body;
+          expect(data.format).toBe('jpeg');
+          expect(data.width).toBe(1440);
+          expect(data.height).toBe(1920);
+          expect(data.cropOffsetLeft).toBe(0);
+          expect(data.cropOffsetTop).toBe(-210);
+        });
+    });
+
+    it('should upload a landscape image and resize to 4:3', () => {
+      return request(app)
+        .post('/api/photos/upload')
+        .set('Authorization', jwtToken)
+        .attach('photo', path.join(__dirname, 'images/2559x1440.jpg'))
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const { data } = body;
+          expect(data.format).toBe('jpeg');
+          expect(data.width).toBe(1920);
+          expect(data.height).toBe(1440);
+          expect(data.cropOffsetLeft).toBe(0);
+          expect(data.cropOffsetTop).toBe(0);
+        });
+    });
+
+    it('should upload a another image and resize to less than 3:4', () => {
+      return request(app)
+        .post('/api/photos/upload')
+        .set('Authorization', jwtToken)
+        .attach('photo', path.join(__dirname, 'images/1440x1707.jpg'))
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const { data } = body;
+          expect(data.format).toBe('jpeg');
+          expect(data.width).toBe(1440);
+          expect(data.height).toBe(1707);
+          // expect(data.premultiplied).toBe(false);
+        });
+    });
+  });
   describe('# POST /api/products', () => {
     it('should NOT create a product with invalid photos', () => {
       return request(app)

@@ -8,6 +8,7 @@ const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import photosCtrl from '../controllers/photos.controller';
 import paramValidation from '../config/validation/photos.validation';
+import photos from '../helpers/photos';
 
 const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
@@ -22,13 +23,9 @@ const router = express.Router();
 router
   .route('/upload')
   .post(
-    photosCtrl.tempUploadProductImage.single('photo'),
+    photos.uploadMulter.single('photo'),
     requireAuth,
-    (req, res, next) => {
-      // FIXME: req.file.path = undefined
-      debug('temp product image uploaded to:', req.file.path);
-      res.status(httpStatus.CREATED).json({ data: req.file });
-    }
+    photosCtrl.tempUploadProductImage
   );
 
 // $FlowFixMe
