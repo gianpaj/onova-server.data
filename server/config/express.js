@@ -9,15 +9,15 @@ import compress from 'compression';
 import methodOverride from 'method-override';
 import cors from 'cors';
 import httpStatus from 'http-status';
-import expressWinston from 'express-winston';
 import winston from 'winston';
+import expressWinston from 'express-winston';
 import expressValidation from 'express-validation';
 import helmet from 'helmet';
 import passport from 'passport';
 import Agenda from 'agenda';
-// import fbgraph from 'fbgraph';
+require('winston-daily-rotate-file');
 
-import winstonInstance from './winston';
+import winstonConsoleInstance from './winston';
 import routes from '../routes/index.route';
 import config from './config';
 import APIError from '../helpers/APIError';
@@ -80,7 +80,7 @@ if (config.env === 'development') {
   expressWinston.responseWhitelist.push('body');
   app.use(
     expressWinston.logger({
-      winstonInstance,
+      winstonConsoleInstance,
       meta: true, // optional: log meta data about request (defaults to true)
       msg:
         'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
@@ -92,10 +92,19 @@ if (config.env === 'test') {
   expressWinston.requestWhitelist.push('body');
   expressWinston.responseWhitelist.push('body');
 }
+
 if (config.env === 'production') {
   app.use(
     expressWinston.logger({
-      transports: [new winston.transports.File({ filename: 'access.log' })],
+      transports: [
+        new winston.transports.DailyRotateFile({
+          filename: 'access-%DATE%.log',
+          datePattern: 'YYYY-MM-DD-HH',
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '14d',
+        }),
+      ],
     })
   );
 }
@@ -129,14 +138,23 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
 if (config.env === 'development') {
   app.use(
     expressWinston.errorLogger({
-      winstonInstance,
+      winstonConsoleInstance,
     })
   );
 } else if (config.env === 'production') {
   // log errors to files
   app.use(
     expressWinston.errorLogger({
-      transports: [new winston.transports.File({ filename: 'error.log' })],
+      transports: [
+        new winston.transports.DailyRotateFile({
+          filename: 'error-%DATE%.log',
+          datePattern: 'YYYY-MM-DD-HH',
+          zippedArchive: true,
+          maxSize: '20m',
+          maxFiles: '14d',
+          json: true,
+        }),
+      ],
       exceptionHandlers: [
         new winston.transports.File({ filename: 'exceptions.log' }),
       ],
