@@ -3,6 +3,7 @@
 import gcsSharp from 'multer-sharp';
 import sharp from 'sharp';
 import httpStatus from 'http-status';
+import Storage from '@google-cloud/storage';
 import multer from 'multer';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
@@ -21,32 +22,13 @@ const THUMB_MAX_WIDTH = 350;
 const THUMB_MAX_HEIGHT = 350;
 const TEMP_PATH = '/tmp/test_images';
 
-const tempProductImageStorage = gcsSharp({
-  bucket: 'temp-uploads.onova.co',
-  projectId: 'onova-183307',
+const storage = Storage({
+  // Service account key: 'storage-data-server'
+  // id '3a339323d16ab4189e140a740f2381496686e235'
   keyFilename: 'Onova-3a339323d16a.json',
-  destination: '',
-  acl: 'publicRead',
-  filename: (req, file, cb) => {
-    const uploadDate = Date.now();
-    cb(null, uploadDate.toString());
-  },
-  sizes: [
-    {
-      suffix: 'thumb.jpeg',
-      width: 700,
-      height: 700,
-    },
-    {
-      suffix: '.jpeg',
-      width: MAX_WIDTH,
-      height: MAX_HEIGHT,
-    },
-  ],
-  crop: 16, // sharp.strategy.entropy
-  toFormat: 'jpeg',
-  // withoutEnlargement: true,
 });
+
+const tempBucket = storage.bucket('temp-uploads.onova.co');
 
 async function tempUploadProductImage(
   req: express$Request,
@@ -61,12 +43,27 @@ async function tempUploadProductImage(
 
   if (metadata.width < MAX_WIDTH || metadata.height < MAX_HEIGHT) {
     const APIerr = new APIError(
-      `Image too small. Min width and height 1440 px`,
+      `Image too small. Min width and height ${MAX_WIDTH} px`,
       httpStatus.BAD_REQUEST
     );
     return next(APIerr);
   }
-  // generate a square thumbnail
+
+  let height, width;
+
+  // if square image, do not change aspect ratio
+  if (metadata.width === metadata.height) {
+    height = MAX_HEIGHT;
+    width = MAX_HEIGHT;
+  } else if (metadata.width < metadata.height) {
+    // if portrait pic, resize to width of 1440 and height of up to aspect ratio of 3:4
+    height = Math.min(metadata.height, MAX_HEIGHT_AP);
+    width = MAX_WIDTH;
+  } else {
+    // if landscape pic, resize to height of 1440 and width of up to aspect ratio of 4:3
+    height = MAX_HEIGHT;
+    width = Math.min(metadata.width, MAX_WIDTH_AP);
+  }
 
   // save locally for test
   if (config.env === 'test') {
@@ -85,21 +82,7 @@ async function tempUploadProductImage(
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
       });
 
-    let height, width;
-
-    // if square image, do not change aspect ratio
-    if (metadata.width === metadata.height) {
-      height = MAX_HEIGHT;
-      width = MAX_HEIGHT;
-    } else if (metadata.width < metadata.height) {
-      // if portrait pic, resize to width of 1440 and height of up to aspect ratio of 3:4
-      height = Math.min(metadata.height, MAX_HEIGHT_AP);
-      width = MAX_WIDTH;
-    } else {
-      // if landscape pic, resize to height of 1440 and width of up to aspect ratio of 4:3
-      height = MAX_HEIGHT;
-      width = Math.min(metadata.width, MAX_WIDTH_AP);
-    }
+    const tempFilePath = `${TEMP_PATH}/${uploadDate}.jpg`;
 
     pipeline
       .resize(width, height)
@@ -107,19 +90,76 @@ async function tempUploadProductImage(
       .on('error', err => {
         console.log('Error cropping', err);
       })
-      .toFile(`${TEMP_PATH}/${uploadDate}.jpg`)
-      .then(info => {
-        debug('temp product image uploaded to:', info);
-        res.status(httpStatus.CREATED).json({ data: info });
+      .toFile(tempFilePath)
+      .then(() => {
+        const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${tempFilePath}`;
+        debug('temp product image uploaded to:', cloudStoragePublicUrl);
+        res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
       })
       .catch(err => {
         console.error(err);
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
       });
   } else {
-  }
+    // generate a square thumbnail
+    const metadata = {
+      metadata: {
+        contentType: file.mimetype, // image/jpeg
+      },
+    };
+    const gcsname = `${uploadDate}.jpg`;
+    const thumbFile = tempBucket.file(gcsname.replace('.jpg', '-thumb.jpeg'));
+    const thumbnailUploadStream = thumbFile.createWriteStream(metadata);
+    thumbnailUploadStream.on('error', err => {
+      console.log('Error uploading thumbnail', err);
+    });
 
-  // FIXME: req.file.path = undefined
+    sharp(file.buffer)
+      .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
+      .crop(sharp.strategy.entropy)
+      .pipe(thumbnailUploadStream);
+    thumbnailUploadStream.on('finish', () => {
+      thumbFile
+        .makePublic()
+        .then(() => {
+          debug('thumbnail uploaded to bucket:', thumbFile.bucket.name);
+        })
+        .catch(err => {
+          console.log('Error makePublic thumbnail', err);
+        });
+    });
+
+    // upload temp image
+    const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;
+    const gcsFile = tempBucket.file(gcsname);
+    const stream = gcsFile.createWriteStream({
+      metadata: {
+        contentType: file.mimetype,
+      },
+    });
+    stream.on('error', err => {
+      console.log('Error uploading image');
+      console.error(err);
+      res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
+    });
+
+    sharp(file.buffer)
+      .resize(width, height)
+      .crop(sharp.strategy.entropy)
+      .pipe(stream);
+
+    stream.on('finish', () => {
+      gcsFile
+        .makePublic()
+        .then(() => {
+          debug('temp product image uploaded to:', cloudStoragePublicUrl);
+          res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
+        })
+        .catch(err => {
+          console.log('Error makePublic product image', err);
+        });
+    });
+  }
 }
 
 const storageForChatImages = gcsSharp({
