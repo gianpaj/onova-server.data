@@ -17,7 +17,7 @@ import passport from 'passport';
 import Agenda from 'agenda';
 require('winston-daily-rotate-file');
 
-import winstonConsoleInstance from './winston';
+import winstonInstance from './winston';
 import routes from '../routes/index.route';
 import config from './config';
 import APIError from '../helpers/APIError';
@@ -80,7 +80,7 @@ if (config.env === 'development') {
   expressWinston.responseWhitelist.push('body');
   app.use(
     expressWinston.logger({
-      winstonConsoleInstance,
+      winstonInstance,
       meta: true, // optional: log meta data about request (defaults to true)
       msg:
         'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
@@ -138,7 +138,7 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
 if (config.env === 'development') {
   app.use(
     expressWinston.errorLogger({
-      winstonConsoleInstance,
+      winstonInstance,
     })
   );
 } else if (config.env === 'production') {
