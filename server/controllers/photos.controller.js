@@ -43,7 +43,9 @@ async function tempUploadProductImage(
 
   if (metadata.width < MAX_WIDTH || metadata.height < MAX_HEIGHT) {
     const APIerr = new APIError(
-      `Image too small. Min width and height ${MAX_WIDTH} px`,
+      `Image too small. Min width and height ${MAX_WIDTH} px. The uploaded image is ${
+        metadata.width
+      }x${metadata.height}`,
       httpStatus.BAD_REQUEST
     );
     return next(APIerr);
