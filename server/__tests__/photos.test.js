@@ -46,7 +46,7 @@ describe('## Photo Upload APIs', () => {
         .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
-          expect(body.message).toBe(
+          expect(body.message).toContain(
             'Image too small. Min width and height 1440 px'
           )
         );
