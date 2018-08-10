@@ -172,7 +172,10 @@ function generateThumbnails(photo: string): Promise<void | Error> {
   return new Promise((resolve, reject) => {
     request.get(photo, async (err, res, buffer) => {
       if (err) return reject(err);
-      const filename = photo.replace(/^.*[\\\/]/, '').replace('.jpg', '');
+      const filename = photo
+        .split('/')
+        .pop()
+        .replace('.jpg', '');
 
       try {
         await uploadThumbnailToGCS(
