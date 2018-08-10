@@ -10,6 +10,7 @@ import FormData from 'form-data';
 
 import APIError from '../helpers/APIError';
 import config from '../config/config';
+import photos from '../helpers/photos';
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 const download = require('image-downloader');
@@ -103,33 +104,22 @@ async function tempUploadProductImage(
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
       });
   } else {
-    // generate a square thumbnail
-    const metadata = {
-      metadata: {
-        contentType: file.mimetype, // image/jpeg
-      },
-    };
+    // generate 2 square thumbnails
     const gcsname = `${uploadDate}.jpg`;
-    const thumbFile = tempBucket.file(gcsname.replace('.jpg', '-thumb.jpeg'));
-    const thumbnailUploadStream = thumbFile.createWriteStream(metadata);
-    thumbnailUploadStream.on('error', err => {
-      console.log('Error uploading thumbnail', err);
-    });
-
-    sharp(file.buffer)
-      .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
-      .crop(sharp.strategy.entropy)
-      .pipe(thumbnailUploadStream);
-    thumbnailUploadStream.on('finish', () => {
-      thumbFile
-        .makePublic()
-        .then(() => {
-          debug('thumbnail uploaded to bucket:', thumbFile.bucket.name);
-        })
-        .catch(err => {
-          console.log('Error makePublic thumbnail', err);
-        });
-    });
+    photos.uploadThumbnailToGCS(
+      THUMB_MAX_WIDTH,
+      THUMB_MAX_HEIGHT,
+      file,
+      gcsname.replace('.jpg', '-thumb.jpg'),
+      tempBucket
+    );
+    photos.uploadThumbnailToGCS(
+      THUMB_MAX_WIDTH * 2,
+      THUMB_MAX_HEIGHT * 2,
+      file,
+      gcsname.replace('.jpg', '-thumb@2x.jpg'),
+      tempBucket
+    );
 
     // upload temp image
     const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;

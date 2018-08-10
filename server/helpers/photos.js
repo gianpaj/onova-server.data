@@ -164,61 +164,85 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
   });
 }
 
-const srcBucketName = 'temp-uploads.onova.co';
-const destBucketName = config.CLOUD_BUCKET;
-
 /**
- * Generate a square thumbnail when an image is re-ordered
+ * Generate 2 square thumbnails when an image is re-ordered
  * @param {string} photo URL
  */
-function generateThumbnail(photo: string): Promise<string | Error> {
+function generateThumbnails(photo: string): Promise<void | Error> {
   return new Promise((resolve, reject) => {
-    request.get(photo, (err, res, buffer) => {
+    request.get(photo, async (err, res, buffer) => {
       if (err) return reject(err);
+      const filename = photo.replace(/^.*[\\\/]/, '').replace('.jpg', '');
 
-      const filename = photo
-        .split('/')
-        [photo.split('/').length - 1].replace('.jpg', '');
+      try {
+        await uploadThumbnailToGCS(
+          THUMB_MAX_WIDTH,
+          THUMB_MAX_HEIGHT,
+          buffer,
+          `products/${filename}-thumb.jpg`
+        );
 
-      const metadata = {
-        metadata: {
-          contentType: buffer.mimetype, // image/jpeg
-        },
-      };
-      const thumbFilePath = `products/${filename}-thumb.jpg`;
-      const file = bucket.file(thumbFilePath);
-      const thumbnailUploadStream = file.createWriteStream(metadata);
-
-      let cloudStoragePublicUrl = photo.split('products/')[0];
-      cloudStoragePublicUrl = `${cloudStoragePublicUrl}products/${thumbFilePath}`;
-
-      thumbnailUploadStream.on('error', err => {
-        console.error('Error generating thumbnail');
+        uploadThumbnailToGCS(
+          THUMB_MAX_WIDTH * 2,
+          THUMB_MAX_HEIGHT * 2,
+          buffer,
+          `products/${filename}-thumb@2x.jpg`
+        );
+        resolve();
+      } catch (err) {
+        console.error(err);
         reject(err);
-      });
-
-      const pipeline = sharp(buffer);
-      pipeline
-        .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
-        .crop(sharp.strategy.entropy)
-        // .max() // preserve aspect ratio and not wider than width and height
-        .pipe(thumbnailUploadStream);
-
-      thumbnailUploadStream.on('finish', () => {
-        file
-          .makePublic()
-          .then(() => {
-            debug('thumbnail uploaded');
-            resolve(cloudStoragePublicUrl);
-          })
-          .catch(err => {
-            console.log('Error makePublic thumbnail');
-            reject(err);
-          });
-      });
+      }
     });
   });
 }
+
+/**
+ * Upload higher resolution image to GCS
+ */
+function uploadThumbnailToGCS(
+  width: number,
+  height: number,
+  file: any,
+  photoURL: string,
+  bucket: any = bucket
+): Promise<void | Error> {
+  return new Promise((resolve, reject) => {
+    const gcsFile = bucket.file(photoURL);
+    const thumbnailUploadStream = gcsFile.createWriteStream({
+      metadata: {
+        contentType: file.mimetype, // image/jpeg
+      },
+    });
+
+    thumbnailUploadStream.on('error', err => {
+      console.error('Error generating thumbnail');
+      reject(err);
+    });
+
+    sharp(file.buffer)
+      .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
+      .crop(sharp.strategy.entropy)
+      // .max() // preserve aspect ratio and not wider than width and height
+      .pipe(thumbnailUploadStream);
+
+    thumbnailUploadStream.on('finish', () => {
+      gcsFile
+        .makePublic()
+        .then(() => {
+          debug('thumbnail uploaded', gcsFile.bucket.name);
+          resolve();
+        })
+        .catch(err => {
+          console.log('Error makePublic thumbnail');
+          reject(err);
+        });
+    });
+  });
+}
+
+const srcBucketName = 'temp-uploads.onova.co';
+const destBucketName = config.CLOUD_BUCKET;
 
 async function copyPhoto(
   photo: string,
@@ -266,8 +290,9 @@ async function copyPhoto(
 
 export default {
   copyPhoto,
-  generateThumbnail,
+  generateThumbnails,
   uploadMulter,
-  uploadProductImages,
+  uploadThumbnailToGCS,
+  // uploadProductImages,
   uploadProfilePic,
 };

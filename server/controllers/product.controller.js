@@ -184,7 +184,9 @@ async function create(
       let promises = [];
 
       const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
+      const thumb2x = correctPhotos[0].replace('.jpeg', 'thumb@2x.jpeg');
       promises.push(photos.copyPhoto(thumb, product.uuid, 0, date, true));
+      promises.push(photos.copyPhoto(thumb2x, product.uuid, 0, date, true));
 
       correctPhotos.map((p, i) =>
         promises.push(photos.copyPhoto(p, product.uuid, i, date))
@@ -393,7 +395,7 @@ function update(
                 firstPhoto !== foundProduct.photoURIs[i] &&
                 firstPhoto.indexOf('/temp-uploads') === -1
               ) {
-                await photos.generateThumbnail(firstPhoto);
+                await photos.generateThumbnails(firstPhoto);
               } else {
                 // if the first photo is new copy the thumbnail (from temp)
                 const thumb = photo.replace('.jpeg', 'thumb.jpeg');
