@@ -185,8 +185,10 @@ async function create(
 
       const thumb = correctPhotos[0].replace('.jpg', '-thumb.jpg');
       const thumb2x = correctPhotos[0].replace('.jpg', '-thumb@2x.jpg');
-      promises.push(photos.copyPhoto(thumb, product.uuid, 0, date, true));
-      promises.push(photos.copyPhoto(thumb2x, product.uuid, 0, date, true));
+      promises.push(photos.copyPhoto(thumb, product.uuid, 0, date, '-thumb'));
+      promises.push(
+        photos.copyPhoto(thumb2x, product.uuid, 0, date, '-thumb@2x')
+      );
 
       correctPhotos.map((p, i) =>
         promises.push(photos.copyPhoto(p, product.uuid, i, date))

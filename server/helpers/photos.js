@@ -250,15 +250,13 @@ async function copyPhoto(
   uuid: string,
   i: number,
   date: number,
-  thumb: boolean = false
+  suffix: string = ''
 ): Promise<string | Error> {
   const srcFilename = photo.replace(
     'https://storage.googleapis.com/temp-uploads.onova.co/',
     ''
   );
-  const destFilename = `products/${uuid}-${i + 1}-${date}${
-    thumb ? '-thumb' : ''
-  }.jpg`;
+  const destFilename = `products/${uuid}-${i + 1}-${date}${suffix}.jpg`;
 
   if (config.env === 'test') {
     return `http://${destBucketName}/${destFilename}`;
