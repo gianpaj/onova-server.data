@@ -43,22 +43,23 @@ if (config.mongooseDebug) {
 // module.parent check is required to support jest watch
 // https://github.com/mochajs/mocha/issues/1912
 if (!module.parent) {
+  // option for for development
   if (process.env.HTTPS) {
     const httpsOptions = {
       key: fs.readFileSync('./localhost.key'),
       cert: fs.readFileSync('./localhost.crt'),
     };
-    https.createServer(httpsOptions, app).listen(config.port, '0.0.0.0', () => {
-      console.info(
-        `**HTTPS** server started on port ${config.port} (${config.env})`
+    https
+      .createServer(httpsOptions, app)
+      .listen(config.port, '0.0.0.0', () =>
+        console.info(
+          `**HTTPS** server started on port ${config.port} (${config.env})`
+        )
       );
-    });
   } else {
-    app.listen(config.port, '0.0.0.0', () => {
-      console.info(
-        `HTTP server started on port ${config.port} (${config.env})`
-      );
-    });
+    app.listen(config.port, '0.0.0.0', () =>
+      console.info(`HTTP server started on port ${config.port} (${config.env})`)
+    );
   }
 }
 
