@@ -78,7 +78,28 @@ async function tempUploadProductImage(
       })
       .toFile(`${TEMP_PATH}/${uploadDate}-thumb.jpg`)
       .then(() => {
-        debug('temp thumbnail generated');
+        debug(
+          'temp thumbnail generated',
+          `${TEMP_PATH}/${uploadDate}-thumb.jpg`
+        );
+      })
+      .catch(err => {
+        console.error(err);
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
+      });
+
+    pipeline
+      .resize(THUMB_MAX_WIDTH * 2, THUMB_MAX_HEIGHT * 2)
+      .crop(sharp.strategy.entropy)
+      .on('error', err => {
+        console.log('Error generating thumbnail', err);
+      })
+      .toFile(`${TEMP_PATH}/${uploadDate}-thumb@2x.jpg`)
+      .then(() => {
+        debug(
+          'temp thumbnail generated',
+          `${TEMP_PATH}/${uploadDate}-thumb@2x.jpg`
+        );
       })
       .catch(err => {
         console.error(err);
