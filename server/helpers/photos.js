@@ -72,7 +72,6 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
   pipeline
     .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
     .crop(sharp.strategy.entropy)
-    // .max() // preserve aspect ratio and not wider than width and height
     .pipe(thumbnailUploadStream);
 
   thumbnailUploadStream.on('finish', () => {
@@ -182,14 +181,14 @@ function generateThumbnails(photo: string): Promise<void | Error> {
           THUMB_MAX_WIDTH,
           THUMB_MAX_HEIGHT,
           buffer,
-          `products/${filename}-thumb.jpg`
+          `${filename}-thumb.jpg`
         );
 
         uploadThumbnailToGCS(
           THUMB_MAX_WIDTH * 2,
           THUMB_MAX_HEIGHT * 2,
           buffer,
-          `products/${filename}-thumb@2x.jpg`
+          `${filename}-thumb@2x.jpg`
         );
         resolve();
       } catch (err) {
@@ -219,21 +218,20 @@ function uploadThumbnailToGCS(
     });
 
     thumbnailUploadStream.on('error', err => {
-      console.error('Error generating thumbnail');
+      console.error('Error generating thumbnail', photoURL);
       reject(err);
     });
 
     sharp(file.buffer)
-      .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
+      .resize(width, height)
       .crop(sharp.strategy.entropy)
-      // .max() // preserve aspect ratio and not wider than width and height
       .pipe(thumbnailUploadStream);
 
     thumbnailUploadStream.on('finish', () => {
       gcsFile
         .makePublic()
         .then(() => {
-          debug('thumbnail uploaded', gcsFile.bucket.name);
+          debug('thumbnail uploaded', gcsFile.bucket.name + '/' + photoURL);
           resolve();
         })
         .catch(err => {
