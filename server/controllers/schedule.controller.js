@@ -148,8 +148,8 @@ async function create(
       // TODO: check if images have been uploaded to GSC
       let promises = [];
 
-      const thumb = correctPhotos[0].replace('.jpeg', 'thumb.jpeg');
-      promises.push(photos.copyPhoto(thumb, product.uuid, 0, date, true));
+      const thumb = correctPhotos[0].replace('.jpg', 'thumb.jpg');
+      promises.push(photos.copyPhoto(thumb, product.uuid, 0, date, '-thumb'));
 
       correctPhotos.map((p, i) =>
         promises.push(photos.copyPhoto(p, product.uuid, i, date))
