@@ -61,7 +61,7 @@
     "request": "2.87.0",
     "sharp": "0.20.2",
     "shortid": "2.2.8",
-    "weak": "false1.0.1",
+    "weak": "1.0.1",
     "winston": "2.4.2",
     "winston-daily-rotate-file": "3.3.0"
   },
