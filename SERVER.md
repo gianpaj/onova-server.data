@@ -58,7 +58,7 @@ if [[ -s /opt/bitnami/.bitnamirc ]]; then
 fi
 ```
 
-```
+```bash
 mkdir ~/.ssh
 chmod 700 ~/.ssh
 nano ~/.ssh/authorized_keys
@@ -70,6 +70,15 @@ exit
 Test log in with ssh key:
 
     ssh -i ~/.ssh/bitbucket_onova_id_rsa bitbucket@52.59.136.160
+
+## Generate SSH key to access Bitbucket
+
+```bash
+ssh-keygen
+cat ~/.ssh/id_rsa.pub
+```
+
+Add key to [Bitbucket Project](https://bitbucket.org/account/user/onova/ssh-keys/)
 
 ## Firewall
 
@@ -332,6 +341,9 @@ pm2 set pm2-logrotate:retain 30
 pm2 startup systemd
 exit
 sudo env PATH=$PATH:/opt/bitnami/nodejs/bin /opt/bitnami/nodejs/lib/node_modules/pm2/bin/pm2 startup systemd -u bitbucket --hp /home/bitbucket
+
+sudo su - bitbucket
+pm2 save
 ```
 
 ### Install yarn
@@ -347,7 +359,7 @@ TODO: [how-to-set-up-a-node-js-application-for-production-on-ubuntu-16-04#set-up
 
 ## Install MongoDB
 
-> If running secondary on the same machine. Otherwise use bitnami [image](https://google.bitnami.com/launch/mongodb) ([docs](https://docs.bitnami.com/google/infrastructure/mongodb/))
+> If running secondary on the same machine. Otherwise use Bitnami's [image](https://google.bitnami.com/launch/mongodb) ([docs](https://docs.bitnami.com/google/infrastructure/mongodb/))
 > but use SSD persistent disk
 
 Follow: [Install MongoDB Community Edition¶](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-ubuntu/#install-mongodb-community-edition)
@@ -356,9 +368,20 @@ Follow: [Install MongoDB Community Edition¶](https://docs.mongodb.com/manual/tu
 sudo su
 nano /opt/bitnami/mongodb/mongodb.conf
 
+# enable service (autostart)
+sudo systemctl enable mongod
+
 apt-get install ufw
 ufw allow OpenSSH
 ufw allow from 10.156.0.2/24 to any port 28025
 ufw enable
 ufw status numbered
+```
+
+## Start PM2 apps
+
+```bash
+cd /var/www
+ln -s server.data/ecosystem.yml .
+pm2 start ecosystem.yml
 ```
