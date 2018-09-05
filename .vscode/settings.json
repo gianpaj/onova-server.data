@@ -5,8 +5,7 @@
     "**/coverage": true
   },
   "javascript.validate.enable": false,
-  "flow.useNPMPackagedFlow": true,
-  "flow.enabled": false,
+  "editor.formatOnSave": true,
   "prettier.eslintIntegration": true,
   "deepscan.enable": true
 }
