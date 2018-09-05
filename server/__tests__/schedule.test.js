@@ -91,44 +91,16 @@ describe('## Schedule APIs', () => {
       await request(app)
         .post('/api/photos/upload')
         .set('Authorization', jwtToken)
-        .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
+        .attach('photo', path.join(__dirname, 'images/boots-larger.jpeg'))
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           const { data } = body;
-          expect(data.fieldname).toBe('photo');
-          expect(data.originalname).toBe('boots-large.jpg');
-          expect(data.encoding).toBe('7bit');
-          expect(data.mimetype).toBe('image/jpeg');
-          expect(data['thumb.jpeg'].path).toContain(
-            'storage.googleapis.com/temp-uploads.onova.co/'
+          expect(data).toContain(
+            'https://storage.googleapis.com/temp-uploads.onova.co/'
           );
-          expect(data['thumb.jpeg'].filename).toContain('thumb');
-          expect(data['.jpeg'].path).toContain(
-            'storage.googleapis.com/temp-uploads.onova.co/'
-          );
-          expect(data['.jpeg'].filename).toContain('-.jpeg');
-          expect(Object.keys(data).sort()).toEqual([
-            '.jpeg',
-            'encoding',
-            'fieldname',
-            'mimetype',
-            'originalname',
-            'thumb.jpeg',
-          ]);
-          pathImage1 = data['.jpeg'].path;
+          pathImage1 = data;
         });
     });
-
-    // it('should not upload a small image', () => {
-    //   return request(app)
-    //     .post('/api/photos/upload')
-    //     .set('Authorization', jwtToken)
-    //     .attach('photo', path.join(__dirname, 'images/boots1.jpg'))
-    //     .expect(httpStatus.BAD_REQUEST)
-    //     .then(({ body }) =>
-    //       expect(body.message).toContain('Product image is too small')
-    //     );
-    // });
 
     it('should NOT schedule invalid images', () => {
       return request(app)
