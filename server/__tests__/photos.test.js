@@ -42,7 +42,7 @@ describe('## Photo Upload APIs', () => {
       return request(app)
         .post('/api/photos/upload')
         .set('Authorization', jwtToken)
-        .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
+        .attach('photo', path.join(__dirname, 'images/boots-too-small.jpg'))
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain(
@@ -133,11 +133,11 @@ describe('## Photo Upload APIs', () => {
       return request(app)
         .post('/api/photos/upload-chat-images')
         .set('Authorization', jwtToken)
-        .attach('photo', path.join(__dirname, 'images/boots-large.jpg'))
+        .attach('photo', path.join(__dirname, 'images/boots-larger.jpeg'))
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           const { data } = body;
-          expect(data.originalname).toBe('boots-large.jpg');
+          expect(data.originalname).toBe('boots-larger.jpeg');
           expect(data.fieldname).toBe('photo');
           expect(data.encoding).toBe('7bit');
           expect(data.mimetype).toBe('image/jpeg');
