@@ -19,14 +19,19 @@ let options = {
   // socketTimeoutMS: 1000
 };
 
-mongoose.connect(mongoURI, options).then(
-  () => {
-    console.log(`connected to ${mongoURI}`);
-  },
-  err => {
-    throw new Error(`unable to connect to: ${mongoURI} - ${err}`);
-  }
-);
+mongoose
+  .connect(
+    mongoURI,
+    options
+  )
+  .then(
+    () => {
+      console.log(`connected to ${mongoURI}`);
+    },
+    err => {
+      throw new Error(`unable to connect to: ${mongoURI} - ${err}`);
+    }
+  );
 
 // print mongoose logs in dev env
 if (config.mongooseDebug) {

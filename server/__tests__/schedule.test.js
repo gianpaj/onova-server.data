@@ -38,7 +38,7 @@ describe('## Schedule APIs', () => {
   let productUuid;
   let jwtToken;
 
-  let productsCounter = 0;
+  // let productsCounter = 0;
 
   // create 2 users/sellers + Tag and upload profile pic of a seller
   beforeAll(done => {
@@ -167,12 +167,12 @@ describe('## Schedule APIs', () => {
           expect(p.typeIds.sort()).toEqual(product.typeIds);
           expect(Object.keys(p).sort()).toEqual([...myProductFields].sort());
           productUuid = p.uuid;
-          productsCounter++;
+          // productsCounter++;
 
           let count = 0;
           let found;
           const waitFor = 15; // seconds
-          const interval = Math.floor(waitFor * 10000 / 100);
+          const interval = Math.floor((waitFor * 10000) / 100);
 
           // Check a Product notification has been created every 100ms for X seconds
           const timer = setInterval(async () => {

@@ -1,7 +1,7 @@
 // @flow
 
 import httpStatus from 'http-status';
-import Chatkit from 'pusher-chatkit-server';
+import Chatkit from '@pusher/chatkit-server';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';

@@ -36,8 +36,7 @@ describe('## Photo Upload APIs', () => {
       rimraf(TEMP_PATH, err => {
         if (err) throw err;
         done();
-      })
-    );
+      }));
 
     it('should NOT accept a small image', () => {
       return request(app)
