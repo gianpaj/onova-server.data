@@ -7,10 +7,8 @@ import addDays from 'date-fns/add_days';
 
 import app from '../index';
 import { agenda } from '../config/express';
-import config from '../config/config';
 
 import Product from '../models/product.model';
-import Tag from '../models/tag.model';
 import { createUserAndLogin, productFields, beforeAllTests } from './utils';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
@@ -18,10 +16,25 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 describe('## Schedule APIs', () => {
   beforeAll(beforeAllTests);
 
-  let user = {
+  // $FlowFixMe
+  let user1: UserDoc = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
+  };
+
+  // $FlowFixMe
+  let user2: UserDoc = {
+    username: 'secondperson',
+    emailAddress: 'gianpa+test2@gmail.com',
+    password: 'express2',
+  };
+
+  // $FlowFixMe
+  let user3: UserDoc = {
+    username: 'thirdrperson',
+    emailAddress: 'gianpa+test3@gmail.com',
+    password: 'express3',
   };
 
   let product = {
@@ -35,27 +48,30 @@ describe('## Schedule APIs', () => {
     // socials: 'fb',
   };
 
-  let productUuid;
-  let jwtToken;
+  let productUuid, jwtToken1, jwtToken2, jwtToken3;
 
   // let productsCounter = 0;
 
-  // create 2 users/sellers + Tag and upload profile pic of a seller
-  beforeAll(done => {
-    createUserAndLogin(user)
-      .then(({ user: resUser, jwtToken: token }) => {
-        user._id = resUser._id;
-        jwtToken = token;
-      })
-      .then(() => {
-        return request(app)
-          .put(`/api/users/${user._id}`)
-          .set('Authorization', jwtToken)
-          .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
-          .expect(httpStatus.OK);
-      })
-      // .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
-      .then(() => done());
+  // create 3 users/sellers
+  beforeAll(async () => {
+    const { user: resUser, jwtToken: token } = await createUserAndLogin(user1);
+    user1._id = resUser._id;
+    jwtToken1 = token;
+    const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(
+      user2
+    );
+    user2._id = resUser2._id;
+    jwtToken2 = token2;
+    const { user: resUser3, jwtToken: token3 } = await createUserAndLogin(
+      user3
+    );
+    user3._id = resUser3._id;
+    jwtToken3 = token3;
+    await request(app)
+      .put(`/api/users/${user1._id}`)
+      .set('Authorization', jwtToken1)
+      .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+      .expect(httpStatus.OK);
   });
 
   // describe('# POST /api/schedule', () => {
@@ -73,8 +89,8 @@ describe('## Schedule APIs', () => {
 
   describe('# POST /api/schedule', () => {
     let pathImage1;
-    // update Facebook Token
     beforeAll(async () => {
+      // update Facebook Token
       // await request(app)
       //   .put(`/api/users/${user._id}`)
       //   .set('Authorization', jwtToken)
@@ -90,7 +106,7 @@ describe('## Schedule APIs', () => {
       //   });
       await request(app)
         .post('/api/photos/upload')
-        .set('Authorization', jwtToken)
+        .set('Authorization', jwtToken1)
         .attach('photo', path.join(__dirname, 'images/boots-larger.jpeg'))
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -105,7 +121,7 @@ describe('## Schedule APIs', () => {
     it('should NOT schedule invalid images', () => {
       return request(app)
         .post('/api/schedule')
-        .set('Authorization', jwtToken)
+        .set('Authorization', jwtToken1)
         .send({ ...product, photos: ['http://asdfasd'] })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
@@ -120,7 +136,7 @@ describe('## Schedule APIs', () => {
 
       request(app)
         .post('/api/schedule')
-        .set('Authorization', jwtToken)
+        .set('Authorization', jwtToken1)
         .send(product)
         .expect(httpStatus.CREATED)
         .then(async ({ body }) => {
@@ -132,7 +148,7 @@ describe('## Schedule APIs', () => {
           expect(p.description).toBe(product.description);
           expect(p.photoURIs[0]).toContain('/products/');
           expect(p.price).toBe(product.price);
-          expect(p.seller).toBe(user._id);
+          expect(p.seller).toBe(user1._id);
           expect(p.status).toBe('forsale');
           expect(Array.isArray(p.tags));
           expect(p.tags).toEqual(product.tags);
@@ -162,7 +178,7 @@ describe('## Schedule APIs', () => {
               clearInterval(timer);
               throw new Error('timeout');
             }
-            console.log(count);
+            // console.log(count);
           }, interval);
         });
     });
@@ -170,7 +186,7 @@ describe('## Schedule APIs', () => {
     it('should NOT schedule a listing in the past', () => {
       return request(app)
         .post('/api/schedule')
-        .set('Authorization', jwtToken)
+        .set('Authorization', jwtToken1)
         .send({ ...product, date: new Date('2018-05-28T20:23:20.000Z') })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -192,12 +208,63 @@ describe('## Schedule APIs', () => {
     it('should NOT scheduled an item after 3 months from today', () => {
       return request(app)
         .post('/api/schedule')
-        .set('Authorization', jwtToken)
+        .set('Authorization', jwtToken1)
         .send({ ...product, date: addDays(new Date(Date.now()), 91) })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('Cannot schedule listings after 90')
         );
+    });
+  });
+
+  describe('# GET /api/schedule', () => {
+    beforeAll(done => {
+      agenda.purge(async err => {
+        if (err) return console.error(err) && done(err);
+        product.photos = [
+          'https://storage.googleapis.com/temp-uploads.onova.co/',
+        ];
+
+        await request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken1)
+          .send(product)
+          .expect(httpStatus.CREATED);
+
+        await request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken2)
+          .send(product)
+          .expect(httpStatus.CREATED);
+        done();
+      });
+    });
+
+    it('should NOT get scheduled listings without auth', () => {
+      return request(app)
+        .get('/api/schedule')
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    it('should get user1 scheduled listings', () => {
+      return request(app)
+        .get('/api/schedule')
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.length).toBe(1);
+          expect(body.data[0].seller).toBe(user1._id);
+        });
+    });
+
+    it('should get no scheduled listings', () => {
+      return request(app)
+        .get('/api/schedule')
+        .set('Authorization', jwtToken3)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.length).toBe(0);
+        });
     });
   });
 });

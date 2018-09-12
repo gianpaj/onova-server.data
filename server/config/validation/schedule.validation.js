@@ -13,6 +13,8 @@ validate.options({
 });
 
 export default {
+  // GET /api/schedule
+  listSchedule: {},
   // POST /api/schedule
   createSchedule: {
     body: {

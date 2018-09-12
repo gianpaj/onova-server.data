@@ -195,8 +195,33 @@ function createTags(tags: Array<TagDoc>) {
   });
 }
 
+/**
+ * List a user's scheduled listing
+ *
+ * GET /api/schedule
+ *
+ * @property {*} req - Express request
+ */
+function list(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  agenda.jobs(
+    { name: config.JOBNAMES.SCHEDULE, 'data.product.seller': req.user._id },
+    (err, jobs) => {
+      if (err) {
+        const e = new APIError('Error getting scheduled listing', 500);
+        return next(e);
+      }
+
+      res.json({ data: jobs.map(job => job.attrs.data.product) });
+    }
+  );
+}
+
 export default {
   load,
-  // get,
+  list,
   create,
 };
