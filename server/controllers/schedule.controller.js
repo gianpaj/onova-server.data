@@ -148,7 +148,7 @@ async function create(
       // TODO: check if images have been uploaded to GSC
       let promises = [];
 
-      const thumb = correctPhotos[0].replace('.jpg', 'thumb.jpg');
+      const thumb = correctPhotos[0].replace('.jpg', '-thumb.jpg');
       promises.push(photos.copyPhoto(thumb, product.uuid, 0, date, '-thumb'));
 
       correctPhotos.map((p, i) =>
@@ -215,7 +215,15 @@ function list(
         return next(e);
       }
 
-      res.json({ data: jobs.map(job => job.attrs.data.product) });
+      const scheduled = jobs.map(job => ({
+        lastFinishedAt: job.attrs.lastFinishedAt
+          ? job.attrs.lastFinishedAt
+          : null,
+        nextRunAt: job.attrs.nextRunAt,
+        ...job.attrs.data.product,
+      }));
+
+      res.json({ data: scheduled });
     }
   );
 }
