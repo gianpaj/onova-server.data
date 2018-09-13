@@ -88,7 +88,7 @@ server {
         }
 
         location /uploader {
-                alias /var/www/uploader/build;
+                alias /var/www/uploader/dist;
         }
 }
 
