@@ -71,6 +71,9 @@ const envVarsSchema = Joi.object({
   VK_SECRET_KEY: Joi.string()
     .required()
     .description('VK APP Secret'),
+  SEGMENT: Joi.string()
+    .required()
+    .description('Segment.com Analytics write key'),
 })
   .unknown()
   .required();
@@ -110,6 +113,7 @@ const config = {
   },
 
   SLACK_WEBHOOK_URL: envVars.SLACK_WEBHOOK_URL,
+  SEGMENT: envVars.SEGMENT,
 
   // hard coded settings
   JOBNAMES: {

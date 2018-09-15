@@ -11,6 +11,7 @@ import Product, { ProductDoc } from '../models/product.model';
 import Tag, { TagDoc } from '../models/tag.model';
 import User, { UserDoc, userPopulateFields } from '../models/user.model';
 import config from '../config/config';
+import Analytics from '../config/analytics';
 import path from 'path';
 
 const geocoder = require('offline-geocoder')({
@@ -214,6 +215,21 @@ async function create(
         });
     })
     .then(savedProduct => {
+      if (config.env !== 'test') {
+        Analytics.track({
+          userId: req.user._id.toString(),
+          event: 'new_product',
+          properties: {
+            categoryIds: savedProduct.categoryIds,
+            numPhotos: savedProduct.photoURIs,
+            price: savedProduct.price,
+            tags: savedProduct.tags,
+            typeIds: savedProduct.typeIds,
+            uuid: savedProduct.uuid,
+            ...(body.longitude ? { locality: savedProduct.locality } : {}),
+          },
+        });
+      }
       return res.status(httpStatus.CREATED).json({ data: savedProduct });
     })
     .catch(e => next(e));
