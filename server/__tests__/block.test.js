@@ -11,6 +11,8 @@ import {
   createProduct,
   createOrder,
 } from './utils';
+import { UserDoc } from '../models/user.model';
+import { ProductDoc } from '../models/product.model';
 
 const blockFields = ['createdAt', '_id', 'sourceUser', 'targetUser'];
 
@@ -28,13 +30,15 @@ afterAll(done => {
 describe('## Block methods', () => {
   beforeAll(beforeAllTests);
 
-  let firstUser = {
+  // $FlowFixMe
+  let firstUser: UserDoc = {
     username: 'firstUser',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
   };
 
-  const product = {
+  // $FlowFixMe
+  const product: ProductDoc = {
     categoryIds: [2],
     typeIds: [3],
     description: 'nice boots',
@@ -44,7 +48,8 @@ describe('## Block methods', () => {
     ],
   };
 
-  let users = [
+  // $FlowFixMe
+  let users: Array<UserDoc> = [
     {
       username: 'user0',
       emailAddress: 'gianpa+user0@gmail.com',
@@ -93,7 +98,7 @@ describe('## Block methods', () => {
 
       // firstUser -- follows --> user 0
       await request(app)
-        .post(`/api/users/${users[0]._id}/follow`)
+        .post(`/api/users/${users[0]._id.toString()}/follow`)
         .set('Authorization', firstUser.jwtToken)
         .then(({ body }) => {
           expect(body.data.follower).toBe(firstUser._id);
@@ -103,7 +108,7 @@ describe('## Block methods', () => {
 
       // firstUser -- follows --> user 1
       await request(app)
-        .post(`/api/users/${users[1]._id}/follow`)
+        .post(`/api/users/${users[1]._id.toString()}/follow`)
         .set('Authorization', firstUser.jwtToken)
         .then(({ body }) => {
           expect(body.data.follower).toBe(firstUser._id);
@@ -113,7 +118,7 @@ describe('## Block methods', () => {
 
       // user 0 -- follows --> firstUser
       await request(app)
-        .post(`/api/users/${firstUser._id}/follow`)
+        .post(`/api/users/${firstUser._id.toString()}/follow`)
         .set('Authorization', users[0].jwtToken)
         .then(({ body }) => {
           expect(body.data.follower).toBe(users[0]._id);
@@ -123,7 +128,7 @@ describe('## Block methods', () => {
 
       // user 0 -- follows --> user 1
       await request(app)
-        .post(`/api/users/${users[1]._id}/follow`)
+        .post(`/api/users/${users[1]._id.toString()}/follow`)
         .set('Authorization', users[0].jwtToken)
         .then(({ body }) => {
           expect(body.data.follower).toBe(users[0]._id);
@@ -132,10 +137,13 @@ describe('## Block methods', () => {
         });
 
       // firstUser -- orders --> product from user 0
+      // $FlowFixMe
       await createOrder({ ...product, uuid: p2.uuid }, firstUser.jwtToken);
       // firstUser -- orders --> product from user 1
+      // $FlowFixMe
       await createOrder({ ...product, uuid: p3.uuid }, firstUser.jwtToken);
       // user 0 -- orders --> product from user 1
+      // $FlowFixMe
       await createOrder({ ...product, uuid: p3.uuid }, users[0].jwtToken);
     } catch (error) {
       console.error(error);
@@ -168,7 +176,7 @@ describe('## Block methods', () => {
 
   it('it should not unfollow a blocked user', () => {
     return request(app)
-      .post(`/api/users/${firstUser._id}/unfollow`)
+      .post(`/api/users/${firstUser._id.toString()}/unfollow`)
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.BAD_REQUEST)
       .then(({ body }) =>
@@ -178,7 +186,7 @@ describe('## Block methods', () => {
 
   it('it should not follow a blocked user', () => {
     return request(app)
-      .post(`/api/users/${firstUser._id}/follow`)
+      .post(`/api/users/${firstUser._id.toString()}/follow`)
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.BAD_REQUEST)
       .then(({ body }) => {
@@ -210,8 +218,9 @@ describe('## Block methods', () => {
       .set('Authorization', firstUser.jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data).toHaveLength(1);
+        expect(body.data).toHaveLength(2);
         expect(body.data[0].uuid).toBe(users[1].productUuid);
+        expect(body.data[1].uuid).toBe(firstUser.productUuid);
       });
   });
 
@@ -221,8 +230,9 @@ describe('## Block methods', () => {
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data).toHaveLength(1);
-        expect(body.data[0].uuid).toBe(users[1].productUuid);
+        expect(body.data).toHaveLength(2);
+        expect(body.data[0].seller._id).toBe(users[1]._id);
+        expect(body.data[1].seller._id).toBe(users[0]._id);
       });
   });
 
@@ -252,7 +262,7 @@ describe('## Block methods', () => {
 
   it("should NOT get user 0's products items", () => {
     return request(app)
-      .get(`/api/products?userid=${users[0]._id}`)
+      .get(`/api/products?userid=${users[0]._id.toString()}`)
       .set('Authorization', firstUser.jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => expect(body.data).toHaveLength(0));
@@ -260,7 +270,7 @@ describe('## Block methods', () => {
 
   it('should get who is firstUser following except user 0', () => {
     return request(app)
-      .get(`/api/users/${firstUser._id}/following`)
+      .get(`/api/users/${firstUser._id.toString()}/following`)
       .set('Authorization', firstUser.jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
@@ -272,7 +282,7 @@ describe('## Block methods', () => {
 
   it('should get who is user 0 following except firstUser', () => {
     return request(app)
-      .get(`/api/users/${users[0]._id}/following`)
+      .get(`/api/users/${users[0]._id.toString()}/following`)
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
@@ -283,7 +293,7 @@ describe('## Block methods', () => {
 
   it('should get the followers of user 0 except firstUser', () => {
     return request(app)
-      .get(`/api/users/${users[0]._id}/followers`)
+      .get(`/api/users/${users[0]._id.toString()}/followers`)
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {

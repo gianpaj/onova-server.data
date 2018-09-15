@@ -36,11 +36,18 @@ function flat(
     follower: req.user._id,
     status: { $ne: -1 },
   })
-    .limit(1000) // following
+    .limit(1000)
     .then(async (following: Array<FollowDoc>) => {
       if (!following) return res.json({ data: [] });
 
       const followingIDs = following.map(f => f.following);
+
+      let blockedIDs = [];
+      const blocked = await Follow.find({
+        follower: req.user._id,
+        status: -1,
+      });
+      if (blocked) blockedIDs = blocked.map(f => f.following);
 
       let DBqueryInclusive = {
         status: 'forsale',
@@ -48,7 +55,7 @@ function flat(
       };
       let DBqueryExclusive = {
         status: 'forsale',
-        seller: { $nin: followingIDs },
+        seller: { $nin: [...followingIDs, blockedIDs] },
       };
 
       if (typeIds) {
