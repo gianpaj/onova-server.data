@@ -77,7 +77,7 @@ describe('## Default Follow methods', () => {
     firstPerson.jwtToken = jwtToken;
   });
 
-  it('should follow 5 users after an account is created', async () => {
+  it.skip('should follow 5 users after an account is created', async () => {
     // wait for async Auto following (followDefaultUsers)
     await sleep(100);
     return request(app)
