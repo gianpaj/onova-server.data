@@ -7,6 +7,7 @@ import httpStatus from 'http-status';
 import app from '../index';
 import Tag from '../models/tag.model';
 import Product from '../models/product.model';
+import { UserDoc } from '../models/user.model';
 import {
   beforeAllTests,
   createProduct,
@@ -66,14 +67,16 @@ let anotherProduct = {
   ],
 };
 
-let user = {
+// $FlowFixMe
+let user: UserDoc = {
   username: 'firstperson',
   emailAddress: 'gianpa+test@gmail.com',
   mobileNumber: '1234567890', // optional
   password: 'expressos',
 };
 
-let anotherUser = {
+// $FlowFixMe
+let anotherUser: UserDoc = {
   username: 'anotherperson',
   emailAddress: 'gianpa+test2@gmail.com',
   mobileNumber: '1234567890', // optional
@@ -101,7 +104,7 @@ let anotherJwtToken;
 describe('## Feed APIs', () => {
   beforeAll(beforeAllTests);
 
-  // create 2 users/sellers + 2 products
+  // create 2 users/sellers + 3 products (1 deleted)
   beforeAll(done => {
     createUserAndLogin(user)
       .then(({ user, jwtToken }) => {
@@ -162,7 +165,7 @@ describe('## Feed APIs', () => {
   });
 
   describe('# GET /api/feed/flat', () => {
-    it('should get the first user`s feed', () => {
+    it('should get the first user`s feed + the other 2', () => {
       return request(app)
         .get('/api/feed/flat')
         .set('Authorization', firstJwtToken)
@@ -170,8 +173,9 @@ describe('## Feed APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data[0].uuid).toBe(anotherProductUuid);
+          expect(data[1].uuid).toBe(productUuid);
           expect(Object.keys(data[0]).sort()).toEqual(feedFields.sort());
-          expect(data).toHaveLength(1);
+          expect(data).toHaveLength(2);
         });
     });
 
@@ -183,15 +187,15 @@ describe('## Feed APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data[0].uuid).toBe(productUuid);
-          expect(data).toHaveLength(1);
+          expect(data[1].uuid).toBe(anotherProductUuid);
+          expect(data).toHaveLength(2);
         });
     });
 
     it('should not get my feed if i am not authenticated', () => {
       return request(app)
         .get('/api/feed/flat')
-        .expect(httpStatus.UNAUTHORIZED)
-        .then();
+        .expect(httpStatus.UNAUTHORIZED);
     });
   });
 
@@ -222,6 +226,7 @@ describe('## Feed APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data[0].uuid).toBe(categoryProductUUID);
+          expect(data[1].uuid).toBe(productUuid);
           expect(data).toHaveLength(2);
         });
     });
@@ -306,8 +311,12 @@ describe('## Feed APIs', () => {
     });
 
     beforeAll(async () => {
-      const a = await createManyProducts(105, firstJwtToken);
-      if (a instanceof Error) console.error(a);
+      try {
+        await createProduct(product, anotherJwtToken);
+        await createManyProducts(105, firstJwtToken);
+      } catch (err) {
+        console.error(err);
+      }
     });
 
     let lastId;

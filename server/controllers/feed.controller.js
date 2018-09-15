@@ -25,7 +25,7 @@ declare class session$Request extends express$Request {
  * @property {MongoId} req.query.lastId (not uuid)
  * @property {number} req.query.limit Limit number of products to be returned.
  */
-async function flat(
+function flat(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -37,44 +37,83 @@ async function flat(
     status: { $ne: -1 },
   })
     .limit(1000) // following
-    .then((following: Array<FollowDoc>) => {
+    .then(async (following: Array<FollowDoc>) => {
       if (!following) return res.json({ data: [] });
 
-      following = following.map(f => f.following);
+      const followingIDs = following.map(f => f.following);
 
-      let DBquery = { status: 'forsale', seller: { $in: following } };
+      let DBqueryInclusive = {
+        status: 'forsale',
+        seller: { $in: followingIDs },
+      };
+      let DBqueryExclusive = {
+        status: 'forsale',
+        seller: { $nin: followingIDs },
+      };
 
-      if (typeIds) DBquery = { ...DBquery, typeIds: { $in: typeIds } };
-      if (categoryIds)
-        DBquery = { ...DBquery, categoryIds: { $in: categoryIds } };
-      if (tag) DBquery = { ...DBquery, tags: tag };
+      if (typeIds) {
+        DBqueryInclusive = { ...DBqueryInclusive, typeIds: { $in: typeIds } };
+        DBqueryExclusive = { ...DBqueryExclusive, typeIds: { $in: typeIds } };
+      }
+      if (categoryIds) {
+        DBqueryInclusive = {
+          ...DBqueryInclusive,
+          categoryIds: { $in: categoryIds },
+        };
+        DBqueryExclusive = {
+          ...DBqueryExclusive,
+          categoryIds: { $in: categoryIds },
+        };
+      }
+      if (tag) {
+        DBqueryInclusive = { ...DBqueryInclusive, tags: tag };
+        DBqueryExclusive = { ...DBqueryExclusive, tags: tag };
+      }
 
       // for pagination - results are excluding the lastId
       if (lastId) {
-        DBquery = { ...DBquery, _id: { $lt: lastId } };
+        DBqueryInclusive = { ...DBqueryInclusive, _id: { $lt: lastId } };
+        DBqueryExclusive = { ...DBqueryExclusive, _id: { $lt: lastId } };
 
-        return Product.findById(lastId).then(product => {
+        return Product.findById(lastId).then(async product => {
           if (!product) {
             throw new APIError('Product not found.', httpStatus.NOT_FOUND);
           }
-          return Product.find(DBquery)
+          const prodIncl = await Product.find(DBqueryInclusive)
             .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
             .populate({
               path: 'seller',
               select: userPopulateFields,
             })
-            .limit(+limit)
-            .then(data => res.json({ data }));
+            .limit(+limit);
+          const prodExcl = await Product.find(DBqueryExclusive)
+            .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+            .populate({
+              path: 'seller',
+              select: userPopulateFields,
+            })
+            .limit(+limit);
+          return res.json({
+            data: [...prodIncl, ...prodExcl].slice(0, +limit),
+          });
         });
       } else {
-        return Product.find(DBquery)
+        const prodIncl = await Product.find(DBqueryInclusive)
           .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
           .populate({
             path: 'seller',
             select: userPopulateFields,
           })
-          .limit(+limit)
-          .then(data => res.json({ data }));
+          .limit(+limit);
+        const prodExcl = await Product.find(DBqueryExclusive)
+          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+          .populate({
+            path: 'seller',
+            select: userPopulateFields,
+          })
+          .limit(+limit);
+
+        return res.json({ data: [...prodIncl, ...prodExcl].slice(0, +limit) });
       }
     })
     .catch(e => next(e));
