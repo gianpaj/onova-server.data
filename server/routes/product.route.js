@@ -24,7 +24,7 @@ function isAuthorized(req, res, next) {
 
 /**
  * Only check authentication and load user as `req.user` object if the header is sent.
- * This is use to get the products except the ones user's blocking
+ * This is needed to get the products except the ones from whom user is blocking
  */
 function conditionalAuth(req, res, next) {
   if (req.get('Authorization')) {
