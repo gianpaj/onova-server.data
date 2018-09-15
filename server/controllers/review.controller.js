@@ -10,6 +10,7 @@ import Review, { ReviewDoc } from '../models/review.model';
 import User, { UserDoc } from '../models/user.model';
 
 import config from '../config/config';
+import Analytics from '../config/analytics';
 
 declare class session$RequestList extends express$Request {
   order: OrderDoc;
@@ -211,6 +212,22 @@ async function create(
     await order.save();
 
     const data = { ...savedReview.toJSON(), order };
+
+    if (config.env !== 'test') {
+      Analytics.track({
+        userId: req.user._id.toString(),
+        event: 'new_review',
+        properties: {
+          cityRecipient: order.cityRecipient,
+          citySender: order.citySender,
+          fromUser: savedReview.fromUser,
+          fromSeller: iAmTheSeller,
+          rateNumber: savedReview.rateNumber,
+          targetUser: savedReview.targetUser,
+          trackingNumber: order.trackingNumber,
+        },
+      });
+    }
 
     res.status(httpStatus.CREATED).json({ data });
   } catch (err) {
