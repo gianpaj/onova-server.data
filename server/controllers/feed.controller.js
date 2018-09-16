@@ -55,7 +55,7 @@ function flat(
       };
       let DBqueryExclusive = {
         status: 'forsale',
-        seller: { $nin: [...followingIDs, blockedIDs] },
+        seller: { $nin: [...followingIDs, ...blockedIDs] },
       };
 
       if (typeIds) {
