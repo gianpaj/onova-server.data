@@ -177,7 +177,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   deletedAt: ?Date;
   displayName: ?string;
   emailAddress: string;
-  facebook: string;
+  facebook: ?string;
   followersCount: number;
   followingCount: number;
   sharedCount: number;
