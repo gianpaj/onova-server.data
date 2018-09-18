@@ -220,12 +220,12 @@ async function create(
           userId: req.user._id.toString(),
           event: 'new_product',
           properties: {
-            categoryIds: savedProduct.categoryIds,
-            numPhotos: savedProduct.photoURIs,
-            price: savedProduct.price,
-            tags: savedProduct.tags,
-            typeIds: savedProduct.typeIds,
+            categoryIds: savedProduct.categoryIds[0],
+            numPhotos: savedProduct.photoURIs.length,
+            price: savedProduct.price.toString(),
+            typeIds: savedProduct.typeIds[0],
             uuid: savedProduct.uuid,
+            ...(savedProduct.tags ? { tags: savedProduct.tags } : {}),
             ...(body.longitude ? { locality: savedProduct.locality } : {}),
           },
         });
