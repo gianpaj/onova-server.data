@@ -44,3 +44,32 @@ Array [
   "username",
 ]
 `;
+
+exports[`## Schedule APIs # POST /api/schedule should schedule a listing very soon 1`] = `
+Array [
+  "data",
+  "name",
+  "nextRunAt",
+  "priority",
+  "type",
+]
+`;
+
+exports[`## Schedule APIs # POST /api/schedule should schedule a listing very soon 2`] = `
+Array [
+  "_id",
+  "categoryIds",
+  "comments",
+  "currency",
+  "description",
+  "dropId",
+  "likes",
+  "photoURIs",
+  "price",
+  "seller",
+  "status",
+  "tags",
+  "typeIds",
+  "uuid",
+]
+`;

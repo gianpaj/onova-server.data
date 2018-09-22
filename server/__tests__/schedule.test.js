@@ -155,9 +155,7 @@ describe('## Schedule APIs', () => {
           const p = body.data.data.product;
           // expect(body.data.data.socials).toEqual([product.socials]);
           expect(body.data.nextRunAt).toBe(product.date.toISOString());
-          expect(Object.keys(body.data).sort()).toEqual(
-            ['nextRunAt', 'data', 'name', 'priority', 'type'].sort()
-          );
+          expect(Object.keys(body.data).sort()).toMatchSnapshot();
           expect(p.categoryIds.sort()).toEqual(product.categoryIds);
           expect(p.currency).toBe('UAH');
           expect(p.description).toBe(product.description);
@@ -168,7 +166,7 @@ describe('## Schedule APIs', () => {
           expect(Array.isArray(p.tags));
           expect(p.tags).toEqual(product.tags);
           expect(p.typeIds.sort()).toEqual(product.typeIds);
-          expect(Object.keys(p).sort()).toEqual([...myProductFields].sort());
+          expect(Object.keys(p).sort()).toMatchSnapshot();
           productUuid = p.uuid;
           // productsCounter++;
 
@@ -289,8 +287,9 @@ describe('## Schedule APIs', () => {
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.data.length).toBe(1);
-          expect(body.data[0].seller).toBe(user1._id);
+          const firstDrop = body.data[Object.keys(body.data)[0]];
+          expect(firstDrop.length).toBe(1);
+          expect(firstDrop[0].seller).toBe(user1._id);
         });
     });
 
@@ -300,7 +299,7 @@ describe('## Schedule APIs', () => {
         .set('Authorization', jwtToken3)
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.data.length).toBe(0);
+          expect(Object.keys(body.data).length).toBe(0);
         });
     });
   });
