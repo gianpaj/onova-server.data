@@ -214,7 +214,7 @@ function list(
 ) {
   agenda.jobs(
     { name: config.JOBNAMES.SCHEDULE, 'data.product.seller': req.user._id },
-    (err, jobs) => {
+    (err, jobs: Array<any>) => {
       if (err) {
         const e = new APIError('Error getting scheduled listing', 500);
         return next(e);
@@ -228,7 +228,19 @@ function list(
         ...job.attrs.data.product,
       }));
 
-      res.json({ data: scheduled });
+      // group jobs by dropId
+      // inspired by https://stackoverflow.com/a/47385953/728287
+      const result = scheduled.reduce(
+        (accumulator, currentValue) => ({
+          ...accumulator,
+          [currentValue.dropId]: (
+            accumulator[currentValue.dropId] || []
+          ).concat(currentValue),
+        }),
+        {}
+      );
+
+      res.json({ data: result });
     }
   );
 }
