@@ -9,7 +9,7 @@ import app from '../index';
 
 import { beforeAllTests, createUserAndLogin } from './utils';
 
-const TEMP_PATH = '/tmp/test_images/*';
+const TEMP_PATH = '/tmp/*.jpg';
 
 let user = {
   username: 'userOne',
