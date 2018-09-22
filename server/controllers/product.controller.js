@@ -110,13 +110,12 @@ function get(req: session$Request, res: express$Response) {
  * @property {Array<number>} req.body.categoryIds
  * @property {string=} [req.body.currency='UAH']
  * @property {string} req.body.description
+ * @property {number=} req.body.latitude
+ * @property {number=} req.body.longitude
  * @property {Array<string>} req.body.photos
  * @property {string} req.body.price
- * @property {MongoId} req.body.seller
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
- * @property {number} req.body.longitude
- * @property {number} req.body.latitude
  */
 async function create(
   req: session$Request,
@@ -225,7 +224,7 @@ async function create(
             price: savedProduct.price.toString(),
             typeIds: savedProduct.typeIds[0],
             uuid: savedProduct.uuid,
-            ...(savedProduct.tags ? { tags: savedProduct.tags } : {}),
+            ...(savedProduct.tags.length ? { tags: savedProduct.tags } : {}),
             ...(body.longitude ? { locality: savedProduct.locality } : {}),
           },
         });

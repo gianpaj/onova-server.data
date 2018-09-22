@@ -20,24 +20,25 @@ export default {
     body: {
       categoryIds: validation.categoriesOrTypes.required(),
       // today
-      date: Joi.date().min(new Date(new Date().setHours(0, 0, 0, 0))),
-      typeIds: validation.categoriesOrTypes.required(),
-      tags: validation.tags,
-      description: validation.description.required(),
-      photos: validation.photos.required(),
-      price: validation.price.required(),
       currency: Joi.string().valid('UAH'), // 'UAH' by default
-      // socials: Joi.array()
-      //   .unique()
-      //   .items(Joi.string().valid(['fb', 'vk']))
-      //   .single()
-      //   .required(),
+      date: Joi.date().min(new Date(new Date().setHours(0, 0, 0, 0))),
+      description: validation.description.required(),
+      dropId: validation.objectId.required(),
       latitude: Joi.number()
         .min(-90)
         .max(90),
       longitude: Joi.number()
         .min(-180)
         .max(180),
+      photos: validation.photos.required(),
+      price: validation.price.required(),
+      // socials: Joi.array()
+      //   .unique()
+      //   .items(Joi.string().valid(['fb', 'vk']))
+      //   .single()
+      //   .required(),
+      tags: validation.tags,
+      typeIds: validation.categoriesOrTypes.required(),
     },
   },
 };
