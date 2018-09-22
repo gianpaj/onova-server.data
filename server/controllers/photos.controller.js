@@ -21,7 +21,7 @@ const MAX_WIDTH_AP = (MAX_WIDTH / 3) * 4;
 const MAX_HEIGHT_AP = (MAX_WIDTH / 3) * 4;
 const THUMB_MAX_WIDTH = 350;
 const THUMB_MAX_HEIGHT = 350;
-const TEMP_PATH = '/tmp/test_images';
+const TEMP_PATH = '/tmp';
 
 const storage = Storage({
   // Service account key: 'storage-data-server'

@@ -13,6 +13,9 @@ import { createUserAndLogin, productFields, beforeAllTests } from './utils';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 
+// if server.push is NOT running
+const schedulerIsRunning = process.env.SCHEDULER_IS_RUNNING == 'true';
+
 describe('## Schedule APIs', () => {
   beforeAll(beforeAllTests);
 
@@ -127,7 +130,7 @@ describe('## Schedule APIs', () => {
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
     });
 
-    it('should schedule a listing', done => {
+    it('should schedule a listing very soon', done => {
       let myProductFields = [...productFields, 'comments'];
       myProductFields = myProductFields.filter(f => f !== 'createdAt');
       myProductFields = myProductFields.filter(f => f !== 'updatedAt');
@@ -143,6 +146,9 @@ describe('## Schedule APIs', () => {
           const p = body.data.data.product;
           // expect(body.data.data.socials).toEqual([product.socials]);
           expect(body.data.nextRunAt).toBe(product.date.toISOString());
+          expect(Object.keys(body.data).sort()).toEqual(
+            ['nextRunAt', 'data', 'name', 'priority', 'type'].sort()
+          );
           expect(p.categoryIds.sort()).toEqual(product.categoryIds);
           expect(p.currency).toBe('UAH');
           expect(p.description).toBe(product.description);
@@ -156,6 +162,8 @@ describe('## Schedule APIs', () => {
           expect(Object.keys(p).sort()).toEqual([...myProductFields].sort());
           productUuid = p.uuid;
           // productsCounter++;
+
+          if (!schedulerIsRunning) done();
 
           let count = 0;
           let found;
@@ -194,16 +202,19 @@ describe('## Schedule APIs', () => {
         );
     });
 
-    // it('should schedule a listing earlier today', () => {
-    //   return request(app)
-    //     .post('/api/schedule')
-    //     .set('Authorization', jwtToken)
-    //     .send({ ...product, date: new Date(new Date().setHours(1)) })
-    //     .expect(httpStatus.CREATED)
-    //     .then(({ body }) =>
-    //       expect(body.data.data.product.description).toBe(product.description)
-    //     );
-    // });
+    it('should schedule a listing at 00:00:00 today', () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken1)
+        .send({
+          ...product,
+          date: new Date(new Date(new Date().setHours(0, 0, 0, 0))),
+        })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) =>
+          expect(body.data.data.product.description).toBe(product.description)
+        );
+    });
 
     it('should NOT scheduled an item after 3 months from today', () => {
       return request(app)
@@ -220,7 +231,10 @@ describe('## Schedule APIs', () => {
   describe('# GET /api/schedule', () => {
     beforeAll(done => {
       agenda.purge(async err => {
-        if (err) return console.error(err) && done(err);
+        if (err) {
+          console.error(err);
+          return done(err);
+        }
         product.photos = [
           'https://storage.googleapis.com/temp-uploads.onova.co/',
         ];
