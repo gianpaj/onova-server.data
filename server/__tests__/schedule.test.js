@@ -4,6 +4,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 import path from 'path';
 import addDays from 'date-fns/add_days';
+import BSON from 'bson';
 
 import app from '../index';
 import { agenda } from '../config/express';
@@ -15,6 +16,10 @@ jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 
 // if server.push is NOT running
 const schedulerIsRunning = process.env.SCHEDULER_IS_RUNNING == 'true';
+
+if (!schedulerIsRunning) {
+  console.log('skipping tests with scheduler (server.push)');
+}
 
 describe('## Schedule APIs', () => {
   beforeAll(beforeAllTests);
@@ -125,13 +130,17 @@ describe('## Schedule APIs', () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
-        .send({ ...product, photos: ['http://asdfasd'] })
+        .send({
+          ...product,
+          dropId: new BSON.ObjectId(),
+          photos: ['http://asdfasd'],
+        })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
     });
 
     it('should schedule a listing very soon', done => {
-      let myProductFields = [...productFields, 'comments'];
+      let myProductFields = [...productFields, 'comments', 'dropId'];
       myProductFields = myProductFields.filter(f => f !== 'createdAt');
       myProductFields = myProductFields.filter(f => f !== 'updatedAt');
 
@@ -140,7 +149,7 @@ describe('## Schedule APIs', () => {
       request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
-        .send(product)
+        .send({ ...product, dropId: new BSON.ObjectId() })
         .expect(httpStatus.CREATED)
         .then(async ({ body }) => {
           const p = body.data.data.product;
@@ -195,7 +204,11 @@ describe('## Schedule APIs', () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
-        .send({ ...product, date: new Date('2018-05-28T20:23:20.000Z') })
+        .send({
+          ...product,
+          date: new Date('2018-05-28T20:23:20.000Z'),
+          dropId: new BSON.ObjectId(),
+        })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('must be larger than or equal')
@@ -209,6 +222,7 @@ describe('## Schedule APIs', () => {
         .send({
           ...product,
           date: new Date(new Date(new Date().setHours(0, 0, 0, 0))),
+          dropId: new BSON.ObjectId(),
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) =>
@@ -220,7 +234,11 @@ describe('## Schedule APIs', () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
-        .send({ ...product, date: addDays(new Date(Date.now()), 91) })
+        .send({
+          ...product,
+          date: addDays(new Date(Date.now()), 91),
+          dropId: new BSON.ObjectId(),
+        })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('Cannot schedule listings after 90')
@@ -239,18 +257,23 @@ describe('## Schedule APIs', () => {
           'https://storage.googleapis.com/temp-uploads.onova.co/',
         ];
 
-        await request(app)
-          .post('/api/schedule')
-          .set('Authorization', jwtToken1)
-          .send(product)
-          .expect(httpStatus.CREATED);
+        try {
+          await request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken1)
+            .send({ ...product, dropId: new BSON.ObjectId() })
+            .expect(httpStatus.CREATED);
+          await request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken2)
+            .send({ ...product, dropId: new BSON.ObjectId() })
+            .expect(httpStatus.CREATED);
 
-        await request(app)
-          .post('/api/schedule')
-          .set('Authorization', jwtToken2)
-          .send(product)
-          .expect(httpStatus.CREATED);
-        done();
+          done();
+        } catch (error) {
+          console.error(error);
+          done(error);
+        }
       });
     });
 

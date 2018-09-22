@@ -24,6 +24,7 @@ declare class session$Request extends express$Request {
     categoryIds: string,
     date: Date,
     description: string,
+    dropId: MongoId,
     price: string,
     typeIds: string,
     tags: Array<TagDoc>,
@@ -54,7 +55,7 @@ function load(
 }
 
 /**
- * Schedule a new listing
+ * Schedule a new listing with a specific dropId
  *
  * POST /api/schedule
  *
@@ -62,10 +63,13 @@ function load(
  * @property {*} req.body - Express body parameters
  * @property {Array<number>} req.body.categoryIds
  * @property {string=} [req.body.currency='UAH']
+ * @property {string} req.body.date
  * @property {string} req.body.description
+ * @property {MongoId} req.body.dropId
+ * @property {number=} req.body.latitude
+ * @property {number=} req.body.longitude
  * @property {Array<string>=} req.body.photos
  * @property {string} req.body.price
- * @property {MongoId} req.body.seller
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
  */
@@ -79,6 +83,7 @@ async function create(
     categoryIds: body.categoryIds,
     // currency: body.currency,
     description: body.description,
+    dropId: body.dropId,
     price: body.price,
     // status: body.status, // 'forsale' by default
     tags: body.tags,

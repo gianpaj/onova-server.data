@@ -62,6 +62,9 @@ var ProductSchema = new Schema(
       type: String,
       required: true,
     },
+    dropId: {
+      type: Schema.Types.ObjectId,
+    },
     // not being used
     likes: {
       type: [Schema.Types.ObjectId],
