@@ -284,6 +284,7 @@ describe('## Schedule APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           const firstDrop = body.data[Object.keys(body.data)[0]];
+          expect(Object.keys(body.data).length).toBe(1);
           expect(firstDrop.length).toBe(1);
           expect(firstDrop[0].seller).toBe(user1._id);
         });
@@ -296,6 +297,7 @@ describe('## Schedule APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           const firstDrop = body.data[Object.keys(body.data)[0]];
+          expect(Object.keys(body.data).length).toBe(1);
           expect(firstDrop.length).toBe(1);
           expect(firstDrop[0].seller).toBe(user2._id);
         });
@@ -318,6 +320,71 @@ describe('## Schedule APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(Object.keys(body.data).length).toBe(0);
+        });
+    });
+  });
+
+  describe('# GET /api/schedule', () => {
+    beforeAll(done => {
+      agenda.purge(async err => {
+        if (err) {
+          console.error(err);
+          return done(err);
+        }
+        product.photos = [
+          'https://storage.googleapis.com/temp-uploads.onova.co/',
+        ];
+
+        const drop1 = new BSON.ObjectId();
+
+        try {
+          await request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken1)
+            .send({ ...product, dropId: drop1 })
+            .expect(httpStatus.CREATED);
+          await request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken2)
+            .send({ ...product, dropId: drop1 })
+            .expect(httpStatus.CREATED);
+          await request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken2)
+            .send({ ...product, dropId: new BSON.ObjectId() })
+            .expect(httpStatus.CREATED);
+
+          done();
+        } catch (error) {
+          console.error(error);
+          done(error);
+        }
+      });
+    });
+
+    it('should get my scheduled listings', () => {
+      return request(app)
+        .get('/api/schedule')
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          const firstDrop = body.data[Object.keys(body.data)[0]];
+          expect(Object.keys(body.data).length).toBe(1);
+          expect(firstDrop.length).toBe(1);
+          expect(firstDrop[0].seller).toBe(user1._id);
+        });
+    });
+
+    it('should get user2 scheduled listings', () => {
+      return request(app)
+        .get(`/api/schedule/?username=${user2.username}`)
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          const firstDrop = body.data[Object.keys(body.data)[0]];
+          expect(Object.keys(body.data).length).toBe(2);
+          expect(firstDrop.length).toBe(1); // 1 product in first drop
+          expect(firstDrop[0].seller).toBe(user2._id);
         });
     });
   });
