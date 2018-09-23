@@ -88,7 +88,7 @@ function create(
         throw new APIError('Product not found', 404);
       }
 
-      const blocking = await Block.count({
+      const blocking = await Block.countDocuments({
         $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
       });
 

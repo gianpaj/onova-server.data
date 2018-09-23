@@ -484,7 +484,7 @@ describe('## Search APIs', () => {
       if (!todo) return done();
 
       collections.forEach(collection => {
-        collection.remove({}, { safe: true }, () => {
+        collection.deleteMany({}, { safe: true }, () => {
           if (--todo === 0) done();
         });
       });

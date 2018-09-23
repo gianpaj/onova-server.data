@@ -23,7 +23,7 @@ export async function sendPush({
   // if (triggeredType == 'User') {
 
   // if person A is blocking person B neither of them can send each other push notifications
-  blocking = await Block.count({
+  blocking = await Block.countDocuments({
     $or: [
       { sourceUser: targetUser, targetUser: triggeredBy },
       { sourceUser: triggeredBy, targetUser: targetUser },

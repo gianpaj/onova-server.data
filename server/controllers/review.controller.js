@@ -162,7 +162,7 @@ async function create(
     }
 
     // count all the orders with this tracking number that don't match this _id
-    const count = await Order.count({
+    const count = await Order.countDocuments({
       trackingNumber,
       _id: { $ne: order._id },
     });

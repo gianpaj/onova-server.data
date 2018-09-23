@@ -16,8 +16,11 @@ let mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${
 
 let options = {
   keepAlive: 1,
+  useNewUrlParser: true,
+  useCreateIndex: true,
   // socketTimeoutMS: 1000
 };
+mongoose.set('useFindAndModify', false);
 
 mongoose
   .connect(

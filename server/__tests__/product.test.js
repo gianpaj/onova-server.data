@@ -309,6 +309,7 @@ describe('## Product APIs', () => {
           );
           expect(p.seller.profilePic).toContain('.jpg');
           expect(p.status).toBe('forsale');
+          expect(p.price).toBe(product.price);
           expect(p.currency).toBe('UAH');
           expect(Array.isArray(p.likes));
           expect(p.likes).toHaveLength(0);
