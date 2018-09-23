@@ -206,17 +206,41 @@ function createTags(tags: Array<TagDoc>) {
  * GET /api/schedule
  *
  * @property {*} req - Express request
+ * @property {*} req.query
+ * @property {string} req.query.username
  */
-function list(
+async function list(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
+  let userId = req.user._id;
+  if (req.query.username) {
+    try {
+      const user = await User.findOne({ username: req.query.username });
+      if (!user) {
+        const e = new APIError('User not found', httpStatus.NOT_FOUND);
+        return next(e);
+      }
+      userId = user._id;
+    } catch (error) {
+      console.error(error);
+      const e = new APIError(
+        'Error getting scheduled listing',
+        httpStatus.SERVICE_UNAVAILABLE
+      );
+      return next(e);
+    }
+  }
+
   agenda.jobs(
-    { name: config.JOBNAMES.SCHEDULE, 'data.product.seller': req.user._id },
+    { name: config.JOBNAMES.SCHEDULE, 'data.product.seller': userId },
     (err, jobs: Array<any>) => {
       if (err) {
-        const e = new APIError('Error getting scheduled listing', 500);
+        const e = new APIError(
+          'Error getting scheduled listing',
+          httpStatus.SERVICE_UNAVAILABLE
+        );
         return next(e);
       }
 

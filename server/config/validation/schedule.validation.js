@@ -14,7 +14,9 @@ validate.options({
 
 export default {
   // GET /api/schedule
-  listSchedule: {},
+  listSchedule: {
+    username: validation.username,
+  },
   // POST /api/schedule
   createSchedule: {
     body: {

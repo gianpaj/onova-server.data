@@ -121,6 +121,7 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   createdAt: Date;
   currency: string;
   description: string;
+  dropId: MongoId;
   likes: Array<MongoId>;
   photoURIs: Array<string>;
   location: {

@@ -213,7 +213,7 @@ async function create(
 
     const data = { ...savedReview.toJSON(), order };
 
-    if (config.env !== 'test') {
+    if (config.env === 'production') {
       Analytics.track({
         userId: req.user._id.toString(),
         event: 'new_review',

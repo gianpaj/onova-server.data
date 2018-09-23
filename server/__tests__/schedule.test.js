@@ -140,10 +140,6 @@ describe('## Schedule APIs', () => {
     });
 
     it('should schedule a listing very soon', done => {
-      let myProductFields = [...productFields, 'comments', 'dropId'];
-      myProductFields = myProductFields.filter(f => f !== 'createdAt');
-      myProductFields = myProductFields.filter(f => f !== 'updatedAt');
-
       product.photos = [pathImage1];
 
       request(app)
@@ -281,7 +277,7 @@ describe('## Schedule APIs', () => {
         .expect(httpStatus.UNAUTHORIZED);
     });
 
-    it('should get user1 scheduled listings', () => {
+    it('should get my scheduled listings', () => {
       return request(app)
         .get('/api/schedule')
         .set('Authorization', jwtToken1)
@@ -290,6 +286,28 @@ describe('## Schedule APIs', () => {
           const firstDrop = body.data[Object.keys(body.data)[0]];
           expect(firstDrop.length).toBe(1);
           expect(firstDrop[0].seller).toBe(user1._id);
+        });
+    });
+
+    it('should get user2 scheduled listings', () => {
+      return request(app)
+        .get(`/api/schedule/?username=${user2.username}`)
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          const firstDrop = body.data[Object.keys(body.data)[0]];
+          expect(firstDrop.length).toBe(1);
+          expect(firstDrop[0].seller).toBe(user2._id);
+        });
+    });
+
+    it("should get NOT non-existant user's scheduled listings", () => {
+      return request(app)
+        .get('/api/schedule/?username=IDONTEXIST')
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.NOT_FOUND)
+        .then(({ body }) => {
+          expect(body.message).toBe('User not found');
         });
     });
 
