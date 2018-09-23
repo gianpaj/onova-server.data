@@ -49,6 +49,6 @@ export default {
   shortid,
   username: Joi.string()
     .regex(username)
-    .min(0)
+    .min(3)
     .max(30),
 };
