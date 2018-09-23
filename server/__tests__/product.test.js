@@ -299,11 +299,14 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const p = res.body.data;
+          expect(Object.keys(p).sort()).toMatchSnapshot('product');
           expect(p.description).toBe(product.description);
           // flow-disable-next-line
           expect(p.seller._id).toBe(user._id);
           expect(p.seller.username).toBe(user.username);
-          expect(Object.keys(p.seller).sort()).toMatchSnapshot();
+          expect(Object.keys(p.seller).sort()).toMatchSnapshot(
+            'product.seller'
+          );
           expect(p.seller.profilePic).toContain(
             'http://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
           );
