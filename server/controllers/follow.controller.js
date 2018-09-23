@@ -81,7 +81,7 @@ async function follow(
     return next(APIerr);
   }
 
-  const blocking = await Block.count({
+  const blocking = await Block.countDocuments({
     $or: [
       { sourceUser: req.user._id, targetUser: targetUserId },
       { sourceUser: targetUserId, targetUser: req.user._id },
