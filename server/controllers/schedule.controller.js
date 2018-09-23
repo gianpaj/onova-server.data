@@ -233,8 +233,26 @@ async function list(
     }
   }
 
+  const now = new Date();
+
   agenda.jobs(
-    { name: config.JOBNAMES.SCHEDULE, 'data.product.seller': userId },
+    {
+      name: config.JOBNAMES.SCHEDULE,
+      'data.product.seller': userId,
+      $or: [
+        // scheduled
+        {
+          nextRunAt: { $gte: now },
+        },
+        // queued
+        {
+          nextRunAt: { $lte: now },
+          $expr: {
+            $gte: ['$nextRunAt', '$lastFinishedAt'],
+          },
+        },
+      ],
+    },
     (err, jobs: Array<any>) => {
       if (err) {
         const e = new APIError(
