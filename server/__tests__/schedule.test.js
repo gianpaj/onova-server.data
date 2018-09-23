@@ -311,7 +311,7 @@ describe('## Schedule APIs', () => {
         });
     });
 
-    it('should get no scheduled listings', () => {
+    it('should get 0 scheduled listings', () => {
       return request(app)
         .get('/api/schedule')
         .set('Authorization', jwtToken3)
