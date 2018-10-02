@@ -76,7 +76,7 @@
     "eslint-plugin-import": "^2.14.0",
     "eslint-plugin-prettier": "^2.6.2",
     "eslint-watch": "^4.0.2",
-    "flow-bin": "0.75.0",
+    "flow-bin": "0.82.0",
     "jest": "^23.5.0",
     "nodemon": "^1.18.4",
     "prettier": "^1.14.2",
