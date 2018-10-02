@@ -166,7 +166,7 @@ function create(
  * @property {string} req.query.status
  * @property {string=} req.query.paymentMethod
  */
-function update(
+async function update(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -178,68 +178,71 @@ function update(
 
   const foundOrder = req.order;
 
-  // can go only from either 'paid' or 'pending' -> 'cancelled'
-  if (
-    ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-    newStatus == 'cancelled'
-  ) {
-    throw new APIError(
-      'cannot cancel an order that has been shipped or completed',
-      httpStatus.BAD_REQUEST
-    );
-  }
-
-  if (foundOrder.status == 'cancelled') {
-    throw new APIError(
-      'cannot change the status of an order once is cancelled',
-      httpStatus.BAD_REQUEST
-    );
-  }
-
-  if (newStatus && archive) {
-    throw new APIError(
-      'cannot change the status and archive at the same time',
-      httpStatus.BAD_REQUEST
-    );
-  }
-
-  if (archive) {
-    if (iAmTheSeller) {
-      foundOrder.archivedBySeller = true;
-    } else {
-      foundOrder.archivedByBuyer = true;
-    }
-  }
-
-  // // can go only from either 'paid' or 'shipped' -> 'completed'
-  // if (foundOrder.status == 'pending' && newStatus == 'completed') {
-  //   throw new APIError('cannot complete an order that is pending', 400);
-  // }
-
-  // TODO: move this to a function that changes the state and keeps a transition log
-  // // can go only from either 'pending' -> 'paid'
-  // if (
-  //   ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-  //   newStatus == 'paid'
-  // ) {
-  //   throw new APIError(
-  //     'cannot set an order status to paid if its not pending first',
-  //     400
-  //   );
-  // }
-
-  if (newStatus == 'confirmed') {
-    // only the seller can confirm the order
-    if (!iAmTheSeller) {
-      const err = new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
-      return next(err);
+  try {
+    // can go only from either 'paid' or 'pending' -> 'cancelled'
+    if (
+      ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
+      newStatus == 'cancelled'
+    ) {
+      throw new APIError(
+        'cannot cancel an order that has been shipped or completed',
+        httpStatus.BAD_REQUEST
+      );
     }
 
-    foundOrder.dateConfirmed = new Date();
+    if (foundOrder.status == 'cancelled') {
+      throw new APIError(
+        'cannot change the status of an order once is cancelled',
+        httpStatus.BAD_REQUEST
+      );
+    }
+
+    if (newStatus && archive) {
+      throw new APIError(
+        'cannot change the status and archive at the same time',
+        httpStatus.BAD_REQUEST
+      );
+    }
+
+    if (archive) {
+      if (iAmTheSeller) {
+        foundOrder.archivedBySeller = true;
+      } else {
+        foundOrder.archivedByBuyer = true;
+      }
+    }
+
+    // // can go only from either 'paid' or 'shipped' -> 'completed'
+    // if (foundOrder.status == 'pending' && newStatus == 'completed') {
+    //   throw new APIError('cannot complete an order that is pending', 400);
+    // }
+
+    // TODO: move this to a function that changes the state and keeps a transition log
+    // // can go only from either 'pending' -> 'paid'
+    // if (
+    //   ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
+    //   newStatus == 'paid'
+    // ) {
+    //   throw new APIError(
+    //     'cannot set an order status to paid if its not pending first',
+    //     400
+    //   );
+    // }
+
+    if (newStatus == 'confirmed') {
+      // only the seller can confirm the order
+      if (!iAmTheSeller) {
+        throw new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
+      }
+
+      foundOrder.dateConfirmed = new Date();
+    }
+  } catch (err) {
+    return next(err);
   }
 
   if (newStatus == 'cancelled') {
-    // required the seller to enter a reason
+    // the seller is required to enter a reason
     if (!reason && iAmTheSeller) {
       const err = new APIError('"reason" is required', httpStatus.BAD_REQUEST);
       return next(err);
@@ -248,6 +251,8 @@ function update(
       foundOrder.reason = reason;
     }
     foundOrder.dateCancelled = new Date();
+
+    await Product.updateOne({ _id: foundOrder.product }, { status: 'forsale' });
   }
 
   foundOrder.status = newStatus ? newStatus : foundOrder.status;
