@@ -88,6 +88,23 @@ function create(
         throw new APIError('Product not found', 404);
       }
 
+      if (req.user._id.toString() === product.seller._id.toString()) {
+        throw new APIError(
+          'You cannot buy your own items',
+          httpStatus.BAD_REQUEST
+        );
+      }
+
+      const order = await Order.findOne({
+        buyer: req.user._id,
+        product: product._id,
+      });
+      if (order) {
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: 'Duplicate order', data: order });
+      }
+
       const blocking = await Block.countDocuments({
         $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
       });
@@ -102,13 +119,6 @@ function create(
       return product;
     })
     .then(product => {
-      if (req.user._id.toString() === product.seller._id.toString()) {
-        throw new APIError(
-          'You cannot buy your own items',
-          httpStatus.BAD_REQUEST
-        );
-      }
-
       const pPrice = product.price.toString();
       const onovaFee = (parseFloat(pPrice) * ONOVA_RATE).toString();
 
@@ -123,28 +133,13 @@ function create(
         // status // 'pending' by default
       });
 
+      product.status = 'reserved';
+      product.save();
       return order.save();
     })
-    .then(savedOrder => {
-      // const notif: NotifPayload = {
-      //   notifI18n: i18n.newOrder,
-      //   targetUser: foundProduct.seller._id,
-      //   triggeredBy: savedOrder._id,
-      //   triggeredType: 'Order',
-      // };
-
-      // Notification is sent to seller only after payment is completed
-      // notifCtrl
-      //   .createNotification(notif)
-      //   .then(() => {
-      //     debug('newOrder notification created');
-      //   })
-      //   .catch(err => {
-      //     console.error(err);
-      //   });
-
-      return res.status(httpStatus.CREATED).json({ data: savedOrder });
-    })
+    .then(savedOrder =>
+      res.status(httpStatus.CREATED).json({ data: savedOrder })
+    )
     .catch(e => {
       if (e.message == 'Duplicate order') {
         Order.findOne({ buyer: req.user._id, product: foundProduct._id }).then(
