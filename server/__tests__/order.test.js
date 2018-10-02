@@ -210,20 +210,16 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should allow another buyer to order for the same product', () => {
+    it('should NOT allow another buyer to order for the same product', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', forthJwtToken)
-        .send({ product: thirdProductUuid })
-        .expect(httpStatus.CREATED)
+        .send({ product: anotherUserProductCUuid })
+        .expect(httpStatus.BAD_REQUEST)
         .then(res => {
-          const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
-          expect(o.status).toBe('pending');
-          expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((thirdProduct.price * 1).toString());
-          expect(o.priceOfItem).toBe(thirdProduct.price);
-          expect(o.transactionStatus).toBe('pl-pending');
+          expect(res.body.message).toBe(
+            'This product is not longer for sale or is reserved.'
+          );
         });
     });
 
