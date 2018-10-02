@@ -314,9 +314,11 @@ function createOrderNotification(order: OrderDoc) {
   };
   switch (order.status) {
     case 'confirmed':
+      // seller can ship item.
       // TODO: send 2 notifications
       return Promise.resolve();
     case 'paid':
+      // seller needs to confirm order after receiving a notification and opening the 'confirmOrder' screen on mobile app
       // TODO: test
       notif = {
         ...notif,
@@ -326,8 +328,8 @@ function createOrderNotification(order: OrderDoc) {
       };
 
       return notifCtrl.createNotification(notif);
-      break;
     case 'shipped':
+      // notify the buyer
       // TODO: test
       notif = {
         ...notif,
@@ -337,7 +339,6 @@ function createOrderNotification(order: OrderDoc) {
       };
 
       return notifCtrl.createNotification(notif);
-      break;
     case 'cancelled':
       // cancelled by seller. there is no notification if the buyer cancels
       notif = {
@@ -348,7 +349,6 @@ function createOrderNotification(order: OrderDoc) {
       };
 
       return notifCtrl.createNotification(notif);
-      break;
   }
 }
 

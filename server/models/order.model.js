@@ -81,32 +81,30 @@ var OrderSchema = new Schema({
       // Unpaid - Customer started the checkout process. Payment is not completed.
       'pending',
 
-      // NOT ACTIVE - Seller confirmed and awaits buyer to pay – Product status is now 'reserved'. All other orders for the same item are cancelled. (Do need to send a reason, now?)
-      // 'onhold',
-
+      // Buyer pays and waiting for seller to confirm – Product status is now 'reserved'
       'paid',
 
-      // # 1 Step in UI - Product is ready for shipment. Tracking number is generated automatically
+      // Product is ready for shipment. Tracking number is generated automatically
       'confirmed',
 
-      // [Only by Shipping Provider] (i.e. NovaPohsta) - # 2 Step in UI
+      // [Only by Shipping Provider] (i.e. NovaPohsta)
       'shipped',
 
-      // Seller cancels order. Requires reason.
+      // Seller cancels order (doesn't confirm). Requires reason.
       // or
-      // Buyer cancels order.
+      // Buyer cancels order (or doesn't pay in 15 mins). Reason if internal process (payment denied/timeout)
       'cancelled',
 
-      // [Only by Shipping Provider] - # 3 Step in UI
+      // [Only by Shipping Provider]
       'delivered',
 
-      // [Only by Shipping Provider]. Item has been collected - # 4 Step in UI
+      // [Only by Shipping Provider]. Item has been collected
       'completed',
 
-      // Buyer fails to collect, refuses the item (not as described), or fails to pay [by Payment or Shipping Provider]
+      // Buyer fails to collect or refuses the item (not as described)
       'failed_by_buyer',
 
-      // Seller fails to ship or fails to confirm [by Payment or Shipping Provider]
+      // Seller fails to ship
       'failed_by_seller',
 
       // TODO: the holdProductFor or orderPendingFor windows expired without a response

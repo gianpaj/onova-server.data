@@ -113,9 +113,9 @@ const UserSchema = new Schema(
     paymentInfo: {
       paymentMethod: {
         type: String,
-        enum: ['paypal', 'c2c'],
+        enum: ['paypal', 'uapay'],
       },
-      third_party_token: String,
+      card_token: String,
       // temp
       last_four: String,
       exp_month: String,
