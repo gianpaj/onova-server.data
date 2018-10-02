@@ -671,12 +671,14 @@ describe('## Order APIs', () => {
     };
     let orderPOST3;
     let orderPOST4;
+    let orderPOST3ProdUUID;
 
     beforeAll(done => {
       let Promises = [];
 
       Promises.push(
         createProduct(productPOST2, firstUserJwtToken).then(product => {
+          orderPOST3ProdUUID = product.uuid;
           return request(app)
             .post('/api/orders')
             .set('Authorization', anotherJwtToken)
@@ -711,8 +713,15 @@ describe('## Order APIs', () => {
       });
     });
 
-    it('should allow the buyer set an order status to `cancelled`', () => {
-      return request(app)
+    it('should allow the buyer set an order status to `cancelled`', async () => {
+      await request(app)
+        .get(`/api/products/${orderPOST3ProdUUID}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(p.status).toBe('reserved');
+        });
+      await request(app)
         .put(`/api/orders/${orderPOST3}`)
         .set('Authorization', anotherJwtToken)
         .send({ status: 'cancelled' })
@@ -724,6 +733,25 @@ describe('## Order APIs', () => {
           );
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
+        });
+      await request(app)
+        .get(`/api/products/${orderPOST3ProdUUID}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(p.status).toBe('forsale');
+        });
+    });
+
+    it('should allow another buyer to create an order for the same product', () => {
+      return request(app)
+        .post(`/api/orders`)
+        .set('Authorization', forthJwtToken)
+        .send({ product: orderPOST3ProdUUID })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.buyer).toBe(forthUser._id);
         });
     });
 
