@@ -17,7 +17,7 @@ import {
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
 
-  let user = {
+  let firstUser = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     mobileNumber: '1234567890', // optional
@@ -47,7 +47,7 @@ describe('## Order APIs', () => {
     password: 'expressos4',
   };
 
-  let product = {
+  let productA = {
     categoryIds: [1, 2, 3],
     typeIds: [1, 2, 3],
     tags: ['winter', 'spring2007'], // optional
@@ -59,7 +59,7 @@ describe('## Order APIs', () => {
     ],
   };
 
-  let anotherProduct = {
+  let productB = {
     categoryIds: [3],
     typeIds: [1, 3],
     tags: ['summer'],
@@ -70,7 +70,7 @@ describe('## Order APIs', () => {
     ],
   };
 
-  let thirdProduct = {
+  let productC = {
     categoryIds: [2],
     typeIds: [2, 3],
     description: 'nice shorts',
@@ -80,26 +80,31 @@ describe('## Order APIs', () => {
     ],
   };
 
-  let productUuid;
-  let anotherProductUuid;
-  let thirdProductUuid;
-  let jwtToken;
+  let firstUserProductAUuid;
+  let firstUserProductBUuid2;
+  let anotherUserProductCUuid;
+  let firstUserJwtToken;
   let anotherJwtToken;
   let nonActiveUserJwtToken;
   let forthJwtToken;
+  let ordersByfirstUser = 0;
+  let ordersTofirstUser = 0;
+  let ordersByAnotherUser = 0;
+  let ordersToAnotherUser = 0;
 
   // create 3 users. 1 not activated
   beforeAll(done => {
     // @TODO: use Promise.all().then(() => done());
-    createUserAndLogin(user)
+    // $FlowFixMe
+    createUserAndLogin(firstUser)
       .then(({ user: resUser, jwtToken: token }) => {
-        user._id = resUser._id;
-        jwtToken = token;
+        firstUser._id = resUser._id;
+        firstUserJwtToken = token;
       })
       .then(() => {
         return request(app)
-          .put(`/api/users/${user._id}`)
-          .set('Authorization', jwtToken)
+          .put(`/api/users/${firstUser._id}`)
+          .set('Authorization', firstUserJwtToken)
           .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
           .expect(httpStatus.OK);
       })
@@ -107,20 +112,17 @@ describe('## Order APIs', () => {
         return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
       })
       .then(() => {
-        return createUserAndLogin(anotherUser).then(
-          ({ user: resUser, jwtToken: token }) => {
-            anotherUser._id = resUser._id;
-            anotherJwtToken = token;
-          }
-        );
+        // $FlowFixMe
+        return createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
+          anotherUser._id = user._id;
+          anotherJwtToken = jwtToken;
+        });
       })
       .then(() => {
-        return createUserAndLogin(forthUser).then(
-          ({ user: resUser, jwtToken: token }) => {
-            forthUser._id = resUser._id;
-            forthJwtToken = token;
-          }
-        );
+        return createUserAndLogin(forthUser).then(({ user, jwtToken }) => {
+          forthUser._id = user._id;
+          forthJwtToken = jwtToken;
+        });
       })
       .then(() => {
         return request(app)
@@ -135,21 +137,9 @@ describe('## Order APIs', () => {
             expect(resUser.accountStatus).toBe('notverified');
             expect(resUser).not.toHaveProperty('password');
             expect(typeof res.body.token).toBe('string');
+            nonActiveUserJwtToken = res.body.token;
             // flow-disable-next-line
             nonActiveUser._id = resUser._id;
-          });
-      })
-      .then(() => {
-        return request(app)
-          .post('/api/auth/login')
-          .send({
-            emailAddress: nonActiveUser.emailAddress,
-            password: nonActiveUser.password,
-          })
-          .expect(httpStatus.OK)
-          .then(res => {
-            expect(res.body).toHaveProperty('token');
-            nonActiveUserJwtToken = res.body.token;
             done();
           });
       });
@@ -159,26 +149,27 @@ describe('## Order APIs', () => {
   beforeAll(done => {
     let Promises = [];
     Promises.push(
-      createProduct(product, jwtToken).then(p => {
-        productUuid = p.uuid;
+      createProduct(productA, firstUserJwtToken).then(p => {
+        firstUserProductAUuid = p.uuid;
       })
     );
     Promises.push(
-      createProduct(thirdProduct, anotherJwtToken).then(p => {
-        thirdProductUuid = p.uuid;
+      createProduct(productC, anotherJwtToken).then(p => {
+        anotherUserProductCUuid = p.uuid;
       })
     );
 
     // create product and delete it
     Promises.push(
-      createProduct(anotherProduct, jwtToken).then(p => {
-        anotherProductUuid = p.uuid;
+      createProduct(productB, firstUserJwtToken).then(p => {
+        firstUserProductBUuid2 = p.uuid;
         return request(app)
-          .delete(`/api/products/${anotherProductUuid}`)
-          .set('Authorization', jwtToken)
+          .delete(`/api/products/${firstUserProductBUuid2}`)
+          .set('Authorization', firstUserJwtToken)
           .expect(httpStatus.NO_CONTENT)
           .then(res => {
             expect(res.body).toMatchObject({});
+            ordersByfirstUser++;
           });
       })
     );
@@ -192,25 +183,26 @@ describe('## Order APIs', () => {
     it('should create an order', () => {
       return request(app)
         .post('/api/orders')
-        .set('Authorization', jwtToken)
-        .send({ product: thirdProductUuid })
+        .set('Authorization', firstUserJwtToken)
+        .send({ product: anotherUserProductCUuid })
         .expect(httpStatus.CREATED)
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(orderFields.sort());
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((thirdProduct.price * 1).toString());
-          expect(o.priceOfItem).toBe(thirdProduct.price);
+          expect(o.onovaFee).toBe((productC.price * 1).toString());
+          expect(o.priceOfItem).toBe(productC.price);
           expect(o.transactionStatus).toBe('pl-pending');
+          ordersToAnotherUser++;
         });
     });
 
     it('should NOT create a duplicate order for the same product and buyer', () => {
       return request(app)
         .post('/api/orders')
-        .set('Authorization', jwtToken)
-        .send({ product: thirdProductUuid })
+        .set('Authorization', firstUserJwtToken)
+        .send({ product: anotherUserProductCUuid })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.data).toHaveProperty('id');
@@ -238,7 +230,7 @@ describe('## Order APIs', () => {
     it('should NOT create an order with an invalid product', () => {
       return request(app)
         .post('/api/orders')
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ product: '5a7ae9c687bc431aba38f9daz' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -249,7 +241,7 @@ describe('## Order APIs', () => {
     it('should NOT create an order if the product does not exist', () => {
       return request(app)
         .post('/api/orders')
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ product: 'ABCxsPOL7G' })
         .expect(httpStatus.NOT_FOUND)
         .then(res => {
@@ -260,8 +252,8 @@ describe('## Order APIs', () => {
     it('should NOT create an order if the product is not for sale', () => {
       return request(app)
         .post('/api/orders')
-        .set('Authorization', jwtToken)
-        .send({ product: anotherProductUuid })
+        .set('Authorization', anotherJwtToken)
+        .send({ product: firstUserProductBUuid2 })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
@@ -274,7 +266,7 @@ describe('## Order APIs', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', nonActiveUserJwtToken)
-        .send({ product: productUuid })
+        .send({ product: firstUserProductAUuid })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
@@ -286,8 +278,8 @@ describe('## Order APIs', () => {
     it('should NOT create an order to my own product', () => {
       return request(app)
         .post('/api/orders')
-        .set('Authorization', jwtToken)
-        .send({ product: productUuid })
+        .set('Authorization', firstUserJwtToken)
+        .send({ product: firstUserProductAUuid })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe('You cannot buy your own items');
@@ -323,7 +315,7 @@ describe('## Order APIs', () => {
         createProduct(productGET1OfAnother, anotherJwtToken).then(product => {
           return request(app)
             .post('/api/orders')
-            .set('Authorization', jwtToken)
+            .set('Authorization', firstUserJwtToken)
             .send({ product: product.uuid })
             .expect(httpStatus.CREATED)
             .then(res => {
@@ -333,12 +325,14 @@ describe('## Order APIs', () => {
               );
               expect(o.priceOfItem).toBe(productGET1OfAnother.price);
               orderGET1 = o.id;
+              ordersByfirstUser++;
+              ordersToAnotherUser++;
             });
         })
       );
 
       Promises.push(
-        createProduct(productGET2, jwtToken).then(product => {
+        createProduct(productGET2, firstUserJwtToken).then(product => {
           return request(app)
             .post('/api/orders')
             .set('Authorization', anotherJwtToken)
@@ -349,6 +343,8 @@ describe('## Order APIs', () => {
               expect(o.onovaFee).toBe((productGET2.price * 1).toString());
               expect(o.priceOfItem).toBe(productGET2.price);
               // orderGET2 = o.id;
+              ordersByAnotherUser++;
+              ordersTofirstUser++;
             });
         })
       );
@@ -364,7 +360,7 @@ describe('## Order APIs', () => {
     it('should get my order', () => {
       return request(app)
         .get(`/api/orders/${orderGET1}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
@@ -409,12 +405,12 @@ describe('## Order APIs', () => {
     it('should get my orders (as seller and buyer)', () => {
       return request(app)
         .get('/api/orders')
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(o.length).toBe(3); // FIXME: use variables
+          expect(o.length).toBe(ordersByfirstUser + ordersTofirstUser);
           expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
           expect(Object.keys(o[0].buyer).sort()).toEqual(
             ['_id', 'accountStatus', 'profilePic', 'username'].sort()
@@ -435,19 +431,7 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Array.isArray(o));
           expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
-          expect(o.length).toBe(4); // FIXME: use counters
-        });
-    });
-
-    it('should get my orders', () => {
-      return request(app)
-        .get('/api/orders')
-        .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.OK)
-        .then(res => {
-          const o = res.body.data;
-          expect(Array.isArray(o));
-          expect(o.length).toBe(4); // FIXME: use counters
+          expect(o.length).toBe(ordersByAnotherUser + ordersToAnotherUser);
         });
     });
   });
@@ -480,7 +464,7 @@ describe('## Order APIs', () => {
         createProduct(productPOST1, anotherJwtToken).then(product => {
           return request(app)
             .post('/api/orders')
-            .set('Authorization', jwtToken)
+            .set('Authorization', firstUserJwtToken)
             .send({ product: product.uuid })
             .expect(httpStatus.CREATED)
             .then(res => {
@@ -493,7 +477,7 @@ describe('## Order APIs', () => {
       );
 
       Promises.push(
-        createProduct(productPOST2, jwtToken).then(product => {
+        createProduct(productPOST2, firstUserJwtToken).then(product => {
           return request(app)
             .post('/api/orders')
             .set('Authorization', anotherJwtToken)
@@ -528,7 +512,7 @@ describe('## Order APIs', () => {
     it('should NOT cancel an invalid order', () => {
       return request(app)
         .put('/api/orders/BJCxsPOLGBJCxsPOLG')
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ status: 'cancelled' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -540,7 +524,7 @@ describe('## Order APIs', () => {
     it('should NOT set an order status to `shipped`', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ status: 'shipped' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -554,7 +538,7 @@ describe('## Order APIs', () => {
     it('should NOT allow the seller to cancel the order without a reason', () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ status: 'cancelled' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -566,7 +550,7 @@ describe('## Order APIs', () => {
     it('should allow the seller to cancel the order', () => {
       return request(app)
         .put(`/api/orders/${orderPOST2}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ status: 'cancelled', reason: 'it`s already sold' })
         .expect(httpStatus.OK)
         .then(res => {
@@ -597,7 +581,7 @@ describe('## Order APIs', () => {
     it('should NOT set an order to an invalid status', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ status: 'paidz' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -611,7 +595,7 @@ describe('## Order APIs', () => {
     it('should change the paymentMethod to `paypal`', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ paymentMethod: 'paypal' })
         .expect(httpStatus.OK)
         .then(res => {
@@ -628,7 +612,7 @@ describe('## Order APIs', () => {
     it('should NOT change the paymentMethod if invalid', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ paymentMethod: 'paypalz' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -642,7 +626,7 @@ describe('## Order APIs', () => {
     it('should NOT archive an order and change status', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ archive: true, status: 'cancelled' })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -655,7 +639,7 @@ describe('## Order APIs', () => {
     it('should archive an order (as buyer)', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ archive: true })
         .expect(httpStatus.OK)
         .then(res => {
@@ -696,7 +680,7 @@ describe('## Order APIs', () => {
       let Promises = [];
 
       Promises.push(
-        createProduct(productPOST2, jwtToken).then(product => {
+        createProduct(productPOST2, firstUserJwtToken).then(product => {
           return request(app)
             .post('/api/orders')
             .set('Authorization', anotherJwtToken)
@@ -711,7 +695,7 @@ describe('## Order APIs', () => {
         })
       );
       Promises.push(
-        createProduct(productPOST2, jwtToken).then(product => {
+        createProduct(productPOST2, firstUserJwtToken).then(product => {
           return request(app)
             .post('/api/orders')
             .set('Authorization', anotherJwtToken)
@@ -762,7 +746,7 @@ describe('## Order APIs', () => {
     it('should allow the seller set an order status to `confirmed` (confirm)', () => {
       return request(app)
         .put(`/api/orders/${orderPOST4}`)
-        .set('Authorization', jwtToken)
+        .set('Authorization', firstUserJwtToken)
         .send({ status: 'confirmed' })
         .expect(httpStatus.OK)
         .then(res => {
