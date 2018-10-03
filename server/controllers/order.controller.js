@@ -38,7 +38,7 @@ function load(
   // use static method from OrderSchema
   // flow-disable-next-line
   Order.get(id)
-    .then(async (order: OrderDoc) => {
+    .then((order: OrderDoc) => {
       req.order = order;
       return next();
     })
@@ -118,7 +118,7 @@ function create(
       foundProduct = product;
       return product;
     })
-    .then(product => {
+    .then(async product => {
       const pPrice = product.price.toString();
       const onovaFee = (parseFloat(pPrice) * ONOVA_RATE).toString();
 
@@ -133,8 +133,7 @@ function create(
         // status // 'pending' by default
       });
 
-      product.status = 'reserved';
-      product.save();
+      await addProductToCheckout(product);
       return order.save();
     })
     .then(savedOrder =>
@@ -350,6 +349,13 @@ function createOrderNotification(order: OrderDoc) {
 
       return notifCtrl.createNotification(notif);
   }
+}
+
+function addProductToCheckout(product) {
+  // const doc = new Checkout({ product });
+  // doc.save();
+  product.status = 'reserved';
+  return product.save();
 }
 
 export default {
