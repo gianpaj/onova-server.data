@@ -133,6 +133,12 @@ async function create(
           400
         );
       }
+      if (!seller.shippingAddress.line1 || !seller.shippingAddress.city) {
+        throw new APIError(
+          'Please enter your shipping address info before scheduling a drop',
+          400
+        );
+      }
 
       // if (body.socials.indexOf('fb') > -1 && !seller.facebook) {
       //   throw new APIError('Please authorize with Facebook', 400);
