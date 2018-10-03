@@ -58,7 +58,7 @@ describe('## Schedule APIs', () => {
   let user4: UserDoc = {
     username: 'forthperson',
     emailAddress: 'gianpa+test4@gmail.com',
-    password: 'express5',
+    password: 'express4',
   };
 
   let product = {
