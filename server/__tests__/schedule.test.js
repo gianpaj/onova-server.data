@@ -21,6 +21,15 @@ if (!schedulerIsRunning) {
   console.log('skipping tests with scheduler (server.push)');
 }
 
+const userShippingAddress = {
+  shippingAddress: {
+    line1: '11 Wall Street',
+    line2: '',
+    city: 'New York',
+    state: 'NY',
+  },
+};
+
 describe('## Schedule APIs', () => {
   beforeAll(beforeAllTests);
 
@@ -40,9 +49,16 @@ describe('## Schedule APIs', () => {
 
   // $FlowFixMe
   let user3: UserDoc = {
-    username: 'thirdrperson',
+    username: 'thirdperson',
     emailAddress: 'gianpa+test3@gmail.com',
     password: 'express3',
+  };
+
+  // $FlowFixMe
+  let user4: UserDoc = {
+    username: 'forthperson',
+    emailAddress: 'gianpa+test4@gmail.com',
+    password: 'express5',
   };
 
   let product = {
@@ -53,14 +69,13 @@ describe('## Schedule APIs', () => {
     description: 'nice boots',
     price: '100.99',
     photos: ['http://storage.googleapis.com/1527232263107'],
-    // socials: 'fb',
   };
 
-  let productUuid, jwtToken1, jwtToken2, jwtToken3;
+  let productUuid, jwtToken1, jwtToken2, jwtToken3, jwtToken4;
 
   // let productsCounter = 0;
 
-  // create 3 users/sellers
+  // create 4 users/sellers (2 without shipping address)
   beforeAll(async () => {
     const { user: resUser, jwtToken: token } = await createUserAndLogin(user1);
     user1._id = resUser._id;
@@ -75,10 +90,25 @@ describe('## Schedule APIs', () => {
     );
     user3._id = resUser3._id;
     jwtToken3 = token3;
+    const { user: resUser4, jwtToken: token4 } = await createUserAndLogin(
+      user4
+    );
+    user4._id = resUser4._id;
+    jwtToken4 = token4;
     await request(app)
       .put(`/api/users/${user1._id}`)
       .set('Authorization', jwtToken1)
       .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+      .expect(httpStatus.OK);
+    await request(app)
+      .put(`/api/users/${user1._id}`)
+      .set('Authorization', jwtToken1)
+      .send({ ...userShippingAddress })
+      .expect(httpStatus.OK);
+    await request(app)
+      .put(`/api/users/${user2._id}`)
+      .set('Authorization', jwtToken2)
+      .send({ ...userShippingAddress })
       .expect(httpStatus.OK);
   });
 
@@ -137,6 +167,21 @@ describe('## Schedule APIs', () => {
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
+    });
+
+    it(`should NOT schedule without if seller doesn't have a shippingAddress`, () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken4)
+        .send({
+          ...product,
+          dropId: new BSON.ObjectId(),
+          photos: ['http://asdfasd'],
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Please enter your shipping address')
+        );
     });
 
     it('should schedule a listing very soon', done => {
