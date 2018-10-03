@@ -30,6 +30,21 @@ Array [
 ]
 `;
 
+exports[` 3`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
 exports[`## Product APIs # GET /api/products/ should get all products 1`] = `
 Array [
   "_id",
