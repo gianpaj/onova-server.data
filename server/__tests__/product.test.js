@@ -6,7 +6,6 @@ import path from 'path';
 
 import app from '../index';
 
-import Tag from '../models/tag.model';
 import Product from '../models/product.model';
 import {
   beforeAllTests,
@@ -111,7 +110,6 @@ describe('## Product APIs', () => {
       .set('Authorization', jwtToken1)
       .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
       .expect(httpStatus.OK);
-    await Tag.create([{ _id: 'winter' }, { _id: 'summer' }]);
     const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(
       user2
     );
@@ -132,11 +130,6 @@ describe('## Product APIs', () => {
       .set('Authorization', jwtToken2)
       .send({ ...userShippingAddress })
       .expect(httpStatus.OK);
-    await request(app)
-      .put(`/api/users/${user3._id}`)
-      .set('Authorization', jwtToken3)
-      .send({ ...userShippingAddress })
-      .expect(httpStatus.OK);
   });
 
   describe('# POST /api/products', () => {
@@ -151,16 +144,16 @@ describe('## Product APIs', () => {
         );
     });
 
-    // it(`should NOT create a product without if seller doesn't have a shippingAddress`, () => {
-    //   return request(app)
-    //     .post('/api/products')
-    //     .set('Authorization', jwtToken4)
-    //     .send({ ...product, photos: ['http://asdfasd'] })
-    //     .expect(httpStatus.BAD_REQUEST)
-    //     .then(({ body }) =>
-    //       expect(body.message).toContain('Please enter your shipping address')
-    //     );
-    // });
+    it(`should NOT create a product without if seller doesn't have a shippingAddress`, () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken3)
+        .send(product)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Please enter your shipping address')
+        );
+    });
 
     it('should create a product without coordinates', () => {
       return request(app)

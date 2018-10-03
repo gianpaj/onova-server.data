@@ -168,6 +168,13 @@ async function create(
           400
         );
       }
+      if (!seller.shippingAddress.line1 || !seller.shippingAddress.city) {
+        throw new APIError(
+          'Please enter your shipping address info before listing an item',
+          400
+        );
+      }
+
       product.seller = req.user._id;
 
       const correctPhotos = body.photos.filter(p =>
