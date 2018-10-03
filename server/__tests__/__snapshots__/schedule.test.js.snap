@@ -45,6 +45,21 @@ Array [
 ]
 `;
 
+exports[` 4`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
 exports[`## Schedule APIs # POST /api/schedule should schedule a listing very soon 1`] = `
 Array [
   "data",
