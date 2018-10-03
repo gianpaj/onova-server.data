@@ -7,6 +7,7 @@ import path from 'path';
 import app from '../index';
 
 import Product from '../models/product.model';
+import User from '../models/user.model';
 import {
   beforeAllTests,
   createProduct,
@@ -21,6 +22,11 @@ const userShippingAddress = {
     city: 'New York',
     state: 'NY',
   },
+};
+
+const userPaymentInfo = {
+  paymentMethod: 'uapay',
+  card_token: '***REMOVED***',
 };
 
 describe('## Product APIs', () => {
@@ -45,6 +51,13 @@ describe('## Product APIs', () => {
     username: 'thirdperson',
     emailAddress: 'gianpa+test3@gmail.com',
     password: 'express3',
+  };
+
+  // $FlowFixMe
+  let user4: UserDoc = {
+    username: 'forthperson',
+    emailAddress: 'gianpa+test4@gmail.com',
+    password: 'express4',
   };
 
   let product = {
@@ -92,7 +105,7 @@ describe('## Product APIs', () => {
   };
 
   let productUuid;
-  let jwtToken1, jwtToken2, jwtToken3;
+  let jwtToken1, jwtToken2, jwtToken3, jwtToken4;
   let productUser2Uuid;
   let thirdProdUuid;
   let prodUuidWithLocality;
@@ -120,6 +133,11 @@ describe('## Product APIs', () => {
     );
     user3._id = resUser3._id;
     jwtToken3 = token3;
+    const { user: resUser4, jwtToken: token4 } = await createUserAndLogin(
+      user4
+    );
+    user4._id = resUser4._id;
+    jwtToken4 = token4;
     await request(app)
       .put(`/api/users/${user1._id}`)
       .set('Authorization', jwtToken1)
@@ -130,6 +148,14 @@ describe('## Product APIs', () => {
       .set('Authorization', jwtToken2)
       .send({ ...userShippingAddress })
       .expect(httpStatus.OK);
+    await request(app)
+      .put(`/api/users/${user4._id}`)
+      .set('Authorization', jwtToken4)
+      .send({ ...userShippingAddress })
+      .expect(httpStatus.OK);
+    await User.updateOne({ _id: user1._id }, { paymentInfo: userPaymentInfo });
+    await User.updateOne({ _id: user2._id }, { paymentInfo: userPaymentInfo });
+    await User.updateOne({ _id: user3._id }, { paymentInfo: userPaymentInfo });
   });
 
   describe('# POST /api/products', () => {
@@ -144,7 +170,7 @@ describe('## Product APIs', () => {
         );
     });
 
-    it(`should NOT create a product without if seller doesn't have a shippingAddress`, () => {
+    it(`should NOT create a product without if seller doesn't have a shipping address`, () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken3)
@@ -152,6 +178,17 @@ describe('## Product APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('Please enter your shipping address')
+        );
+    });
+
+    it(`should NOT create a product without if seller doesn't have payment info`, () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken4)
+        .send(product)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Please enter your payment info')
         );
     });
 
