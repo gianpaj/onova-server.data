@@ -111,15 +111,12 @@ const UserSchema = new Schema(
       enum: ['android', 'ios'],
     },
     paymentInfo: {
-      paymentMethod: {
+      method: {
         type: String,
         enum: ['paypal', 'uapay'],
       },
       card_token: String,
-      // temp
       last_four: String,
-      exp_month: String,
-      exp_year: String,
     },
     profilePic: String,
     pushToken: String,
