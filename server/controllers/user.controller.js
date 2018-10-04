@@ -2,6 +2,7 @@
 
 import httpStatus from 'http-status';
 import Chatkit from '@pusher/chatkit-server';
+import bs58 from 'bs58';
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import APIError from '../helpers/APIError';
@@ -238,9 +239,7 @@ function followDefaultUsers(newUser: UserDoc): Promise<null | Error | number> {
  * @property {string=} req.body.tokens
  * @property {string=} req.body.accessToken
  * @property {string=} req.body.username
- * @property {string=} req.body.exp_month
- * @property {string=} req.body.exp_year
- * @property {string=} req.body.last_four
+ * @property {string=} req.body.paymentInfoPayload
  * @property {any=} req.body.shippingAddress
  */
 function update(
@@ -267,10 +266,12 @@ function update(
   }
   if (body.shippingAddress) user.shippingAddress = body.shippingAddress;
 
-  if (body.last_four || body.exp_month || body.exp_year) {
-    user.paymentInfo.last_four = body.last_four;
-    user.paymentInfo.exp_month = body.exp_month;
-    user.paymentInfo.exp_year = body.exp_year;
+  if (body.paymentInfoPayload) {
+    const bytes = bs58.decode(body.paymentInfoPayload);
+    const payload = JSON.parse(bytes.toString());
+    user.paymentInfo.last_four = payload.panMasked.slice(-4);
+    user.paymentInfo.card_token = payload.id;
+    user.paymentInfo.method = 'uapay';
   }
 
   let Promises = [];
