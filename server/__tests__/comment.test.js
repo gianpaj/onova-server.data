@@ -165,7 +165,7 @@ describe('## Comment APIs', () => {
 
   describe('# POST /api/products/:uuid/comment', () => {
     beforeAll(done => {
-      Product.collection.update({}, { $unset: { comments: '' } }, () => {
+      Product.collection.updateMany({}, { $unset: { comments: '' } }, () => {
         done();
       });
     });
@@ -309,7 +309,7 @@ describe('## Comment APIs', () => {
     let commentIdFirst;
 
     beforeAll(done => {
-      Product.collection.update({}, { $unset: { comments: '' } }, () => {
+      Product.collection.updateMany({}, { $unset: { comments: '' } }, () => {
         done();
       });
     });
@@ -358,7 +358,7 @@ describe('## Comment APIs', () => {
     let commentIdReply;
 
     beforeAll(done => {
-      Product.collection.update({}, { $unset: { comments: '' } }, () => {
+      Product.collection.updateMany({}, { $unset: { comments: '' } }, () => {
         done();
       });
     });
