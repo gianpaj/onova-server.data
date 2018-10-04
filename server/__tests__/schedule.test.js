@@ -10,7 +10,8 @@ import app from '../index';
 import { agenda } from '../config/express';
 
 import Product from '../models/product.model';
-import { createUserAndLogin, productFields, beforeAllTests } from './utils';
+import User from '../models/user.model';
+import { createUserAndLogin, beforeAllTests } from './utils';
 
 jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
 
@@ -28,6 +29,11 @@ const userShippingAddress = {
     city: 'New York',
     state: 'NY',
   },
+};
+
+const userPaymentInfo = {
+  paymentMethod: 'uapay',
+  card_token: '***REMOVED***',
 };
 
 describe('## Schedule APIs', () => {
@@ -110,6 +116,14 @@ describe('## Schedule APIs', () => {
       .set('Authorization', jwtToken2)
       .send({ ...userShippingAddress })
       .expect(httpStatus.OK);
+    await request(app)
+      .put(`/api/users/${user4._id}`)
+      .set('Authorization', jwtToken4)
+      .send({ ...userShippingAddress })
+      .expect(httpStatus.OK);
+    await User.updateOne({ _id: user1._id }, { paymentInfo: userPaymentInfo });
+    await User.updateOne({ _id: user2._id }, { paymentInfo: userPaymentInfo });
+    await User.updateOne({ _id: user3._id }, { paymentInfo: userPaymentInfo });
   });
 
   // describe('# POST /api/schedule', () => {
@@ -126,7 +140,6 @@ describe('## Schedule APIs', () => {
   // });
 
   describe('# POST /api/schedule', () => {
-    let pathImage1;
     beforeAll(async () => {
       // update Facebook Token
       // await request(app)
@@ -152,7 +165,7 @@ describe('## Schedule APIs', () => {
           expect(data).toContain(
             'https://storage.googleapis.com/temp-uploads.onova.co/'
           );
-          pathImage1 = data;
+          product.photos = [data];
         });
     });
 
@@ -169,24 +182,29 @@ describe('## Schedule APIs', () => {
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
     });
 
-    it(`should NOT schedule without if seller doesn't have a shippingAddress`, () => {
+    it(`should NOT schedule without if seller doesn't have a shipping address`, () => {
       return request(app)
         .post('/api/schedule')
-        .set('Authorization', jwtToken4)
-        .send({
-          ...product,
-          dropId: new BSON.ObjectId(),
-          photos: ['http://asdfasd'],
-        })
+        .set('Authorization', jwtToken3)
+        .send({ ...product, dropId: new BSON.ObjectId() })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('Please enter your shipping address')
         );
     });
 
-    it('should schedule a listing very soon', done => {
-      product.photos = [pathImage1];
+    it(`should NOT schedule without if seller doesn't have payment info`, () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken4)
+        .send({ ...product, dropId: new BSON.ObjectId() })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Please enter your payment info')
+        );
+    });
 
+    it('should schedule a listing very soon', done => {
       request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
