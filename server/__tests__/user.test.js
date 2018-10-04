@@ -535,6 +535,18 @@ describe('## User APIs', () => {
         });
     });
 
+    it('should update the Card token and masked card number (in base58)', () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ ...userPaymentInfo })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(typeof body.paymentInfo.last_four).toBe('string');
+          expect(typeof body.paymentInfo.card_token).toBe('string');
+          expect(body.paymentInfo.method).toBe('uapay');
+        });
+    });
   });
 
   describe('# GET /api/users/', () => {
