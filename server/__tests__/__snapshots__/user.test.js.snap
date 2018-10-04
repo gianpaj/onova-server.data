@@ -1,6 +1,6 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[`## User APIs # Create and verify email address # POST /api/users - should create a new user 1`] = `
+exports[`## User APIs # Create user and verify email address # POST /api/users -  should create a new user 1`] = `
 Array [
   "_id",
   "accountStatus",
@@ -15,7 +15,7 @@ Array [
 ]
 `;
 
-exports[`## User APIs # Create and verify email address # POST /api/users - should create a new user without mobile num 1`] = `
+exports[`## User APIs # Create user and verify email address # POST /api/users -  should create a new user without mobile num 1`] = `
 Array [
   "_id",
   "accountStatus",
@@ -120,7 +120,15 @@ Array [
 ]
 `;
 
-exports[`## User APIs # GET /api/users/ should get personal info 1`] = `
+exports[`## User APIs # GET /api/users/ should get personal info: paymentInfo 1`] = `
+Array [
+  "card_token",
+  "last_four",
+  "method",
+]
+`;
+
+exports[`## User APIs # GET /api/users/ should get personal info: personal info 1`] = `
 Array [
   "_id",
   "accountStatus",
@@ -155,18 +163,7 @@ Array [
 ]
 `;
 
-exports[`## User APIs # GET /api/users/?u=<username> should get all users which username contains \`johntwo\` 1`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "bio",
-  "displayName",
-  "profilePic",
-  "username",
-]
-`;
-
-exports[`## User APIs # GET /api/users/?u=<username> should not find deleted users 1`] = `
+exports[`## User APIs # GET /api/users/?u=<username> should NOT find deleted users 1`] = `
 Array [
   "_id",
   "accountStatus",
@@ -177,6 +174,17 @@ Array [
   "reviewsCount",
   "sharedCount",
   "tokens",
+  "username",
+]
+`;
+
+exports[`## User APIs # GET /api/users/?u=<username> should get all users which username contains \`johntwo\` 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "bio",
+  "displayName",
+  "profilePic",
   "username",
 ]
 `;
