@@ -61,15 +61,9 @@ export default {
       pushToken: Joi.string(),
       platform: Joi.string().valid(['android', 'ios']),
       // temp - we are not validating month is valid, etc.
-      last_four: Joi.string()
-        .length(4)
-        .regex(/^[0-9]+$/),
-      exp_month: Joi.string()
-        .length(2)
-        .regex(/^[0-9]+$/),
-      exp_year: Joi.string()
-        .length(2)
-        .regex(/^[0-9]+$/),
+      paymentInfoPayload: Joi.string()
+        .min(90)
+        .alphanum(),
       shippingAddress: {
         firstName: Joi.string(),
         lastName: Joi.string(),
