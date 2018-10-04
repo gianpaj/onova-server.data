@@ -139,7 +139,7 @@ async function create(
           400
         );
       }
-      if (!seller.paymentInfo.paymentMethod || !seller.paymentInfo.card_token) {
+      if (!seller.paymentInfo.method || !seller.paymentInfo.card_token) {
         throw new APIError(
           'Please enter your payment info before scheduling a drop',
           400
