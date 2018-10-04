@@ -26,20 +26,6 @@ const reviewFields = [
   'createdAt',
 ];
 
-const userShippingAddress = {
-  shippingAddress: {
-    line1: '11 Wall Street',
-    line2: '',
-    city: 'New York',
-    state: 'NY',
-  },
-};
-
-const userPaymentInfo = {
-  paymentInfoPayload:
-    'QtDZHvcnhTowyjo6xfLCL591hEm3h8QjNspRq7k5n5VhNN3H9waMRRqhK5DVV1hUkKQF5aTn18a9Rjk47eR8trEvWsr7CrofJ',
-};
-
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
 
@@ -135,26 +121,11 @@ describe('## Order APIs', () => {
     );
     user2._id = resUser2._id;
     jwtToken2 = token2;
-    await request(app)
-      .put(`/api/users/${user1._id}`)
-      .set('Authorization', jwtToken1)
-      .send({ ...userPaymentInfo, ...userShippingAddress })
-      .expect(httpStatus.OK);
-    await request(app)
-      .put(`/api/users/${user2._id}`)
-      .set('Authorization', jwtToken2)
-      .send({ ...userPaymentInfo, ...userShippingAddress })
-      .expect(httpStatus.OK);
     const { user: resUser4, jwtToken: token4 } = await createUserAndLogin(
       user4
     );
     user4._id = resUser4._id;
     jwtToken4 = token4;
-    await request(app)
-      .put(`/api/users/${user4._id}`)
-      .set('Authorization', jwtToken4)
-      .send({ ...userPaymentInfo, ...userShippingAddress })
-      .expect(httpStatus.OK);
     const { body } = await request(app)
       .post('/api/users')
       .send(nonActiveUser)
