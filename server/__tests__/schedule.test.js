@@ -32,8 +32,9 @@ const userShippingAddress = {
 };
 
 const userPaymentInfo = {
-  paymentMethod: 'uapay',
+  method: 'uapay',
   card_token: '***REMOVED***',
+  last_four: '1234',
 };
 
 describe('## Schedule APIs', () => {

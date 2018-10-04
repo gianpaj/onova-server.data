@@ -89,7 +89,7 @@ export function createUserAndLogin(
 }
 
 /**
- * Create a product with one image
+ * Create a product
  *
  * @param {ProductDoc} product
  * @param {string} jwToken
@@ -155,7 +155,7 @@ export function createManyComments(
 }
 
 /**
- * Order a product
+ * Order an order
  *
  * @param {ProductDoc} product
  * @param {string} jwtToken
@@ -171,10 +171,17 @@ export function createOrder(
     .send({ product: product.uuid })
     .expect(httpStatus.CREATED)
     .then(res => {
+      if (!res.body.data) {
+        console.error(res.body);
+        throw new Error(res.body);
+      }
       const o = res.body.data;
       expect(o.status).toBe('pending');
       expect(o.priceOfItem).toBe(product.price);
       return o;
+    })
+    .catch(e => {
+      throw e;
     });
 }
 
