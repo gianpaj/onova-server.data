@@ -129,13 +129,19 @@ async function create(
       }
       if (seller.accountStatus !== 'verified') {
         throw new APIError(
-          'Please verify your account before creating a listing',
+          'Please verify your account before scheduling a drop',
           400
         );
       }
       if (!seller.shippingAddress.line1 || !seller.shippingAddress.city) {
         throw new APIError(
           'Please enter your shipping address info before scheduling a drop',
+          400
+        );
+      }
+      if (!seller.paymentInfo.paymentMethod || !seller.paymentInfo.card_token) {
+        throw new APIError(
+          'Please enter your payment info before scheduling a drop',
           400
         );
       }
