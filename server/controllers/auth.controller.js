@@ -222,6 +222,35 @@ function requestPassReset(req, res) {
   });
 }
 
+const JWTsecret = '***REMOVED***'; // TODO: add to .env
+
+/**
+ * GET /api/auth/get-token - (Unprotected route)
+ *
+ * Token to request a card id to UAPAY via webview.
+ * Because it's easier to generate on the server than RN client (no crypto node core module)
+ */
+function getTokenForRequestingCardId(req, res, next) {
+  jwt.sign(
+    {
+      params: {
+        clientId: '742', // TODO: add to .env
+        method: 'createShortCard',
+        enableRedirectResponse: true,
+      },
+    },
+    JWTsecret,
+    (err, jws) => {
+      if (err) {
+        console.log(err);
+        const APIerr = new APIError(err, httpStatus.SERVICE_UNAVAILABLE);
+        return next(APIerr);
+      }
+      res.json({ data: jws });
+    }
+  );
+}
+
 export default {
   login,
   getRandomNumber,
@@ -230,4 +259,5 @@ export default {
   requestPassReset,
   resetPage,
   resetFormSubmit,
+  getTokenForRequestingCardId,
 };

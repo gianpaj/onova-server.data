@@ -848,6 +848,17 @@ describe('## User APIs', () => {
     });
   });
 
+  describe('# GET /api/auth/get-token', () => {
+    it('should get a JWT Token for requesting card id', () => {
+      return request(app)
+        .get('/api/auth/get-token')
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(typeof res.body.data).toBe('string');
+        });
+    });
+  });
+
   describe('Password reset', () => {
     it('# POST /api/auth/reset - should request a password reset via email', () => {
       return request(app)

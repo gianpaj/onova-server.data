@@ -31,6 +31,11 @@ router.route('/login').post(validate(paramValidation.login), authCtrl.login);
 router.route('/random-number').get(requireAuth, authCtrl.getRandomNumber);
 
 /**
+ * GET /api/auth/get-token
+ */
+router.route('/get-token').get(authCtrl.getTokenForRequestingCardId);
+
+/**
  * GET /api/auth/activate/:token
  *
  * Activate user after clicking on email verification link
