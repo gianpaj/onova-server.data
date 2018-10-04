@@ -22,21 +22,6 @@ if (!schedulerIsRunning) {
   console.log('skipping tests with scheduler (server.push)');
 }
 
-const userShippingAddress = {
-  shippingAddress: {
-    line1: '11 Wall Street',
-    line2: '',
-    city: 'New York',
-    state: 'NY',
-  },
-};
-
-const userPaymentInfo = {
-  method: 'uapay',
-  card_token: '***REMOVED***',
-  last_four: '1234',
-};
-
 describe('## Schedule APIs', () => {
   beforeAll(beforeAllTests);
 
@@ -108,23 +93,11 @@ describe('## Schedule APIs', () => {
       .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
       .expect(httpStatus.OK);
     await request(app)
-      .put(`/api/users/${user1._id}`)
-      .set('Authorization', jwtToken1)
-      .send({ ...userShippingAddress })
+      .put(`/api/users/${user3._id}`)
+      .set('Authorization', jwtToken3)
+      .send({ shippingAddress: {} })
       .expect(httpStatus.OK);
-    await request(app)
-      .put(`/api/users/${user2._id}`)
-      .set('Authorization', jwtToken2)
-      .send({ ...userShippingAddress })
-      .expect(httpStatus.OK);
-    await request(app)
-      .put(`/api/users/${user4._id}`)
-      .set('Authorization', jwtToken4)
-      .send({ ...userShippingAddress })
-      .expect(httpStatus.OK);
-    await User.updateOne({ _id: user1._id }, { paymentInfo: userPaymentInfo });
-    await User.updateOne({ _id: user2._id }, { paymentInfo: userPaymentInfo });
-    await User.updateOne({ _id: user3._id }, { paymentInfo: userPaymentInfo });
+    await User.updateOne({ _id: user4._id }, { $unset: { paymentInfo: '' } });
   });
 
   // describe('# POST /api/schedule', () => {

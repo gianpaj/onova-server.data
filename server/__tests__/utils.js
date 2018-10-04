@@ -46,6 +46,20 @@ export const productFields = [
   'uuid',
 ];
 
+const userShippingAddress = {
+  shippingAddress: {
+    line1: '11 Wall Street',
+    line2: '',
+    city: 'New York',
+    state: 'NY',
+  },
+};
+
+const userPaymentInfo = {
+  paymentInfoPayload:
+    'QtDZHvcnhTowyjo6xfLCL591hEm3h8QjNspRq7k5n5VhNN3H9waMRRqhK5DVV1hUkKQF5aTn18a9Rjk47eR8trEvWsr7CrofJ',
+};
+
 /**
  * Create a user and activate it
  */
@@ -56,11 +70,17 @@ export function createUserAndLogin(
     .post('/api/users')
     .send(user)
     .expect(httpStatus.CREATED)
-    .then(({ body }) => {
+    .then(async ({ body }) => {
       if (!body.data) {
         throw new Error(body);
       }
       expect(Object.keys(body.data).sort()).toMatchSnapshot();
+
+      await request(app)
+        .put(`/api/users/${body.data._id}`)
+        .set('Authorization', body.token)
+        .send({ ...userPaymentInfo, ...userShippingAddress })
+        .expect(httpStatus.OK);
 
       return { resUser: body.data, jwtToken: body.token };
     })
