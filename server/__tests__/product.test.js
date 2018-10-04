@@ -15,21 +15,6 @@ import {
   productFields,
 } from './utils';
 
-const userShippingAddress = {
-  shippingAddress: {
-    line1: '11 Wall Street',
-    line2: '',
-    city: 'New York',
-    state: 'NY',
-  },
-};
-
-const userPaymentInfo = {
-  method: 'uapay',
-  card_token: '***REMOVED***',
-  last_four: '1234',
-};
-
 describe('## Product APIs', () => {
   beforeAll(beforeAllTests);
 
@@ -140,23 +125,11 @@ describe('## Product APIs', () => {
     user4._id = resUser4._id;
     jwtToken4 = token4;
     await request(app)
-      .put(`/api/users/${user1._id}`)
-      .set('Authorization', jwtToken1)
-      .send({ ...userShippingAddress })
+      .put(`/api/users/${user3._id}`)
+      .set('Authorization', jwtToken3)
+      .send({ shippingAddress: {} })
       .expect(httpStatus.OK);
-    await request(app)
-      .put(`/api/users/${user2._id}`)
-      .set('Authorization', jwtToken2)
-      .send({ ...userShippingAddress })
-      .expect(httpStatus.OK);
-    await request(app)
-      .put(`/api/users/${user4._id}`)
-      .set('Authorization', jwtToken4)
-      .send({ ...userShippingAddress })
-      .expect(httpStatus.OK);
-    await User.updateOne({ _id: user1._id }, { paymentInfo: userPaymentInfo });
-    await User.updateOne({ _id: user2._id }, { paymentInfo: userPaymentInfo });
-    await User.updateOne({ _id: user3._id }, { paymentInfo: userPaymentInfo });
+    await User.updateOne({ _id: user4._id }, { $unset: { paymentInfo: '' } });
   });
 
   describe('# POST /api/products', () => {
