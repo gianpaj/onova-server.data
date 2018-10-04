@@ -893,55 +893,57 @@ describe('## User APIs', () => {
         });
     });
 
-    it('# POST /api/auth/reset/:token (page) - should reset the user`s password', done => {
-      User.findOne(
-        { emailAddress: anotherUser.emailAddress },
-        (err, existingUser) => {
-          if (err) {
-            return done(err);
+    describe('# POST /api/auth/reset/:token (page)', () => {
+      it('should reset the user`s password', done => {
+        User.findOne(
+          { emailAddress: anotherUser.emailAddress },
+          (err, existingUser) => {
+            if (err) {
+              return done(err);
+            }
+
+            Verification.findOne({ user: existingUser._id }, (err, verDoc) => {
+              if (err) return done(err);
+              if (!verDoc) return done('no verification token found');
+              resetToken = verDoc.resetToken;
+              request(app)
+                .post(`/api/auth/reset/${verDoc.resetToken}`)
+                .send({ password: 'americano', passwordagain: 'americano' })
+                .expect(httpStatus.OK)
+                .then(res => {
+                  expect(res.text).toContain('Your password has been updated');
+                  anotherUser.password = 'americano';
+                  done();
+                })
+                .catch(done);
+            });
           }
+        );
+      });
 
-          Verification.findOne({ user: existingUser._id }, (err, verDoc) => {
-            if (err) return done(err);
-            if (!verDoc) return done('no verification token found');
-            resetToken = verDoc.resetToken;
-            request(app)
-              .post(`/api/auth/reset/${verDoc.resetToken}`)
-              .send({ password: 'americano', passwordagain: 'americano' })
-              .expect(httpStatus.OK)
-              .then(res => {
-                expect(res.text).toContain('Your password has been updated');
-                anotherUser.password = 'americano';
-                done();
-              })
-              .catch(done);
+      it('should NOT reset the user`s password', () => {
+        return request(app)
+          .post(`/api/auth/reset/${resetToken}`)
+          .send({ password: 'americano', passwordagain: 'americano' })
+          .expect(httpStatus.BAD_REQUEST)
+          .then(res => {
+            expect(res.text).toContain(
+              'There was an issue resetting your password'
+            );
           });
-        }
-      );
-    });
+      });
 
-    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', () => {
-      return request(app)
-        .post(`/api/auth/reset/${resetToken}`)
-        .send({ password: 'americano', passwordagain: 'americano' })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.text).toContain(
-            'There was an issue resetting your password'
-          );
-        });
-    });
-
-    it('# POST /api/auth/reset/:token (page) - should not reset the user`s password', () => {
-      return request(app)
-        .post(`/api/auth/reset/12343375d1`)
-        .send({ password: 'americano', passwordagain: 'americano' })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(res => {
-          expect(res.body.message).toBe(
-            '"token" length must be 16 characters long'
-          );
-        });
+      it('should NOT reset the user`s password with an invalid reset token', () => {
+        return request(app)
+          .post(`/api/auth/reset/12343375d1`)
+          .send({ password: 'americano', passwordagain: 'americano' })
+          .expect(httpStatus.BAD_REQUEST)
+          .then(res => {
+            expect(res.body.message).toBe(
+              '"token" length must be 16 characters long'
+            );
+          });
+      });
     });
 
     it('# POST /api/auth/login - should authenticate again', () => {

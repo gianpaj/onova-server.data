@@ -67,8 +67,8 @@ describe('## Block methods', () => {
     },
   ];
 
-  // create 3 users
-  // create 3 products
+  // create 4 users
+  // create 4 products
   beforeAll(async () => {
     try {
       for (let i = 0; i < users.length; i++) {
@@ -86,15 +86,16 @@ describe('## Block methods', () => {
       const p1 = await createProduct(product, jwtToken);
       firstUser.productUuid = p1.uuid;
 
-      // user 0 posts an item
+      // user[0] posts an item
       const p2 = await createProduct(product, users[0].jwtToken);
       users[0].productUuid = p2.uuid;
       users[0].followers = 0;
 
-      // user 1 posts an item
+      // user[1] creates 2 x products
       const p3 = await createProduct(product, users[1].jwtToken);
       users[1].productUuid = p3.uuid;
       users[1].followers = 0;
+      const p4 = await createProduct(product, users[1].jwtToken);
 
       // firstUser -- follows --> user 0
       await request(app)
@@ -138,19 +139,43 @@ describe('## Block methods', () => {
 
       // firstUser -- orders --> product from user 0
       // $FlowFixMe
-      await createOrder({ ...product, uuid: p2.uuid }, firstUser.jwtToken);
+      const o = await createOrder(
+        { ...product, uuid: p2.uuid },
+        firstUser.jwtToken
+      );
+      await request(app)
+        .put(`/api/orders/${o.id}`)
+        .set('Authorization', firstUser.jwtToken)
+        .send({ status: 'cancelled', reason: 'it`s already sold' })
+        .expect(httpStatus.OK);
       // firstUser -- orders --> product from user 1
       // $FlowFixMe
-      await createOrder({ ...product, uuid: p3.uuid }, firstUser.jwtToken);
+      const o2 = await createOrder(
+        { ...product, uuid: p3.uuid },
+        firstUser.jwtToken
+      );
+      await request(app)
+        .put(`/api/orders/${o2.id}`)
+        .set('Authorization', firstUser.jwtToken)
+        .send({ status: 'cancelled', reason: 'it`s already sold' })
+        .expect(httpStatus.OK);
       // user 0 -- orders --> product from user 1
       // $FlowFixMe
-      await createOrder({ ...product, uuid: p3.uuid }, users[0].jwtToken);
+      const o3 = await createOrder(
+        { ...product, uuid: p4.uuid },
+        users[0].jwtToken
+      );
+      await request(app)
+        .put(`/api/orders/${o3.id}`)
+        .set('Authorization', users[0].jwtToken)
+        .send({ status: 'cancelled', reason: 'it`s already sold' })
+        .expect(httpStatus.OK);
     } catch (error) {
       console.error(error);
     }
   });
 
-  // firstUser -- blocks -> user 0
+  // firstUser -- blocks -> user[0]
   it('should block a user', () => {
     return request(app)
       .post('/api/block')
@@ -174,7 +199,7 @@ describe('## Block methods', () => {
       .then(({ body }) => expect(body.message).toBe('Duplicate block'));
   });
 
-  it('it should not unfollow a blocked user', () => {
+  it('should NOT unfollow a blocked user', () => {
     return request(app)
       .post(`/api/users/${firstUser._id.toString()}/unfollow`)
       .set('Authorization', users[0].jwtToken)
@@ -184,7 +209,7 @@ describe('## Block methods', () => {
       );
   });
 
-  it('it should not follow a blocked user', () => {
+  it('should NOT follow a blocked user', () => {
     return request(app)
       .post(`/api/users/${firstUser._id.toString()}/follow`)
       .set('Authorization', users[0].jwtToken)
@@ -218,9 +243,10 @@ describe('## Block methods', () => {
       .set('Authorization', firstUser.jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data).toHaveLength(2);
-        expect(body.data[0].uuid).toBe(users[1].productUuid);
-        expect(body.data[1].uuid).toBe(firstUser.productUuid);
+        expect(body.data).toHaveLength(3);
+        expect(body.data[0].seller._id).toBe(users[1]._id);
+        expect(body.data[1].seller._id).toBe(users[1]._id);
+        expect(body.data[2].seller._id).toBe(firstUser._id);
       });
   });
 
@@ -230,9 +256,10 @@ describe('## Block methods', () => {
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data).toHaveLength(2);
+        expect(body.data).toHaveLength(3);
         expect(body.data[0].seller._id).toBe(users[1]._id);
-        expect(body.data[1].seller._id).toBe(users[0]._id);
+        expect(body.data[1].seller._id).toBe(users[1]._id);
+        expect(body.data[2].seller._id).toBe(users[0]._id);
       });
   });
 
@@ -242,9 +269,10 @@ describe('## Block methods', () => {
       .set('Authorization', users[0].jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data[0].uuid).toBe(users[1].productUuid);
-        expect(body.data[1].uuid).toBe(users[0].productUuid);
-        expect(body.data).toHaveLength(2);
+        expect(body.data[0].seller._id).toBe(users[1]._id);
+        expect(body.data[1].seller._id).toBe(users[1]._id);
+        expect(body.data[2].seller._id).toBe(users[0]._id);
+        expect(body.data).toHaveLength(3);
       });
   });
 
@@ -254,9 +282,10 @@ describe('## Block methods', () => {
       .set('Authorization', firstUser.jwtToken)
       .expect(httpStatus.OK)
       .then(({ body }) => {
-        expect(body.data[0].uuid).toBe(users[1].productUuid);
-        expect(body.data[1].uuid).toBe(firstUser.productUuid);
-        expect(body.data).toHaveLength(2);
+        expect(body.data[0].seller._id).toBe(users[1]._id);
+        expect(body.data[1].seller._id).toBe(users[1]._id);
+        expect(body.data[2].seller._id).toBe(firstUser._id);
+        expect(body.data).toHaveLength(3);
       });
   });
 
@@ -337,7 +366,7 @@ describe('## Block methods', () => {
       );
   });
 
-  it('should NOT allowed to create an order when blocking the seller', () => {
+  it.skip('should NOT allowed to create an order when blocking the seller', () => {
     return request(app)
       .post('/api/orders')
       .set('Authorization', firstUser.jwtToken)
