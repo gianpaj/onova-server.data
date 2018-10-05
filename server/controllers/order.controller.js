@@ -72,8 +72,6 @@ function create(
   res: express$Response,
   next: express$NextFunction
 ) {
-  let foundProduct: ProductDoc;
-
   if (req.user.accountStatus !== 'verified') {
     throw new APIError(
       'Please verify your account before buying a product.',
@@ -99,11 +97,8 @@ function create(
         buyer: req.user._id,
         product: product._id,
       });
-      if (order) {
-        return res
-          .status(httpStatus.BAD_REQUEST)
-          .json({ message: 'Duplicate order', data: order });
-      }
+      // FIXME: extent APIError to be able to send extra data
+      if (order) throw { message: 'Duplicate order', order };
 
       const blocking = await Block.countDocuments({
         $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
@@ -115,7 +110,6 @@ function create(
           httpStatus.BAD_REQUEST
         );
       }
-      foundProduct = product;
       return product;
     })
     .then(async product => {
@@ -141,13 +135,9 @@ function create(
     )
     .catch(e => {
       if (e.message == 'Duplicate order') {
-        Order.findOne({ buyer: req.user._id, product: foundProduct._id }).then(
-          data => {
-            return res
-              .status(httpStatus.BAD_REQUEST)
-              .json({ message: e.message, data });
-          }
-        );
+        return res
+          .status(httpStatus.BAD_REQUEST)
+          .json({ message: e.message, data: e.order });
       } else {
         next(e);
       }
