@@ -129,13 +129,13 @@ var OrderSchema = new Schema({
   transactionId: String,
   transactionStatus: {
     type: String,
-    default: 'pl-pending',
+    default: 'ua-pending',
     enum: [
-      'pl-pending',
-      'pl-completed',
-      'pl-cancelled',
-      'pl-refunded',
-      'pl-failed',
+      'ua-pending',
+      'ua-needsconfirmation',
+      'ua-finished',
+      'ua-rejected',
+      'ua-reversed',
     ],
   },
   shippingProvider: {

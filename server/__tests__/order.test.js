@@ -193,7 +193,7 @@ describe('## Order APIs', () => {
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((productC.price * 1).toString());
           expect(o.priceOfItem).toBe(productC.price);
-          expect(o.transactionStatus).toBe('pl-pending');
+          expect(o.transactionStatus).toBe('ua-pending');
           ordersToAnotherUser++;
         });
     });
@@ -366,7 +366,7 @@ describe('## Order APIs', () => {
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((productGET1OfAnother.price * 1).toString());
           expect(o.priceOfItem).toBe(productGET1OfAnother.price);
-          expect(o.transactionStatus).toBe('pl-pending');
+          expect(o.transactionStatus).toBe('ua-pending');
         });
     });
 
@@ -394,7 +394,7 @@ describe('## Order APIs', () => {
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((productGET1OfAnother.price * 1).toString());
           expect(o.priceOfItem).toBe(productGET1OfAnother.price);
-          expect(o.transactionStatus).toBe('pl-pending');
+          expect(o.transactionStatus).toBe('ua-pending');
         });
     });
 
