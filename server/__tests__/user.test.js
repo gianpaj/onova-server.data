@@ -459,7 +459,6 @@ describe('## User APIs', () => {
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
           expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(typeof body.paymentInfo.card_token).toBe('string');
           expect(body.paymentInfo.method).toBe('uapay');
         });
     });
@@ -480,7 +479,6 @@ describe('## User APIs', () => {
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
           expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(typeof body.paymentInfo.card_token).toBe('string');
           expect(body.paymentInfo.method).toBe('uapay');
           expect(body.pushToken).toEqual(tempuser.pushToken);
         });
@@ -543,7 +541,6 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(typeof body.paymentInfo.card_token).toBe('string');
           expect(body.paymentInfo.method).toBe('uapay');
         });
     });
@@ -564,7 +561,6 @@ describe('## User APIs', () => {
             'paymentInfo'
           );
           expect(typeof body.paymentInfo.last_four).toBe('string');
-          expect(typeof body.paymentInfo.card_token).toBe('string');
           expect(body.paymentInfo.method).toBe('uapay');
           expect(shipInfo.line1).toBe(shippingAddress.line1);
           expect(shipInfo.city).toBe(shippingAddress.city);
