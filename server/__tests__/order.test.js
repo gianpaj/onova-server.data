@@ -451,8 +451,7 @@ describe('## Order APIs', () => {
         'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
       ],
     };
-    let orderPOST1;
-    let orderPOST2;
+    let orderPOST1, orderPOST2, orderPOST3;
 
     beforeAll(done => {
       let Promises = [];
@@ -484,6 +483,22 @@ describe('## Order APIs', () => {
               expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST2.price);
               orderPOST2 = o.id;
+            });
+        })
+      );
+
+      Promises.push(
+        createProduct(productPOST2, firstUserJwtToken).then(product => {
+          return request(app)
+            .post('/api/orders')
+            .set('Authorization', anotherJwtToken)
+            .send({ product: product.uuid })
+            .expect(httpStatus.CREATED)
+            .then(res => {
+              const o = res.body.data;
+              expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+              expect(o.priceOfItem).toBe(productPOST2.price);
+              orderPOST3 = o.id;
             });
         })
       );
@@ -557,6 +572,21 @@ describe('## Order APIs', () => {
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
           expect(o.reason).toBe('it`s already sold');
+        });
+    });
+
+    it('should allow the buyer to cancel the order without a reason', () => {
+      return request(app)
+        .put(`/api/orders/${orderPOST3}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'cancelled' })
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(
+            [...orderFields, 'dateCancelled'].sort()
+          );
+          expect(o.priceOfItem).toBe(productPOST2.price);
+          expect(o.status).toBe('cancelled');
         });
     });
 
