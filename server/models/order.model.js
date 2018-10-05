@@ -271,8 +271,7 @@ OrderSchema.statics = {
 
 OrderSchema.post('save', function(error: Error, doc, next) {
   if (error.code === 11000) {
-    const APIerr = new APIError('Duplicate order', httpStatus.BAD_REQUEST);
-    return next(APIerr);
+    return next({ message: 'Duplicate order', order: doc });
   }
   next(error);
 });
