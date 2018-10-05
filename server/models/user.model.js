@@ -287,6 +287,7 @@ UserSchema.post('save', function(error: Error, doc, next) {
 // This doesn't effect `toObject` method
 UserSchema.set('toJSON', {
   transform: (doc, ret) => {
+    if (doc.paymentInfo.card_token) delete ret.paymentInfo.card_token;
     delete ret.password;
     delete ret.__v;
     return ret;
