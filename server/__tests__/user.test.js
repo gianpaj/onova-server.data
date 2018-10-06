@@ -24,6 +24,7 @@ afterAll(done => {
 });
 
 const validPhoneNumber = '0977414301';
+const validPhoneNumber2 = '0977414302';
 const invalidPhoneNumber = '09774143011';
 
 describe('## User APIs', () => {
@@ -350,8 +351,22 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
+    it("should remove the user's mobile number", () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ ...user, mobileNumber: '' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.emailAddress).toBe(user.emailAddress);
+          expect(res.body.mobileNumber).toBe('');
+          expect(res.body.username).toBe(user.username);
+          expect(res.body.accountStatus).toBe('verified');
+        });
+    });
+
     it("should update user's details", () => {
-      user.mobileNumber = '0977414302';
+      user.mobileNumber = validPhoneNumber2;
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
@@ -359,7 +374,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe('0977414302');
+          expect(res.body.mobileNumber).toBe(validPhoneNumber2);
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
         });

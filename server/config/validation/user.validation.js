@@ -54,7 +54,10 @@ export default {
         .min(3)
         .max(30),
       username: validation.username,
-      mobileNumber: myCustomJoi.string().phoneNumber({ defaultCountry: 'UA' }),
+      mobileNumber: myCustomJoi
+        .string()
+        .empty('')
+        .phoneNumber({ defaultCountry: 'UA' }),
       emailAddress: Joi.string().email(),
       password: Joi.string()
         .min(8)
