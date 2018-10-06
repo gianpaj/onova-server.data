@@ -1,7 +1,8 @@
 import Joi from 'joi';
 import validate from 'express-validation';
 
-import validation from '../../helpers/validation';
+import validation, { joiCustom } from '../../helpers/validation';
+const myCustomJoi = Joi.extend(joiCustom);
 
 // assign options
 validate.options({
@@ -32,7 +33,7 @@ export default {
   createUser: {
     body: {
       username: validation.username.required(),
-      mobileNumber: Joi.string().regex(validation.mobileNumber),
+      mobileNumber: myCustomJoi.string().phoneNumber({ defaultCountry: 'UA' }),
       emailAddress: Joi.string()
         .email()
         .required(),
@@ -53,7 +54,7 @@ export default {
         .min(3)
         .max(30),
       username: validation.username,
-      mobileNumber: Joi.string().regex(validation.mobileNumber),
+      mobileNumber: myCustomJoi.string().phoneNumber({ defaultCountry: 'UA' }),
       emailAddress: Joi.string().email(),
       password: Joi.string()
         .min(8)

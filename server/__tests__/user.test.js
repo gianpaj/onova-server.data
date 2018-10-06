@@ -23,6 +23,9 @@ afterAll(done => {
   done();
 });
 
+const validPhoneNumber = '0977414301';
+const invalidPhoneNumber = '09774143011';
+
 describe('## User APIs', () => {
   beforeAll(beforeAllTests);
 
@@ -30,7 +33,7 @@ describe('## User APIs', () => {
   let user: UserDoc = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
-    mobileNumber: '1234567890', // optional
+    mobileNumber: validPhoneNumber, // optional
     password: 'expressos',
   };
 
@@ -52,7 +55,7 @@ describe('## User APIs', () => {
   let anotherUser: UserDoc = {
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
-    mobileNumber: '1234567890', // optional
+    mobileNumber: validPhoneNumber, // optional
     password: 'express2',
   };
 
@@ -348,7 +351,7 @@ describe('## User APIs', () => {
 
   describe('# PUT /api/users/:userId', () => {
     it("should update user's details", () => {
-      user.mobileNumber = '9876543212';
+      user.mobileNumber = '0977414302';
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
@@ -356,10 +359,23 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe(user.mobileNumber);
+          expect(res.body.mobileNumber).toBe('0977414302');
           expect(res.body.username).toBe(user.username);
           expect(res.body.accountStatus).toBe('verified');
         });
+    });
+
+    it('should NOT update a user with an invalid mobile number', () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ ...user, mobileNumber: invalidPhoneNumber })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res =>
+          expect(res.body.message).toContain(
+            '"mobileNumber" does not seem to be a phone number'
+          )
+        );
     });
 
     it("should update user's bio", () => {
@@ -597,25 +613,21 @@ describe('## User APIs', () => {
       {
         username: 'johnone',
         emailAddress: 'gianpa+john@gmail.com',
-        mobileNumber: '1234567890',
         password: 'express2',
       },
       {
         username: 'johntwo',
         emailAddress: 'gianpa+two@gmail.com',
-        mobileNumber: '1234567890',
         password: 'express2',
       },
       {
         username: 'johnperson',
         emailAddress: 'gianpa+person@gmail.com',
-        mobileNumber: '1234567890',
         password: 'express2',
       },
       {
         username: 'maria',
         emailAddress: 'maria@gmail.com',
-        mobileNumber: '1234567890',
         password: 'express2',
       },
     ];
@@ -817,7 +829,6 @@ describe('## User APIs', () => {
     });
 
     it("should NOT update another user's details", () => {
-      user.mobileNumber = '9876543212';
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', anotherJwtToken)

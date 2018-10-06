@@ -1,4 +1,6 @@
 import Joi from 'joi';
+import libphonenumber from 'google-libphonenumber';
+const PhoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 
 const hashtag = /^[a-zA-Z\u0400-\u04FF0-9]+$/;
 const price = /^\d+(\.\d{1,2})?$/;
@@ -18,7 +20,6 @@ export default {
     .hex()
     .length(24),
   hashtag,
-  mobileNumber: /^[1-9][0-9]{9}$/,
   categoriesOrTypes: Joi.array()
     .unique()
     .max(5)
@@ -52,3 +53,55 @@ export default {
     .min(3)
     .max(30),
 };
+
+/**
+ * Allows you to do `Joi.string().phoneNumber()`
+ *
+ * @param {Object} joi Joi instance provided by Joi
+ * @return {Object} Joi plugin object
+ */
+export const joiCustom = joi => ({
+  base: joi.string(),
+  name: 'string',
+  language: {
+    phonenumber: 'does not seem to be a phone number',
+  },
+  rules: [
+    {
+      name: 'phoneNumber',
+      params: {
+        opts: joi
+          .object()
+          .keys({
+            /**
+             * We will use specified country code (phoneNumber('BE')) or 'US' if no
+             * country code provided in phone number (0494...). Numbers with country
+             * code (+3249...) will use the data from the number and not the default.
+             */
+            defaultCountry: joi.string(),
+            format: joi.only('e164', 'international', 'national', 'rfc3966'),
+          })
+          .default({ defaultCountry: 'US' })
+          .min(1),
+      },
+      validate(params, value, state, options) {
+        const number = PhoneUtil.parseAndKeepRawInput(
+          value,
+          params.opts.defaultCountry
+        );
+        if (
+          PhoneUtil.isValidNumberForRegion(number, params.opts.defaultCountry)
+        )
+          return value;
+
+        // Generate an error, state and options need to be passed
+        return this.createError(
+          'string.phonenumber',
+          { value },
+          state,
+          options
+        );
+      },
+    },
+  ],
+});
