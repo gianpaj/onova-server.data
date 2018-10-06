@@ -86,6 +86,7 @@ function getPersonal(req: session$Request, res: express$Response) {
   const doc = _prepareUserJson(req.user);
   return res.json({
     ...doc,
+    mobileNumber: req.user.mobileNumber,
     paymentInfo: req.user.paymentInfo,
     shippingAddress: req.user.shippingAddress,
     createdAt: req.user.createdAt,
