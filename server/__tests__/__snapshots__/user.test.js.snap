@@ -138,6 +138,7 @@ Array [
   "facebook",
   "followersCount",
   "followingCount",
+  "mobileNumber",
   "paymentInfo",
   "ratingsTotal",
   "reviewsCount",
