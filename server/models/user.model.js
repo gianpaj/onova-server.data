@@ -100,7 +100,6 @@ const UserSchema = new Schema(
     mobileNumber: {
       type: String,
       trim: true,
-      // match: [validation.mobileNumber, 'Invalid mobile number.'],
     },
     password: {
       type: String,
