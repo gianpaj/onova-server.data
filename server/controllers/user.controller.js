@@ -252,7 +252,8 @@ function update(
 
   if (body.bio) user.bio = body.bio;
   if (body.displayName) user.displayName = body.displayName;
-  if (body.mobileNumber) user.mobileNumber = body.mobileNumber;
+  if (typeof body.mobileNumber !== 'undefined')
+    user.mobileNumber = body.mobileNumber;
   // update password (automatically hashed on save() hook)
   if (body.password) user.password = body.password;
   if (body.platform) user.platform = body.platform;
