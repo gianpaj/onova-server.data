@@ -31,7 +31,13 @@ var OrderSchema = new Schema({
   dateCompleted: {
     type: Date,
   },
+  dateConfirmed: {
+    type: Date,
+  },
   dateDelivered: {
+    type: Date,
+  },
+  datePaid: {
     type: Date,
   },
   datePending: {
@@ -39,16 +45,7 @@ var OrderSchema = new Schema({
     required: true,
     default: Date.now,
   },
-  datePaid: {
-    type: Date,
-  },
-  dateConfirmed: {
-    type: Date,
-  },
   dateShipped: {
-    type: Date,
-  },
-  dateReadyforShipment: {
     type: Date,
   },
   onovaFee: {
@@ -67,6 +64,17 @@ var OrderSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Product',
     required: true,
+  },
+  reason: {
+    type: String,
+  },
+  reviewFromBuyer: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review',
+  },
+  reviewFromSeller: {
+    type: mongoose.Schema.Types.ObjectId,
+    ref: 'Review',
   },
   seller: {
     type: Schema.Types.ObjectId,
@@ -112,17 +120,6 @@ var OrderSchema = new Schema({
       'failed',
     ],
   },
-  reason: {
-    type: String,
-  },
-  reviewFromBuyer: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Review',
-  },
-  reviewFromSeller: {
-    type: mongoose.Schema.Types.ObjectId,
-    ref: 'Review',
-  },
   taxAmount: String,
   trackingNumber: String,
   transactionFee: Schema.Types.Decimal128,
@@ -138,6 +135,7 @@ var OrderSchema = new Schema({
       'ua-reversed',
     ],
   },
+  shippingFee: Schema.Types.Decimal128,
   shippingProvider: {
     type: String,
     enum: ['novaposhta'],
@@ -154,15 +152,18 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   currency: string;
   dateCancelled: ?Date;
   dateCompleted: ?Date;
+  dateConfirmed: ?Date;
   dateDelivered: ?Date;
-  datePending: Date;
   datePaid: ?Date;
+  datePending: Date;
   dateShipped: ?Date;
-  dateReadyforShipment: ?Date;
   onovaFee: number;
   paymentMethod: ?string;
   priceOfItem: number;
   product: MongoId;
+  reason: ?string;
+  reviewFromBuyer: MongoId;
+  reviewFromSeller: MongoId;
   seller: MongoId;
   status: string;
   taxAmount: ?number;
@@ -170,9 +171,9 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   transactionFee: ?number;
   transactionId: ?string;
   transactionStatus: ?string;
-  // shippingFee: number;
+  shippingFee: ?number;
   // shippingMethod: string;
-  shippingProvider: string;
+  shippingProvider: ?string;
   // shippingStatus: string;
   // shippingTax: number;
 }
@@ -280,7 +281,7 @@ function transform(doc, ret) {
   ret.onovaFee = ret.onovaFee.toString();
   ret.priceOfItem = ret.priceOfItem.toString();
   // ret.taxAmount = ret.taxAmount.toString();
-  // ret.transactionFee = ret.transactionFee.toString();
+  if (doc.transactionFee) ret.transactionFee = ret.transactionFee.toString();
   delete ret._id;
   delete ret.__v;
   return ret;
