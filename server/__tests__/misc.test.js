@@ -58,7 +58,6 @@ describe('## Misc', () => {
         .post('/api/users')
         .send({
           emailAddress: 'blah@gmail.com',
-          mobileNumber: '1234567890',
           password: 'iwanttogotomars',
         })
         .expect(httpStatus.BAD_REQUEST)
