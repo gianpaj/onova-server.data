@@ -104,7 +104,7 @@ export function createUserAndLogin(
     })
     .catch(e => {
       console.error(e);
-      return e;
+      throw e;
     });
 }
 
