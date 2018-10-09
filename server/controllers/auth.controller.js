@@ -235,8 +235,8 @@ function getTokenForRequestingCardId(req, res, next) {
     {
       params: {
         clientId: '742', // TODO: add to .env
-        method: 'createShortCard',
-        enableRedirectResponse: true,
+        method: 'createCard',
+        enableRedirectResponse: false,
       },
     },
     JWTsecret,

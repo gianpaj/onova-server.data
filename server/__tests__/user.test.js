@@ -49,7 +49,7 @@ describe('## User APIs', () => {
 
   const userPaymentInfo = {
     paymentInfoPayload:
-      'QtDZHvcnhTowyjo6xfLCL591hEm3h8QjNspRq7k5n5VhNN3H9waMRRqhK5DVV1hUkKQF5aTn18a9Rjk47eR8trEvWsr7CrofJ',
+      '2zNu7MwoGb5ovdnwctMmaCsTHRAJetjVertfZk3ta62znkhvtwAPeFZj2dngnAngXgqECAuEJAddghgVm6SWCJn584GVghQjf4uyqHRvPgw34PiCWx',
   };
 
   // $FlowFixMe
