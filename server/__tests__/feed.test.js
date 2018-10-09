@@ -71,7 +71,6 @@ let anotherProduct = {
 let user: UserDoc = {
   username: 'firstperson',
   emailAddress: 'gianpa+test@gmail.com',
-  mobileNumber: '1234567890', // optional
   password: 'expressos',
 };
 
@@ -79,7 +78,6 @@ let user: UserDoc = {
 let anotherUser: UserDoc = {
   username: 'anotherperson',
   emailAddress: 'gianpa+test2@gmail.com',
-  mobileNumber: '1234567890', // optional
   password: 'express2',
 };
 
