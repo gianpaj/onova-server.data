@@ -32,7 +32,6 @@ describe('## Order APIs', () => {
   let user1 = {
     username: 'userfirst',
     emailAddress: 'userfirst@gmail.com',
-    mobileNumber: '1234567890', // optional
     password: 'expressos',
     pushToken: 'userfirstPushToken',
     platform: 'android',
@@ -41,7 +40,6 @@ describe('## Order APIs', () => {
   let user2 = {
     username: 'useranother',
     emailAddress: 'useranother@gmail.com',
-    mobileNumber: '1234567890', // optional
     password: 'express2',
     pushToken: 'user2PushToken',
     platform: 'ios',
@@ -50,14 +48,12 @@ describe('## Order APIs', () => {
   let nonActiveUser = {
     username: 'nonactiveuser',
     emailAddress: 'nonactiveuser@gmail.com',
-    mobileNumber: '1234567890',
     password: 'expressos',
   };
 
   let user4 = {
     username: 'userfour',
     emailAddress: 'userfour@gmail.com',
-    mobileNumber: '1234567890',
     password: 'expressos4',
   };
 
