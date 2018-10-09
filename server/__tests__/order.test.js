@@ -5,7 +5,6 @@ import httpStatus from 'http-status';
 import path from 'path';
 
 import app from '../index';
-// import config from '../config/config';
 import Tag from '../models/tag.model';
 import {
   beforeAllTests,
