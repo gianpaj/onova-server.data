@@ -21,14 +21,12 @@ describe('## Product APIs', () => {
   let user1 = {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
-    mobileNumber: '1234567890', // optional
     password: 'expressos',
   };
 
   let user2 = {
     username: 'anotherperson',
     emailAddress: 'gianpa+test2@gmail.com',
-    mobileNumber: '1234567890', // optional
     password: 'express2',
   };
 

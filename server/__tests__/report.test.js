@@ -70,7 +70,6 @@ describe('## Report methods', () => {
   let nonActiveUser = {
     username: 'thirdperson',
     emailAddress: 'gianpa+test3@gmail.com',
-    mobileNumber: '1234567890',
     password: 'expressos',
   };
 
