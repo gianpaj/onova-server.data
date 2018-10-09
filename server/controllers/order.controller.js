@@ -179,7 +179,7 @@ async function update(
       );
     }
 
-    if (foundOrder.status == 'cancelled') {
+    if (foundOrder.status == 'cancelled' && newStatus !== 'cancelled') {
       throw new APIError(
         'cannot change the status of an order once is cancelled',
         httpStatus.BAD_REQUEST
