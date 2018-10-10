@@ -83,6 +83,9 @@ const envVarsSchema = Joi.object({
   UAPAY_KEY: Joi.string()
     .required()
     .description('UAPAY API Client ID'),
+  UAPAY_BASE_URL: Joi.string()
+    .required()
+    .description('UAPAY API URL'),
 })
   .unknown()
   .required();
@@ -110,19 +113,13 @@ const config = {
     apikeyPublic: envVars.MJ_APIKEY_PUBLIC,
     apikeyPrivate: envVars.MJ_APIKEY_PRIVATE,
   },
-  CLOUD_BUCKET: envVars.CLOUD_BUCKET,
-  FACEBOOK_APP_ID: envVars.FACEBOOK_APP_ID,
-  FACEBOOK_APP_SECRET: envVars.FACEBOOK_APP_SECRET,
-  VK_APP_ID: envVars.VK_APP_ID,
-  VK_SECRET_KEY: envVars.VK_SECRET_KEY,
 
   chatkit: {
     instanceLocator: envVars.CHATKIT_INSTANCE,
     key: envVars.CHATKIT_KEY,
   },
 
-  SLACK_WEBHOOK_URL: envVars.SLACK_WEBHOOK_URL,
-  SEGMENT: envVars.SEGMENT,
+  ...envVars,
 
   // hard coded settings
   JOBNAMES: {
@@ -141,13 +138,6 @@ const config = {
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
   },
   DEFAULT_FOLLOW: false,
-  // DEFAULT_USERNAMES_TO_FOLLOW: [
-  //   'seller1',
-  //   'seller2',
-  //   'seller3',
-  //   'seller4',
-  //   'seller5',
-  // ],
 };
 
 export default config;
