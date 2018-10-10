@@ -168,7 +168,10 @@ async function create(
           400
         );
       }
-      if (!seller.shippingAddress.line1 || !seller.shippingAddress.city) {
+      if (
+        !seller.shippingAddress.departmentNovaposhta ||
+        !seller.shippingAddress.city
+      ) {
         throw new APIError(
           'Please enter your shipping address info before listing an item',
           400

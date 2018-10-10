@@ -40,10 +40,11 @@ describe('## User APIs', () => {
 
   const userShippingAddress = {
     shippingAddress: {
-      line1: '11 Wall Street',
-      line2: '',
-      city: 'New York',
-      state: 'NY',
+      firstName: 'Джанфранко',
+      lastName: 'Палумбо',
+      // fathersName: 'Мішель',
+      city: 'Львів',
+      departmentNovaposhta: '1',
     },
   };
 
@@ -468,9 +469,13 @@ describe('## User APIs', () => {
           expect(body.emailAddress).toBe(tempuser.emailAddress);
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
-          expect(shipInfo.line1).toBe(shippingAddress.line1);
+          expect(shipInfo.firstName).toBe(shippingAddress.firstName);
+          expect(shipInfo.lastName).toBe(shippingAddress.lastName);
+          expect(shipInfo.fathersName).toBe(shippingAddress.fathersName);
           expect(shipInfo.city).toBe(shippingAddress.city);
-          expect(shipInfo.state).toBe(shippingAddress.state);
+          expect(shipInfo.departmentNovaposhta).toBe(
+            shippingAddress.departmentNovaposhta
+          );
         });
     });
 
@@ -593,9 +598,13 @@ describe('## User APIs', () => {
           );
           expect(typeof body.paymentInfo.last_four).toBe('string');
           expect(body.paymentInfo.method).toBe('uapay');
-          expect(shipInfo.line1).toBe(shippingAddress.line1);
+          expect(shipInfo.firstName).toBe(shippingAddress.firstName);
+          expect(shipInfo.lastName).toBe(shippingAddress.lastName);
+          expect(shipInfo.fathersName).toBe(shippingAddress.fathersName);
           expect(shipInfo.city).toBe(shippingAddress.city);
-          expect(shipInfo.state).toBe(shippingAddress.state);
+          expect(shipInfo.departmentNovaposhta).toBe(
+            shippingAddress.departmentNovaposhta
+          );
           expect(Object.keys(body).sort()).toMatchSnapshot('personal info');
         });
     });
