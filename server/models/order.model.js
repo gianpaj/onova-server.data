@@ -143,7 +143,11 @@ var OrderSchema = new Schema({
 });
 
 OrderSchema.virtual('total').get(function() {
-  return this.transactionFee + this.priceOfItem + this.shippingFee;
+  return (
+    parseFloat(this.transactionFee || 0) +
+    parseFloat(this.priceOfItem) +
+    parseFloat(this.shippingFee || 0)
+  ).toString();
 });
 
 export class OrderDoc /*:: extends Mongoose$Document */ {
