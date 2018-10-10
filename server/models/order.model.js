@@ -142,6 +142,10 @@ var OrderSchema = new Schema({
   },
 });
 
+OrderSchema.virtual('total').get(function() {
+  return this.transactionFee + this.priceOfItem + this.shippingFee;
+});
+
 export class OrderDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
   archivedByBuyer: boolean;
@@ -168,7 +172,7 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   status: string;
   taxAmount: ?number;
   trackingNumber: ?string;
-  transactionFee: ?number;
+  transactionFee: number;
   transactionId: ?string;
   transactionStatus: ?string;
   shippingFee: ?number;
@@ -287,14 +291,15 @@ function transform(doc, ret) {
   return ret;
 }
 
-// Never return '__v' or '_id', fields
 OrderSchema.set('toObject', {
   getters: true,
+  virtuals: true,
   transform,
 });
 
 OrderSchema.set('toJSON', {
   getters: true,
+  virtuals: true,
   transform,
 });
 

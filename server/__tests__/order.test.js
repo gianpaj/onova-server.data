@@ -183,7 +183,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o).sort()).toEqual(orderFields);
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((productC.price * 1).toString());
@@ -355,7 +355,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o).sort()).toEqual(orderFields);
           expect(o.id).toBe(orderGET1);
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
@@ -383,7 +383,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o).sort()).toEqual(orderFields);
           expect(o.id).toBe(orderGET1);
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
@@ -402,7 +402,7 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Array.isArray(o));
           expect(o.length).toBe(ordersByfirstUser + ordersTofirstUser);
-          expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o[0]).sort()).toEqual(orderFields);
           expect(Object.keys(o[0].buyer).sort()).toEqual(
             ['_id', 'accountStatus', 'profilePic', 'username'].sort()
           );
@@ -421,7 +421,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(Object.keys(o[0]).sort()).toEqual(orderFields.sort());
+          expect(Object.keys(o[0]).sort()).toEqual(orderFields);
           expect(o.length).toBe(ordersByAnotherUser + ordersToAnotherUser);
         });
     });

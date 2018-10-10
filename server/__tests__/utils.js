@@ -26,7 +26,8 @@ export const orderFields = [
   'seller',
   'status',
   'transactionStatus',
-];
+  'total',
+].sort();
 
 // should only return these fields
 export const productFields = [
@@ -48,10 +49,11 @@ export const productFields = [
 
 const userShippingAddress = {
   shippingAddress: {
-    line1: '11 Wall Street',
-    line2: '',
-    city: 'New York',
-    state: 'NY',
+    firstName: 'Джанфранко',
+    lastName: 'Палумбо',
+    // fathersName: 'Мішель',
+    city: 'Львів',
+    departmentNovaposhta: '1',
   },
 };
 
