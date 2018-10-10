@@ -10,7 +10,7 @@ import APIError from '../helpers/APIError';
 // import validation from '../helpers/validation';
 import config from '../config/config';
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
 export const userPopulateFields =
   'username accountStatus profilePic displayName';

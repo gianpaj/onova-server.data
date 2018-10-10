@@ -7,7 +7,7 @@ import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import User from '../models/user.model';
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 // const FeedManager = stream.FeedManager;
 
 /** @namespace */
@@ -99,16 +99,25 @@ FollowSchema.post('save', function(error: Error, doc, next) {
 FollowSchema.post('save', function(doc, next) {
   User.updateOne({ _id: doc.follower }, { $inc: { followingCount: 1 } }).exec();
   // eslint-disable-next-line
-  User.updateOne({ _id: doc.following }, { $inc: { followersCount: 1 } }).exec();
+  User.updateOne(
+    { _id: doc.following },
+    { $inc: { followersCount: 1 } }
+  ).exec();
   // FeedManager.followUser(doc.follower, doc.following);
   next();
 });
 
 FollowSchema.post('remove', function(doc, next) {
   // eslint-disable-next-line
-  User.updateOne({ _id: doc.follower }, { $inc: { followingCount: -1 } }).exec();
+  User.updateOne(
+    { _id: doc.follower },
+    { $inc: { followingCount: -1 } }
+  ).exec();
   // eslint-disable-next-line
-  User.updateOne({ _id: doc.following }, { $inc: { followersCount: -1 } }).exec();
+  User.updateOne(
+    { _id: doc.following },
+    { $inc: { followersCount: -1 } }
+  ).exec();
   // FeedManager.unfollowUser(doc.follower, doc.following);
   next();
 });

@@ -2,7 +2,7 @@
 
 import mongoose from 'mongoose';
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
 // Default users which will be followed when an user is created
 /** @namespace */

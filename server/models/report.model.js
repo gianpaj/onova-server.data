@@ -4,22 +4,24 @@ import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 
+const { Schema } = mongoose;
+
 /**
  * User or Product reporting Schema
  */
-const ReportSchema = new mongoose.Schema({
+const ReportSchema = new Schema({
   // comment: {
-  //   type: mongoose.Schema.Types.ObjectId,
+  //   type: Schema.Types.ObjectId,
   // },
   product: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Product',
     required: function() {
       return !this.user;
     },
   },
   reporter: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: true,
     ref: 'User',
   },
@@ -28,7 +30,7 @@ const ReportSchema = new mongoose.Schema({
     required: true,
   },
   user: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'User',
     required: function() {
       return !this.product;

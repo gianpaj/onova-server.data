@@ -5,22 +5,24 @@ import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 
+const { Schema } = mongoose;
+
 /**
  * User review Schema
  */
-const ReviewSchema = new mongoose.Schema({
+const ReviewSchema = new Schema({
   order: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: true,
     ref: 'Order',
   },
   fromUser: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: true,
     ref: 'User',
   },
   targetUser: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     required: true,
     ref: 'User',
   },
