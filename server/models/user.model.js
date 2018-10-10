@@ -26,19 +26,6 @@ const UserSchema = new Schema(
       default: 'notverified',
       enum: ['verified', 'notverified', 'banned', 'deleted'],
     },
-    billingAddress: {
-      firstName: String,
-      lastName: String,
-      company: String,
-      line1: String,
-      line2: String,
-      line3: String,
-      city: String,
-      state: String,
-      country: String, // ISO 3166-1 alpha-2 format
-      postcode: String,
-      phone: String,
-    },
     bio: String,
     displayName: {
       type: String,
@@ -139,15 +126,8 @@ const UserSchema = new Schema(
       firstName: String,
       lastName: String,
       fathersName: String,
-      departmentNovaposhta: String,
-      company: String,
-      line1: String,
-      line2: String,
-      line3: String,
       city: String,
-      state: String,
-      country: String, // ISO 3166-1 alpha-2 format
-      postcode: String,
+      departmentNovaposhta: String,
     },
     username: {
       type: String,
@@ -167,7 +147,6 @@ const UserSchema = new Schema(
 export class UserDoc /*:: extends Mongoose$Document */ {
   _id: bson$ObjectId;
   accountStatus: string;
-  billingAddress: ?any;
   bio: ?string;
   createdAt: Date;
   deletedAt: ?Date;

@@ -33,7 +33,7 @@ export default {
   createUser: {
     body: {
       username: validation.username.required(),
-      mobileNumber: myCustomJoi.string().phoneNumber({ defaultCountry: 'UA' }),
+      mobileNumber: myCustomJoi.string().phoneNumber(),
       emailAddress: Joi.string()
         .email()
         .required(),
@@ -57,7 +57,7 @@ export default {
       mobileNumber: myCustomJoi
         .string()
         .empty('')
-        .phoneNumber({ defaultCountry: 'UA' }),
+        .phoneNumber(),
       emailAddress: Joi.string().email(),
       password: Joi.string()
         .min(8)
@@ -72,15 +72,8 @@ export default {
         firstName: Joi.string(),
         lastName: Joi.string(),
         fathersName: Joi.string(),
-        departmentNovaposhta: Joi.string(),
-        company: Joi.string(),
-        line1: Joi.string(),
-        line2: Joi.string().empty(''),
-        line3: Joi.string().empty(''),
         city: Joi.string(),
-        state: Joi.string(),
-        country: Joi.string(),
-        postcode: Joi.string(),
+        departmentNovaposhta: Joi.string(),
       },
       facebook: Joi.string(),
       increaseShare: Joi.boolean(),
