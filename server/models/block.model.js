@@ -4,19 +4,21 @@ import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 
+const { Schema } = mongoose;
+
 /**
  * User blocking Schema
  */
-const BlockSchema = new mongoose.Schema({
+const BlockSchema = new Schema({
   sourceUser: {
     ref: 'User',
     required: true,
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
   },
   targetUser: {
     ref: 'User',
     required: true,
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
   },
   createdAt: {
     default: Date.now,

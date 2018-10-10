@@ -10,6 +10,11 @@ if (isTestEnv) {
   require('dotenv').config();
 }
 
+const nonRequiredForDev = {
+  is: Joi.string().equal('development'),
+  then: Joi.required(),
+};
+
 // define validation for all the env vars
 const envVarsSchema = Joi.object({
   NODE_ENV: Joi.string()
@@ -49,31 +54,35 @@ const envVarsSchema = Joi.object({
     .required()
     .description('Google Cloud Storage bucket'),
   CHATKIT_INSTANCE: Joi.string()
-    .required()
-    .description('Chatkit instanceLocator'),
+    .description('Chatkit instanceLocator')
+    .when('NODE_ENV', nonRequiredForDev),
   CHATKIT_KEY: Joi.string()
-    .required()
-    .description('Chatkit key'),
+    .description('Chatkit key')
+    .when('NODE_ENV', nonRequiredForDev),
   SLACK_WEBHOOK_URL: Joi.string()
     .required()
     .description('Slack Webhook URL (for reporting)'),
-  FACEBOOK_APP_ID: Joi.string()
-    .required()
-    .description(
-      'Facebook APP ID for Login? and Posting item on sellers` walls'
-    ),
-  FACEBOOK_APP_SECRET: Joi.string()
-    .required()
-    .description('Facebook APP Secret'),
+  FACEBOOK_APP_ID: Joi.string().description(
+    "Facebook APP ID for Posting item on sellers' walls [not using]"
+  ),
+  FACEBOOK_APP_SECRET: Joi.string().description(
+    'Facebook APP Secret [not using]'
+  ),
   VK_APP_ID: Joi.string()
-    .required()
-    .description('VK APP ID for Auth to post item on sellers` walls'),
+    .description("VK APP ID for Auth to post item on sellers' walls")
+    .when('NODE_ENV', nonRequiredForDev),
   VK_SECRET_KEY: Joi.string()
-    .required()
-    .description('VK APP Secret'),
+    .description('VK APP Secret')
+    .when('NODE_ENV', nonRequiredForDev),
   SEGMENT: Joi.string()
     .required()
     .description('Segment.com Analytics write key'),
+  UAPAY_CLIENTID: Joi.string()
+    .required()
+    .description('UAPAY API Client ID'),
+  UAPAY_KEY: Joi.string()
+    .required()
+    .description('UAPAY API Client ID'),
 })
   .unknown()
   .required();

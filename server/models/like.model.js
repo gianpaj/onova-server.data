@@ -1,7 +1,8 @@
 // @flow
 
 import mongoose from 'mongoose';
-const Schema = mongoose.Schema;
+
+const { Schema } = mongoose;
 
 var LikeSchema = new Schema({
   product: {
