@@ -10,6 +10,7 @@ import commentRoutes from './comment.route';
 import reportRoutes from './report.route';
 import searchRoutes from './search.route';
 import scheduleRoutes from './schedule.route';
+import shippingRoutes from './shipping.route';
 import userRoutes from './user.route';
 import photosRoutes from './photos.route';
 import reviewRoutes from './review.route';
@@ -39,6 +40,8 @@ router.use('/report', reportRoutes);
 router.use('/search', searchRoutes);
 
 router.use('/schedule', scheduleRoutes);
+
+router.use('/shipping', shippingRoutes);
 
 // mount user routes at /users
 // AND

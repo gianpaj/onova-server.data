@@ -2,9 +2,9 @@
 
 Functionality:
 
-* Authentication & Authorization
-* REST API
-* Image upload to Google Cloud Storage
+- Authentication & Authorization
+- REST API
+- Image upload to Google Cloud Storage
 
 Based on [Express ES6 REST API Starter](https://github.com/kunalkapadia/express-mongoose-es6-rest-api).
 
@@ -28,9 +28,9 @@ Heavily inspired from [Egghead.io - How to Write an Open Source JavaScript Libra
 | Secure app via [helmet](https://github.com/helmetjs/helmet)                                         | Helmet helps secure Express apps by setting various HTTP headers.                                                                                                                                                                                                                                            |
 | Uses [yarn](https://yarnpkg.com) over npm                                                           | Uses new released yarn package manager by facebook. You can read more about it [here](https://code.facebook.com/posts/1840075619545360)                                                                                                                                                                      |
 
-* CORS support via [cors](https://github.com/expressjs/cors)
-* Uses [http-status](https://www.npmjs.com/package/http-status) to set http status code. It is recommended to use `httpStatus.INTERNAL_SERVER_ERROR` instead of directly using `500` when setting status code.
-* Has `.editorconfig` which helps developers define and maintain consistent coding styles between different editors and IDEs.
+- CORS support via [cors](https://github.com/expressjs/cors)
+- Uses [http-status](https://www.npmjs.com/package/http-status) to set http status code. It is recommended to use `httpStatus.INTERNAL_SERVER_ERROR` instead of directly using `500` when setting status code.
+- Has `.editorconfig` which helps developers define and maintain consistent coding styles between different editors and IDEs.
 
 ## Getting Started
 
@@ -103,7 +103,7 @@ yarn lint
 
 We're using Google Cloud Engine:
 
-* https://onova.co/api/
+- https://onova.co/api/
 
 e.g. https://onova.co/api/health-check
 
@@ -122,6 +122,21 @@ Taken from [here](http://download.geonames.org/export/dump/).
     bash generate_geonames.sh
 
 From [generate_geonames.sh](https://github.com/lucaspiller/offline-geocoder/blob/master/scripts/generate_geonames.sh)
+
+## Import NovaPoshta cities and departments into MongoDB
+
+1. Start MongoDB
+
+2. Import the cities (TODO: import the cities via the Nodejs script)
+
+```bash
+http "https://api.escrowbox.demo.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json
+# remove the "data: []" so it's only an array of objects
+mongoimport -d onova-data -c cities.json --jsonArray
+# output
+2018-10-10T22:50:31.951+0300	connected to: localhost
+2018-10-10T22:50:32.049+0300	imported 993 documents
+```
 
 ## Logging
 
