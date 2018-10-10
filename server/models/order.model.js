@@ -7,7 +7,7 @@ import APIError from '../helpers/APIError';
 import Block from '../models/block.model';
 import { userPopulateFields } from './user.model';
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 
 /** @namespace */
 var OrderSchema = new Schema({
@@ -69,11 +69,11 @@ var OrderSchema = new Schema({
     type: String,
   },
   reviewFromBuyer: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Review',
   },
   reviewFromSeller: {
-    type: mongoose.Schema.Types.ObjectId,
+    type: Schema.Types.ObjectId,
     ref: 'Review',
   },
   seller: {
