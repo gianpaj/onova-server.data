@@ -81,7 +81,7 @@ export const joiCustom = joi => ({
             defaultCountry: joi.string(),
             format: joi.only('e164', 'international', 'national', 'rfc3966'),
           })
-          .default({ defaultCountry: 'US' })
+          .default({ defaultCountry: 'UA' })
           .min(1),
       },
       validate(params, value, state, options) {
