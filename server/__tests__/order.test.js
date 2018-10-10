@@ -1,15 +1,15 @@
 // @flow
 
-import request from 'supertest';
 import httpStatus from 'http-status';
 import path from 'path';
+import request from 'supertest';
 
 import app from '../index';
 import Tag from '../models/tag.model';
 import {
   beforeAllTests,
-  createUserAndLogin,
   createProduct,
+  createUserAndLogin,
   orderFields,
 } from './utils';
 

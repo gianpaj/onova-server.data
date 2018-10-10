@@ -9,7 +9,7 @@ import shortid from 'shortid';
 import APIError from '../helpers/APIError';
 import { userPopulateFields } from './user.model';
 
-const Schema = mongoose.Schema;
+const { Schema } = mongoose;
 // const FeedManager = stream.FeedManager;
 
 const CommentSchema = new Schema({
