@@ -10,11 +10,11 @@ import * as fs from 'fs';
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
-let mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${
+const mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${
   config.mongo.db
 }`;
 
-let options = {
+const options = {
   keepAlive: 1,
   useNewUrlParser: true,
   useCreateIndex: true,
