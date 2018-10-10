@@ -187,6 +187,7 @@ describe('## Order APIs', () => {
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((productC.price * 1).toString());
+          expect(o.total).toBe((productC.price * 1).toString());
           expect(o.priceOfItem).toBe(productC.price);
           expect(o.transactionStatus).toBe('ua-pending');
           ordersToAnotherUser++;
