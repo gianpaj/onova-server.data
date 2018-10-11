@@ -130,13 +130,65 @@ From [generate_geonames.sh](https://github.com/lucaspiller/offline-geocoder/blob
 2. Import the cities (TODO: import the cities via the Nodejs script)
 
 ```bash
-http "https://api.escrowbox.demo.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json
+http "https://api.escrowbox.demo.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json --drop
 # remove the "data: []" so it's only an array of objects
 mongoimport -d onova-data -c cities.json --jsonArray
 # output
-2018-10-10T22:50:31.951+0300	connected to: localhost
-2018-10-10T22:50:32.049+0300	imported 993 documents
+2018-10-11T12:33:15.248+0300	connected to: localhost
+2018-10-11T12:33:15.249+0300	dropping: onova-data.cities
+2018-10-11T12:33:15.356+0300	imported 993 documents
 ```
+
+3. Load the departments for every city, 993 of them
+
+```
+node loadloadDepartments.js
+# output
+connected to mongodb://localhost:27017/onova-data
+loading cities
+current cities: 993
+current cities with departments: 838
+citiesToLoad: 155
+Миколаїв
+Київ
+Маріуполь
+Вінниця
+Черкаси
+Львів
+Херсон
+Чернігів
+Арциз
+[]
+...
+done loading
+latestCities: 838
+citiesToDelete: 155
+```
+
+NOTE: there are 155 cities that do not have any Nova Poshta departments
+
+4. Add these collections (cities, departments) to `onova-data-test` db as well
+
+   mongodump --host localhost -d onova-data -c cities
+   2018-10-11T13:00:52.620+0300 writing onova-data.cities to
+   2018-10-11T13:00:52.627+0300 done dumping onova-data.cities (838 documents)
+
+   mongodump --host localhost -d onova-data -c departments
+   2018-10-11T13:00:57.975+0300 writing onova-data.departments to
+   2018-10-11T13:00:57.989+0300 done dumping onova-data.departments (2118 documents)
+
+   mongorestore dump/onova-data -d onova-data-test --drop
+   2018-10-11T13:09:25.706+0300 the --db and --collection args should only be used when restoring from a BSON file. Other uses are deprecated and will not exist in the future; use --nsInclude instead
+   2018-10-11T13:09:25.706+0300 building a list of collections to restore from dump/onova-data dir
+   2018-10-11T13:09:25.741+0300 reading metadata for onova-data-test.departments from dump/onova-data/departments.metadata.json
+   2018-10-11T13:09:25.759+0300 reading metadata for onova-data-test.cities from dump/onova-data/cities.metadata.json
+   2018-10-11T13:09:25.807+0300 restoring onova-data-test.departments from dump/onova-data/departments.bson
+   2018-10-11T13:09:25.853+0300 restoring onova-data-test.cities from dump/onova-data/cities.bson
+   2018-10-11T13:09:25.869+0300 no indexes to restore
+   2018-10-11T13:09:25.869+0300 finished restoring onova-data-test.cities (838 documents)
+   2018-10-11T13:09:25.886+0300 restoring indexes for collection onova-data-test.departments from metadata
+   2018-10-11T13:09:25.960+0300 finished restoring onova-data-test.departments (2118 documents)
+   2018-10-11T13:09:25.960+0300 done
 
 ## Logging
 
