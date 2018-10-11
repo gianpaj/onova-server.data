@@ -11,7 +11,10 @@ describe('## Shipping', () => {
       return request(app)
         .get('/api/shipping/cities')
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data).toHaveLength(838));
+        .then(({ body }) => {
+          expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
+          expect(body.data).toHaveLength(838);
+        });
     });
   });
 
@@ -21,7 +24,11 @@ describe('## Shipping', () => {
       return request(app)
         .get(`/api/shipping/departments/${kiev}`)
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data).toHaveLength(280));
+        .then(({ body }) => {
+          console.log(body.data[0]);
+          expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
+          expect(body.data).toHaveLength(280);
+        });
     });
 
     it('should NOT get the list of departments for an invalid city', () => {
