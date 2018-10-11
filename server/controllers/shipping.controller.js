@@ -1,7 +1,6 @@
 // @flow
 
 import httpStatus from 'http-status';
-import axios from 'axios';
 import mongoose from 'mongoose';
 
 import APIError from '../helpers/APIError';
@@ -31,7 +30,7 @@ const DepartmentsSchema = new mongoose.Schema({
   },
 });
 
-const Deparment = mongoose.model('deparment', DepartmentsSchema);
+const Deparment = mongoose.model('departments', DepartmentsSchema);
 
 /**
  * Get list of cities for Nova Poshta (cached from UAPAY)
