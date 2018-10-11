@@ -14,7 +14,7 @@ router
   .get(shippingCtrl.cities);
 
 router
-  .route('/departments')
+  .route('/departments/:city')
   // GET /api/shipping/departments - Get list of departments of Nova Poshta for a city
   .get(validate(paramValidation.departments), shippingCtrl.departments);
 

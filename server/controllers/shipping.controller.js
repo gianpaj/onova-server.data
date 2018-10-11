@@ -43,8 +43,8 @@ function cities(
   next: express$NextFunction
 ) {
   Cities.find()
-    .then(function(cities) {
-      if (!cities) {
+    .then(cities => {
+      if (!cities.length) {
         throw new Error('Error getting cities');
       }
       res.json({ data: cities });
@@ -75,17 +75,16 @@ async function departments(
   next: express$NextFunction
 ) {
   Deparment.find({ cityID: req.params.city })
-    .then(deparments => {
-      if (!deparments) {
-        throw new Error('Error getting deparments');
+    .then(departments => {
+      if (!departments.length) {
+        throw new Error('Error getting departments');
       }
-      res.json({ data: deparments });
+      res.json({ data: departments });
     })
     .catch(error => {
-      console.error(error);
       next(
         new APIError(
-          'Error getting list of deparments from UAPAY NovaPoshta',
+          'Error getting list of departments from UAPAY NovaPoshta',
           httpStatus.SERVICE_UNAVAILABLE
         )
       );
