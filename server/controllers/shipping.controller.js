@@ -42,7 +42,7 @@ function cities(
   res: express$Response,
   next: express$NextFunction
 ) {
-  Cities.find()
+  Cities.find({}, { _id: 0, uk: 1, id: 1 })
     .then(cities => {
       if (!cities.length) {
         throw new Error('Error getting cities');
@@ -74,7 +74,7 @@ async function departments(
   res: express$Response,
   next: express$NextFunction
 ) {
-  Deparment.find({ cityID: req.params.city })
+  Deparment.find({ cityID: req.params.city }, { _id: 0, uk: 1, id: 1 })
     .then(departments => {
       if (!departments.length) {
         throw new Error('Error getting departments');

@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`## Shipping # GET /api/shipping/cities should get the list of cities 1`] = `
+Array [
+  "id",
+  "uk",
+]
+`;
+
+exports[`## Shipping # GET /api/shipping/departments/\${city} should get the list of departments 1`] = `
+Array [
+  "id",
+  "uk",
+]
+`;
