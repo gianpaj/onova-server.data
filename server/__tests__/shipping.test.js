@@ -11,16 +11,28 @@ describe('## Shipping', () => {
       return request(app)
         .get('/api/shipping/cities')
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data).toHaveLength(993));
+        .then(({ body }) => expect(body.data).toHaveLength(838));
+    });
+  });
+
+  describe('# GET /api/shipping/departments/${city}', () => {
+    it('should get the list of departments', () => {
+      const kiev = '8d5a980d-391c-11dd-90d9-001a92567626';
+      return request(app)
+        .get(`/api/shipping/departments/${kiev}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data).toHaveLength(280));
     });
 
-    // it('should handle Invalid user', () => {
-    //   return request(app)
-    //     .get('/api/users/56z787zzz67fc')
-    //     .expect(httpStatus.BAD_REQUEST)
-    //     .then(res => {
-    //       expect(res.body.message).toBe('Invalid user');
-    //     });
-    // });
+    it('should NOT get the list of departments for an invalid city', () => {
+      return request(app)
+        .get(`/api/shipping/departments/8d5a980d-391c-11dd-90d9-001a92567699`)
+        .expect(httpStatus.SERVICE_UNAVAILABLE)
+        .then(res =>
+          expect(res.body.message).toContain(
+            'Error getting list of departments'
+          )
+        );
+    });
   });
 });
