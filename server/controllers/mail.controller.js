@@ -19,7 +19,8 @@ const mailjetClient = mailjet.connect(
  * @param {User} user
  */
 function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
-  const subject = 'Підтвердження профілю';
+  const subject =
+    'Підтвердження профілю - Welcome to Onova, verify your email address';
 
   const token = crypto.randomBytes(8).toString('hex');
 
