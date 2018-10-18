@@ -15,6 +15,12 @@ import {
 } from './utils';
 import Order from '../models/order.model';
 
+const photos = {
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
+};
+
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
 
@@ -51,9 +57,7 @@ describe('## Order APIs', () => {
     description: 'nice boots',
     // seller id is the user who creates the product
     price: '100.99', // if no decimal points .00 will be added
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    ...photos,
   };
 
   let productB = {
@@ -62,9 +66,7 @@ describe('## Order APIs', () => {
     tags: ['summer'],
     description: 'nice flipflops',
     price: '10.99',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    ...photos,
   };
 
   let productC = {
@@ -72,9 +74,7 @@ describe('## Order APIs', () => {
     typeIds: [2, 3],
     description: 'nice shorts',
     price: '200.50',
-    photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-    ],
+    ...photos,
   };
 
   let firstUserProductAUuid, firstUserProductBUuid2, anotherUserProductUuid;
@@ -93,31 +93,29 @@ describe('## Order APIs', () => {
         firstUser._id = resUser._id;
         firstUserJwtToken = token;
       })
-      .then(() => {
-        return request(app)
+      .then(() =>
+        request(app)
           .put(`/api/users/${firstUser._id}`)
           .set('Authorization', firstUserJwtToken)
           .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
-          .expect(httpStatus.OK);
-      })
-      .then(() => {
-        return Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then();
-      })
-      .then(() => {
+          .expect(httpStatus.OK)
+      )
+      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
+      .then(() =>
         // $FlowFixMe
-        return createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
+        createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
           anotherUser._id = user._id;
           anotherJwtToken = jwtToken;
-        });
-      })
-      .then(() => {
-        return createUserAndLogin(forthUser).then(({ user, jwtToken }) => {
+        })
+      )
+      .then(() =>
+        createUserAndLogin(forthUser).then(({ user, jwtToken }) => {
           forthUser._id = user._id;
           forthJwtToken = jwtToken;
-        });
-      })
-      .then(() => {
-        return request(app)
+        })
+      )
+      .then(() =>
+        request(app)
           .post('/api/users')
           .send(nonActiveUser)
           .expect(httpStatus.CREATED)
@@ -133,8 +131,8 @@ describe('## Order APIs', () => {
             // flow-disable-next-line
             nonActiveUser._id = resUser._id;
             done();
-          });
-      });
+          })
+      );
   });
 
   // create 3 products and delete 1 of them
@@ -153,22 +151,20 @@ describe('## Order APIs', () => {
 
     // create product and delete it
     Promises.push(
-      createProduct(productB, firstUserJwtToken).then(p => {
-        firstUserProductBUuid2 = p.uuid;
-        return request(app)
-          .delete(`/api/products/${firstUserProductBUuid2}`)
+      createProduct(productB, firstUserJwtToken).then(p =>
+        request(app)
+          .delete(`/api/products/${p.uuid}`)
           .set('Authorization', firstUserJwtToken)
           .expect(httpStatus.NO_CONTENT)
           .then(res => {
             expect(res.body).toMatchObject({});
             ordersByfirstUser++;
-          });
-      })
+            firstUserProductBUuid2 = p.uuid;
+          })
+      )
     );
 
-    Promise.all(Promises).then(() => {
-      done();
-    });
+    Promise.all(Promises).then(() => done());
   });
 
   describe('# POST /api/orders', () => {
@@ -282,9 +278,7 @@ describe('## Order APIs', () => {
       typeIds: [1, 2],
       description: 'nice bo0ts',
       price: '900.99',
-      photos: [
-        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-      ],
+      ...photos,
     };
     let orderGET1;
 
@@ -293,49 +287,39 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'shiny shoes',
       price: '440.99',
-      photos: [
-        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-      ],
+      ...photos,
     };
 
     beforeAll(done => {
       let Promises = [];
       Promises.push(
-        createProduct(productGET1OfAnother, anotherJwtToken).then(product => {
-          return request(app)
-            .post('/api/orders')
-            .set('Authorization', firstUserJwtToken)
-            .send({ product: product.uuid })
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const o = res.body.data;
-              expect(o.onovaFee).toBe(
-                (productGET1OfAnother.price * 1).toString()
-              );
-              expect(o.priceOfItem).toBe(productGET1OfAnother.price);
-              orderGET1 = o.id;
-              ordersByfirstUser++;
-              ordersToAnotherUser++;
-            });
-        })
+        createProduct(productGET1OfAnother, anotherJwtToken).then(product =>
+          createOrder(
+            { ...product, ...productGET1OfAnother },
+            firstUserJwtToken
+          ).then(o => {
+            expect(o.onovaFee).toBe(
+              (productGET1OfAnother.price * 1).toString()
+            );
+            expect(o.priceOfItem).toBe(productGET1OfAnother.price);
+            orderGET1 = o.id;
+            ordersByfirstUser++;
+            ordersToAnotherUser++;
+          })
+        )
       );
 
       Promises.push(
-        createProduct(productGET2, firstUserJwtToken).then(product => {
-          return request(app)
-            .post('/api/orders')
-            .set('Authorization', anotherJwtToken)
-            .send({ product: product.uuid })
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const o = res.body.data;
+        createProduct(productGET2, firstUserJwtToken).then(product =>
+          createOrder({ ...product, ...productGET2 }, anotherJwtToken).then(
+            o => {
               expect(o.onovaFee).toBe((productGET2.price * 1).toString());
               expect(o.priceOfItem).toBe(productGET2.price);
-              // orderGET2 = o.id;
               ordersByAnotherUser++;
               ordersTofirstUser++;
-            });
-        })
+            }
+          )
+        )
       );
 
       Promise.all(Promises)
@@ -431,18 +415,14 @@ describe('## Order APIs', () => {
       typeIds: [1, 3],
       description: 'best bo0ts',
       price: '1900.59',
-      photos: [
-        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-      ],
+      ...photos,
     };
     const productPOST2 = {
       categoryIds: [2],
       typeIds: [1],
       description: 'my old panties',
       price: '99900.59',
-      photos: [
-        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-      ],
+      ...photos,
     };
     let orderPOST1, orderPOST2, orderPOST3;
 
@@ -450,49 +430,37 @@ describe('## Order APIs', () => {
       const Promises = [];
       Promises.push(
         createProduct(productPOST1, anotherJwtToken).then(product =>
-          request(app)
-            .post('/api/orders')
-            .set('Authorization', firstUserJwtToken)
-            .send({ product: product.uuid })
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const o = res.body.data;
+          createOrder({ ...product, ...productPOST1 }, firstUserJwtToken).then(
+            o => {
               expect(o.onovaFee).toBe((productPOST1.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST1.price);
               orderPOST1 = o.id;
-            })
+            }
+          )
         )
       );
 
       Promises.push(
         createProduct(productPOST2, firstUserJwtToken).then(product =>
-          request(app)
-            .post('/api/orders')
-            .set('Authorization', anotherJwtToken)
-            .send({ product: product.uuid })
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const o = res.body.data;
+          createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+            o => {
               expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST2.price);
               orderPOST2 = o.id;
-            })
+            }
+          )
         )
       );
 
       Promises.push(
         createProduct(productPOST2, firstUserJwtToken).then(product =>
-          request(app)
-            .post('/api/orders')
-            .set('Authorization', anotherJwtToken)
-            .send({ product: product.uuid })
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const o = res.body.data;
+          createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+            o => {
               expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST2.price);
               orderPOST3 = o.id;
-            })
+            }
+          )
         )
       );
 
@@ -686,9 +654,7 @@ describe('## Order APIs', () => {
       typeIds: [1],
       description: 'my old panties',
       price: '99900.59',
-      photos: [
-        'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-      ],
+      ...photos,
     };
     let orderPOST3, orderPOST4, orderPOST5;
     let orderPOST3ProdUUID, orderPOST4ProdUUID;
