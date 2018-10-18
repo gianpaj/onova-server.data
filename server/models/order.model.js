@@ -89,13 +89,15 @@ var OrderSchema = new Schema({
       // Unpaid - Customer started the checkout process. Payment is not completed.
       'pending',
 
+      // [Can be set only by Escrow Payment Provider]
       // Buyer pays and waiting for seller to confirm – Product status is now 'reserved'
       'paid',
 
+      // [Can be set only by Escrow Payment Provider]
       // Product is ready for shipment. Tracking number is generated automatically
       'confirmed',
 
-      // [Only by Shipping Provider] (i.e. NovaPohsta)
+      // [Can be set only by Shipping Provider] (i.e. NovaPohsta)
       'shipped',
 
       // Seller cancels order (doesn't confirm). Requires reason.
@@ -103,15 +105,17 @@ var OrderSchema = new Schema({
       // Buyer cancels order (or doesn't pay in 15 mins). Reason if internal process (payment denied/timeout)
       'cancelled',
 
-      // [Only by Shipping Provider]
+      // [Can be set only by Shipping Provider]
       'delivered',
 
-      // [Only by Shipping Provider]. Item has been collected
+      // [Can be set only by Shipping Provider]. Item has been collected
       'completed',
 
+      // [Can be set only by Escrow Payment Provider]
       // Buyer fails to collect or refuses the item (not as described)
       'failed_by_buyer',
 
+      // [Can be set only by Escrow Payment Provider]
       // Seller fails to ship
       'failed_by_seller',
 
