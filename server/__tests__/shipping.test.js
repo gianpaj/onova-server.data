@@ -44,10 +44,11 @@ describe('## Shipping', () => {
   });
 
   describe('# GET /api/shipping/costs', () => {
-    // beforeAll(() => {});
-
     // Відділення № 376 (до 30 кг), Поштомат \"Приватбанк\": вул. Пимоненка, 13
     const senderOfficeID = 'ee1ca520-1bfd-11e5-add9-005056887b8d';
+    // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
+    const recipientOfficeID = '1ec09d88-e1c2-11e3-8c4a-0050568002cf';
+
     it('should NOT get the shipping costs without recipientOfficeID', () => {
       const product = {
         price: '100.99',
@@ -63,6 +64,25 @@ describe('## Shipping', () => {
         .then(res =>
           expect(res.body.message).toContain('"recipientOfficeID" is required')
         );
+    });
+
+    it('should get the shipping costs', () => {
+      const product = {
+        price: '100.99',
+        weight: 300,
+      };
+
+      return request(app)
+        .get(
+          `/api/shipping/costs?price=${product.price}&weight=${
+            product.weight
+          }&senderOfficeID=${senderOfficeID}&recipientOfficeID=${recipientOfficeID}`
+        )
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          // expect(typeof body.data).toBe('number');
+          expect(body.data).toBe(2500);
+        });
     });
   });
 });
