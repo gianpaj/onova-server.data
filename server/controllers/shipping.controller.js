@@ -61,6 +61,47 @@ function cities(
 }
 
 /**
+ * Calculate the shipping costs with Nova Poshta (UAPAY API)
+ *
+ * GET /api/shipping/costs
+ *
+ * @property {*} req.query - Express query parameters
+ * @property {number} req.query.price
+ * @property {number} req.query.weight
+ * @property {number} req.query.senderOfficeID
+ * @property {number} req.query.recipientOfficeID
+ */
+async function costs(
+  req: express$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  console.log(req.query);
+  const { senderOfficeID, recipientOfficeID } = req.query;
+  try {
+    const senderDeparment = await Deparment.findOne({ id: senderOfficeID });
+    const recipientDeparment = await Deparment.findOne({
+      id: recipientOfficeID,
+    });
+
+    if (!senderDeparment || !recipientDeparment) {
+      throw new APIError('Error retrieving the deparment(s)');
+    }
+    res.json({ data: 6300 });
+  } catch (error) {
+    if (!(error instanceof APIError)) {
+      return next(
+        new APIError(
+          'Error calculating shipping costs',
+          httpStatus.SERVICE_UNAVAILABLE
+        )
+      );
+    }
+    next(error);
+  }
+}
+
+/**
  * Get list of departments of Nova Poshta for a city (cached from UAPAY)
  *
  * GET /api/shipping/departments/${city}
@@ -93,5 +134,6 @@ async function departments(
 
 export default {
   cities,
+  costs,
   departments,
 };

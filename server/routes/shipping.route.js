@@ -18,4 +18,9 @@ router
   // GET /api/shipping/departments - Get list of departments of Nova Poshta for a city
   .get(validate(paramValidation.departments), shippingCtrl.departments);
 
+router
+  .route('/costs')
+  // GET /api/shipping/costs - Get shipping costs
+  .get(validate(paramValidation.costs), shippingCtrl.costs);
+
 export default router;
