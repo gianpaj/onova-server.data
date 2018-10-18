@@ -41,6 +41,15 @@ describe('## Shipping', () => {
           )
         );
     });
+
+    it('should NOT get the list of departments for an invalid city uuid', () => {
+      return request(app)
+        .get(`/api/shipping/departments/8d5a980d-391c-11dd-90d9`)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res =>
+          expect(res.body.message).toBe('"city" must be a valid GUID')
+        );
+    });
   });
 
   describe('# GET /api/shipping/costs', () => {
@@ -62,7 +71,7 @@ describe('## Shipping', () => {
         )
         .expect(httpStatus.BAD_REQUEST)
         .then(res =>
-          expect(res.body.message).toContain('"recipientOfficeID" is required')
+          expect(res.body.message).toBe('"recipientOfficeID" is required')
         );
     });
 
