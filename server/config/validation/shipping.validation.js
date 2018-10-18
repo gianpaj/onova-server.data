@@ -4,7 +4,7 @@ export default {
   // GET /api/shipping/departments/${city}
   departments: {
     params: {
-      city: Joi.string(), // TODO: validate it's a UUID (8d5a980d-391c-11dd-90d9-001a92567626)
+      city: Joi.string().uuid(),
     },
   },
   // GET /api/shipping/costs
@@ -12,8 +12,12 @@ export default {
     query: {
       price: Joi.string().required(),
       weight: Joi.number().required(),
-      senderOfficeID: Joi.string().required(),
-      recipientOfficeID: Joi.string().required(),
+      senderOfficeID: Joi.string()
+        .uuid()
+        .required(),
+      recipientOfficeID: Joi.string()
+        .uuid()
+        .required(),
     },
   },
 };
