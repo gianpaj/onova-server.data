@@ -26,6 +26,14 @@ function isAuthorized(req, res, next) {
   next();
 }
 
+function isAuthorizedBuyer(req, res, next) {
+  if (req.user._id.toString() !== req.order.buyer._id.toString()) {
+    const err = new APIError('Unauthorized', 401);
+    return next(err);
+  }
+  next();
+}
+
 // ALL Protected routes
 router
   .route('/')
@@ -53,6 +61,15 @@ router
     orderCtrl.update
   );
 
+router
+  .route('/:orderId/pay')
+  // POST /api/orders/:orderId/pay - Start payment
+  .post(
+    validate(paramValidation.orderId),
+    requireAuth,
+    isAuthorizedBuyer,
+    orderCtrl.pay
+  );
 // Load user when API with orderId route parameter is hit
 router.param('orderId', orderCtrl.load);
 

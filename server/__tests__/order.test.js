@@ -787,4 +787,51 @@ describe('## Order APIs', () => {
         });
     });
   });
+
+  describe('# PUT /api/orders/:orderId/pay', () => {
+    const productPOST2 = {
+      categoryIds: [2],
+      typeIds: [1],
+      description: 'my old panties',
+      price: '99900.59',
+      ...photos,
+    };
+    let orderPOST3, orderPOST4, orderPOST5;
+    let orderPOST3ProdUUID, orderPOST4ProdUUID;
+
+    beforeAll(async () => {
+      await createProduct(productPOST2, firstUserJwtToken).then(product =>
+        createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+          o => {
+            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+            expect(o.priceOfItem).toBe(productPOST2.price);
+            orderPOST3ProdUUID = product.uuid;
+            orderPOST3 = o.id;
+          }
+        )
+      );
+
+      await createProduct(productPOST2, firstUserJwtToken).then(product =>
+        createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+          o => {
+            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+            expect(o.priceOfItem).toBe(productPOST2.price);
+            orderPOST4ProdUUID = product.uuid;
+            orderPOST4 = o.id;
+          }
+        )
+      );
+    });
+
+    it('should NOT allow another buyer to pay for an order', () => {
+      return request(app)
+        .post(`/api/orders/${orderPOST4}/pay`)
+        .set('Authorization', forthJwtToken)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(res => {
+          expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+  });
 });

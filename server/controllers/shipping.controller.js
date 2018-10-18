@@ -37,7 +37,7 @@ const DepartmentsSchema = new mongoose.Schema({
 const Deparment = mongoose.model('departments', DepartmentsSchema);
 
 /**
- * Get list of cities for Nova Poshta (cached from UAPAY)
+ * Get list of cities for Nova Poshta
  *
  * GET /api/shipping/cities
  */
@@ -125,7 +125,7 @@ async function costs(
 }
 
 /**
- * Get list of departments of Nova Poshta for a city (cached from UAPAY)
+ * Get list of departments of Nova Poshta for a city
  *
  * GET /api/shipping/departments/${city}
  *
