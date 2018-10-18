@@ -8,10 +8,12 @@ import app from '../index';
 import Tag from '../models/tag.model';
 import {
   beforeAllTests,
+  createOrder,
   createProduct,
   createUserAndLogin,
   orderFields,
 } from './utils';
+import Order from '../models/order.model';
 
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
@@ -75,13 +77,8 @@ describe('## Order APIs', () => {
     ],
   };
 
-  let firstUserProductAUuid;
-  let firstUserProductBUuid2;
-  let anotherUserProductCUuid;
-  let firstUserJwtToken;
-  let anotherJwtToken;
-  let nonActiveUserJwtToken;
-  let forthJwtToken;
+  let firstUserProductAUuid, firstUserProductBUuid2, anotherUserProductUuid;
+  let firstUserJwtToken, anotherJwtToken, nonActiveUserJwtToken, forthJwtToken;
   let ordersByfirstUser = 0;
   let ordersTofirstUser = 0;
   let ordersByAnotherUser = 0;
@@ -150,7 +147,7 @@ describe('## Order APIs', () => {
     );
     Promises.push(
       createProduct(productC, anotherJwtToken).then(p => {
-        anotherUserProductCUuid = p.uuid;
+        anotherUserProductUuid = p.uuid;
       })
     );
 
@@ -179,7 +176,7 @@ describe('## Order APIs', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', firstUserJwtToken)
-        .send({ product: anotherUserProductCUuid })
+        .send({ product: anotherUserProductUuid })
         .expect(httpStatus.CREATED)
         .then(res => {
           const o = res.body.data;
@@ -198,7 +195,7 @@ describe('## Order APIs', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', firstUserJwtToken)
-        .send({ product: anotherUserProductCUuid })
+        .send({ product: anotherUserProductUuid })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.data).toHaveProperty('id');
@@ -210,7 +207,7 @@ describe('## Order APIs', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', forthJwtToken)
-        .send({ product: anotherUserProductCUuid })
+        .send({ product: anotherUserProductUuid })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
@@ -450,10 +447,10 @@ describe('## Order APIs', () => {
     let orderPOST1, orderPOST2, orderPOST3;
 
     beforeAll(done => {
-      let Promises = [];
+      const Promises = [];
       Promises.push(
-        createProduct(productPOST1, anotherJwtToken).then(product => {
-          return request(app)
+        createProduct(productPOST1, anotherJwtToken).then(product =>
+          request(app)
             .post('/api/orders')
             .set('Authorization', firstUserJwtToken)
             .send({ product: product.uuid })
@@ -463,13 +460,13 @@ describe('## Order APIs', () => {
               expect(o.onovaFee).toBe((productPOST1.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST1.price);
               orderPOST1 = o.id;
-            });
-        })
+            })
+        )
       );
 
       Promises.push(
-        createProduct(productPOST2, firstUserJwtToken).then(product => {
-          return request(app)
+        createProduct(productPOST2, firstUserJwtToken).then(product =>
+          request(app)
             .post('/api/orders')
             .set('Authorization', anotherJwtToken)
             .send({ product: product.uuid })
@@ -479,13 +476,13 @@ describe('## Order APIs', () => {
               expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST2.price);
               orderPOST2 = o.id;
-            });
-        })
+            })
+        )
       );
 
       Promises.push(
-        createProduct(productPOST2, firstUserJwtToken).then(product => {
-          return request(app)
+        createProduct(productPOST2, firstUserJwtToken).then(product =>
+          request(app)
             .post('/api/orders')
             .set('Authorization', anotherJwtToken)
             .send({ product: product.uuid })
@@ -495,13 +492,11 @@ describe('## Order APIs', () => {
               expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST2.price);
               orderPOST3 = o.id;
-            });
-        })
+            })
+        )
       );
 
-      Promise.all(Promises).then(() => {
-        done();
-      });
+      Promise.all(Promises).then(() => done());
     });
 
     it('should NOT cancel an order that`s not mine', () => {
@@ -695,51 +690,47 @@ describe('## Order APIs', () => {
         'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
       ],
     };
-    let orderPOST3;
-    let orderPOST4;
-    let orderPOST3ProdUUID;
+    let orderPOST3, orderPOST4, orderPOST5;
+    let orderPOST3ProdUUID, orderPOST4ProdUUID;
 
-    beforeAll(done => {
-      let Promises = [];
-
-      Promises.push(
-        createProduct(productPOST2, firstUserJwtToken).then(product => {
-          orderPOST3ProdUUID = product.uuid;
-          return request(app)
-            .post('/api/orders')
-            .set('Authorization', anotherJwtToken)
-            .send({ product: product.uuid })
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const o = res.body.data;
-              expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
-              expect(o.priceOfItem).toBe(productPOST2.price);
-              orderPOST3 = o.id;
-            });
-        })
-      );
-      Promises.push(
-        createProduct(productPOST2, firstUserJwtToken).then(product => {
-          return request(app)
-            .post('/api/orders')
-            .set('Authorization', anotherJwtToken)
-            .send({ product: product.uuid })
-            .expect(httpStatus.CREATED)
-            .then(res => {
-              const o = res.body.data;
-              expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
-              expect(o.priceOfItem).toBe(productPOST2.price);
-              orderPOST4 = o.id;
-            });
-        })
+    beforeAll(async () => {
+      await createProduct(productPOST2, firstUserJwtToken).then(product =>
+        createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+          o => {
+            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+            expect(o.priceOfItem).toBe(productPOST2.price);
+            orderPOST3ProdUUID = product.uuid;
+            orderPOST3 = o.id;
+          }
+        )
       );
 
-      Promise.all(Promises).then(() => {
-        done();
-      });
+      await createProduct(productPOST2, firstUserJwtToken).then(product =>
+        createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+          o => {
+            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+            expect(o.priceOfItem).toBe(productPOST2.price);
+            orderPOST4ProdUUID = product.uuid;
+            orderPOST4 = o.id;
+          }
+        )
+      );
+
+      // TODO: mock UAPAY API for making payments
+      await Order.updateOne({ _id: orderPOST4 }, { status: 'paid' });
+
+      await createProduct(productPOST2, firstUserJwtToken).then(product =>
+        createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+          o => {
+            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+            expect(o.priceOfItem).toBe(productPOST2.price);
+            orderPOST5 = o.id;
+          }
+        )
+      );
     });
 
-    it('should allow the buyer set an order status to `cancelled`', async () => {
+    it('should allow the buyer to cancel an order', async () => {
       await request(app)
         .get(`/api/products/${orderPOST3ProdUUID}`)
         .expect(httpStatus.OK)
@@ -769,7 +760,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should allow another buyer to create an order for the same product', () => {
+    it('should allow another buyer to create an order for the same product (after the previous order cancellation)', () => {
       return request(app)
         .post(`/api/orders`)
         .set('Authorization', forthJwtToken)
@@ -781,7 +772,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should NOT allow the buyer set an order status to `confirmed` (confirm)', () => {
+    it('should NOT allow the buyer to confirm the order', () => {
       return request(app)
         .put(`/api/orders/${orderPOST4}`)
         .set('Authorization', anotherJwtToken)
@@ -793,8 +784,22 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should allow the seller set an order status to `confirmed` (confirm)', () => {
+    it('should NOT confirm an order that is not paid', () => {
       return request(app)
+        .put(`/api/orders/${orderPOST5}`)
+        .set('Authorization', firstUserJwtToken)
+        .send({ status: 'confirmed' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            'cannot confirm an order that is not paid'
+          );
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should allow the seller to confirm the order', async () => {
+      await request(app)
         .put(`/api/orders/${orderPOST4}`)
         .set('Authorization', firstUserJwtToken)
         .send({ status: 'confirmed' })
@@ -806,6 +811,13 @@ describe('## Order APIs', () => {
           );
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('confirmed');
+        });
+      await request(app)
+        .get(`/api/products/${orderPOST4ProdUUID}`)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const p = res.body.data;
+          expect(p.status).toBe('sold');
         });
     });
   });
