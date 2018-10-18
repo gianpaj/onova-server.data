@@ -8,8 +8,8 @@ import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
 import { UserDoc } from '../models/user.model';
 import notifCtrl from '../controllers/notification.controller';
-import type { NotifPayload } from '../controllers/notification.controller';
 import Block from '../models/block.model';
+import type { NotifPayload } from '../controllers/notification.controller';
 
 declare class express$Request extends express$Request {
   order: OrderDoc;
@@ -134,7 +134,7 @@ function create(
       res.status(httpStatus.CREATED).json({ data: savedOrder })
     )
     .catch(e => {
-      if (e.message == 'Duplicate order') {
+      if (e.message === 'Duplicate order') {
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: e.message, data: e.order });
@@ -170,8 +170,8 @@ async function update(
   try {
     // can go only from either 'paid' or 'pending' -> 'cancelled'
     if (
-      ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-      newStatus == 'cancelled'
+      ['paid', 'pending'].indexOf(foundOrder.status) === -1 &&
+      newStatus === 'cancelled'
     ) {
       throw new APIError(
         'cannot cancel an order that has been shipped or completed',
@@ -179,13 +179,14 @@ async function update(
       );
     }
 
-    if (foundOrder.status == 'cancelled' && newStatus !== 'cancelled') {
+    if (foundOrder.status === 'cancelled' && newStatus !== 'cancelled') {
       throw new APIError(
         'cannot change the status of an order once is cancelled',
         httpStatus.BAD_REQUEST
       );
     }
 
+    // TODO: do with Joi in order.validation.js
     if (newStatus && archive) {
       throw new APIError(
         'cannot change the status and archive at the same time',
@@ -202,7 +203,7 @@ async function update(
     }
 
     // // can go only from either 'paid' or 'shipped' -> 'completed'
-    // if (foundOrder.status == 'pending' && newStatus == 'completed') {
+    // if (foundOrder.status === 'pending' && newStatus === 'completed') {
     //   throw new APIError('cannot complete an order that is pending', 400);
     // }
 
@@ -210,7 +211,7 @@ async function update(
     // // can go only from either 'pending' -> 'paid'
     // if (
     //   ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-    //   newStatus == 'paid'
+    //   newStatus === 'paid'
     // ) {
     //   throw new APIError(
     //     'cannot set an order status to paid if its not pending first',
@@ -218,19 +219,25 @@ async function update(
     //   );
     // }
 
-    if (newStatus == 'confirmed') {
+    if (newStatus === 'confirmed') {
+      if (foundOrder.status !== 'paid') {
+        throw new APIError('cannot confirm an order that is not paid', 400);
+      }
       // only the seller can confirm the order
       if (!iAmTheSeller) {
         throw new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
       }
 
+      // TODO: call function to make API request to UAPAY
+
       foundOrder.dateConfirmed = new Date();
+      await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
     }
   } catch (err) {
     return next(err);
   }
 
-  if (newStatus == 'cancelled') {
+  if (newStatus === 'cancelled') {
     // the seller is required to enter a reason
     if (!reason && iAmTheSeller) {
       const err = new APIError('"reason" is required', httpStatus.BAD_REQUEST);
@@ -239,6 +246,9 @@ async function update(
     if (iAmTheSeller) {
       foundOrder.reason = reason;
     }
+
+    // TODO: call function to make API request to UAPAY
+
     foundOrder.dateCancelled = new Date();
 
     await Product.updateOne({ _id: foundOrder.product }, { status: 'forsale' });
