@@ -82,7 +82,7 @@ const envVarsSchema = Joi.object({
     .description('UAPAY API Client ID'),
   UAPAY_KEY: Joi.string()
     .required()
-    .description('UAPAY API Client ID'),
+    .description('UAPAY API Key'),
   UAPAY_BASE_URL: Joi.string()
     .required()
     .description('UAPAY API URL'),
