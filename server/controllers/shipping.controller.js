@@ -1,9 +1,13 @@
 // @flow
 
+import axios from 'axios';
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 
 import APIError from '../helpers/APIError';
+import config from '../config/config';
+
+axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
 const CitiesSchema = new mongoose.Schema(
   { id: String, uk: String },
@@ -76,8 +80,7 @@ async function costs(
   res: express$Response,
   next: express$NextFunction
 ) {
-  console.log(req.query);
-  const { senderOfficeID, recipientOfficeID } = req.query;
+  const { senderOfficeID, recipientOfficeID, price, weight } = req.query;
   try {
     const senderDeparment = await Deparment.findOne({ id: senderOfficeID });
     const recipientDeparment = await Deparment.findOne({
@@ -87,8 +90,28 @@ async function costs(
     if (!senderDeparment || !recipientDeparment) {
       throw new APIError('Error retrieving the deparment(s)');
     }
-    res.json({ data: 6300 });
+
+    const provider = await axios.get('/handlers/NovaPoshta/costs', {
+      params: {
+        productWeight: weight,
+        productPrice: parseInt(price.replace('.', '')), // TODO: convert price properly to number
+        senderOfficeId: senderDeparment.id,
+        senderCityId: senderDeparment.cityID,
+        recipientOfficeId: recipientDeparment.id,
+        recipientCityId: recipientDeparment.cityID,
+      },
+      auth: {
+        username: config.UAPAY_CLIENTID,
+        password: config.UAPAY_KEY,
+      },
+    });
+
+    if (!provider || !provider.data)
+      throw new APIError('Error getting the costs from UAPAY');
+
+    res.json({ data: provider.data.data.handlerPrice });
   } catch (error) {
+    console.error(error);
     if (!(error instanceof APIError)) {
       return next(
         new APIError(
