@@ -148,7 +148,7 @@ describe('## User APIs', () => {
           .expect(httpStatus.BAD_REQUEST);
       });
 
-      it('should NOT create a user with an invalid username (cyrilic alphabet)', () => {
+      it('should NOT create a user with an invalid username (cyrillic alphabet)', () => {
         const user3 = { emailAddress: 'user3@gmail.com', username: 'Кплнаше' };
         return request(app)
           .post('/api/users')
