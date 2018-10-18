@@ -3,6 +3,7 @@
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import httpStatus from 'http-status';
+
 import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
@@ -302,6 +303,39 @@ function list(
 }
 
 /**
+ * Start payment via UAPAY
+ *
+ * POST /api/orders/:orderId/pay
+ *
+ * @property {*} req.query - Express query parameters
+ * @property {MongoId} req.query.orderId
+ */
+async function pay(
+  req: express$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { order } = req;
+
+  try {
+    const product = await Product.findOne({ _id: order.product });
+
+    if (!product)
+      throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+
+    res.json({ data: product });
+  } catch (err) {
+    console.error(err);
+    if (!(err instanceof APIError)) {
+      err = new APIError(
+        'Error creating payment',
+        httpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+    next(err);
+  }
+}
+
  * Creates the approprate notification(s) for each order status transition
  *
  * See graph in `ORDER_PROCESS.md`
@@ -364,4 +398,5 @@ export default {
   create,
   update,
   list,
+  pay,
 };
