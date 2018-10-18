@@ -297,7 +297,7 @@ describe('## Product APIs', () => {
         });
     });
 
-    it('should create product with a valid tag (cyrilic)', () => {
+    it('should create product with a valid tag (cyrillic)', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken1)
