@@ -9,8 +9,10 @@ import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
 import User, { UserDoc } from '../models/user.model';
-import notifCtrl from '../controllers/notification.controller';
 import Block from '../models/block.model';
+import Notification from '../models/notification.model';
+import notifCtrl from '../controllers/notification.controller';
+
 import type { NotifPayload } from '../controllers/notification.controller';
 
 import config from '../config/config';
@@ -30,9 +32,9 @@ declare class express$Request extends express$Request {
 }
 
 const i18n = {
-  orderPaid: 'Congrats! 🎉 You have a new purchase!', // 36 chars
+  orderPaid: 'Congrats! 🎉 You have a new purchase!', // 37 chars
   orderShipped: 'Your purchase has been shipped! 🎉', // 34 chars
-  orderCancelled: 'Your order has been cancelled! 😭', // 34 chars
+  orderCancelled: 'Your order has been cancelled! 😭', // 33 chars
 };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
@@ -113,7 +115,11 @@ function create(
         product: product._id,
       });
       // FIXME: extent APIError to be able to send extra data
-      if (order) throw { message: 'Duplicate order', order };
+      if (order) {
+        order.status = 'pending';
+        order.save();
+        throw { message: 'Duplicate order', order };
+      }
 
       const blocking = await Block.countDocuments({
         $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
@@ -277,7 +283,7 @@ async function update(
     : foundOrder.paymentMethod;
 
   if (newStatus) {
-    createOrderNotification(foundOrder)
+    createOrderNotification(foundOrder, iAmTheSeller)
       .then(() => {
         debug('notification(s) created for order:', newStatus);
       })
@@ -416,7 +422,7 @@ function createPaymentUAPAY(
       );
 
       order.transactionId = deal.id;
-      await order.save();
+      order.save();
 
       // Step 3 - Start payment
       await axios.post(
@@ -503,7 +509,7 @@ async function paymentStatus(
       case 'NEEDS_CONFIRMATION':
         order.transactionStatus = 'ua-needsconfirmation';
         break;
-      // Trasaction completed
+      // Transaction completed
       case 'FINISHED':
         order.transactionStatus = 'ua-finished';
         break;
@@ -546,8 +552,12 @@ async function paymentStatus(
  *
  * See graph in `ORDER_PROCESS.md`
  */
-function createOrderNotification(order: OrderDoc) {
+async function createOrderNotification(
+  order: OrderDoc,
+  iAmTheSeller?: boolean
+) {
   let notif: NotifPayload = {
+    data: order,
     triggeredBy: order._id,
     triggeredType: 'Order',
   };
@@ -558,15 +568,14 @@ function createOrderNotification(order: OrderDoc) {
       return Promise.resolve();
     case 'paid':
       // seller needs to confirm order after receiving a notification and opening the 'confirmOrder' screen on mobile app
-      // TODO: test
       notif = {
         ...notif,
         notifI18n: i18n.orderPaid,
         targetUser: order.seller,
         sourceUser: req.user,
       };
+      break;
 
-      return notifCtrl.createNotification(notif);
     case 'shipped':
       // notify the buyer
       // TODO: test
@@ -576,9 +585,10 @@ function createOrderNotification(order: OrderDoc) {
         targetUser: order.buyer._id,
         sourceUser: req.user,
       };
+      break;
 
-      return notifCtrl.createNotification(notif);
     case 'cancelled':
+      if (!iAmTheSeller) return Promise.resolve();
       // cancelled by seller. there is no notification if the buyer cancels
       notif = {
         ...notif,
@@ -586,9 +596,9 @@ function createOrderNotification(order: OrderDoc) {
         targetUser: order.buyer._id,
         sourceUser: order.seller._id,
       };
-
-      return notifCtrl.createNotification(notif);
+      break;
   }
+  return notifCtrl.createNotification(notif);
 }
 
 function addProductToCheckout(product) {
