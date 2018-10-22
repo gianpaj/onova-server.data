@@ -272,6 +272,7 @@ function update(
     const bytes = bs58.decode(body.paymentInfoPayload);
     const payload = JSON.parse(bytes.toString());
     user.paymentInfo.last_four = payload.panMasked.slice(-4);
+    user.paymentInfo.cvc = payload.cvv;
     user.paymentInfo.card_token = payload.id;
     user.paymentInfo.method = 'uapay';
   }
