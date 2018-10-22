@@ -793,7 +793,7 @@ describe('## Order APIs', () => {
       categoryIds: [2],
       typeIds: [1],
       description: 'my old panties',
-      price: '99900.59',
+      price: '1000.00',
       ...photos,
     };
     let orderPOST3, orderPOST4, orderPOST5;

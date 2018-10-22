@@ -24,7 +24,7 @@ const i18n = {
 };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
-const UAPAY_PERC = 0.015;
+const UAPAY_PERC = 0.015; // 1.5%
 const UAPAY_EXTRA = 10; // UAH
 
 /**
