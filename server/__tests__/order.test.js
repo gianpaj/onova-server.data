@@ -1,6 +1,8 @@
 // @flow
 
 import httpStatus from 'http-status';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 import path from 'path';
 import request from 'supertest';
 
@@ -14,12 +16,16 @@ import {
   orderFields,
 } from './utils';
 import Order from '../models/order.model';
+import { paymentResponse } from '../helpers/shipping';
 
 const photos = {
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
 };
+
+// This sets the mock adapter on the default instance
+var mock = new MockAdapter(axios);
 
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
@@ -28,6 +34,7 @@ describe('## Order APIs', () => {
     username: 'firstperson',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
+    mobileNumber: '380677929197',
   };
 
   let anotherUser = {
@@ -36,6 +43,7 @@ describe('## Order APIs', () => {
     password: 'express2',
     pushToken: 'anotherpersonPushToken',
     platform: 'ios',
+    mobileNumber: '380977414301',
   };
 
   let nonActiveUser = {
@@ -180,7 +188,11 @@ describe('## Order APIs', () => {
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((productC.price * 1).toString());
-          expect(o.total).toBe((productC.price * 1).toString());
+          expect(o.total).toBe(
+            (
+              parseFloat(productC.price) + parseFloat(o.transactionFee)
+            ).toString()
+          );
           expect(o.priceOfItem).toBe(productC.price);
           expect(o.transactionStatus).toBe('ua-pending');
           ordersToAnotherUser++;
@@ -831,6 +843,23 @@ describe('## Order APIs', () => {
         .then(res => {
           expect(res.body.message).toBe('Unauthorized');
           expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should pay for an order', () => {
+      mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+      mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
+      mock.onPost(`/deals/9B27M6E/payments`).reply(200, paymentResponse);
+      return request(app)
+        .post(`/api/orders/${orderPOST4}/pay`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.order).toBeTruthy();
+          expect(body.data.payment.redirectUrl).toContain(
+            '.uapay.ua/api/payments/'
+          );
+          expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
         });
     });
   });
