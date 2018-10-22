@@ -103,6 +103,11 @@ var ProductSchema = new Schema(
       type: [Number],
       required: true,
     },
+    weight: {
+      type: Number,
+      default: 3000, // 3kg
+      required: true,
+    },
     uuid: {
       type: String,
       unique: true, // Unique index
