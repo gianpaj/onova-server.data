@@ -25,9 +25,10 @@ export const orderFields = [
   'product',
   'seller',
   'status',
-  'transactionStatus',
   'total',
-].sort();
+  'transactionFee',
+  'transactionStatus',
+];
 
 // should only return these fields
 export const productFields = [
