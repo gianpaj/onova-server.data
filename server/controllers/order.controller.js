@@ -23,7 +23,9 @@ const i18n = {
   orderCancelled: 'Your order has been cancelled! 😭', // 34 chars
 };
 
-const ONOVA_RATE = 1; // 1 = 0% -- 1.2 = 20%
+const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
+const UAPAY_PERC = 0.015;
+const UAPAY_EXTRA = 10; // UAH
 
 /**
  * @private
@@ -116,15 +118,17 @@ function create(
     .then(async product => {
       const pPrice = product.price.toString();
       const onovaFee = (parseFloat(pPrice) * ONOVA_RATE).toString();
+      const transactionFee = product.price * UAPAY_PERC + UAPAY_EXTRA;
 
       const order = new Order({
         buyer: req.user._id,
         currency: product.currency, // 'UAH' by default
         // datePending // Date.now by default
-        onovaFee: onovaFee,
+        onovaFee,
         priceOfItem: product.price,
         product: product._id,
         seller: product.seller._id,
+        transactionFee,
         // status // 'pending' by default
       });
 
