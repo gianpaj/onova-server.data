@@ -16,7 +16,7 @@ import {
   orderFields,
 } from './utils';
 import Order from '../models/order.model';
-import { paymentResponse } from '../helpers/shipping';
+import { paymentResponse, dealStatusResponse } from '../helpers/shipping';
 
 const photos = {
   photos: [
@@ -808,8 +808,7 @@ describe('## Order APIs', () => {
       price: '1000.00',
       ...photos,
     };
-    let orderPOST3, orderPOST4, orderPOST5;
-    let orderPOST3ProdUUID, orderPOST4ProdUUID;
+    let orderId;
 
     beforeAll(async () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
@@ -817,19 +816,7 @@ describe('## Order APIs', () => {
           o => {
             expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
-            orderPOST3ProdUUID = product.uuid;
-            orderPOST3 = o.id;
-          }
-        )
-      );
-
-      await createProduct(productPOST2, firstUserJwtToken).then(product =>
-        createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
-          o => {
-            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
-            expect(o.priceOfItem).toBe(productPOST2.price);
-            orderPOST4ProdUUID = product.uuid;
-            orderPOST4 = o.id;
+            orderId = o.id;
           }
         )
       );
@@ -837,7 +824,7 @@ describe('## Order APIs', () => {
 
     it('should NOT allow another buyer to pay for an order', () => {
       return request(app)
-        .post(`/api/orders/${orderPOST4}/pay`)
+        .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', forthJwtToken)
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
@@ -851,7 +838,7 @@ describe('## Order APIs', () => {
       mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
       mock.onPost(`/deals/9B27M6E/payments`).reply(200, paymentResponse);
       return request(app)
-        .post(`/api/orders/${orderPOST4}/pay`)
+        .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -861,6 +848,91 @@ describe('## Order APIs', () => {
           );
           expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
         });
+    });
+  });
+
+  describe('# GET /api/orders/:orderId/paymentStatus', () => {
+    const product2 = {
+      categoryIds: [2],
+      typeIds: [1],
+      description: 'my old panties',
+      price: '1000.00',
+      ...photos,
+    };
+    let orderId;
+
+    beforeAll(async () => {
+      await createProduct(product2, firstUserJwtToken).then(product =>
+        createOrder({ ...product, ...product2 }, anotherJwtToken).then(o => {
+          expect(o.onovaFee).toBe((product2.price * 1).toString());
+          expect(o.priceOfItem).toBe(product2.price);
+          orderId = o.id;
+        })
+      );
+    });
+
+    it('should NOT allow another buyer to get the Order payment status', () => {
+      return request(app)
+        .get(`/api/orders/${orderId}/paymentStatus`)
+        .set('Authorization', forthJwtToken)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(res => {
+          expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should NOT allow the seller to get the Order payment status', () => {
+      return request(app)
+        .get(`/api/orders/${orderId}/paymentStatus`)
+        .set('Authorization', firstUserJwtToken)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(res => {
+          expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it("should NOT return if the Order doesn't have a payment (transactionId)", () => {
+      return request(app)
+        .get(`/api/orders/${orderId}/paymentStatus`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.NOT_FOUND)
+        .then(res => {
+          expect(res.body.message).toBe('Order payment does not exist');
+        });
+    });
+
+    describe('get a payment status', () => {
+      beforeAll(() => {
+        // start payment
+        mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+        mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
+        mock.onPost(`/deals/9B27M6E/payments`).reply(200, paymentResponse);
+        return request(app)
+          .post(`/api/orders/${orderId}/pay`)
+          .set('Authorization', anotherJwtToken)
+          .expect(httpStatus.CREATED)
+          .then(({ body }) => {
+            expect(body.data.order).toBeTruthy();
+            expect(body.data.payment.redirectUrl).toContain(
+              '.uapay.ua/api/payments/'
+            );
+            expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
+          });
+      });
+
+      it('should get payment status', () => {
+        mock.onGet(`/deals/9B27M6E`).reply(200, dealStatusResponse);
+        return request(app)
+          .get(`/api/orders/${orderId}/paymentStatus`)
+          .set('Authorization', anotherJwtToken)
+          .expect(httpStatus.OK)
+          .then(({ body }) => {
+            expect(body.data.status).toBe('ua-finished');
+            expect(body.data.rawStatus).toBe('FINISHED');
+          });
+      });
     });
   });
 });

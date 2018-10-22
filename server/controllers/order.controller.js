@@ -455,6 +455,77 @@ function createPaymentUAPAY(
 }
 
 /**
+ * Get payment from UAPAY. Used after client makes payment with UAPAY
+ *
+ * GET /api/orders/:orderId/paymentStatus
+ *
+ * @property {*} req.query - Express query parameters
+ * @property {MongoId} req.query.orderId
+ */
+async function paymentStatus(
+  req: express$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { order } = req;
+
+  try {
+    if (!order.transactionId) {
+      throw new APIError('Order payment does not exist', httpStatus.NOT_FOUND);
+    }
+
+    console.log('getting', order.transactionId);
+    const {
+      data: { data },
+    } = await axios.get(`/deals/${order.transactionId}`, axiosConfig);
+
+    // check data.productPayment.statusCode === 'FINISHED'
+
+    switch (data.productPayment.statusCode) {
+      case 'PENDING':
+        order.transactionStatus = 'ua-pending';
+        break;
+      // The buyer needs to confirmation the transaction entering the 3DS code (LOOKUP works?)
+      case 'NEEDS_CONFIRMATION':
+        order.transactionStatus = 'ua-needsconfirmation';
+        break;
+      // Trasaction completed
+      case 'FINISHED':
+        order.transactionStatus = 'ua-finished';
+        break;
+      // The bank has not been able to make debit for technical reasons
+      case 'REJECTED':
+        order.transactionStatus = 'ua-rejected';
+        break;
+      // The payment was returned to the sender's card
+      case 'REVERSED':
+        order.transactionStatus = 'ua-reversed';
+        break;
+
+      default:
+        break;
+    }
+    order.save();
+
+    res.json({
+      data: {
+        rawStatus: data.productPayment.statusCode,
+        status: order.transactionStatus,
+      },
+    });
+  } catch (error) {
+    if (!(error instanceof APIError)) {
+      console.error(error);
+      error = new APIError(
+        'Error getting payment status',
+        httpStatus.INTERNAL_SERVER_ERROR
+      );
+    }
+    next(error);
+  }
+}
+
+/**
  * Creates the approprate notification(s) for each order status transition
  *
  * See graph in `ORDER_PROCESS.md`
@@ -518,5 +589,5 @@ export default {
   update,
   list,
   pay,
-  // checkPayment
+  paymentStatus,
 };

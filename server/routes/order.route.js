@@ -70,6 +70,17 @@ router
     isAuthorizedBuyer,
     orderCtrl.pay
   );
+
+router
+  .route('/:orderId/paymentStatus')
+  // GET /api/orders/:orderId/paymentStatus - Get payment from UAPAY
+  .get(
+    validate(paramValidation.orderId),
+    requireAuth,
+    isAuthorizedBuyer,
+    orderCtrl.paymentStatus
+  );
+
 // Load user when API with orderId route parameter is hit
 router.param('orderId', orderCtrl.load);
 
