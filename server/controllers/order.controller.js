@@ -382,12 +382,12 @@ function createPaymentUAPAY(
           sellerFirstName: seller.shippingAddress.firstName,
           sellerLastName: seller.shippingAddress.lastName,
           sellerPatronymic: '', // seller.shippingAddress.fathersName
-          sellerPhone: seller.mobileNumber, // needs to start with 380
+          sellerPhone: '38' + seller.mobileNumber, // needs to start with 380 e,g. 380 97 741 4301 (no spaces)
           sellerEmail: seller.emailAddress,
           buyerFirstName: buyer.shippingAddress.firstName,
           buyerLastName: buyer.shippingAddress.lastName,
           buyerPatronymic: '', // buyer.shippingAddress.fathersName
-          buyerPhone: buyer.mobileNumber,
+          buyerPhone: '38' + buyer.mobileNumber,
           buyerEmail: buyer.emailAddress,
           lg: 'uk',
           payment: {
@@ -399,14 +399,14 @@ function createPaymentUAPAY(
             senderFirstName: seller.shippingAddress.firstName,
             senderLastName: seller.shippingAddress.lastName,
             senderPatronymic: '',
-            senderPhone: seller.mobileNumber,
+            senderPhone: '38' + seller.mobileNumber,
             senderEmail: seller.emailAddress,
             senderCityId: seller.shippingAddress.city,
             senderOfficeId: seller.shippingAddress.departmentNovaposhta,
             recipientFirstName: buyer.shippingAddress.firstName,
             recipientLastName: buyer.shippingAddress.lastName,
             recipientPatronymic: '', // buyer.shippingAddress.fathersName
-            recipientPhone: buyer.mobileNumber,
+            recipientPhone: '38' + buyer.mobileNumber,
             recipientEmail: buyer.emailAddress,
             recipientCityId: buyer.shippingAddress.city,
             recipientOfficeId: buyer.shippingAddress.departmentNovaposhta,
@@ -419,18 +419,33 @@ function createPaymentUAPAY(
       await order.save();
 
       // Step 3 - Start payment
-      const {
-        data: { data: newDeal },
-      } = await axios.post(
+      await axios.post(
         `/deals/${deal.id}/payments`,
         {
           remoteIP: '127.0.0.1', // Payer IP Address?
           card: {
             id: buyer.paymentInfo.card_token,
-            // securityCode: seller.paymentInfo.cvc // ?
+            securityCode: buyer.paymentInfo.cvc,
           },
         },
         axiosConfig
+      );
+
+      // wait few secs?
+      // Step 4 - Get deal info to send form details to client
+      let retryNum = 0;
+      let newDeal;
+      do {
+        retryNum++;
+        const {
+          data: { data },
+        } = await axios.get(`/deals/${deal.id}`, axiosConfig);
+        newDeal = data;
+        // console.log(newDeal.productPayment.waitingFor);
+        sleep(1000);
+      } while (
+        newDeal.productPayment.waitingFor === 'PAY_PROCESSING' &&
+        retryNum < 15
       );
 
       // console.log(newDeal);
@@ -474,7 +489,6 @@ async function paymentStatus(
       throw new APIError('Order payment does not exist', httpStatus.NOT_FOUND);
     }
 
-    console.log('getting', order.transactionId);
     const {
       data: { data },
     } = await axios.get(`/deals/${order.transactionId}`, axiosConfig);
@@ -506,6 +520,8 @@ async function paymentStatus(
         break;
     }
     order.save();
+
+    // if (data.productPayment.type === 'P2P_ONOVA')
 
     res.json({
       data: {
@@ -581,6 +597,10 @@ function addProductToCheckout(product) {
   product.status = 'reserved';
   return product.save();
 }
+
+const sleep = ms => {
+  return new Promise(resolve => setTimeout(resolve, ms));
+};
 
 export default {
   load,
