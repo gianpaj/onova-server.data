@@ -2,15 +2,27 @@
 
 const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
+import axios from 'axios';
 import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
-import { UserDoc } from '../models/user.model';
+import User, { UserDoc } from '../models/user.model';
 import notifCtrl from '../controllers/notification.controller';
 import Block from '../models/block.model';
 import type { NotifPayload } from '../controllers/notification.controller';
+
+import config from '../config/config';
+
+axios.defaults.baseURL = config.UAPAY_BASE_URL;
+
+const axiosConfig = {
+  auth: {
+    username: config.UAPAY_CLIENTID,
+    password: config.UAPAY_KEY,
+  },
+};
 
 declare class express$Request extends express$Request {
   order: OrderDoc;
@@ -327,9 +339,12 @@ async function pay(
     if (!product)
       throw new APIError('Product not found.', httpStatus.NOT_FOUND);
 
-    res.json({ data: product });
+    const payment = await createPaymentUAPAY(order, product);
+
+    res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
-    console.error(err);
+    if (err.response && err.response.data) console.error(err.response.data);
+    else console.error(err);
     if (!(err instanceof APIError)) {
       err = new APIError(
         'Error creating payment',
@@ -340,6 +355,106 @@ async function pay(
   }
 }
 
+function createPaymentUAPAY(
+  order: OrderDoc,
+  product: ProductDoc
+): Promise<any> {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const buyer = await User.findById(order.buyer);
+      const seller = await User.findById(order.seller);
+
+      // Step 1 - Create cart
+      const {
+        data: { data: cart },
+      } = await axios.post('/carts', null, axiosConfig); // no data necessary
+
+      // Step 2 - Create Deal
+      const {
+        data: { data: deal },
+      } = await axios.post(
+        '/deals',
+        {
+          cartId: cart.id,
+          productTitle: product.description,
+          productWeight: product.weight, // number
+          productPrice: product.price.toString().replace('.', ''), // to number in cents
+          sellerFirstName: seller.shippingAddress.firstName,
+          sellerLastName: seller.shippingAddress.lastName,
+          sellerPatronymic: '', // seller.shippingAddress.fathersName
+          sellerPhone: seller.mobileNumber, // needs to start with 380
+          sellerEmail: seller.emailAddress,
+          buyerFirstName: buyer.shippingAddress.firstName,
+          buyerLastName: buyer.shippingAddress.lastName,
+          buyerPatronymic: '', // buyer.shippingAddress.fathersName
+          buyerPhone: buyer.mobileNumber,
+          buyerEmail: buyer.emailAddress,
+          lg: 'uk',
+          payment: {
+            type: 'P2P_ONOVA',
+            cardToId: seller.paymentInfo.card_token,
+          },
+          handler: {
+            type: 'NovaPoshta_ONOVA',
+            senderFirstName: seller.shippingAddress.firstName,
+            senderLastName: seller.shippingAddress.lastName,
+            senderPatronymic: '',
+            senderPhone: seller.mobileNumber,
+            senderEmail: seller.emailAddress,
+            senderCityId: seller.shippingAddress.city,
+            senderOfficeId: seller.shippingAddress.departmentNovaposhta,
+            recipientFirstName: buyer.shippingAddress.firstName,
+            recipientLastName: buyer.shippingAddress.lastName,
+            recipientPatronymic: '', // buyer.shippingAddress.fathersName
+            recipientPhone: buyer.mobileNumber,
+            recipientEmail: buyer.emailAddress,
+            recipientCityId: buyer.shippingAddress.city,
+            recipientOfficeId: buyer.shippingAddress.departmentNovaposhta,
+          },
+        },
+        axiosConfig
+      );
+
+      order.transactionId = deal.id;
+      await order.save();
+
+      // Step 3 - Start payment
+      const {
+        data: { data: newDeal },
+      } = await axios.post(
+        `/deals/${deal.id}/payments`,
+        {
+          remoteIP: '127.0.0.1', // Payer IP Address?
+          card: {
+            id: buyer.paymentInfo.card_token,
+            // securityCode: seller.paymentInfo.cvc // ?
+          },
+        },
+        axiosConfig
+      );
+
+      // console.log(newDeal);
+      // TODO check commissionAmount is equal to agreed
+      if (
+        // newDeal.productPayment.amount == product.product.toString().replace('.', '') &&
+        newDeal.productPayment.type === 'P2P_ONOVA' &&
+        newDeal.productPayment.statusCode === 'NEEDS_CONFIRMATION'
+      ) {
+        const { confirmation } = newDeal.productPayment.details;
+        resolve({
+          redirectUrl: confirmation.redirectUrl,
+          PaReq: confirmation.form.PaReq,
+        });
+      } else {
+        reject(newDeal);
+      }
+    } catch (error) {
+      reject(error);
+    }
+  });
+}
+
+/**
  * Creates the approprate notification(s) for each order status transition
  *
  * See graph in `ORDER_PROCESS.md`
@@ -403,4 +518,5 @@ export default {
   update,
   list,
   pay,
+  // checkPayment
 };

@@ -1,0 +1,88 @@
+// @flow
+
+export default class Shipping {
+  // static;
+}
+
+export const paymentResponse = {
+  data: {
+    id: '9B27M6E',
+    externalId: null,
+    cartId: 574,
+    productTitle: 'Кобзар 1846р',
+    productPrice: 10000,
+    productWeight: 1500,
+    handlerPrice: 3500,
+    status: 'NEW',
+    reasonStep: null,
+    buyerFirstName: 'Ґіанфранцо',
+    buyerLastName: 'Палумбо',
+    buyerPatronymic: '',
+    buyerPhone: '380977414301',
+    buyerEmail: 'gianpa+buyer@gmail.com',
+    sellerFirstName: 'Алех',
+    sellerLastName: 'Костінскї',
+    sellerPatronymic: '',
+    sellerPhone: '380677929197',
+    sellerEmail: 'gianpa+seller@gmail.com',
+    lg: 'uk',
+    createdAt: '2018-10-18T15:28:13.000Z',
+    adId: null,
+    handler: {
+      status: 'NEW',
+      statusCode: null,
+      statusText: null,
+      waybillNumber: null,
+      senderCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      senderCityName: null,
+      senderOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      senderOfficeName: null,
+      recipientCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      recipientCityName: null,
+      recipientOfficeId: '7b422fbe-e1b8-11e3-8c4a-0050568002cf',
+      recipientOfficeName: null,
+      type: 'NovaPoshta',
+    },
+    productPayment: {
+      id: 617,
+      amount: 10000,
+      commissionAmount: 1600,
+      status: 'NEW',
+      statusCode: 'NEEDS_CONFIRMATION',
+      statusText: null,
+      type: 'P2P_ONOVA',
+      waitingFor: 'CONFIRMATION',
+      details: {
+        confirmation: {
+          type: '3DS',
+          url: 'https://acs.privatbank.ua/pPaReqMC.jsp',
+          form: {
+            PaReq:
+              'eJxVUttu2zAMfc5fGP0A6xbLSqAKyJaHBZjTrHUf+lQYDpG4bRxXsre2Xz9SToJUgGCSh6R8DmnLvQdYPkA9eHC2gBCqHSTN9vZms7iH92eRqZnJ9XRmtMpu3MTGsJtM7F/woTm2TqQ8lZadXUS6qnWZ0CbPcqWV4lrJ3DKKIliAr/dV26M9sVX9/mO1dpnUMy0sO7mEHMCvlo6PR44fzBjDlNBWB3AlhD45d0zKKvxu2tfEsghSVn0c2t5/OsOnlp0dAgb/5vZ9380ZEzJHCjwVc4WHFZsVu4fQHdsAG3+sUZKm3aUvobOMqrCYXZGwm4HsML730WxdUT5+3ZU7tX75k90tn77W5eJfsYz31jLKoMxt1YOTXBiBNxFmLs1cGMtiPGpzoN91guuUc9RmdAnp6MXFBSb0OhR5D95DW3+6mUH04hEEH0gNMA+HdrGJ1BUR+/PXaT51j3rjCLMc9VdTTUOKsVOrBvWUkqvYq4niWkbV2C9uCokVlwqtb8v2H1mwumk=',
+          },
+          redirectUrl:
+            'https://api.escrowbox.stage.uapay.ua/api/payments/617/confirmations',
+        },
+      },
+      payReceipt:
+        'https://api.stage.uapay.ua/api/receipts/b6789f1b-6d74-4691-b908-f65370b9b1b9.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+    handlerPayment: {
+      id: 616,
+      amount: 3500,
+      commissionAmount: 0,
+      status: 'PAID',
+      statusCode: 'FINISHED',
+      statusText: null,
+      type: 'ECOM',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.stage.uapay.ua/api/acquiring/receipts/escrowbox/9e9846af-1dbc-4b00-b0a7-686d1a299351.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+  },
+};
