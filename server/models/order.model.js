@@ -130,7 +130,6 @@ var OrderSchema = new Schema({
   transactionId: String,
   transactionStatus: {
     type: String,
-    default: 'ua-pending',
     enum: [
       'ua-pending',
       'ua-needsconfirmation',

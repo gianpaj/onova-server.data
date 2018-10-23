@@ -27,7 +27,6 @@ export const orderFields = [
   'status',
   'total',
   'transactionFee',
-  'transactionStatus',
 ];
 
 // should only return these fields
