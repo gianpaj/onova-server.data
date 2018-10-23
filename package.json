@@ -82,6 +82,7 @@
     "eslint-watch": "^4.0.2",
     "flow-bin": "^0.82.0",
     "jest": "^23.5.0",
+    "jest-circus": "23.6.0",
     "nodemon": "^1.18.4",
     "prettier": "^1.14.2",
     "rimraf": "^2.6.2",
@@ -101,6 +102,7 @@
   },
   "license": "MIT",
   "jest": {
+    "testRunner": "jest-circus/runner",
     "verbose": true,
     "forceExit": true,
     "testPathIgnorePatterns": [
