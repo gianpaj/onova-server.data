@@ -274,7 +274,7 @@ function generateUnique(doc, next) {
     );
   }
 
-  return sid;
+  // return sid;
 }
 
 export default mongoose.model('Product', ProductSchema);

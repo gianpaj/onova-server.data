@@ -114,10 +114,11 @@ function create(
         buyer: req.user._id,
         product: product._id,
       });
-      // FIXME: extent APIError to be able to send extra data
+      // FIXME: extend APIError to be able to send extra data
       if (order) {
         order.status = 'pending';
         order.save();
+        await addProductToCheckout(product);
         throw { message: 'Duplicate order', order };
       }
 
@@ -255,6 +256,7 @@ async function update(
 
       foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
+      // TODO: remove from checkout as well
     }
   } catch (err) {
     return next(err);
@@ -273,8 +275,7 @@ async function update(
     // TODO: call function to make API request to UAPAY
 
     foundOrder.dateCancelled = new Date();
-
-    await Product.updateOne({ _id: foundOrder.product }, { status: 'forsale' });
+    await removeProductToCheckout(foundOrder.product._id);
   }
 
   foundOrder.status = newStatus ? newStatus : foundOrder.status;
@@ -606,6 +607,11 @@ function addProductToCheckout(product) {
   // doc.save();
   product.status = 'reserved';
   return product.save();
+}
+
+function removeProductToCheckout(productId: string) {
+  // Checkout.find({ product: productId });
+  return Product.updateOne({ _id: productId }, { status: 'forsale' });
 }
 
 const sleep = ms => {
