@@ -1,13 +1,14 @@
 // @flow
 import shortid from 'shortid';
+const debug = require('debug')('express-mongoose-es6-rest-api:index');
 
 import Block from '../models/block.model';
 import Order, { OrderDoc } from '../models/order.model';
 import Product, { ProductDoc } from '../models/product.model';
 import User, { UserDoc } from '../models/user.model';
+import type { NotifPayload } from '../controllers/notification.controller';
 import { agenda } from '../config/express';
 import config from '../config/config';
-import type { NotifPayload } from '../controllers/notification.controller';
 
 export async function sendPush({
   data,
@@ -142,6 +143,7 @@ export async function sendPush({
 
         return job.save(err => {
           if (err) throw new Error(`Job failed with error: ${err}`);
+          debug(config.JOBNAMES.PUSHORDER, 'Job successfully saved');
         });
       })
       .catch(e => {
