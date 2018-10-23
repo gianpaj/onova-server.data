@@ -353,6 +353,9 @@ async function pay(
 
     const payment = await createPaymentUAPAY(order, product, req.body.cvc);
 
+    // TODO: check transaction hasn't already started
+    order.transactionStatus = 'ua-pending';
+
     res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
     if (err.response && err.response.data) console.error(err.response.data);
@@ -524,6 +527,12 @@ async function paymentStatus(
       // Transaction completed
       case 'FINISHED':
         order.transactionStatus = 'ua-finished';
+        order.status = 'paid';
+        createOrderNotification(order)
+          .then(() => {
+            debug('notification(s) created for order:', 'paid');
+          })
+          .catch(e => console.error(e));
         break;
       // The bank has not been able to make debit for technical reasons
       case 'REJECTED':
