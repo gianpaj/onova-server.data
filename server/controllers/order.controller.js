@@ -514,8 +514,6 @@ async function paymentStatus(
       data: { data },
     } = await axios.get(`/deals/${order.transactionId}`, axiosConfig);
 
-    // check data.productPayment.statusCode === 'FINISHED'
-
     switch (data.productPayment.statusCode) {
       case 'PENDING':
         order.transactionStatus = 'ua-pending';
@@ -588,12 +586,20 @@ async function createOrderNotification(
       // TODO: send 2 notifications
       return Promise.resolve();
     case 'paid':
+      // check if notification already exists
+      const notifExists = await Notification.findOne({
+        triggeredBy: order._id,
+        targetUser: order.seller._id,
+        sourceUser: order.buyer._id,
+        'data.status': 'paid',
+      });
+      if (notifExists) return Promise.resolve();
       // seller needs to confirm order after receiving a notification and opening the 'confirmOrder' screen on mobile app
       notif = {
         ...notif,
         notifI18n: i18n.orderPaid,
-        targetUser: order.seller,
-        sourceUser: req.user,
+        targetUser: order.seller._id,
+        sourceUser: order.buyer._id,
       };
       break;
 
@@ -604,7 +610,7 @@ async function createOrderNotification(
         ...notif,
         notifI18n: i18n.orderShipped,
         targetUser: order.buyer._id,
-        sourceUser: req.user,
+        sourceUser: order.seller._id,
       };
       break;
 

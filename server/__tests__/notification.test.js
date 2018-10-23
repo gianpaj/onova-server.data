@@ -445,11 +445,11 @@ describe('## Notification APIs', () => {
                 expect(typeof data.random).toBe('string');
                 done();
               });
-            }, 10);
+            }, 500);
           });
       });
 
-      test('an order notification should have been created to the seller', async () => {
+      test('an order notification should have been created to the seller', () => {
         return request(app)
           .get('/api/users/notifications')
           .set('Authorization', firstJwtToken)
@@ -462,9 +462,42 @@ describe('## Notification APIs', () => {
           });
       });
     });
+
+    describe('# Buyer (anotherUser) pays an order and Notify the buyer (anotherUser) 2', () => {
+      beforeAll(async () => {
+        // fake payment creation
+        await Order.updateOne({ _id: orderId }, { transactionId: '9B27M6E' });
+
+        mock.onGet(`/deals/9B27M6E`).reply(200, dealStatusResponse);
+        return request(app)
+          .get(`/api/orders/${orderId}/paymentStatus`)
+          .set('Authorization', anotherJwtToken)
+          .expect(httpStatus.OK)
+          .then(({ body }) => {
+            expect(body.data.status).toBe('ua-finished');
+            expect(body.data.rawStatus).toBe('FINISHED');
+          });
+      });
+
+      it('should not create a duplicate order notification to the seller', done => {
+        setTimeout(() => {
+          request(app)
+            .get('/api/users/notifications')
+            .set('Authorization', firstJwtToken)
+            .expect(httpStatus.OK)
+            .then(res => {
+              const { data } = res.body;
+              expect(data[0].triggeredBy.id).toBe(orderId);
+              expect(data[0].notifI18n).toContain('You have a new purchase!');
+              expect(data).toHaveLength(numberOfNotifForFirstUser);
+              done();
+            });
+        }, 500);
+      });
+    });
   });
 
-  describe('# Comment with @mentions', () => {
+  describe.skip('# Comment with @mentions', () => {
     // create comments
     beforeAll(async () => {
       const c1 = await createComment(
