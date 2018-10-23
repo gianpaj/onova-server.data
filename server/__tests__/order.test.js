@@ -823,9 +823,22 @@ describe('## Order APIs', () => {
       return request(app)
         .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', forthJwtToken)
+        .send({ cvc: '123' })
         .expect(httpStatus.UNAUTHORIZED)
         .then(res => {
           expect(res.body.message).toBe('Unauthorized');
+          expect(res.body.ok).toBe(false);
+        });
+    });
+
+    it('should NOT pay with an invalid CVC', () => {
+      return request(app)
+        .post(`/api/orders/${orderId}/pay`)
+        .set('Authorization', anotherJwtToken)
+        .send({ cvc: 'abc' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('Invalid CVC');
           expect(res.body.ok).toBe(false);
         });
     });
@@ -834,9 +847,11 @@ describe('## Order APIs', () => {
       mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
       mock.onPost(`/deals/9B27M6E/payments`).reply(200, paymentResponse);
+      mock.onGet(`/deals/9B27M6E`).reply(200, paymentResponse);
       return request(app)
         .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', anotherJwtToken)
+        .send({ cvc: '123' })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           expect(body.data.order).toBeTruthy();
@@ -909,6 +924,7 @@ describe('## Order APIs', () => {
         return request(app)
           .post(`/api/orders/${orderId}/pay`)
           .set('Authorization', anotherJwtToken)
+          .send({ cvc: '123' })
           .expect(httpStatus.CREATED)
           .then(({ body }) => {
             expect(body.data.order).toBeTruthy();
