@@ -905,13 +905,14 @@ describe('## Order APIs', () => {
         });
     });
 
-    it("should NOT return if the Order doesn't have a payment (transactionId)", () => {
+    it("should return if the Order doesn't have a payment (transactionId)", () => {
       return request(app)
         .get(`/api/orders/${orderId}/paymentStatus`)
         .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.NOT_FOUND)
+        .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.message).toBe('Order payment does not exist');
+          expect(res.body.data.rawStatus).toBe('none');
+          expect(res.body.data.status).toBe('none');
         });
     });
 

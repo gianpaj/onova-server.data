@@ -455,10 +455,10 @@ function createPaymentUAPAY(
         } = await axios.get(`/deals/${deal.id}`, axiosConfig);
         newDeal = data;
         // console.log(newDeal.productPayment.waitingFor);
-        sleep(1000);
+        await sleep(500);
       } while (
         newDeal.productPayment.waitingFor === 'PAY_PROCESSING' &&
-        retryNum < 15
+        retryNum < 7
       );
 
       // console.log(newDeal);
@@ -499,7 +499,12 @@ async function paymentStatus(
 
   try {
     if (!order.transactionId) {
-      throw new APIError('Order payment does not exist', httpStatus.NOT_FOUND);
+      return res.json({
+        data: {
+          rawStatus: 'none',
+          status: 'none',
+        },
+      });
     }
 
     const {
