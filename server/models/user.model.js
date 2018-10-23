@@ -103,7 +103,6 @@ const UserSchema = new Schema(
       },
       card_token: String,
       last_four: String,
-      cvc: String,
     },
     profilePic: String,
     pushToken: String,
