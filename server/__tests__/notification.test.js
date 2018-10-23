@@ -3,11 +3,15 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
+
 import { agenda } from '../config/express';
 import config from '../config/config';
 
 import app from '../index';
 
+import Order from '../models/order.model';
 import Tag from '../models/tag.model';
 import {
   beforeAllTests,
@@ -17,6 +21,10 @@ import {
   createUserAndLogin,
   createOrder,
 } from './utils';
+import { dealStatusResponse } from '../helpers/shipping';
+
+// This sets the mock adapter on the default instance
+var mock = new MockAdapter(axios);
 
 /**
  * root level hooks
@@ -382,6 +390,80 @@ describe('## Notification APIs', () => {
     });
   });
 
+  describe('# Create an order and Notify seller of payment by buyer', () => {
+    let orderId, productUuid;
+    beforeAll(async () => {
+      const p2 = await createProduct(anotherProduct, firstJwtToken);
+      expect(p2.description).toBe(anotherProduct.description);
+      productUuid = p2.uuid;
+      // anotherUser -- orders -> productUuid from firstUser
+      const o = await createOrder(
+        { ...anotherProduct, uuid: productUuid },
+        anotherJwtToken
+      );
+      orderId = o.id;
+      expect(o.status).toBe('pending');
+      expect(o.priceOfItem).toBe(anotherProduct.price);
+    });
+
+    test('a new order notification should have NOT have been created', () => {
+      return request(app)
+        .get('/api/users/notifications')
+        .set('Authorization', firstJwtToken)
+        .expect(httpStatus.OK)
+        .then(res => {
+          const { data } = res.body;
+          expect(data).toHaveLength(numberOfNotifForFirstUser);
+        });
+    });
+
+    describe('# Buyer (anotherUser) pays an order and Notify the buyer (anotherUser)', () => {
+      beforeAll(async done => {
+        // fake payment creation
+        await Order.updateOne({ _id: orderId }, { transactionId: '9B27M6E' });
+
+        mock.onGet(`/deals/9B27M6E`).reply(200, dealStatusResponse);
+        request(app)
+          .get(`/api/orders/${orderId}/paymentStatus`)
+          .set('Authorization', anotherJwtToken)
+          .expect(httpStatus.OK)
+          .then(({ body }) => {
+            expect(body.data.status).toBe('ua-finished');
+            expect(body.data.rawStatus).toBe('FINISHED');
+            numberOfNotifForFirstUser++;
+
+            // Check an Order status update to the seller push notification has been scheduled
+            setTimeout(() => {
+              agenda.jobs({ name: config.JOBNAMES.PUSHORDER }, (err, jobs) => {
+                if (err) return done(err);
+                expect(jobs).toHaveLength(2);
+                const { data } = jobs.map(j => j.attrs)[1];
+                expect(data.targetUser.toString()).toBe(userId);
+                expect(data.triggeredBy.toString()).toBe(orderId);
+                expect(data.triggeredType).toBe('Order');
+                expect(data.message).toContain('You have a new purchase!');
+                expect(typeof data.random).toBe('string');
+                done();
+              });
+            }, 10);
+          });
+      });
+
+      test('an order notification should have been created to the seller', async () => {
+        return request(app)
+          .get('/api/users/notifications')
+          .set('Authorization', firstJwtToken)
+          .expect(httpStatus.OK)
+          .then(res => {
+            const { data } = res.body;
+            expect(data[0].triggeredBy.id).toBe(orderId);
+            expect(data[0].notifI18n).toContain('You have a new purchase!');
+            expect(data).toHaveLength(numberOfNotifForFirstUser);
+          });
+      });
+    });
+  });
+
   describe('# Comment with @mentions', () => {
     // create comments
     beforeAll(async () => {
@@ -422,8 +504,13 @@ describe('## Notification APIs', () => {
       setTimeout(() => {
         agenda.jobs({ name: config.JOBNAMES.PUSHCOMMENT }, (err, jobs) => {
           if (err) throw new Error(err);
-          expect(jobs).toHaveLength(numberOfNotifForFirstUser + 3);
-          const { data } = jobs.map(j => j.attrs)[numberOfNotifForFirstUser];
+          // FIXME: why are the counts need to be incremented and decreased. count for wrong user?
+          expect(jobs).toHaveLength(numberOfNotifForFirstUser + 2);
+
+          // get the second comment in order of time for the FirstUser
+          const { data } = jobs.map(j => j.attrs)[
+            numberOfNotifForFirstUser - 1
+          ];
           expect(data.message).toBe('check this out @anotherperson');
           expect(data.hasOwnProperty('platform')).toBe(true);
           expect(data.productUuid).toBe(productUuid);
