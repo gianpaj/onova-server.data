@@ -332,6 +332,8 @@ function list(
  *
  * @property {*} req.query - Express query parameters
  * @property {MongoId} req.query.orderId
+ * @property {*} req.body - Express body parameters
+ * @property {string} req.body.cvc - The CVC of the payer (buyer) payment card
  */
 async function pay(
   req: express$Request,
@@ -341,18 +343,21 @@ async function pay(
   const { order } = req;
 
   try {
+    if (isNaN(parseInt(req.body.cvc)))
+      throw new APIError('Invalid CVC', httpStatus.BAD_REQUEST);
+
     const product = await Product.findOne({ _id: order.product });
 
     if (!product)
       throw new APIError('Product not found.', httpStatus.NOT_FOUND);
 
-    const payment = await createPaymentUAPAY(order, product);
+    const payment = await createPaymentUAPAY(order, product, req.body.cvc);
 
     res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
     if (err.response && err.response.data) console.error(err.response.data);
-    else console.error(err);
     if (!(err instanceof APIError)) {
+      console.error(err);
       err = new APIError(
         'Error creating payment',
         httpStatus.INTERNAL_SERVER_ERROR
@@ -364,7 +369,8 @@ async function pay(
 
 function createPaymentUAPAY(
   order: OrderDoc,
-  product: ProductDoc
+  product: ProductDoc,
+  cvc: string
 ): Promise<any> {
   return new Promise(async (resolve, reject) => {
     try {
@@ -432,7 +438,7 @@ function createPaymentUAPAY(
           remoteIP: '127.0.0.1', // Payer IP Address?
           card: {
             id: buyer.paymentInfo.card_token,
-            securityCode: buyer.paymentInfo.cvc,
+            securityCode: cvc,
           },
         },
         axiosConfig

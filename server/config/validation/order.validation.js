@@ -31,4 +31,19 @@ export default {
       paymentMethod: Joi.string().only(['paypal', 'liqpay']),
     },
   },
+
+  // POST /api/orders/:orderId/pay
+  pay: {
+    params: {
+      orderId: Joi.string()
+        .hex()
+        .length(24)
+        .required(),
+    },
+    body: {
+      cvc: Joi.string()
+        .length(3)
+        .required(),
+    },
+  },
 };

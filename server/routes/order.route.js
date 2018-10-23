@@ -65,7 +65,7 @@ router
   .route('/:orderId/pay')
   // POST /api/orders/:orderId/pay - Start payment
   .post(
-    validate(paramValidation.orderId),
+    validate(paramValidation.pay),
     requireAuth,
     isAuthorizedBuyer,
     orderCtrl.pay
