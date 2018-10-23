@@ -96,7 +96,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
     onlyPush,
   } = notif;
 
-  return new Promise((resolve, reject) => {
+  return new Promise(async (resolve, reject) => {
     // New follower
     if (triggeredType == 'User') {
       sendPush({
@@ -163,32 +163,26 @@ function createNotification(notif: NotifPayload): Promise<null> {
       }
     } else if (triggeredType == 'Order') {
       // Order update, created, cancelled, etc.
-      sendPush({
-        targetUser,
-        triggeredBy,
-        triggeredType,
-        message: notifI18n,
-      })
-        .then(() => {
-          debug(config.JOBNAMES.PUSHORDER, 'Job successfully saved');
-          resolve();
-        })
-        .catch(err => {
-          console.error(err);
-          reject(err);
+      try {
+        await sendPush({
+          targetUser,
+          triggeredBy,
+          triggeredType,
+          message: notifI18n,
         });
-      Notification.create({
-        data,
-        notifI18n,
-        targetUser,
-        triggeredBy,
-        sourceUser,
-        triggeredType,
-      })
-        .then(doc => {
-          resolve(doc);
-        })
-        .catch(e => reject(e));
+        const doc = await Notification.create({
+          data,
+          notifI18n,
+          targetUser,
+          triggeredBy,
+          sourceUser,
+          triggeredType,
+        });
+        resolve(doc);
+      } catch (err) {
+        console.error(err);
+        reject(err);
+      }
     }
   });
 }
