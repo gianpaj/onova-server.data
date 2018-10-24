@@ -37,6 +37,9 @@ var OrderSchema = new Schema({
   dateDelivered: {
     type: Date,
   },
+  dateFailed: {
+    type: Date,
+  },
   datePaid: {
     type: Date,
   },
@@ -165,6 +168,7 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   dateCompleted: ?Date;
   dateConfirmed: ?Date;
   dateDelivered: ?Date;
+  dateFailed: ?Date;
   datePaid: ?Date;
   datePending: Date;
   dateShipped: ?Date;
