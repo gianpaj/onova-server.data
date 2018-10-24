@@ -13,7 +13,7 @@ import config from '../config/config';
 const { Schema } = mongoose;
 
 export const userPopulateFields =
-  'username accountStatus profilePic displayName';
+  'username accountStatus profilePic displayName shippingAddress';
 
 /**
  * User Schema
