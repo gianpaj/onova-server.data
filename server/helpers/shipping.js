@@ -253,3 +253,87 @@ export const sellerConfirmedResponse = {
     },
   },
 };
+
+export const sellerCancelsAPaidDeal = {
+  data: {
+    id: 'ZS585UF',
+    externalId: null,
+    cartId: 639,
+    productTitle: "I don't know if you",
+    productPrice: 11111,
+    productWeight: 3000,
+    handlerPrice: 2100,
+    status: 'PAID',
+    reasonStep: null,
+    buyerFirstName: 'Пшфтакфс',
+    buyerLastName: 'Зфдгьіщ',
+    buyerPatronymic: '',
+    buyerPhone: '380987987987',
+    buyerEmail: 'gianpa+test@gmail.com',
+    sellerFirstName: 'Алех',
+    sellerLastName: 'Костінскї',
+    sellerPatronymic: '',
+    sellerPhone: '380677929197',
+    sellerEmail: 'gianpa+test3@gmail.com',
+    lg: 'uk',
+    createdAt: '2018-10-24T14:16:56.000Z',
+    adId: null,
+    handler: {
+      status: 'NEW',
+      statusCode: null,
+      statusText: null,
+      waybillNumber: null,
+      senderCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      senderCityName: null,
+      senderOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      senderOfficeName: null,
+      recipientCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      recipientCityName: null,
+      recipientOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      recipientOfficeName: null,
+      type: 'NovaPoshta_ONOVA',
+    },
+    productPayment: {
+      id: 1373,
+      amount: 11111,
+      commissionAmount: 1667,
+      status: 'REVERSED',
+      statusCode: 'FINISHED',
+      statusText: null,
+      type: 'P2P_ONOVA',
+      waitingFor: null,
+      details: {
+        confirmation: {
+          type: '3DS',
+          url: 'https://acs.privatbank.ua/pPaReqMC.jsp',
+          form: {
+            PaReq:
+              'eJxVUttOwzAMfd5fVHxAc1svm0KkQR+YRNAE2wNPqOosVmBZSVpgfD12dtGIWsX2sZ2cE+vlxgNUT9AMHoy2EEL9Ckm7vr5azB7h80VkY64mPJc8m6grM9IxbEYj/QU+tDtnRMpTqdnJRaSrnclEXhZZoXKleK5koRlFEbTgm03terRHum4+b+YPJpP5JBeaHV1CtuDnleGHJQ8bZhzClODqLZglhD45dUyWdbhv3XuiWQQpq9kNrvd7U/KxZieHgMF/mE3fd1PGhCyQAk/FVOFidjFnjxC6nQuw8LsGJWnda/oWOs2oCovZBQm9GMgOh/N+2rWxyxW3lc1s9by31Sqzv7NvW8X/WjPKoMx13YORXJSCy3Eiiil+nGsW41GbLV3XCFGkEvU9uoR0dOLsDBN6GYq8B+/BNXszKbHn2SMIfpAaYB6WnW0idUFE394d36fpUW/Fi0zSRcuCHinGjq1a1FNKrmKvNoqrGVVjvzgpJFYcKrT+Ddsfk3G53g==',
+          },
+          redirectUrl:
+            'https://api.escrowbox.stage.uapay.ua/api/payments/1373/confirmations',
+        },
+      },
+      payReceipt:
+        'https://api.demo.uapay.ua/api/receipts/8732b397-45e8-4051-b24c-06dd802c4f94.pdf',
+      reverseReceipt:
+        'https://api.demo.uapay.ua/api/receipts/f607bf95-669c-49f6-95c8-9c7b5c745025.pdf',
+      finishReceipt: null,
+    },
+    handlerPayment: {
+      id: 1372,
+      amount: 2100,
+      commissionAmount: 0,
+      status: 'PAID',
+      statusCode: 'FINISHED',
+      statusText: null,
+      type: 'ECOM_ONOVA',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/2955de75-7398-4c33-9cf7-222726457e56.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+  },
+};
