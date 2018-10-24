@@ -356,6 +356,7 @@ async function pay(
   try {
     if (isNaN(parseInt(req.body.cvc)))
       throw new APIError('Invalid CVC', httpStatus.BAD_REQUEST);
+
     if (order.status !== 'pending')
       throw new APIError(
         `Cannot pay an order that\'s ${order.status}`,
