@@ -14,6 +14,7 @@ const { Schema } = mongoose;
 
 export const userPopulateFields =
   'username accountStatus profilePic displayName shippingAddress';
+export const productPopulateFields = 'currency photoURIs price status uuid';
 
 /**
  * User Schema
