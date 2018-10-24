@@ -272,7 +272,11 @@ async function update(
       foundOrder.reason = reason;
     }
 
-    if (foundOrder.transactionId && 'paid' === foundOrder.status) {
+    if (
+      foundOrder.transactionId &&
+      (foundOrder.status === 'paid' ||
+        foundOrder.transactionStatus == 'ua-pending')
+    ) {
       await axios.post(
         `/deals/${foundOrder.transactionId}/rejections`,
         null,
@@ -352,6 +356,11 @@ async function pay(
   try {
     if (isNaN(parseInt(req.body.cvc)))
       throw new APIError('Invalid CVC', httpStatus.BAD_REQUEST);
+    if (order.status !== 'pending')
+      throw new APIError(
+        `Cannot pay an order that\'s ${order.status}`,
+        httpStatus.BAD_REQUEST
+      );
 
     const product = await Product.findOne({ _id: order.product });
 

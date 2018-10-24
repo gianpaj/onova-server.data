@@ -20,6 +20,7 @@ import {
   buyerNeedsToPay,
   buyerPaidDeal,
   sellerConfirmedResponse,
+  sellerCancelsAPaidDeal,
 } from '../helpers/shipping';
 
 const photos = {
@@ -795,7 +796,7 @@ describe('## Order APIs', () => {
       price: '1000.00',
       ...photos,
     };
-    let orderId;
+    let orderId, orderId2;
 
     beforeAll(async () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
@@ -804,6 +805,15 @@ describe('## Order APIs', () => {
             expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
             orderId = o.id;
+          }
+        )
+      );
+      await createProduct(productPOST2, firstUserJwtToken).then(product =>
+        createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+          o => {
+            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+            expect(o.priceOfItem).toBe(productPOST2.price);
+            orderId2 = o.id;
           }
         )
       );
@@ -833,7 +843,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should pay for an order', () => {
+    it('should create a payment for an order', () => {
       mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
       mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
@@ -844,16 +854,64 @@ describe('## Order APIs', () => {
         .send({ cvc: '123' })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
-          expect(body.data.order).toBeTruthy();
+          expect(body.data.order.status).toBe('pending');
           expect(body.data.payment.redirectUrl).toContain(
             '.uapay.ua/api/payments/'
           );
           expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
         });
     });
+
+    test('a seller should cancel an order that has been paid', async () => {
+      const dealID = '9B27M6E';
+      mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+      mock.onPost('/deals').reply(200, { data: { id: dealID } });
+      mock.onPost(`/deals/${dealID}/payments`).reply(200, buyerNeedsToPay);
+      await request(app)
+        .post(`/api/orders/${orderId2}/pay`)
+        .set('Authorization', anotherJwtToken)
+        .send({ cvc: '123' })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.payment.redirectUrl).toContain(
+            '.uapay.ua/api/payments/'
+          );
+          expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
+        });
+
+      mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
+      await request(app)
+        .get(`/api/orders/${orderId2}/paymentStatus`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.status).toBe('ua-finished');
+          expect(body.data.rawStatus).toBe('FINISHED');
+        });
+
+      // FYI: we're skipping the step where the seller confirms the order
+
+      mock
+        .onPost(`/deals/${dealID}/rejections`)
+        .reply(200, sellerCancelsAPaidDeal);
+      await request(app)
+        .put(`/api/orders/${orderId2}`)
+        .set('Authorization', firstUserJwtToken)
+        .send({ status: 'cancelled', reason: 'i already sold this elsewhere' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          const o = res.body.data;
+          expect(o.priceOfItem).toBe(productPOST2.price);
+          expect(o.status).toBe('cancelled');
+          expect(o.transactionStatus).toBe('ua-reversed');
+          expect(o.transactionId).toBe(dealID);
+          expect(typeof o.dateCancelled).toBe('string');
+          expect(o.reason).toBe('i already sold this elsewhere');
+        });
+    });
   });
 
-  describe('# GET /api/orders/:orderId/paymentStatus', () => {
+  describe.skip('# GET /api/orders/:orderId/paymentStatus', () => {
     const product2 = {
       categoryIds: [2],
       typeIds: [1],
