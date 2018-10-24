@@ -521,18 +521,21 @@ async function paymentStatus(
       data: { data },
     } = await axios.get(`/deals/${order.transactionId}`, axiosConfig);
 
-    switch (data.productPayment.statusCode) {
-      case 'PENDING':
+    switch (data.productPayment.status) {
+      // payment not yet created
+      case 'NEW':
         order.transactionStatus = 'ua-pending';
+        // The buyer needs to confirmation the transaction entering the 3DS code (LOOKUP works?)
+        if (data.productPayment.statusCode === 'NEEDS_CONFIRMATION')
+          order.transactionStatus = 'ua-needsconfirmation';
         break;
-      // The buyer needs to confirmation the transaction entering the 3DS code (LOOKUP works?)
-      case 'NEEDS_CONFIRMATION':
-        order.transactionStatus = 'ua-needsconfirmation';
-        break;
-      // Transaction completed
-      case 'FINISHED':
+      case 'PAID':
+        // check needed because payment status is still PAID if deal has been confirmed
+        if (data.status !== 'PAID') break;
         order.transactionStatus = 'ua-finished';
         order.status = 'paid';
+        // only update first time we check
+        if (!order.datePaid) order.datePaid = new Date();
         createOrderNotification(order)
           .then(() => {
             debug('notification(s) created for order:', 'paid');
@@ -546,6 +549,8 @@ async function paymentStatus(
       // The payment was returned to the sender's card
       case 'REVERSED':
         order.transactionStatus = 'ua-reversed';
+        order.status = 'cancelled';
+        if (!order.dateCancelled) order.dateCancelled = new Date();
         break;
 
       default:
