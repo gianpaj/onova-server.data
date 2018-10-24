@@ -16,7 +16,11 @@ import {
   orderFields,
 } from './utils';
 import Order from '../models/order.model';
-import { paymentResponse, dealStatusResponse } from '../helpers/shipping';
+import {
+  buyerNeedsToPay,
+  buyerPaidDeal,
+  sellerConfirmedResponse,
+} from '../helpers/shipping';
 
 const photos = {
   photos: [
@@ -832,8 +836,8 @@ describe('## Order APIs', () => {
     it('should pay for an order', () => {
       mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
-      mock.onPost(`/deals/9B27M6E/payments`).reply(200, paymentResponse);
-      mock.onGet(`/deals/9B27M6E`).reply(200, paymentResponse);
+      mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
+      mock.onGet(`/deals/9B27M6E`).reply(200, buyerNeedsToPay);
       return request(app)
         .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', anotherJwtToken)
@@ -907,7 +911,7 @@ describe('## Order APIs', () => {
         // start payment
         mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
         mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
-        mock.onPost(`/deals/9B27M6E/payments`).reply(200, paymentResponse);
+        mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
         return request(app)
           .post(`/api/orders/${orderId}/pay`)
           .set('Authorization', anotherJwtToken)
@@ -923,7 +927,7 @@ describe('## Order APIs', () => {
       });
 
       it('should get payment status', () => {
-        mock.onGet(`/deals/9B27M6E`).reply(200, dealStatusResponse);
+        mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaidDeal);
         return request(app)
           .get(`/api/orders/${orderId}/paymentStatus`)
           .set('Authorization', anotherJwtToken)

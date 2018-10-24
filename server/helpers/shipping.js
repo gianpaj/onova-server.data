@@ -4,7 +4,7 @@ export default class Shipping {
   // static;
 }
 
-export const paymentResponse = {
+export const buyerNeedsToPay = {
   data: {
     id: '9B27M6E',
     externalId: null,
@@ -87,7 +87,7 @@ export const paymentResponse = {
   },
 };
 
-export const dealStatusResponse = {
+export const buyerPaidDeal = {
   data: {
     id: '9B27M6E',
     externalId: null,
