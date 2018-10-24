@@ -44,3 +44,108 @@ Array [
   "username",
 ]
 `;
+
+exports[`## Order APIs # GET /api/orders should get my orders (as seller and buyer) 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "profilePic",
+  "shippingAddress",
+  "username",
+]
+`;
+
+exports[`## Order APIs # GET /api/orders should get my orders (as seller and buyer) 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "shippingAddress",
+  "username",
+]
+`;
+
+exports[`## Order APIs # PUT /api/orders (more) should allow the buyer to cancel an order 1`] = `
+Array [
+  "buyer",
+  "currency",
+  "dateCancelled",
+  "datePending",
+  "id",
+  "onovaFee",
+  "priceOfItem",
+  "product",
+  "seller",
+  "status",
+  "total",
+  "transactionFee",
+]
+`;
+
+exports[`## Order APIs # PUT /api/orders (more) should allow the seller to confirm the order 1`] = `
+Array [
+  "buyer",
+  "currency",
+  "dateConfirmed",
+  "datePending",
+  "id",
+  "onovaFee",
+  "priceOfItem",
+  "product",
+  "seller",
+  "status",
+  "total",
+  "transactionFee",
+]
+`;
+
+exports[`## Order APIs # PUT /api/orders should allow the buyer to cancel the order without a reason 1`] = `
+Array [
+  "buyer",
+  "currency",
+  "dateCancelled",
+  "datePending",
+  "id",
+  "onovaFee",
+  "priceOfItem",
+  "product",
+  "seller",
+  "status",
+  "total",
+  "transactionFee",
+]
+`;
+
+exports[`## Order APIs # PUT /api/orders should allow the seller to cancel the order 1`] = `
+Array [
+  "buyer",
+  "currency",
+  "dateCancelled",
+  "datePending",
+  "id",
+  "onovaFee",
+  "priceOfItem",
+  "product",
+  "reason",
+  "seller",
+  "status",
+  "total",
+  "transactionFee",
+]
+`;
+
+exports[`## Order APIs # PUT /api/orders should change the paymentMethod to \`paypal\` 1`] = `
+Array [
+  "buyer",
+  "currency",
+  "datePending",
+  "id",
+  "onovaFee",
+  "paymentMethod",
+  "priceOfItem",
+  "product",
+  "seller",
+  "status",
+  "total",
+  "transactionFee",
+]
+`;
