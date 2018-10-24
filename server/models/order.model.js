@@ -5,7 +5,7 @@ import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 import Block from '../models/block.model';
-import { userPopulateFields } from './user.model';
+import { userPopulateFields, productPopulateFields } from './user.model';
 
 const { Schema } = mongoose;
 
@@ -217,7 +217,7 @@ OrderSchema.statics = {
       })
       .populate({
         path: 'product',
-        select: '`currency photoURIs price status uuid`',
+        select: productPopulateFields,
       })
       .then((order: OrderDoc) => {
         if (!order) {
@@ -264,7 +264,7 @@ OrderSchema.statics = {
       })
       .populate({
         path: 'product',
-        select: 'currency status price uuid photoURIs',
+        select: productPopulateFields,
       })
       .skip(+skip)
       .limit(+limit)
