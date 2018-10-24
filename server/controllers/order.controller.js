@@ -194,7 +194,7 @@ async function update(
   try {
     // can go only from either 'paid' or 'pending' -> 'cancelled'
     if (
-      ['paid', 'pending'].indexOf(foundOrder.status) === -1 &&
+      ['paid', 'pending'].indexOf(foundOrder.status) < 0 &&
       newStatus === 'cancelled'
     ) {
       throw new APIError(
