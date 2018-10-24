@@ -21,7 +21,7 @@ import {
   createUserAndLogin,
   createOrder,
 } from './utils';
-import { dealStatusResponse } from '../helpers/shipping';
+import { buyerPaidDeal } from '../helpers/shipping';
 
 // This sets the mock adapter on the default instance
 var mock = new MockAdapter(axios);
@@ -422,7 +422,7 @@ describe('## Notification APIs', () => {
         // fake payment creation
         await Order.updateOne({ _id: orderId }, { transactionId: '9B27M6E' });
 
-        mock.onGet(`/deals/9B27M6E`).reply(200, dealStatusResponse);
+        mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaidDeal);
         request(app)
           .get(`/api/orders/${orderId}/paymentStatus`)
           .set('Authorization', anotherJwtToken)
@@ -468,7 +468,7 @@ describe('## Notification APIs', () => {
         // fake payment creation
         await Order.updateOne({ _id: orderId }, { transactionId: '9B27M6E' });
 
-        mock.onGet(`/deals/9B27M6E`).reply(200, dealStatusResponse);
+        mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaidDeal);
         return request(app)
           .get(`/api/orders/${orderId}/paymentStatus`)
           .set('Authorization', anotherJwtToken)
