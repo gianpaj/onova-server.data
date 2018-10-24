@@ -129,12 +129,13 @@ const config = {
     SCHEDULE: 'listing-schedule',
   },
   settings: {
-    // TODO: Hold products (for 'onhold' orders) for 15 minutes.
-    // When limit is reached, the onhold order is canceled. And Product is set back to 'forsale'.
+    // TODO: Reserves products ror 15 minutes.
+    // TODO: 0 to disable
+    // When time is reached, the order is cancelled. And Product is set back to 'forsale'.
     holdProductFor: 900,
-    // TODO: Wait the seller to confirm the order for 1 hour.
-    // When limit is reached, the pending order is canceled.
-    orderPendingFor: 3600,
+    // TODO: Wait the seller to confirm the order for X hours.
+    // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
+    orderPendingFor: 3600 * 1,
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
   },
   DEFAULT_FOLLOW: false,
