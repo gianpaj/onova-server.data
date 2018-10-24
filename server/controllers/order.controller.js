@@ -272,7 +272,14 @@ async function update(
       foundOrder.reason = reason;
     }
 
-    // TODO: call function to make API request to UAPAY
+    if (foundOrder.transactionId && 'paid' === foundOrder.status) {
+      await axios.post(
+        `/deals/${foundOrder.transactionId}/rejections`,
+        null,
+        axiosConfig
+      );
+      foundOrder.transactionStatus = 'ua-reversed';
+    }
 
     foundOrder.dateCancelled = new Date();
     await removeProductToCheckout(foundOrder.product._id);
