@@ -94,7 +94,7 @@ describe('## Order APIs', () => {
 
   // create 3 users. 1 not activated
   beforeAll(done => {
-    // @TODO: use Promise.all().then(() => done());
+    // TODO: use Promise.all().then(() => done());
     // $FlowFixMe
     createUserAndLogin(firstUser)
       .then(({ user: resUser, jwtToken: token }) => {
@@ -394,13 +394,9 @@ describe('## Order APIs', () => {
           expect(Array.isArray(o));
           expect(o.length).toBe(ordersByfirstUser + ordersTofirstUser);
           expect(Object.keys(o[0]).sort()).toEqual(orderFields);
-          expect(Object.keys(o[0].buyer).sort()).toEqual(
-            ['_id', 'accountStatus', 'profilePic', 'username'].sort()
-          );
-          // this user didn't upload the profilePic
-          expect(Object.keys(o[0].seller).sort()).toEqual(
-            ['_id', 'accountStatus', 'username'].sort()
-          );
+          expect(Object.keys(o[0].buyer).sort()).toMatchSnapshot();
+          // this user didn't upload a profilePic
+          expect(Object.keys(o[0].seller).sort()).toMatchSnapshot();
         });
     });
 
@@ -534,9 +530,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'dateCancelled', 'reason'].sort()
-          );
+          expect(Object.keys(o).sort()).toMatchSnapshot();
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
           expect(o.reason).toBe('it`s already sold');
@@ -550,9 +544,7 @@ describe('## Order APIs', () => {
         .send({ status: 'cancelled' })
         .then(res => {
           const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'dateCancelled'].sort()
-          );
+          expect(Object.keys(o).sort()).toMatchSnapshot();
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
         });
@@ -595,9 +587,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           // TODO: after payment is tested it should return 'datePaid'
-          expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'paymentMethod'].sort()
-          );
+          expect(Object.keys(o).sort()).toMatchSnapshot();
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.paymentMethod).toBe('paypal');
         });
@@ -720,9 +710,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'dateCancelled'].sort()
-          );
+          expect(Object.keys(o).sort()).toMatchSnapshot();
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
         });
@@ -781,9 +769,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
-          expect(Object.keys(o).sort()).toEqual(
-            [...orderFields, 'dateConfirmed'].sort()
-          );
+          expect(Object.keys(o).sort()).toMatchSnapshot();
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('confirmed');
         });
