@@ -277,12 +277,21 @@ async function update(
       (foundOrder.status === 'paid' ||
         foundOrder.transactionStatus == 'ua-pending')
     ) {
-      await axios.post(
-        `/deals/${foundOrder.transactionId}/rejections`,
-        null,
-        axiosConfig
-      );
-      foundOrder.transactionStatus = 'ua-reversed';
+      try {
+        await axios.post(
+          `/deals/${foundOrder.transactionId}/rejections`,
+          null,
+          axiosConfig
+        );
+        foundOrder.transactionStatus = 'ua-reversed';
+      } catch (error) {
+        console.log(error);
+        const err = new APIError(
+          'Error with payment provider',
+          httpStatus.INTERNAL_SERVER_ERROR
+        );
+        return next(err);
+      }
     }
 
     foundOrder.dateCancelled = new Date();
