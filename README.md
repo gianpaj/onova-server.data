@@ -130,9 +130,9 @@ From [generate_geonames.sh](https://github.com/lucaspiller/offline-geocoder/blob
 2. Import the cities (TODO: import the cities via the Nodejs script)
 
 ```bash
-http "https://api.escrowbox.demo.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json --drop
+http "https://api.escrowbox.demo.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json
 # remove the "data: []" so it's only an array of objects
-mongoimport -d onova-data -c cities.json --jsonArray
+mongoimport -d onova-data -c cities.json --jsonArray --drop
 # output
 2018-10-11T12:33:15.248+0300	connected to: localhost
 2018-10-11T12:33:15.249+0300	dropping: onova-data.cities
@@ -142,7 +142,7 @@ mongoimport -d onova-data -c cities.json --jsonArray
 3. Load the departments for every city, 993 of them
 
 ```
-node loadloadDepartments.js
+node loadDepartments.js
 # output
 connected to mongodb://localhost:27017/onova-data
 loading cities
@@ -169,26 +169,47 @@ NOTE: there are 155 cities that do not have any Nova Poshta departments
 
 4. Add these collections (cities, departments) to `onova-data-test` db as well
 
-   mongodump --host localhost -d onova-data -c cities
-   2018-10-11T13:00:52.620+0300 writing onova-data.cities to
-   2018-10-11T13:00:52.627+0300 done dumping onova-data.cities (838 documents)
+```
+mongodump --host localhost -d onova-data -c cities
+2018-10-11T13:00:52.620+0300 writing onova-data.cities to
+2018-10-11T13:00:52.627+0300 done dumping onova-data.cities (838 documents)
 
-   mongodump --host localhost -d onova-data -c departments
-   2018-10-11T13:00:57.975+0300 writing onova-data.departments to
-   2018-10-11T13:00:57.989+0300 done dumping onova-data.departments (2118 documents)
+mongodump --host localhost -d onova-data -c departments
+2018-10-11T13:00:57.975+0300 writing onova-data.departments to
+2018-10-11T13:00:57.989+0300 done dumping onova-data.departments (2118 documents)
 
-   mongorestore dump/onova-data -d onova-data-test --drop
-   2018-10-11T13:09:25.706+0300 the --db and --collection args should only be used when restoring from a BSON file. Other uses are deprecated and will not exist in the future; use --nsInclude instead
-   2018-10-11T13:09:25.706+0300 building a list of collections to restore from dump/onova-data dir
-   2018-10-11T13:09:25.741+0300 reading metadata for onova-data-test.departments from dump/onova-data/departments.metadata.json
-   2018-10-11T13:09:25.759+0300 reading metadata for onova-data-test.cities from dump/onova-data/cities.metadata.json
-   2018-10-11T13:09:25.807+0300 restoring onova-data-test.departments from dump/onova-data/departments.bson
-   2018-10-11T13:09:25.853+0300 restoring onova-data-test.cities from dump/onova-data/cities.bson
-   2018-10-11T13:09:25.869+0300 no indexes to restore
-   2018-10-11T13:09:25.869+0300 finished restoring onova-data-test.cities (838 documents)
-   2018-10-11T13:09:25.886+0300 restoring indexes for collection onova-data-test.departments from metadata
-   2018-10-11T13:09:25.960+0300 finished restoring onova-data-test.departments (2118 documents)
-   2018-10-11T13:09:25.960+0300 done
+mongorestore dump/onova-data -d onova-data-test --drop
+2018-10-11T13:09:25.706+0300 the --db and --collection args should only be used when restoring from a BSON file. Other uses are deprecated and will not exist in the future; use --nsInclude instead
+2018-10-11T13:09:25.706+0300 building a list of collections to restore from dump/onova-data dir
+2018-10-11T13:09:25.741+0300 reading metadata for onova-data-test.departments from dump/onova-data/departments.metadata.json
+2018-10-11T13:09:25.759+0300 reading metadata for onova-data-test.cities from dump/onova-data/cities.metadata.json
+2018-10-11T13:09:25.807+0300 restoring onova-data-test.departments from dump/onova-data/departments.bson
+2018-10-11T13:09:25.853+0300 restoring onova-data-test.cities from dump/onova-data/cities.bson
+2018-10-11T13:09:25.869+0300 no indexes to restore
+2018-10-11T13:09:25.869+0300 finished restoring onova-data-test.cities (838 documents)
+2018-10-11T13:09:25.886+0300 restoring indexes for collection onova-data-test.departments from metadata
+2018-10-11T13:09:25.960+0300 finished restoring onova-data-test.departments (2118 documents)
+2018-10-11T13:09:25.960+0300 done
+```
+
+### Verify if new cities or deparments are in Nova Poshta
+
+1. Export the departments collection with \_id fields
+
+        mongoexport --host localhost -d onova-data -c departments | sed '/"\_id":/s/"\_id":[^,]\*,//' > dep-before.json
+
+2. Drop the existing collection
+3. Download the "new" departments
+4. Export the new departments (called today)
+
+       mongoexport --host localhost -d onova-data -c departments | sed '/"\_id":/s/"\_id":[^,]\*,//' > dep-today.json
+
+5. Sort the json files (or sort at `mongoexport` stage)
+
+       sort dep-before.json > dep-before-sorted.json
+       sort dep-today.json > dep-today-sorted.json
+
+6. Compare with `diff` or Beyond Compare
 
 ## Logging
 
