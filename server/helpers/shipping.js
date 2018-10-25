@@ -337,3 +337,10 @@ export const sellerCancelsAPaidDeal = {
     },
   },
 };
+
+export const dealConfirmationResp = {
+  data: {
+    id: 'E3319FS',
+    externalId: null,
+  },
+};

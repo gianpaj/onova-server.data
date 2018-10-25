@@ -252,7 +252,23 @@ async function update(
         throw new APIError('Unauthorized', httpStatus.UNAUTHORIZED);
       }
 
-      // TODO: call function to make API request to UAPAY
+      try {
+        await axios.post(
+          `/deals/${foundOrder.transactionId}/confirmations`,
+          null,
+          axiosConfig
+        );
+      } catch (error) {
+        console.log(error);
+        const err = new APIError(
+          'Error with payment provider',
+          httpStatus.INTERNAL_SERVER_ERROR
+        );
+        return next(err);
+      }
+
+      // checks status of deal and saves tracking number
+      await checkPaymentStatusAndUpdateOrder(foundOrder);
 
       foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
@@ -536,49 +552,11 @@ async function paymentStatus(
       });
     }
 
-    const {
-      data: { data },
-    } = await axios.get(`/deals/${order.transactionId}`, axiosConfig);
-
-    switch (data.productPayment.status) {
-      // payment not yet created
-      case 'NEW':
-        order.transactionStatus = 'ua-pending';
-        // The buyer needs to confirmation the transaction entering the 3DS code (LOOKUP works?)
-        if (data.productPayment.statusCode === 'NEEDS_CONFIRMATION')
-          order.transactionStatus = 'ua-needsconfirmation';
-        break;
-      case 'PAID':
-        // check needed because payment status is still PAID if deal has been confirmed
-        if (data.status !== 'PAID') break;
-        order.transactionStatus = 'ua-finished';
-        order.status = 'paid';
-        // only update first time we check
-        if (!order.datePaid) order.datePaid = new Date();
-        createOrderNotification(order)
-          .then(() => {
-            debug('notification(s) created for order:', 'paid');
-          })
-          .catch(e => console.error(e));
-        break;
-      // The bank has not been able to make debit for technical reasons
-      case 'REJECTED':
-        order.transactionStatus = 'ua-rejected';
-        break;
-      // The payment was returned to the sender's card
-      case 'REVERSED':
-        order.transactionStatus = 'ua-reversed';
-        order.status = 'cancelled';
-        if (!order.dateCancelled) order.dateCancelled = new Date();
-        break;
-
-      default:
-        break;
-    }
-    order.save();
+    const data = await checkPaymentStatusAndUpdateOrder(order);
 
     // if (data.productPayment.type === 'P2P_ONOVA')
 
+    order.save();
     res.json({
       data: {
         rawStatus: data.productPayment.statusCode,
@@ -595,6 +573,64 @@ async function paymentStatus(
     }
     next(error);
   }
+}
+
+/**
+ * Used for /api/orders/:orderId/paymentStatus and internally when changing the state of an order (cancelling, confirming, etc.)
+ */
+async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
+  return new Promise(async (resolve, reject) => {
+    try {
+      const {
+        data: { data },
+      } = await axios.get(`/deals/${order.transactionId}`, axiosConfig);
+
+      switch (data.productPayment.status) {
+        // payment not yet created
+        case 'NEW':
+          order.transactionStatus = 'ua-pending';
+          // The buyer needs to confirmation the transaction entering the 3DS code (LOOKUP works?)
+          if (data.productPayment.statusCode === 'NEEDS_CONFIRMATION')
+            order.transactionStatus = 'ua-needsconfirmation';
+          break;
+        case 'PAID':
+          if (data.status === 'CONFIRMED') {
+            order.trackingNumber = data.handler.waybillNumber;
+            order.shippingProvider = 'novaposhta';
+          }
+          // check needed because payment status is still PAID if deal has been confirmed
+          else if (data.status === 'PAID') {
+            order.transactionStatus = 'ua-finished';
+            order.status = 'paid';
+            // only update first time we check
+            if (!order.datePaid) order.datePaid = new Date();
+            createOrderNotification(order)
+              .then(() => {
+                debug('notification(s) created for order:', 'paid');
+              })
+              .catch(e => console.error(e));
+          }
+          break;
+        // The bank has not been able to make debit for technical reasons
+        case 'REJECTED':
+          order.transactionStatus = 'ua-rejected';
+          break;
+        // The payment was returned to the sender's card
+        case 'REVERSED':
+          order.transactionStatus = 'ua-reversed';
+          order.status = 'cancelled';
+          if (!order.dateCancelled) order.dateCancelled = new Date();
+          break;
+
+        default:
+          break;
+      }
+
+      resolve(data);
+    } catch (error) {
+      reject(error);
+    }
+  });
 }
 
 /**
