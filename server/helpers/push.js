@@ -130,6 +130,7 @@ export async function sendPush({
       })
       .then(({ order, target }: { order: OrderDoc, target: UserDoc }) => {
         const pushData = {
+          data,
           message,
           platform: target.platform,
           pushToken: target.pushToken,
