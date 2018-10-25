@@ -286,6 +286,15 @@ async function update(
     }
     if (iAmTheSeller) {
       foundOrder.reason = reason;
+    } else {
+      if (foundOrder.status === 'paid') {
+        // buyer cannot cancel a paid order
+        const err = new APIError(
+          'cannot cancel a paid order',
+          httpStatus.BAD_REQUEST
+        );
+        return next(err);
+      }
     }
 
     if (
