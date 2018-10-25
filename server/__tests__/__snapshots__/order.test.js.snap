@@ -81,23 +81,6 @@ Array [
 ]
 `;
 
-exports[`## Order APIs # PUT /api/orders (more) should allow the seller to confirm the order 1`] = `
-Array [
-  "buyer",
-  "currency",
-  "dateConfirmed",
-  "datePending",
-  "id",
-  "onovaFee",
-  "priceOfItem",
-  "product",
-  "seller",
-  "status",
-  "total",
-  "transactionFee",
-]
-`;
-
 exports[`## Order APIs # PUT /api/orders should allow the buyer to cancel the order without a reason 1`] = `
 Array [
   "buyer",
