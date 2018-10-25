@@ -165,6 +165,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
       // Order update, created, cancelled, etc.
       try {
         await sendPush({
+          data,
           targetUser,
           triggeredBy,
           triggeredType,
