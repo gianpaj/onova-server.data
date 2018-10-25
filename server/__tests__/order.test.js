@@ -776,7 +776,7 @@ describe('## Order APIs', () => {
       price: '1000.00',
       ...photos,
     };
-    let orderId, orderId2, orderId3;
+    let orderId, orderId2, orderId3, orderId4;
     let order3ProdUUID;
 
     beforeAll(async () => {
@@ -805,6 +805,15 @@ describe('## Order APIs', () => {
             expect(o.priceOfItem).toBe(productPOST2.price);
             order3ProdUUID = product.uuid;
             orderId3 = o.id;
+          }
+        )
+      );
+      await createProduct(productPOST2, firstUserJwtToken).then(product =>
+        createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
+          o => {
+            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
+            expect(o.priceOfItem).toBe(productPOST2.price);
+            orderId4 = o.id;
           }
         )
       );
@@ -900,6 +909,47 @@ describe('## Order APIs', () => {
           expect(o.reason).toBe('i already sold this elsewhere');
         });
       // TODO: test Product status is back 'forsale'
+    });
+
+    test('a buyer should NOT cancel an order that has been paid', async () => {
+      const dealID = '9B27M6A';
+      mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+      mock.onPost('/deals').reply(200, { data: { id: dealID } });
+      mock.onPost(`/deals/${dealID}/payments`).reply(200);
+      mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
+      await request(app)
+        .post(`/api/orders/${orderId4}/pay`)
+        .set('Authorization', anotherJwtToken)
+        .send({ cvc: '123' })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.payment.redirectUrl).toContain(
+            '.uapay.ua/api/payments/'
+          );
+          expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
+        });
+
+      mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
+      await request(app)
+        .get(`/api/orders/${orderId4}/paymentStatus`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.status).toBe('ua-finished');
+          expect(body.data.rawStatus).toBe('FINISHED');
+        });
+
+      // FYI: we're skipping the step where the seller confirms the order
+
+      await request(app)
+        .put(`/api/orders/${orderId4}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ status: 'cancelled' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe('cannot cancel a paid order');
+          expect(res.body.ok).toBe(false);
+        });
     });
 
     test('a seller should confirm an order that has been paid', async () => {
