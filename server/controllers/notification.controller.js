@@ -107,7 +107,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
         triggeredType,
       })
         .then(() => {
-          debug(config.JOBNAMES.PUSHFOLLOW, 'Job successfully saved');
+          debug(config.JOBNAMES.PUSH_FOLLOW, 'Job successfully saved');
           resolve();
         })
         .catch(err => {
@@ -139,7 +139,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
         message: shorten(data.text, 40),
       })
         .then(() => {
-          debug(config.JOBNAMES.PUSHCOMMENT, 'Job successfully saved');
+          debug(config.JOBNAMES.PUSH_COMMENT, 'Job successfully saved');
           resolve();
         })
         .catch(err => {
