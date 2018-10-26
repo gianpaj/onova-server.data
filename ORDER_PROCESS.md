@@ -2,13 +2,25 @@
 
 Rules:
 
-- Buyer needs to pay immediately. The product is not reserved when he/she presses Buy
-- We're not requesting funds to be frozen until the Seller confirms
+- The product is reserved when buyer presses Buy
+- The buyer has 15 minutes to make payment
+- The seller then has 48 hours to confirm order
+- The seller has 2? days to ship order
+- The buyer has 5? days to collect package after is delivered
 
 ```mermaid
 sequenceDiagram
     Buyer  ->>  Seller:   Press Buy. 'pending' (no notifications)
-    Note right of Seller: Product still 'forsale'
+    Note right of Seller: Product 'reserved'
+
+    opt Buyer Cancels
+        Note right of Seller: Product 'forsale'
+        Buyer ->>   Seller: Cancels (no notifications)
+        Onova  ->>  Onova:  Order is: 'cancelled'
+    end
+    
+    Buyer  ->>  Onova: Pays with UAPay/LiqPay.
+    Onova  ->>  Seller: Order is 'paid' (notif. Seller)
 
     opt Fail to confirm
         Note over Seller:  Fails to confirm (notif. Seller & Buyer)
@@ -18,45 +30,35 @@ sequenceDiagram
         Seller ->>  Buyer:    Cancels (notif. Buyer)
         Note right of Seller: Requires reason.
         Onova  ->>  Onova:    Order is: 'cancelled'
-        Onova -->>  Buyer:    Refunds Buyer (TODO)
-    end
-    opt Buyer Cancels
-        Buyer ->>   Seller: Cancels (no notifications)
-        Onova  ->>  Onova:  Order is: 'cancelled'
+        Onova  ->>  Onova:    UAPAY Deal is refused
     end
 
-    Buyer  ->>  Onova: Pays with UAPay/LiqPay.
     Onova  ->>  Onova: Product marked as 'sold'
-    Onova  ->>  Seller: Order is 'paid' (notif. Seller)
 
-    Seller ->>    Buyer: Confirms (notif. Buyer)
-    Note right of Buyer: Order 'confirmed'
+    Seller ->>    Onova: Confirms
+    Onova  ->>  Onova:    UAPAY Deal is confirmed
+    Note right of Seller: Order 'confirmed'
 
-    %% opt Fail to ship
-    %%     Note over   Buyer: Fails to pay (n)
-    %%     Onova  ->>  Onova: Order is: 'failed_by_buyer'
-    %%     Onova  ->>  Onova: If left unpaid the Product returns to 'forsale' after X hours or after Y mins if payment fails.
-    %% end
-
-    Onova   ->> Seller: The tracking number is generated (TODO)
-    Seller ->>  Onova:  Goes to Novaposhta and ships the item.
-    Onova ->>   Buyer:  Order is 'shipped'  (notif. Buyer)
+    Onova   ->> Seller: The tracking number is retrieved (Send system message)
+    Note over Seller:  Goes to Novaposhta and ships the item.
+    Onova ->>   Buyer:  Order is 'shipped' (Send system message)
+    
     opt Fail to ship
-        Note over Seller:  Fails to ship in 2 days (notif. Seller & Seller)
+        Note over Seller:  Fails to ship in 2 days (Send system message)
         Onova  ->>  Onova: Order is: 'failed_by_seller'
-        Onova -->>  Buyer: Refunds Buyer (TODO)
-        Onova -->>  Buyer: Request Buyer to review (TODO)
+        Onova -->>  Onova: UAPAY Deal is refused (TODO)
+        Onova -->>  Buyer: Request Buyer to review? (TODO)
     end
-    Onova  ->>  Buyer:   Delivered.  (notif. Buyer & Seller)
-    Buyer -->> Seller:   Collects (notif. Seller)
-    Onova  ->>  Seller:  Pay.  (notif. Seller)
+    Onova  ->>  Buyer:   Delivered.  (Send system message)
+    Buyer -->> Seller:   Collects  (Send system message)
+    Onova  ->>  Seller:  Pay.   (Send system message)
     Onova  ->>  Onova:   Order is: 'completed'
     Onova -->>  Buyer:   Request Buyer to review (TODO)
     Onova -->>  Seller:  Request Seller to review (TODO)
     opt Fail to collect
         Note over Buyer:    Fails to collect in 5 days  (notif. Seller & Buyer)
         Onova  ->>  Onova:  Order is: 'failed_by_buyer'
-        Onova -->>  Buyer:  Charge Buyer for two-way shipping (TODO)
+        Onova -->>  Buyer:  Charge Buyer for two-way shipping? (TODO)
         Onova -->>  Buyer:  Refunds Buyer (TODO)
         Onova -->>  Seller: Request Seller to review (TODO)
     end
