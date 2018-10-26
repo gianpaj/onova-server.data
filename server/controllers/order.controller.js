@@ -12,10 +12,13 @@ import User, { UserDoc } from '../models/user.model';
 import Block from '../models/block.model';
 import Notification from '../models/notification.model';
 import notifCtrl from '../controllers/notification.controller';
+import JobManager from '../helpers/job';
 
 import type { NotifPayload } from '../controllers/notification.controller';
 
 import config from '../config/config';
+
+const { sendSystemMessage } = JobManager;
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
@@ -270,9 +273,11 @@ async function update(
       // checks status of deal and saves tracking number
       await checkPaymentStatusAndUpdateOrder(foundOrder);
 
+      // Schedule a msg with tracking number to notify both parties via chat
+      await sendSystemMessage(foundOrder);
+
       foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
-      // TODO: remove from checkout as well
     }
   } catch (err) {
     return next(err);
