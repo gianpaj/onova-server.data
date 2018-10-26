@@ -290,7 +290,7 @@ describe('## Notification APIs', () => {
 
           // Check a Follow push notification has been scheduled
           setTimeout(() => {
-            agenda.jobs({ name: config.JOBNAMES.PUSHFOLLOW }, (err, jobs) => {
+            agenda.jobs({ name: config.JOBNAMES.PUSH_FOLLOW }, (err, jobs) => {
               if (err) return done(err);
               expect(jobs).toHaveLength(1);
               const { data } = jobs.map(j => j.attrs)[0];
@@ -360,7 +360,7 @@ describe('## Notification APIs', () => {
 
             // Check an Order push notification has been scheduled
             setTimeout(() => {
-              agenda.jobs({ name: config.JOBNAMES.PUSHORDER }, (err, jobs) => {
+              agenda.jobs({ name: config.JOBNAMES.PUSH_ORDER }, (err, jobs) => {
                 if (err) return done(err);
                 expect(jobs).toHaveLength(1);
                 const { data } = jobs.map(j => j.attrs)[0];
@@ -434,7 +434,7 @@ describe('## Notification APIs', () => {
 
             // Check an Order status update to the seller push notification has been scheduled
             setTimeout(() => {
-              agenda.jobs({ name: config.JOBNAMES.PUSHORDER }, (err, jobs) => {
+              agenda.jobs({ name: config.JOBNAMES.PUSH_ORDER }, (err, jobs) => {
                 if (err) return done(err);
                 expect(jobs).toHaveLength(2);
                 const { data } = jobs.map(j => j.attrs)[1];
@@ -535,7 +535,7 @@ describe('## Notification APIs', () => {
       expect(c5.uuid).toBe(anotherProductUuid);
 
       setTimeout(() => {
-        agenda.jobs({ name: config.JOBNAMES.PUSHCOMMENT }, (err, jobs) => {
+        agenda.jobs({ name: config.JOBNAMES.PUSH_COMMENT }, (err, jobs) => {
           if (err) throw new Error(err);
           // FIXME: why are the counts need to be incremented and decreased. count for wrong user?
           expect(jobs).toHaveLength(numberOfNotifForFirstUser + 2);
