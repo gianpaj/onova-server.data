@@ -65,7 +65,7 @@ export async function sendPush({
           random: shortid(), // for unique push notification
         };
 
-        const job = agenda.create(config.JOBNAMES.PUSHFOLLOW, pushData);
+        const job = agenda.create(config.JOBNAMES.PUSH_FOLLOW, pushData);
 
         return job.save(err => {
           if (err) throw new Error(`Job failed with error: ${err}`);
@@ -103,7 +103,7 @@ export async function sendPush({
           triggeredType,
         };
 
-        const job = agenda.create(config.JOBNAMES.PUSHCOMMENT, pushData);
+        const job = agenda.create(config.JOBNAMES.PUSH_COMMENT, pushData);
 
         return job.save(err => {
           if (err) throw new Error(`Job failed with error: ${err}`);
@@ -125,10 +125,10 @@ export async function sendPush({
           if (!target) {
             throw new Error('Cannot find target');
           }
-          return { order, target };
+          return { target };
         });
       })
-      .then(({ order, target }: { order: OrderDoc, target: UserDoc }) => {
+      .then(({ target }: { target: UserDoc }) => {
         const pushData = {
           data,
           message,
@@ -140,11 +140,11 @@ export async function sendPush({
           random: shortid(), // for unique push notification
         };
 
-        const job = agenda.create(config.JOBNAMES.PUSHORDER, pushData);
+        const job = agenda.create(config.JOBNAMES.PUSH_ORDER, pushData);
 
         return job.save(err => {
           if (err) throw new Error(`Job failed with error: ${err}`);
-          debug(config.JOBNAMES.PUSHORDER, 'Job successfully saved');
+          debug(config.JOBNAMES.PUSH_ORDER, 'Job successfully saved');
         });
       })
       .catch(e => {
