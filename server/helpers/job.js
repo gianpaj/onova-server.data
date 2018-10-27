@@ -6,7 +6,8 @@ import { OrderDoc } from '../models/order.model';
 import config from '../config/config';
 
 const i18n = {
-  orderConfirmed: "Awesome! Here's the tracking number: __TRACKING_NUM__",
+  orderConfirmed:
+    "Awesome! Here's the tracking number:\n__TRACKING_NUM__\nThe item can now be shipped from Nova Poshta",
 };
 
 type SystemMessage = {};
