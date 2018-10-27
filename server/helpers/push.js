@@ -134,7 +134,7 @@ export async function sendPush({
           message,
           platform: target.platform,
           pushToken: target.pushToken,
-          triggeredBy: order._id,
+          triggeredBy,
           triggeredType,
           targetUser: target._id,
           random: shortid(), // for unique push notification

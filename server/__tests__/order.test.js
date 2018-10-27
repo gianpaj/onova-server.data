@@ -6,8 +6,13 @@ import MockAdapter from 'axios-mock-adapter';
 import path from 'path';
 import request from 'supertest';
 
+import { agenda } from '../config/express';
+import config from '../config/config';
+
 import app from '../index';
+
 import Tag from '../models/tag.model';
+import Order from '../models/order.model';
 import {
   beforeAllTests,
   createOrder,
@@ -15,7 +20,6 @@ import {
   createUserAndLogin,
   orderFields,
 } from './utils';
-import Order from '../models/order.model';
 import {
   buyerNeedsToPay,
   buyerPaidDeal,
@@ -23,6 +27,7 @@ import {
   sellerConfirmedResponse,
   dealConfirmationResp,
 } from '../helpers/shipping';
+import { i18n } from '../helpers/job';
 
 const photos = {
   photos: [
@@ -952,7 +957,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    test('a seller should confirm an order that has been paid', async () => {
+    test('a seller should confirm an order that has been paid', async done => {
       const dealID = '9B27M6F';
       mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: dealID } });
@@ -1009,6 +1014,21 @@ describe('## Order APIs', () => {
           const p = res.body.data;
           expect(p.status).toBe('sold');
         });
+
+      // order confirmation should schedule a System message
+      setTimeout(() => {
+        agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+          if (err) return done(err);
+          expect(jobs).toHaveLength(1);
+          const { data } = jobs.map(j => j.attrs)[0];
+          expect(data.order._id.toString()).toBe(orderId3);
+          expect(data.order.trackingNumber).toBe(
+            sellerConfirmedResponse.data.handler.waybillNumber.toString()
+          );
+          expect(data.message).toContain(i18n.orderConfirmed.slice(0, 30));
+          done();
+        });
+      }, 10);
     });
   });
 
