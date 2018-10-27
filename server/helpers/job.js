@@ -5,7 +5,7 @@ import { agenda } from '../config/express';
 import { OrderDoc } from '../models/order.model';
 import config from '../config/config';
 
-const i18n = {
+export const i18n = {
   orderConfirmed:
     "Awesome! Here's the tracking number:\n__TRACKING_NUM__\nThe item can now be shipped from Nova Poshta",
 };
@@ -15,7 +15,6 @@ type SystemMessage = {};
 export default class JobManager {
   static sendSystemMessage(order: OrderDoc) {
     return new Promise((resolve, reject) => {
-      console.log(order);
       // send Tracking Number
 
       // if (order.status === 'confirmed')
