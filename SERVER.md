@@ -2,13 +2,13 @@
 
 > The VM is in AWS Lightsail
 
-* account: `760442980053`
-* name of instance: nodeserver-1-vm
-* hostmame: `onova-1gb-frankfurt-1`
-* disk: 30GB SSD
-* zone: `eu-central-1a` (Frankfurt, Zone A)
-* Linux distribution: Ubuntu 16.04.5 LTS (xenial) (VM image from [bitnami](//docs.bitnami.com/aws/infrastructure/nodejs/))
-* Node JS 10.x
+- account: `760442980053`
+- name of instance: nodeserver-1-vm
+- hostmame: `onova-gb-frankfurt-2`
+- disk: 80GB SSD
+- zone: `eu-central-1a` (Frankfurt, Zone A)
+- Linux distribution: Ubuntu 16.04.5 LTS (xenial) (VM image from [bitnami](//docs.bitnami.com/aws/infrastructure/nodejs/))
+- Node JS 10.x
 
 ## Initial setup
 
@@ -29,10 +29,10 @@ l /opt/bitnami/*/scripts/ctl.sh
 ```bash
 nano /etc/hosts
 
-# add onova-1gb-frankfurt-1
+# add onova-gb-frankfurt-2
 # after 127.0.0.1
 
-hostnamectl set-hostname onova-1gb-frankfurt-1
+hostnamectl set-hostname onova-gb-frankfurt-2
 ```
 
 ## Setup user for CI
@@ -108,7 +108,7 @@ Status: active
 [ 6] 443 (v6)                   ALLOW IN    Anywhere (v6)
 ```
 
-<!-- 
+<!--
 ## Node.js v8.x LTS Carbon and npm
 
 ```bash
@@ -152,9 +152,9 @@ Reload:
 
 More settings:
 
-* https://linode.com/docs/web-servers/nginx/tls-deployment-best-practices-for-nginx/
-* https://gist.github.com/plentz/6737338
-* https://cipherli.st
+- https://linode.com/docs/web-servers/nginx/tls-deployment-best-practices-for-nginx/
+- https://gist.github.com/plentz/6737338
+- https://cipherli.st
 
 ## SSL Certs
 
@@ -275,7 +275,7 @@ Test:
 
 Taken from:
 
-* https://gist.github.com/roybotnik/b0ec2eda2bc625e19eaf
+- https://gist.github.com/roybotnik/b0ec2eda2bc625e19eaf
 
 ## Security
 
