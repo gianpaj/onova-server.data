@@ -34,9 +34,8 @@ declare class express$Request extends express$Request {
   user: UserDoc;
 }
 
-const i18n = {
+export const i18n = {
   orderPaid: 'Congrats! 🎉 You have a new purchase!', // 37 chars
-  orderShipped: 'Your purchase has been shipped! 🎉', // 34 chars
   orderCancelled: 'Your order has been cancelled! 😭', // 33 chars
 };
 
@@ -390,10 +389,10 @@ async function pay(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { order } = req;
+  const { body, order } = req;
 
   try {
-    if (isNaN(parseInt(req.body.cvc)))
+    if (isNaN(parseInt(body.cvc)))
       throw new APIError('Invalid CVC', httpStatus.BAD_REQUEST);
 
     if (order.status !== 'pending')
@@ -407,7 +406,7 @@ async function pay(
     if (!product)
       throw new APIError('Product not found.', httpStatus.NOT_FOUND);
 
-    const payment = await createPaymentUAPAY(order, product, req.body.cvc);
+    const payment = await createPaymentUAPAY(order, product, body.cvc);
 
     // TODO: check transaction hasn't already started
     order.transactionStatus = 'ua-pending';
@@ -642,6 +641,8 @@ async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
 
       resolve(data);
     } catch (error) {
+      if (error.response && error.response.data)
+        console.error(error.response.data);
       reject(error);
     }
   });
