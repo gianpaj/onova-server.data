@@ -8,6 +8,7 @@ import config from '../config/config';
 export const i18n = {
   orderConfirmed:
     "Awesome! Here's the tracking number:\n__TRACKING_NUM__\nThe item can now be shipped from Nova Poshta",
+  orderShipped: 'The package has been shipped! 🎉',
 };
 
 type SystemMessage = {};

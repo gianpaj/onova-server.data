@@ -553,6 +553,7 @@ describe('## Order APIs', () => {
         .put(`/api/orders/${orderPOST3}`)
         .set('Authorization', anotherJwtToken)
         .send({ status: 'cancelled' })
+        .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toMatchSnapshot();
