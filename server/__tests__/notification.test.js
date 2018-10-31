@@ -24,7 +24,7 @@ import {
 import { buyerPaidDeal } from '../helpers/shipping';
 
 // This sets the mock adapter on the default instance
-var mock = new MockAdapter(axios);
+const mock = new MockAdapter(axios);
 
 /**
  * root level hooks
