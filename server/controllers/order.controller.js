@@ -436,6 +436,15 @@ function createPaymentUAPAY(
       const buyer = await User.findById(order.buyer);
       const seller = await User.findById(order.seller);
 
+      const { paymentInfo: Bpay, shippingAddress: Bship } = buyer;
+
+      const { paymentInfo, shippingAddress: Sship } = seller;
+      if (!paymentInfo.card_token || !Sship.city || !Sship.departmentNovaposhta)
+        throw new Error('Seller is missing payment or shipping info');
+
+      if (!Bpay.card_token || !Bship.city || !Bship.departmentNovaposhta)
+        throw new Error('Bueyr is missing payment or shipping info');
+
       // Step 1 - Create cart
       const {
         data: { data: cart },
@@ -451,14 +460,14 @@ function createPaymentUAPAY(
           productTitle: product.description,
           productWeight: product.weight, // number
           productPrice: product.price.toString().replace('.', ''), // to number in cents
-          sellerFirstName: seller.shippingAddress.firstName,
-          sellerLastName: seller.shippingAddress.lastName,
-          sellerPatronymic: '', // seller.shippingAddress.fathersName
+          sellerFirstName: Sship.firstName,
+          sellerLastName: Sship.lastName,
+          sellerPatronymic: '', // Sship.fathersName
           sellerPhone: '38' + seller.mobileNumber, // needs to start with 380 e,g. 380 97 741 4301 (no spaces)
           sellerEmail: seller.emailAddress,
-          buyerFirstName: buyer.shippingAddress.firstName,
-          buyerLastName: buyer.shippingAddress.lastName,
-          buyerPatronymic: '', // buyer.shippingAddress.fathersName
+          buyerFirstName: Bship.firstName,
+          buyerLastName: Bship.lastName,
+          buyerPatronymic: '', // Bship.fathersName
           buyerPhone: '38' + buyer.mobileNumber,
           buyerEmail: buyer.emailAddress,
           lg: 'uk',
@@ -468,20 +477,20 @@ function createPaymentUAPAY(
           },
           handler: {
             type: 'NovaPoshta_ONOVA',
-            senderFirstName: seller.shippingAddress.firstName,
-            senderLastName: seller.shippingAddress.lastName,
+            senderFirstName: Sship.firstName,
+            senderLastName: Sship.lastName,
             senderPatronymic: '',
             senderPhone: '38' + seller.mobileNumber,
             senderEmail: seller.emailAddress,
-            senderCityId: seller.shippingAddress.city,
-            senderOfficeId: seller.shippingAddress.departmentNovaposhta,
-            recipientFirstName: buyer.shippingAddress.firstName,
-            recipientLastName: buyer.shippingAddress.lastName,
-            recipientPatronymic: '', // buyer.shippingAddress.fathersName
+            senderCityId: Sship.city,
+            senderOfficeId: Sship.departmentNovaposhta,
+            recipientFirstName: Bship.firstName,
+            recipientLastName: Bship.lastName,
+            recipientPatronymic: '', // Bship.fathersName
             recipientPhone: '38' + buyer.mobileNumber,
             recipientEmail: buyer.emailAddress,
-            recipientCityId: buyer.shippingAddress.city,
-            recipientOfficeId: buyer.shippingAddress.departmentNovaposhta,
+            recipientCityId: Bship.city,
+            recipientOfficeId: Bship.departmentNovaposhta,
           },
         },
         axiosConfig
