@@ -95,13 +95,17 @@ async function costs(
     }
 
     const seller: UserDoc = await User.findById(order.seller);
+    const { shippingAddress: Sship } = seller;
+
+    if (!Sship.city || !Sship.departmentNovaposhta)
+      throw new Error('Seller is missing payment or shipping info');
 
     const provider = await axios.get('/handlers/NovaPoshta_ONOVA/costs', {
       params: {
         productWeight: weight,
         productPrice: parseInt(price.replace('.', '')), // TODO: convert price properly to number
-        senderOfficeId: seller.shippingAddress.departmentNovaposhta,
-        senderCityId: seller.shippingAddress.city,
+        senderOfficeId: Sship.departmentNovaposhta,
+        senderCityId: Sship.city,
         recipientOfficeId: recipientDeparment.id,
         recipientCityId: recipientDeparment.cityID,
       },
