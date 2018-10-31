@@ -4,8 +4,11 @@ import axios from 'axios';
 import httpStatus from 'http-status';
 import mongoose from 'mongoose';
 
+import Order, { OrderDoc } from '../models/order.model';
+
 import APIError from '../helpers/APIError';
 import config from '../config/config';
+import User, { UserDoc } from '../models/user.model';
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
@@ -72,31 +75,33 @@ function cities(
  * @property {*} req.query - Express query parameters
  * @property {number} req.query.price
  * @property {number} req.query.weight
- * @property {number} req.query.senderOfficeID
  * @property {number} req.query.recipientOfficeID
+ * @property {number} req.query.orderId
  */
 async function costs(
   req: express$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { senderOfficeID, recipientOfficeID, price, weight } = req.query;
+  const { recipientOfficeID, orderId, price, weight } = req.query;
   try {
-    const senderDeparment = await Deparment.findOne({ id: senderOfficeID });
-    const recipientDeparment = await Deparment.findOne({
+    const recipientDeparment: Deparment = await Deparment.findOne({
       id: recipientOfficeID,
     });
+    const order: OrderDoc = await Order.findById(orderId);
 
-    if (!senderDeparment || !recipientDeparment) {
+    if (!recipientDeparment || !order) {
       throw new APIError('Error retrieving the deparment(s)');
     }
+
+    const seller: UserDoc = await User.findById(order.seller);
 
     const provider = await axios.get('/handlers/NovaPoshta_ONOVA/costs', {
       params: {
         productWeight: weight,
         productPrice: parseInt(price.replace('.', '')), // TODO: convert price properly to number
-        senderOfficeId: senderDeparment.id,
-        senderCityId: senderDeparment.cityID,
+        senderOfficeId: seller.shippingAddress.departmentNovaposhta,
+        senderCityId: seller.shippingAddress.city,
         recipientOfficeId: recipientDeparment.id,
         recipientCityId: recipientDeparment.cityID,
       },
