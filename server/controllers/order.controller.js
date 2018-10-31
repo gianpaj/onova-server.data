@@ -29,6 +29,18 @@ const axiosConfig = {
   },
 };
 
+// TODO: add function to User model
+function canUserTransact(user) {
+  const { paymentInfo, shippingAddress } = user;
+  return (
+    paymentInfo.card_token &&
+    shippingAddress.firstName &&
+    shippingAddress.lastName &&
+    shippingAddress.city &&
+    shippingAddress.departmentNovaposhta
+  );
+}
+
 declare class express$Request extends express$Request {
   order: OrderDoc;
   user: UserDoc;
@@ -120,9 +132,18 @@ function create(
       if (order) {
         order.status = 'pending';
         order.save();
+
         await addProductToCheckout(product);
         throw { message: 'Duplicate order', order };
       }
+
+      const seller = await User.findById(product.seller._id);
+
+      if (!canUserTransact(seller))
+        throw new Error('Seller is missing payment or shipping info');
+
+      if (!canUserTransact(req.user))
+        throw new Error('Buyer is missing payment or shipping info');
 
       const blocking = await Block.countDocuments({
         $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
@@ -165,9 +186,8 @@ function create(
         return res
           .status(httpStatus.BAD_REQUEST)
           .json({ message: e.message, data: e.order });
-      } else {
-        next(e);
       }
+      next(e);
     });
 }
 
@@ -436,14 +456,14 @@ function createPaymentUAPAY(
       const buyer = await User.findById(order.buyer);
       const seller = await User.findById(order.seller);
 
-      const { paymentInfo: Bpay, shippingAddress: Bship } = buyer;
-
-      const { paymentInfo, shippingAddress: Sship } = seller;
-      if (!paymentInfo.card_token || !Sship.city || !Sship.departmentNovaposhta)
+      if (!canUserTransact(seller))
         throw new Error('Seller is missing payment or shipping info');
 
-      if (!Bpay.card_token || !Bship.city || !Bship.departmentNovaposhta)
-        throw new Error('Bueyr is missing payment or shipping info');
+      if (!canUserTransact(buyer))
+        throw new Error('Buyer is missing payment or shipping info');
+
+      const { shippingAddress: Bship } = buyer;
+      const { shippingAddress: Sship } = seller;
 
       // Step 1 - Create cart
       const {
