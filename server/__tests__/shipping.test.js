@@ -7,11 +7,54 @@ import MockAdapter from 'axios-mock-adapter';
 
 import app from '../index';
 
+import {
+  beforeAllTests,
+  createOrder,
+  createProduct,
+  createUserAndLogin,
+} from './utils';
+
 const mock = new MockAdapter(axios);
 
 const kiev = '8d5a980d-391c-11dd-90d9-001a92567626';
 
+const photos = {
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
+  ],
+};
+
 describe('## Shipping', () => {
+  beforeAll(beforeAllTests);
+
+  let user1 = {
+    username: 'userone',
+    emailAddress: 'userone@gmail.com',
+    password: 'expressos',
+  };
+
+  let user2 = {
+    username: 'usertwo',
+    emailAddress: 'usertwo@gmail.com',
+    password: 'expressos',
+  };
+
+  let user1JwtToken, user2JwtToken;
+
+  // create 2 users
+  beforeAll(async () => {
+    const { user: resUser1, jwtToken: token1 } = await createUserAndLogin(
+      user1
+    );
+    user1._id = resUser1._id;
+    user1JwtToken = token1;
+    const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(
+      user2
+    );
+    user2._id = resUser2._id;
+    user2JwtToken = token2;
+  });
+
   describe('# GET /api/shipping/cities', () => {
     it('should get the list of cities', () => {
       return request(app)
@@ -57,8 +100,27 @@ describe('## Shipping', () => {
   });
 
   describe('# GET /api/shipping/costs', () => {
-    // Відділення № 376 (до 30 кг), Поштомат \"Приватбанк\": вул. Пимоненка, 13
-    const senderOfficeID = 'ee1ca520-1bfd-11e5-add9-005056887b8d';
+    const productDoc = {
+      categoryIds: [2],
+      typeIds: [1],
+      description: 'my old panties',
+      price: '99900.59',
+      ...photos,
+    };
+
+    let orderId, orderProdUUID;
+
+    beforeAll(() => {
+      return createProduct(productDoc, user1JwtToken).then(product =>
+        createOrder({ ...product, ...productDoc }, user2JwtToken).then(o => {
+          expect(o.onovaFee).toBe((productDoc.price * 1).toString());
+          expect(o.priceOfItem).toBe(productDoc.price);
+          orderProdUUID = product.uuid;
+          orderId = o.id;
+        })
+      );
+    });
+
     // Відділення №1: вул. Червонопрапорна, 34 (Корчувате)
     const recipientOfficeID = '1ec09d88-e1c2-11e3-8c4a-0050568002cf';
 
@@ -71,7 +133,7 @@ describe('## Shipping', () => {
         .get(
           `/api/shipping/costs?price=${product.price}&weight=${
             product.weight
-          }&senderOfficeID=${senderOfficeID}`
+          }&orderId=${orderId}`
         )
         .expect(httpStatus.BAD_REQUEST)
         .then(res =>
@@ -92,7 +154,7 @@ describe('## Shipping', () => {
         .get(
           `/api/shipping/costs?price=${product.price}&weight=${
             product.weight
-          }&senderOfficeID=${senderOfficeID}&recipientOfficeID=${recipientOfficeID}`
+          }&orderId=${orderId}&recipientOfficeID=${recipientOfficeID}`
         )
         .expect(httpStatus.OK)
         .then(({ body }) => {
