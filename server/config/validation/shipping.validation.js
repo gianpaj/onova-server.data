@@ -12,8 +12,9 @@ export default {
     query: {
       price: Joi.string().required(),
       weight: Joi.number().required(),
-      senderOfficeID: Joi.string()
-        .uuid()
+      orderId: Joi.string()
+        .hex()
+        .length(24)
         .required(),
       recipientOfficeID: Joi.string()
         .uuid()
