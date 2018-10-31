@@ -36,7 +36,7 @@ const photos = {
 };
 
 // This sets the mock adapter on the default instance
-var mock = new MockAdapter(axios);
+const mock = new MockAdapter(axios);
 
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
