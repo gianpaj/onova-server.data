@@ -150,6 +150,7 @@ function create(
         product: product._id,
         seller: product.seller._id,
         transactionFee,
+        // weight, // TODO: add weight
         // status // 'pending' by default
       });
 
