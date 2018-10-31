@@ -91,7 +91,7 @@ async function costs(
       throw new APIError('Error retrieving the deparment(s)');
     }
 
-    const provider = await axios.get('/handlers/NovaPoshta/costs', {
+    const provider = await axios.get('/handlers/NovaPoshta_ONOVA/costs', {
       params: {
         productWeight: weight,
         productPrice: parseInt(price.replace('.', '')), // TODO: convert price properly to number
@@ -111,7 +111,8 @@ async function costs(
 
     res.json({ data: provider.data.data.handlerPrice });
   } catch (error) {
-    console.error(error);
+    if (error.response && error.response.data)
+      console.error(error.response.data);
     if (!(error instanceof APIError)) {
       return next(
         new APIError(

@@ -2,8 +2,12 @@
 
 import request from 'supertest';
 import httpStatus from 'http-status';
+import axios from 'axios';
+import MockAdapter from 'axios-mock-adapter';
 
 import app from '../index';
+
+const mock = new MockAdapter(axios);
 
 const kiev = '8d5a980d-391c-11dd-90d9-001a92567626';
 
@@ -81,6 +85,9 @@ describe('## Shipping', () => {
         weight: 300,
       };
 
+      mock
+        .onGet('/handlers/NovaPoshta_ONOVA/costs')
+        .reply(200, { data: { handlerPrice: 2500 } });
       return request(app)
         .get(
           `/api/shipping/costs?price=${product.price}&weight=${
