@@ -282,6 +282,8 @@ async function update(
           axiosConfig
         );
       } catch (error) {
+        if (error.response && error.response.data)
+          console.error(error.response.data);
         console.log(error);
         const err = new APIError(
           'Error with payment provider',
@@ -477,6 +479,8 @@ function createPaymentUAPAY(
         '/deals',
         {
           cartId: cart.id,
+          // TODO: if existing order, get deal instead of creating a new one
+          // externalId: order._id,
           productTitle: product.description,
           productWeight: product.weight, // number
           productPrice: product.price.toString().replace('.', ''), // to number in cents
@@ -549,18 +553,34 @@ function createPaymentUAPAY(
         retryNum < 7
       );
 
+      const { productPayment: paym } = newDeal;
+
       // console.log(newDeal);
-      // TODO check commissionAmount is equal to agreed
+      // TODO: check commissionAmount is equal to agreed
       if (
-        // newDeal.productPayment.amount == product.product.toString().replace('.', '') &&
-        newDeal.productPayment.type === 'P2P_ONOVA' &&
-        newDeal.productPayment.statusCode === 'NEEDS_CONFIRMATION'
+        // paym.amount == product.product.toString().replace('.', '') &&
+        paym.type === 'P2P_ONOVA' &&
+        paym.statusCode === 'NEEDS_CONFIRMATION'
       ) {
-        const { confirmation } = newDeal.productPayment.details;
+        const { confirmation } = paym.details;
         resolve({
           redirectUrl: confirmation.redirectUrl,
           PaReq: confirmation.form.PaReq,
         });
+      } else if (paym.statusCode === 'REJECTED') {
+        if (config.env === 'production') {
+          console.log('---');
+          console.log('GENERIC-PAYMENT-ERROR');
+          console.log('product uuid:', product.uuid);
+          console.log('order id:', order._id);
+          console.log('seller username:', seller.username);
+          console.log('buyer username:', buyer.username);
+          console.log(newDeal);
+          console.log('---');
+        }
+
+        // TODO: 074 = Invalid confirmation code or details of your card.
+        reject(new APIError('Payment error', httpStatus.INTERNAL_SERVER_ERROR));
       } else {
         reject(newDeal);
       }

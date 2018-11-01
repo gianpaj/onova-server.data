@@ -49,7 +49,6 @@ exports[`## Order APIs # GET /api/orders should get my orders (as seller and buy
 Array [
   "_id",
   "accountStatus",
-  "profilePic",
   "shippingAddress",
   "username",
 ]
@@ -59,6 +58,7 @@ exports[`## Order APIs # GET /api/orders should get my orders (as seller and buy
 Array [
   "_id",
   "accountStatus",
+  "profilePic",
   "shippingAddress",
   "username",
 ]
@@ -67,6 +67,7 @@ Array [
 exports[`## Order APIs # PUT /api/orders (more) should allow the buyer to cancel an order 1`] = `
 Array [
   "buyer",
+  "createdAt",
   "currency",
   "dateCancelled",
   "datePending",
@@ -78,12 +79,14 @@ Array [
   "status",
   "total",
   "transactionFee",
+  "updatedAt",
 ]
 `;
 
 exports[`## Order APIs # PUT /api/orders should allow the buyer to cancel the order without a reason 1`] = `
 Array [
   "buyer",
+  "createdAt",
   "currency",
   "dateCancelled",
   "datePending",
@@ -95,12 +98,14 @@ Array [
   "status",
   "total",
   "transactionFee",
+  "updatedAt",
 ]
 `;
 
 exports[`## Order APIs # PUT /api/orders should allow the seller to cancel the order 1`] = `
 Array [
   "buyer",
+  "createdAt",
   "currency",
   "dateCancelled",
   "datePending",
@@ -113,12 +118,14 @@ Array [
   "status",
   "total",
   "transactionFee",
+  "updatedAt",
 ]
 `;
 
 exports[`## Order APIs # PUT /api/orders should change the paymentMethod to \`paypal\` 1`] = `
 Array [
   "buyer",
+  "createdAt",
   "currency",
   "datePending",
   "id",
@@ -130,5 +137,6 @@ Array [
   "status",
   "total",
   "transactionFee",
+  "updatedAt",
 ]
 `;

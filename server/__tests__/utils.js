@@ -17,6 +17,7 @@ import app from '../index';
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
   'buyer',
+  'createdAt',
   'currency',
   'datePending',
   'id',
@@ -27,6 +28,7 @@ export const orderFields = [
   'status',
   'total',
   'transactionFee',
+  'updatedAt',
 ];
 
 // should only return these fields
