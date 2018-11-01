@@ -131,13 +131,13 @@ const config = {
     SYSTEM_MSG: 'send-system-message',
   },
   settings: {
-    // TODO: Reserves products ror 15 minutes.
+    // Reserves products ror 15 minutes.
     // TODO: 0 to disable
     // When time is reached, the order is cancelled. And Product is set back to 'forsale'.
-    holdProductFor: 900,
-    // TODO: Wait the seller to confirm the order for X hours.
+    holdProductFor: 60 * 15, // mins
+    // Wait the seller to confirm the order for 48 hours.
     // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
-    orderPendingFor: 3600 * 1,
+    orderPendingFor: 60 * 60 * 48, // hours
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
   },
   DEFAULT_FOLLOW: false,
