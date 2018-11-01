@@ -761,15 +761,16 @@ async function createOrderNotification(
 }
 
 function addProductToCheckout(product) {
-  // const doc = new Checkout({ product });
-  // doc.save();
   product.status = 'reserved';
+  product.reservedDate = new Date();
   return product.save();
 }
 
 function removeProductToCheckout(productId: string) {
-  // Checkout.find({ product: productId });
-  return Product.updateOne({ _id: productId }, { status: 'forsale' });
+  return Product.updateOne(
+    { _id: productId },
+    { status: 'forsale', $unset: { reservedDate: '' } }
+  );
 }
 
 const sleep = ms => {
