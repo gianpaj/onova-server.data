@@ -10,143 +10,147 @@ import { userPopulateFields, productPopulateFields } from './user.model';
 const { Schema } = mongoose;
 
 /** @namespace */
-var OrderSchema = new Schema({
-  archivedByBuyer: Boolean,
-  archivedBySeller: Boolean,
-  buyer: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  citySender: String,
-  cityRecipient: String,
-  currency: {
-    type: String,
-    required: true,
-    default: 'UAH',
-  },
-  dateCancelled: {
-    type: Date,
-  },
-  dateCompleted: {
-    type: Date,
-  },
-  dateConfirmed: {
-    type: Date,
-  },
-  dateDelivered: {
-    type: Date,
-  },
-  dateFailed: {
-    type: Date,
-  },
-  datePaid: {
-    type: Date,
-  },
-  datePending: {
-    type: Date,
-    required: true,
-    default: Date.now,
-  },
-  dateShipped: {
-    type: Date,
-  },
-  onovaFee: {
-    type: Schema.Types.Decimal128,
-    required: true,
-  },
-  paymentMethod: {
-    type: String,
-    enum: ['paypal', 'uapay'],
-  },
-  priceOfItem: {
-    type: Schema.Types.Decimal128,
-    required: true,
-  },
-  product: {
-    type: Schema.Types.ObjectId,
-    ref: 'Product',
-    required: true,
-  },
-  reason: {
-    type: String,
-  },
-  reviewFromBuyer: {
-    type: Schema.Types.ObjectId,
-    ref: 'Review',
-  },
-  reviewFromSeller: {
-    type: Schema.Types.ObjectId,
-    ref: 'Review',
-  },
-  seller: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-  status: {
-    type: String,
-    required: true,
-    default: 'pending',
-    enum: [
-      // Unpaid - Customer started the checkout process. Payment is not completed.
-      'pending',
+var OrderSchema = new Schema(
+  {
+    archivedByBuyer: Boolean,
+    archivedBySeller: Boolean,
+    buyer: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    citySender: String,
+    cityRecipient: String,
+    currency: {
+      type: String,
+      required: true,
+      default: 'UAH',
+    },
+    dateCancelled: {
+      type: Date,
+    },
+    dateCompleted: {
+      type: Date,
+    },
+    dateConfirmed: {
+      type: Date,
+    },
+    dateDelivered: {
+      type: Date,
+    },
+    dateFailed: {
+      type: Date,
+    },
+    datePaid: {
+      type: Date,
+    },
+    datePending: {
+      type: Date,
+      required: true,
+      default: Date.now,
+    },
+    dateShipped: {
+      type: Date,
+    },
+    onovaFee: {
+      type: Schema.Types.Decimal128,
+      required: true,
+    },
+    paymentMethod: {
+      type: String,
+      enum: ['paypal', 'uapay'],
+    },
+    priceOfItem: {
+      type: Schema.Types.Decimal128,
+      required: true,
+    },
+    product: {
+      type: Schema.Types.ObjectId,
+      ref: 'Product',
+      required: true,
+    },
+    reason: {
+      type: String,
+    },
+    reviewFromBuyer: {
+      type: Schema.Types.ObjectId,
+      ref: 'Review',
+    },
+    reviewFromSeller: {
+      type: Schema.Types.ObjectId,
+      ref: 'Review',
+    },
+    seller: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    status: {
+      type: String,
+      required: true,
+      default: 'pending',
+      enum: [
+        // Unpaid - Customer started the checkout process. Payment is not completed.
+        'pending',
 
-      // [Can be set only set when checking status via Payment Provider]
-      // Buyer pays and waiting for seller to confirm – Product status is now 'reserved'
-      'paid',
+        // [Can be set only set when checking status via Payment Provider]
+        // Buyer pays and waiting for seller to confirm – Product status is now 'reserved'
+        'paid',
 
-      // [Can be set only set when checking status via Payment Provider]
-      // Product is ready for shipment. Tracking number is generated automatically
-      'confirmed',
+        // [Can be set only set when checking status via Payment Provider]
+        // Product is ready for shipment. Tracking number is generated automatically
+        'confirmed',
 
-      // [Can be set only by Shipping Provider] (i.e. NovaPohsta)
-      'shipped',
+        // [Can be set only by Shipping Provider] (i.e. NovaPohsta)
+        'shipped',
 
-      // Seller cancels order (doesn't confirm). Requires reason.
-      // or
-      // Buyer cancels order (or doesn't pay in 15 mins). Reason if internal process (payment denied/timeout)
-      'cancelled',
+        // Seller cancels order (doesn't confirm). Requires reason.
+        // or
+        // Buyer cancels order (or doesn't pay in 15 mins). Reason if internal process (payment denied/timeout)
+        'cancelled',
 
-      // [Can be set only by Shipping Provider]
-      'delivered',
+        // [Can be set only by Shipping Provider]
+        'delivered',
 
-      // [Can be set only by Shipping Provider]. Item has been collected
-      'completed',
+        // [Can be set only by Shipping Provider]. Item has been collected
+        'completed',
 
-      // [Can be set only set when checking status via Payment Provider]
-      // Buyer fails to collect or refuses the item (not as described)
-      'failed_by_buyer',
+        // [Can be set only set when checking status via Payment Provider]
+        // Buyer fails to collect or refuses the item (not as described)
+        'failed_by_buyer',
 
-      // [Can be set only by Escrow Payment Provider]
-      // Seller fails to ship
-      'failed_by_seller',
+        // [Can be set only by Escrow Payment Provider]
+        // Seller fails to ship
+        'failed_by_seller',
 
-      // TODO: the holdProductFor or orderPendingFor windows expired without a response
-      // [by Internal Process]
-      'failed',
-    ],
+        // TODO: the holdProductFor or orderPendingFor windows expired without a response
+        // [by Internal Process]
+        'failed',
+      ],
+    },
+    taxAmount: String,
+    trackingNumber: String,
+    transactionFee: Schema.Types.Decimal128,
+    transactionId: String,
+    transactionStatus: {
+      type: String,
+      enum: [
+        'ua-pending',
+        'ua-needsconfirmation',
+        'ua-finished',
+        'ua-rejected',
+        'ua-reversed',
+      ],
+    },
+    shippingFee: Schema.Types.Decimal128,
+    shippingProvider: {
+      type: String,
+      enum: ['novaposhta'],
+    },
   },
-  taxAmount: String,
-  trackingNumber: String,
-  transactionFee: Schema.Types.Decimal128,
-  transactionId: String,
-  transactionStatus: {
-    type: String,
-    enum: [
-      'ua-pending',
-      'ua-needsconfirmation',
-      'ua-finished',
-      'ua-rejected',
-      'ua-reversed',
-    ],
-  },
-  shippingFee: Schema.Types.Decimal128,
-  shippingProvider: {
-    type: String,
-    enum: ['novaposhta'],
-  },
-});
+  // assigns 'createdAt' and 'updatedAt' fields to your schema
+  { timestamps: true }
+);
 
 OrderSchema.virtual('total').get(function() {
   return (

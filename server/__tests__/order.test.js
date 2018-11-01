@@ -23,6 +23,7 @@ import {
 import {
   buyerNeedsToPay,
   buyerPaidDeal,
+  buyerPaymentFailure,
   sellerCancelsAPaidDeal,
   sellerConfirmedResponse,
   dealConfirmationResp,
@@ -850,10 +851,11 @@ describe('## Order APIs', () => {
     });
 
     it('should create a payment for an order', () => {
+      const dealID = '9B27M6A';
       mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
-      mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
-      mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
-      mock.onGet(`/deals/9B27M6E`).reply(200, buyerNeedsToPay);
+      mock.onPost('/deals').reply(200, { data: { id: dealID } });
+      mock.onPost(`/deals/${dealID}/payments`).reply(200, buyerNeedsToPay);
+      mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
       return request(app)
         .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', anotherJwtToken)
@@ -868,11 +870,27 @@ describe('## Order APIs', () => {
         });
     });
 
+    it('should NOT create a payment for an order if payment info', () => {
+      mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+      mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
+      mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
+      mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaymentFailure);
+      return request(app)
+        .post(`/api/orders/${orderId}/pay`)
+        .set('Authorization', anotherJwtToken)
+        .send({ cvc: '123' })
+        .expect(httpStatus.INTERNAL_SERVER_ERROR)
+        .then(({ body }) => {
+          expect(body.message).toBe('Payment error');
+        });
+    });
+
     test('a seller should cancel an order that has been paid', async () => {
       const dealID = '9B27M6E';
-      mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+      mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: dealID } });
       mock.onPost(`/deals/${dealID}/payments`).reply(200);
+      mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
       await request(app)
         .post(`/api/orders/${orderId2}/pay`)
         .set('Authorization', anotherJwtToken)
@@ -919,7 +937,7 @@ describe('## Order APIs', () => {
 
     test('a buyer should NOT cancel an order that has been paid', async () => {
       const dealID = '9B27M6A';
-      mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+      mock.onPost('/carts').reply(200, { data: { id: 576, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: dealID } });
       mock.onPost(`/deals/${dealID}/payments`).reply(200);
       mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
@@ -960,7 +978,7 @@ describe('## Order APIs', () => {
 
     test('a seller should confirm an order that has been paid', async done => {
       const dealID = '9B27M6F';
-      mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+      mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: dealID } });
       mock.onPost(`/deals/${dealID}/payments`).reply(200);
       mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
