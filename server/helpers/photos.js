@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 import Storage from '@google-cloud/storage';
 import sharp from 'sharp';
 const request = require('request').defaults({ encoding: null });
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import { UserDoc } from '../models/user.model';
 import Product, { ProductDoc } from '../models/product.model';

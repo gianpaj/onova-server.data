@@ -4,7 +4,7 @@ import shortid from 'shortid';
 import httpStatus from 'http-status';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 import path from 'path';
-// const debug = require('debug')('express-mongoose-es6-rest-api:index');
+// const debug = require('debug')('server-data:index');
 const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
 });
