@@ -67,6 +67,7 @@ const userPaymentInfo = {
 /**
  * Create a user and activate it
  */
+// TODO: return a tuple so it's shorter to rename
 export function createUserAndLogin(
   user: UserDoc
 ): Promise<{ user: UserDoc, jwtToken: string }> {
