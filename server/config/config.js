@@ -135,9 +135,10 @@ const config = {
     // TODO: 0 to disable
     // When time is reached, the order is cancelled. And Product is set back to 'forsale'.
     holdProductFor: 15, // mins
+
     // Wait the seller to confirm the order for 48 hours.
     // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
-    orderPendingFor: 60 * 60 * 48, // hours
+    cancelPaidOrdersAfter: 60 * 60 * 48, // hours
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
   },
   DEFAULT_FOLLOW: false,

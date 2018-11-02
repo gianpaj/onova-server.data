@@ -348,7 +348,7 @@ async function update(
     }
 
     foundOrder.dateCancelled = new Date();
-    await removeProductToCheckout(foundOrder.product._id);
+    await removeProductFromCheckout(foundOrder.product._id);
   }
 
   foundOrder.status = newStatus ? newStatus : foundOrder.status;
@@ -642,7 +642,7 @@ async function paymentStatus(
 /**
  * Used for /api/orders/:orderId/paymentStatus and internally when changing the state of an order (cancelling, confirming, etc.)
  */
-async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
+export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
   return new Promise(async (resolve, reject) => {
     try {
       const {
@@ -767,7 +767,7 @@ function addProductToCheckout(product) {
   return product.save();
 }
 
-function removeProductToCheckout(productId: string) {
+function removeProductFromCheckout(productId: string) {
   return Product.updateOne(
     { _id: productId },
     { status: 'forsale', $unset: { reservedDate: '' } }

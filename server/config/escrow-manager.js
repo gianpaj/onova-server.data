@@ -1,6 +1,7 @@
 //@flow
 
 import Order, { OrderDoc } from '../models/order.model';
+import { checkPaymentStatusAndUpdateOrder } from '../controllers/order.controller';
 import Product from '../models/product.model';
 
 import config from './config';
@@ -17,24 +18,30 @@ export default class EscrowManager {
 
   init() {
     this.defineCheckoutJob();
+    this.defineCancelPaidOrdersJob();
+
     agenda.on('ready', () => {
       agenda.cancel({ name: 'checkout' }, (err, numRemoved) => {
         if (err) return console.error(err);
         debug('escrowManager cleaned up jobs:', numRemoved);
         agenda.start();
-        this.createEscrowManager();
+        this.createCheckoutJob();
+        this.createCancelPaidOrdersJob();
       });
     });
   }
 
-  createEscrowManager() {
+  createCheckoutJob() {
     const job = agenda.create('checkout');
     job.unique({ jobName: 'checkout' });
-    job.repeatEvery(
-      config.env === 'test'
-        ? '3 seconds'
-        : config.settings.holdProductFor + ' minutes'
-    );
+    job.repeatEvery(config.env === 'test' ? '3 seconds' : '30 seconds');
+    job.save();
+  }
+
+  createCancelPaidOrdersJob() {
+    const job = agenda.create('cancelPaidOrders');
+    job.unique({ jobName: 'cancelPaidOrders' });
+    job.repeatEvery(config.env === 'test' ? '3 seconds' : '60 minutes');
     job.save();
   }
 
@@ -64,12 +71,68 @@ export default class EscrowManager {
         .map(order => order.product)
         .filter(p => p);
       debug('productsToPutBackForSale:', productsToPutBackForSale);
-      const updated = await Product.updateMany(
-        { _id: { $in: productsToPutBackForSale } },
-        { status: 'forsale', $unset: { reservedDate: '' } }
+      const updated = await this.removeProductsFromCheckout(
+        productsToPutBackForSale
       );
       debug('Products updated: ', updated.nModified);
       done();
     });
+  }
+
+  defineCancelPaidOrdersJob() {
+    agenda.define('cancelPaidOrders', async (job, done) => {
+      console.log('cancelPaidOrders job running at', new Date());
+
+      const previousDate = new Date(
+        Date.now() -
+          (config.env === 'test'
+            ? 3
+            : config.settings.cancelPaidOrdersAfter * 3600) // hours to seconds
+      );
+
+      try {
+        const query = {
+          status: 'paid',
+          transactionStatus: 'ua-finished',
+          datePaid: { $lte: previousDate },
+        };
+        const orders: Array<OrderDoc> = await Order.find(query);
+        if (!orders.length) return done();
+
+        const orderToCheck = orders.map(checkPaymentStatusAndUpdateOrder);
+
+        await Promise.all(orderToCheck);
+
+        console.log(orderToCheck.length, ' payments checked and updated');
+
+        const ordersUpdated: Array<OrderDoc> = await Order.updateMany(query, {
+          $set: { status: 'failed_by_seller', dateFailed: new Date() },
+        });
+
+        debug('Paid orders cancelled:', ordersUpdated.nModified);
+        const productsToPutBackForSale = orders
+          .map(order => order.product)
+          .filter(p => p);
+        debug('productsToPutBackForSale:', productsToPutBackForSale);
+        const updated = await this.removeProductsFromCheckout(
+          productsToPutBackForSale
+        );
+        debug('Products updated: ', updated.nModified);
+
+        // TODO: notify buyer that order has been cancelled, because the seller didn't confirm
+        // TODO: notify seller that they did not confirm or canceled the order on time
+        done();
+      } catch (error) {
+        console.error(error);
+        done(error);
+      }
+    });
+  }
+
+  removeProductsFromCheckout(products): Promise<any> {
+    return Product.updateMany(
+      { _id: { $in: products } },
+      { status: 'forsale', $unset: { reservedDate: '' } }
+    );
   }
 }
