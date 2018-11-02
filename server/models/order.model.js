@@ -93,39 +93,38 @@ var OrderSchema = new Schema(
         // Unpaid - Customer started the checkout process. Payment is not completed.
         'pending',
 
-        // [Can be set only set when checking status via Payment Provider]
+        // (1)
         // Buyer pays and waiting for seller to confirm – Product status is now 'reserved'
         'paid',
 
-        // [Can be set only set when checking status via Payment Provider]
+        // (1)
         // Product is ready for shipment. Tracking number is generated automatically
         'confirmed',
 
-        // [Can be set only by Shipping Provider] (i.e. NovaPohsta)
+        // (2)
         'shipped',
 
-        // Seller cancels order (doesn't confirm). Requires reason.
+        // Seller cancels order. Requires reason.
         // or
         // Buyer cancels order (or doesn't pay in 15 mins). Reason if internal process (payment denied/timeout)
         'cancelled',
 
-        // [Can be set only by Shipping Provider]
+        // (2)
         'delivered',
 
-        // [Can be set only by Shipping Provider]. Item has been collected
+        // (2)
+        // Item has been collected
         'completed',
 
-        // [Can be set only set when checking status via Payment Provider]
+        // (1)
         // Buyer fails to collect or refuses the item (not as described)
         'failed_by_buyer',
 
-        // [Can be set only by Escrow Payment Provider]
+        // (1) or Escrow Manager
         // Seller fails to ship
+        // or
+        // Seller doesn't confirm order
         'failed_by_seller',
-
-        // TODO: the holdProductFor or orderPendingFor windows expired without a response
-        // [by Internal Process]
-        'failed',
       ],
     },
     taxAmount: String,
@@ -151,6 +150,11 @@ var OrderSchema = new Schema(
   // assigns 'createdAt' and 'updatedAt' fields to your schema
   { timestamps: true }
 );
+
+/**
+ * 1) Can be set only set when checking payment status via Payment Provider i.e. UAPAY
+ * 2) Can be set only set when checking tracking code status via Shipping Provider i.e. NovaPohsta
+ */
 
 OrderSchema.virtual('total').get(function() {
   return (
@@ -319,7 +323,7 @@ OrderSchema.set('toJSON', {
 });
 
 OrderSchema.index({ product: 1, buyer: 1 }, { unique: true });
-OrderSchema.index({ status: 1, transactionStatus: 1, datePending: 1 });
+OrderSchema.index({ status: 1, transactionStatus: 1 });
 OrderSchema.index({ seller: 1 });
 OrderSchema.index({ buyer: 1 });
 
