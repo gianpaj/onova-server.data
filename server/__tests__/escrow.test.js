@@ -66,7 +66,7 @@ describe('## Escrow Manager', () => {
     ...photos,
   };
 
-  let user1ProductAUuid, user1ProductBUuid2, user2ProductUuid;
+  let user1ProductUuidA;
   let user1JwtToken, user2JwtToken, user3JwtToken;
 
   // create 3 users
@@ -83,7 +83,7 @@ describe('## Escrow Manager', () => {
       user3JwtToken = j3;
       user3 = u3._id;
       const p1 = await createProduct(productA, user1JwtToken);
-      user1ProductAUuid = p1.uuid;
+      user1ProductUuidA = p1.uuid;
     } catch (error) {
       console.error(error);
     }
@@ -94,25 +94,43 @@ describe('## Escrow Manager', () => {
     //   return Order.collection.deleteMany({}, { safe: true });
     // });
 
-    it('should reserve a product', async () => {
+    it('should reserve a product and put back forsale', async done => {
       try {
         const o = await createOrder(
-          { ...productA, uuid: user1ProductAUuid },
+          { ...productA, uuid: user1ProductUuidA },
           user2JwtToken
         );
+
+        const { body } = await request(app)
+          .post('/api/orders')
+          .set('Authorization', user3JwtToken)
+          .send({ product: user1ProductUuidA })
+          .expect(httpStatus.BAD_REQUEST);
+
+        expect(body.message).toBe(
+          'This product is not longer for sale or is reserved.'
+        );
+        setTimeout(async () => {
+          const { body: product } = await request(app)
+            .get(`/api/products/${user1ProductUuidA}`)
+            .set('Authorization', user3JwtToken)
+            .expect(httpStatus.OK);
+          expect(product.data.status).toBe('forsale');
+          expect(product.data.datePending).toBe(undefined);
+
+          const { body: orderFound } = await request(app)
+            .get(`/api/orders/${o.id}`)
+            .set('Authorization', user2JwtToken)
+            .expect(httpStatus.OK);
+
+          expect(orderFound.data.status).toBe('cancelled');
+          expect(typeof orderFound.data.dateCancelled).toBe('string');
+
+          done();
+        }, 4000);
       } catch (error) {
         console.error(error);
       }
-      return request(app)
-        .post('/api/orders')
-        .set('Authorization', user3JwtToken)
-        .send({ product: user1ProductAUuid })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(res =>
-          expect(res.body.message).toBe(
-            'This product is not longer for sale or is reserved.'
-          )
-        );
     });
   });
 });
