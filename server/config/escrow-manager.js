@@ -5,36 +5,53 @@ import Product from '../models/product.model';
 
 import config from './config';
 
-agenda.cancel({ name: 'escrowManager' }, (err, numRemoved) => {
-  if (err) return console.error(err);
-  console.log('escrowManager cleaned up jobs: ', numRemoved);
+import { agenda } from './express';
 
-  createEscrowManager();
-});
+const debug = require('debug')('server-data:escrow');
 
-agenda.define('checkout', async (job, done) => {
-  //
-  const previousDate = new Date(
-    Date.now() - config.settings.holdProductFor * 1000
-  );
-  const orders: Array<OrderDoc> = await Order.find({
-    status: 'pending',
-    datePending: { $lte: previousDate },
-  });
-  console.log('Number of orders to cancel', orders.length);
-  const productsToPutBackForSale = orders.map(order => order.product);
-  console.log('productsToPutBackForSale: ', productsToPutBackForSale);
-  await Product.updateMany(
-    { _id: { $in: productsToPutBackForSale } },
-    { status: 'forsale', $unset: { reservedDate: '' } }
-  );
-  done();
-  // Product.find({ status: 'reserved', reservedDate: { $lte: previousDate } });
-});
+export default class EscrowManager {
+  constructor() {
+    this.init();
+  }
 
-function createEscrowManager() {
-  const job = agenda.create('checkout');
-  job.unique({ jobName: 'checkout' });
-  job.repeatEvery('1 minute');
-  job.save();
+  init() {
+    agenda.define('checkout', async (job, done) => {
+      console.log('checkout job running at', new Date());
+      //
+      const previousDate = new Date(
+        Date.now() - config.settings.holdProductFor * 1000
+      );
+      const orders: Array<OrderDoc> = await Order.find({
+        status: 'pending',
+        // this also matches orders without transactionStatus key (pending orders that haven't been paid)
+        transactionStatus: { $nin: ['ua-finished', 'ua-rejected'] },
+        datePending: { $lte: previousDate },
+      });
+      debug('Unpaid orders to cancel:', orders.length);
+      const productsToPutBackForSale = orders.map(order => order.product);
+      debug('productsToPutBackForSale:', productsToPutBackForSale);
+      await Product.updateMany(
+        { _id: { $in: productsToPutBackForSale } },
+        { status: 'forsale', $unset: { reservedDate: '' } }
+      );
+      done();
+      // Product.find({ status: 'reserved', reservedDate: { $lte: previousDate } });
+    });
+
+    agenda.on('ready', () => {
+      // agenda.cancel({ name: 'escrowManager' }, (err, numRemoved) => {
+      //   if (err) return console.error(err);
+      //   debug('escrowManager cleaned up jobs: ', numRemoved);
+      agenda.start();
+      createEscrowManager();
+      // });
+    });
+
+    function createEscrowManager() {
+      const job = agenda.create('checkout');
+      job.unique({ jobName: 'checkout' });
+      job.repeatEvery('5 seconds');
+      job.save();
+    }
+  }
 }
