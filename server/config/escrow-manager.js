@@ -1,7 +1,7 @@
 //@flow
 
 import Order, { OrderDoc } from '../models/order.model';
-import { checkPaymentStatusAndUpdateOrder } from '../controllers/order.controller';
+import { rejectPayment } from '../controllers/order.controller';
 import Product from '../models/product.model';
 
 import config from './config';
@@ -22,6 +22,13 @@ export default class EscrowManager {
 
     agenda.on('ready', () => {
       agenda.cancel({ name: 'checkout' }, (err, numRemoved) => {
+        if (err) return console.error(err);
+        debug('escrowManager cleaned up jobs:', numRemoved);
+        agenda.start();
+        this.createCheckoutJob();
+        this.createCancelPaidOrdersJob();
+      });
+      agenda.cancel({ name: 'cancelPaidOrders' }, (err, numRemoved) => {
         if (err) return console.error(err);
         debug('escrowManager cleaned up jobs:', numRemoved);
         agenda.start();
@@ -99,15 +106,18 @@ export default class EscrowManager {
         const orders: Array<OrderDoc> = await Order.find(query);
         if (!orders.length) return done();
 
-        const orderToCheck = orders.map(checkPaymentStatusAndUpdateOrder);
+        const paymentsToReject = orders.map(rejectPayment);
 
-        await Promise.all(orderToCheck);
+        await Promise.all(paymentsToReject);
 
-        console.log(orderToCheck.length, ' payments checked and updated');
+        debug(paymentsToReject.length, 'payment(s) rejected');
 
-        const ordersUpdated: Array<OrderDoc> = await Order.updateMany(query, {
-          $set: { status: 'failed_by_seller', dateFailed: new Date() },
-        });
+        const ordersUpdated: Array<OrderDoc> = await Order.updateMany(
+          { ...query, transactionStatus: 'ua-reversed' },
+          {
+            $set: { status: 'failed_by_seller', dateFailed: new Date() },
+          }
+        );
 
         debug('Paid orders cancelled:', ordersUpdated.nModified);
         const productsToPutBackForSale = orders
