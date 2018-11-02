@@ -2,7 +2,7 @@
 
 import httpStatus from 'http-status';
 
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 import APIError from '../helpers/APIError';
 import Block from '../models/block.model';
 import User, { UserDoc } from '../models/user.model';

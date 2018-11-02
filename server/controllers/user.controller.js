@@ -3,7 +3,7 @@
 import httpStatus from 'http-status';
 import Chatkit from '@pusher/chatkit-server';
 import bs58 from 'bs58';
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
