@@ -1,6 +1,6 @@
 // @flow
 import shortid from 'shortid';
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import Block from '../models/block.model';
 import Order, { OrderDoc } from '../models/order.model';
