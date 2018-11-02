@@ -4,7 +4,7 @@ import express from 'express';
 import passport from 'passport';
 import httpStatus from 'http-status';
 import validate from 'express-validation';
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import photosCtrl from '../controllers/photos.controller';
 import paramValidation from '../config/validation/photos.validation';

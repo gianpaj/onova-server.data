@@ -1,7 +1,7 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import passport from 'passport';
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import User from '../models/user.model';
 import Verification from '../models/verification.model';

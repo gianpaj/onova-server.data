@@ -22,7 +22,7 @@ import routes from '../routes/index.route';
 import config from './config';
 import APIError from '../helpers/APIError';
 
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
   config.mongo.jobDb

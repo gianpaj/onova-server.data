@@ -1,5 +1,5 @@
 // @flow
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import { agenda } from '../config/express';
 import { OrderDoc } from '../models/order.model';
