@@ -319,6 +319,7 @@ OrderSchema.set('toJSON', {
 });
 
 OrderSchema.index({ product: 1, buyer: 1 }, { unique: true });
+OrderSchema.index({ status: 1, transactionStatus: 1, datePending: 1 });
 OrderSchema.index({ seller: 1 });
 OrderSchema.index({ buyer: 1 });
 

@@ -53,10 +53,7 @@ export default class EscrowManager {
         datePending: { $lte: previousDate },
       };
       const orders: Array<OrderDoc> = await Order.find(query);
-      if (!orders.length) {
-        console.log('no orders');
-        return done();
-      }
+      if (!orders.length) return done();
 
       const ordersUpdated: Array<OrderDoc> = await Order.updateMany(query, {
         $set: { status: 'cancelled', dateCancelled: new Date() },
