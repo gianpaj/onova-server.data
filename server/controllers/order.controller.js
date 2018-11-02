@@ -331,12 +331,7 @@ async function update(
         foundOrder.transactionStatus == 'ua-pending')
     ) {
       try {
-        await axios.post(
-          `/deals/${foundOrder.transactionId}/rejections`,
-          null,
-          axiosConfig
-        );
-        foundOrder.transactionStatus = 'ua-reversed';
+        await rejectPayment(foundOrder);
       } catch (error) {
         console.log(error);
         const err = new APIError(
@@ -697,6 +692,13 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
       reject(error);
     }
   });
+}
+
+export function rejectPayment(order: OrderDoc): Promise<any> {
+  return Promise.all([
+    Order.updateOne({ _id: order.id }, { transactionStatus: 'ua-reversed' }),
+    axios.post(`/deals/${order.transactionId}/rejections`, null, axiosConfig),
+  ]);
 }
 
 /**

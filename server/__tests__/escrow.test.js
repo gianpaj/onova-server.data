@@ -22,6 +22,7 @@ import {
 import {
   buyerNeedsToPay,
   buyerPaidDeal,
+  sellerCancelsAPaidDeal,
   sellerConfirmedResponse,
 } from '../helpers/shipping';
 
@@ -31,7 +32,7 @@ const photos = {
   ],
 };
 
-// jest.setTimeout(10000);
+jest.setTimeout(10000);
 
 // This sets the mock adapter on the default instance
 const mock = new MockAdapter(axios);
@@ -173,6 +174,10 @@ describe('## Escrow Manager', () => {
             expect(body.data.rawStatus).toBe('FINISHED');
           });
 
+        mock
+          .onPost(`/deals/${dealID}/rejections`)
+          .reply(200, sellerCancelsAPaidDeal);
+
         setTimeout(async () => {
           const { body: product } = await request(app)
             .get(`/api/products/${user1ProductUuidA}`)
@@ -187,6 +192,7 @@ describe('## Escrow Manager', () => {
             .expect(httpStatus.OK);
 
           expect(orderFound.data.status).toBe('failed_by_seller');
+          expect(orderFound.data.transactionStatus).toBe('ua-reversed');
           expect(typeof orderFound.data.dateFailed).toBe('string');
 
           done();
