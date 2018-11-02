@@ -16,9 +16,31 @@ export default class EscrowManager {
   }
 
   init() {
+    this.defineCheckoutJob();
+    agenda.on('ready', () => {
+      agenda.cancel({ name: 'checkout' }, (err, numRemoved) => {
+        if (err) return console.error(err);
+        debug('escrowManager cleaned up jobs:', numRemoved);
+        agenda.start();
+        this.createEscrowManager();
+      });
+    });
+  }
+
+  createEscrowManager() {
+    const job = agenda.create('checkout');
+    job.unique({ jobName: 'checkout' });
+    job.repeatEvery(
+      config.env === 'test'
+        ? '3 seconds'
+        : config.settings.holdProductFor + ' minutes'
+    );
+    job.save();
+  }
+
+  defineCheckoutJob() {
     agenda.define('checkout', async (job, done) => {
       console.log('checkout job running at', new Date());
-      //
 
       const previousDate = new Date(
         Date.now() -
@@ -31,6 +53,11 @@ export default class EscrowManager {
         datePending: { $lte: previousDate },
       };
       const orders: Array<OrderDoc> = await Order.find(query);
+      if (!orders.length) {
+        console.log('no orders');
+        return done();
+      }
+
       const ordersUpdated: Array<OrderDoc> = await Order.updateMany(query, {
         $set: { status: 'cancelled', dateCancelled: new Date() },
       });
@@ -44,27 +71,8 @@ export default class EscrowManager {
         { _id: { $in: productsToPutBackForSale } },
         { status: 'forsale', $unset: { reservedDate: '' } }
       );
-      debug('Products updated: ', updated);
+      debug('Products updated: ', updated.nModified);
       done();
-      // Product.find({ status: 'reserved', reservedDate: { $lte: previousDate } });
     });
-
-    agenda.on('ready', () => {
-      agenda.cancel({ name: 'checkout' }, (err, numRemoved) => {
-        if (err) return console.error(err);
-        debug('escrowManager cleaned up jobs:', numRemoved);
-        agenda.start();
-        createEscrowManager();
-      });
-    });
-
-    function createEscrowManager() {
-      const job = agenda.create('checkout');
-      job.unique({ jobName: 'checkout' });
-      job.repeatEvery(
-        config.env === 'test' ? '3 seconds' : config.settings.holdProductFor
-      );
-      job.save();
-    }
   }
 }
