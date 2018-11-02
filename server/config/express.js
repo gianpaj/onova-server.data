@@ -21,6 +21,7 @@ import winstonInstance from './winston';
 import routes from '../routes/index.route';
 import config from './config';
 import APIError from '../helpers/APIError';
+import EscrowManager from './escrow-manager';
 
 const debug = require('debug')('server-data:index');
 
@@ -39,6 +40,11 @@ if (config.env === 'test') {
     });
   });
 }
+
+/**
+ * Escrow manager to cancel unpaid orders, notify of status updates on payments and shipping
+ */
+new EscrowManager();
 
 /**
  * API keys and Passport configuration.
