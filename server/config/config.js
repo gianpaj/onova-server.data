@@ -134,7 +134,7 @@ const config = {
     // Reserves products ror 15 minutes.
     // TODO: 0 to disable
     // When time is reached, the order is cancelled. And Product is set back to 'forsale'.
-    holdProductFor: 60 * 15, // mins
+    holdProductFor: 15, // mins
     // Wait the seller to confirm the order for 48 hours.
     // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
     orderPendingFor: 60 * 60 * 48, // hours
