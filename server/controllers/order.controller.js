@@ -142,9 +142,6 @@ function create(
       if (!canUserTransact(seller))
         throw new Error('Seller is missing payment or shipping info');
 
-      if (!canUserTransact(req.user))
-        throw new Error('Buyer is missing payment or shipping info');
-
       const blocking = await Block.countDocuments({
         $or: [{ targetUser: req.user._id }, { sourceUser: req.user._id }],
       });
