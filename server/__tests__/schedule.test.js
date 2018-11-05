@@ -13,7 +13,7 @@ import Product from '../models/product.model';
 import User from '../models/user.model';
 import { createUserAndLogin, beforeAllTests } from './utils';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
+jest.setTimeout(15000);
 
 // if server.push is NOT running
 const schedulerIsRunning = process.env.SCHEDULER_IS_RUNNING == 'true';
