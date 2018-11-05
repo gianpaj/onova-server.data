@@ -927,7 +927,7 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
-          expect(o.transactionStatus).toBe('ua-reversed');
+          expect(o.transactionStatus).toBe('ua-finished');
           expect(o.transactionId).toBe(dealID);
           expect(typeof o.dateCancelled).toBe('string');
           expect(o.reason).toBe('i already sold this elsewhere');

@@ -74,7 +74,7 @@ describe('## Order APIs', () => {
     typeIds: [1, 3],
     tags: ['summer'],
     description: 'nice flipflops',
-    price: '10.99',
+    price: '800.99',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
