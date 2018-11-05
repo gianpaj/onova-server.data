@@ -85,7 +85,7 @@ sequenceDiagram
 | `shipped`           | _nobody_            | _none_                  | yes (TODO)           |                                                    |                                                       |
 | `failed_by_seller`  | ?                   | buyer?                  | yes?                 | Fails to ship                                      | Buyer gets 100% back?                                 |
 | `delivered` (TODO?) |                     | _none_                  | yes (TODO)           |                                                    |                                                       |
-| `completed`         | _nobody_            | buyer + seller          | yes (TODO)           | Buyer collected the item :tada:                    | Seller gets paid = item price - UAPay fee - Onova fee |
+| `completed`         | _nobody_            | buyer + seller (TODO)   | yes (TODO)           | Buyer collected the item :tada:                    | Seller gets paid = item price - UAPay fee - Onova fee |
 | `failed_by_buyer`   | seller?             | buyer? + seller         | no?                  | Failed to collect                                  | Seller pays for two-way shipping?                     |
 | `failed_by_seller`  | seller?             | buyer + seller          | no?                  | Refuses item (not as described)                    | Seller pays for two-way shipping?                     |
 

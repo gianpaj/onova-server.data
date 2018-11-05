@@ -74,13 +74,13 @@ describe('## Escrow Manager', () => {
     try {
       const { user: u1, jwtToken: j1 } = await createUserAndLogin(user1);
       user1JwtToken = j1;
-      user1 = u1._id;
+      user1._id = u1._id;
       const { user: u2, jwtToken: j2 } = await createUserAndLogin(user2);
       user2JwtToken = j2;
-      user2 = u2._id;
+      user2._id = u2._id;
       const { user: u3, jwtToken: j3 } = await createUserAndLogin(user3);
       user3JwtToken = j3;
-      user3 = u3._id;
+      user3._id = u3._id;
     } catch (error) {
       console.error(error);
     }
@@ -140,10 +140,17 @@ describe('## Escrow Manager', () => {
     });
 
     it("should cancel an order after the seller didn't confirm", async done => {
+      const buyer = { ...user2, jwtToken: user2JwtToken };
+      const seller = {
+        ...user1,
+        jwtToken: user1JwtToken,
+        productUUID: user1ProductUuidA,
+      };
+
       try {
         const o = await createOrder(
-          { ...productA, uuid: user1ProductUuidA },
-          user2JwtToken
+          { ...productA, uuid: seller.productUUID },
+          buyer.jwtToken
         );
         const dealID = '9B27M6E';
 
@@ -154,7 +161,7 @@ describe('## Escrow Manager', () => {
         mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
         const { body: payment } = await request(app)
           .post(`/api/orders/${o.id}/pay`)
-          .set('Authorization', user2JwtToken)
+          .set('Authorization', buyer.jwtToken)
           .send({ cvc: '123' })
           .expect(httpStatus.CREATED);
         expect(payment.data.order).toBeTruthy();
@@ -163,11 +170,11 @@ describe('## Escrow Manager', () => {
         );
         expect(payment.data.payment.PaReq.length).toBeGreaterThan(400);
 
-        // payment completed
+        // buyer completes payment
         mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
         await request(app)
           .get(`/api/orders/${o.id}/paymentStatus`)
-          .set('Authorization', user2JwtToken)
+          .set('Authorization', buyer.jwtToken)
           .expect(httpStatus.OK)
           .then(({ body }) => {
             expect(body.data.status).toBe('ua-finished');
@@ -180,7 +187,7 @@ describe('## Escrow Manager', () => {
 
         setTimeout(async () => {
           const { body: product } = await request(app)
-            .get(`/api/products/${user1ProductUuidA}`)
+            .get(`/api/products/${seller.productUUID}`)
             .set('Authorization', user3JwtToken)
             .expect(httpStatus.OK);
           expect(product.data.status).toBe('forsale');
@@ -188,14 +195,36 @@ describe('## Escrow Manager', () => {
 
           const { body: orderFound } = await request(app)
             .get(`/api/orders/${o.id}`)
-            .set('Authorization', user2JwtToken)
+            .set('Authorization', buyer.jwtToken)
             .expect(httpStatus.OK);
 
           expect(orderFound.data.status).toBe('failed_by_seller');
           expect(orderFound.data.transactionStatus).toBe('ua-reversed');
           expect(typeof orderFound.data.dateFailed).toBe('string');
 
-          done();
+          agenda.jobs({ name: config.JOBNAMES.PUSH_ORDER }, (err, jobs) => {
+            if (err) return done(err);
+            expect(jobs).toHaveLength(3);
+            const targetUsers = jobs
+              .map(j => j.attrs)
+              .map(({ data }) => data.targetUser.toString())
+              .slice(1); // remove the first push notification job
+
+            expect(targetUsers.find(u => u === buyer._id)).toBeTruthy();
+            expect(targetUsers.find(u => u === seller._id)).toBeTruthy();
+
+            const { data: push1 } = jobs.map(j => j.attrs)[1];
+            expect(push1.triggeredBy.toString()).toBe(o.id);
+            expect(push1.triggeredType).toBe('Order');
+            expect(typeof push1.random).toBe('string');
+            const { data: push2 } = jobs.map(j => j.attrs)[2];
+            expect(push2.triggeredBy.toString()).toBe(o.id);
+            expect(push2.triggeredType).toBe('Order');
+            expect(typeof push2.random).toBe('string');
+            done();
+          });
+
+          // done();
         }, 4000);
       } catch (error) {
         console.error(error);
