@@ -140,6 +140,8 @@ const config = {
     // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
     cancelPaidOrdersAfter: 60 * 60 * 48, // hours
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
+
+    minPrice: 100,
   },
   DEFAULT_FOLLOW: false,
 };

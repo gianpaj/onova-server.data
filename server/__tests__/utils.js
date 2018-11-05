@@ -47,6 +47,7 @@ export const productFields = [
   'typeIds',
   'updatedAt',
   'uuid',
+  'weight',
 ];
 
 const userShippingAddress = {
