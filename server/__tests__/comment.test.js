@@ -80,7 +80,7 @@ const notForSaleProduct = {
   typeIds: [1, 3],
   tags: ['WINTER'],
   description: 'nice scarf',
-  price: '30',
+  price: '130',
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
