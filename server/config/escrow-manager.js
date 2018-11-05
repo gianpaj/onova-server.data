@@ -66,13 +66,15 @@ export default class EscrowManager {
 
       const previousDate = new Date(
         Date.now() -
-          (config.env === 'test' ? 3 : config.settings.holdProductFor * 1000)
+          (config.env === 'test'
+            ? 30 * 1000
+            : config.settings.holdProductFor * 1000)
       );
       const query = {
         status: 'pending',
         // this also matches orders without transactionStatus key (pending orders that haven't been paid)
         transactionStatus: { $nin: ['ua-finished', 'ua-rejected'] },
-        datePending: { $lte: previousDate },
+        datePending: { $gte: previousDate },
       };
       const orders: Array<OrderDoc> = await Order.find(query);
       if (!orders.length) return done();
@@ -101,15 +103,15 @@ export default class EscrowManager {
       const previousDate = new Date(
         Date.now() -
           (config.env === 'test'
-            ? 3
-            : config.settings.cancelPaidOrdersAfter * 3600) // hours to seconds
+            ? 30 * 1000
+            : config.settings.cancelPaidOrdersAfter * 1000)
       );
 
       try {
         const query = {
           status: 'paid',
           transactionStatus: 'ua-finished',
-          datePaid: { $lte: previousDate },
+          datePaid: { $gte: previousDate },
         };
         const orders: Array<OrderDoc> = await Order.find(query);
         if (!orders.length) return done();
