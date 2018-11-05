@@ -85,7 +85,7 @@ describe('## Order APIs', () => {
     typeIds: [1, 3],
     tags: ['summer'],
     description: 'nice flipflops',
-    price: '10.99',
+    price: '110.99',
     ...photos,
   };
 
