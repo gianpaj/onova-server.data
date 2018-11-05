@@ -74,7 +74,7 @@ export default class EscrowManager {
         status: 'pending',
         // this also matches orders without transactionStatus key (pending orders that haven't been paid)
         transactionStatus: { $nin: ['ua-finished', 'ua-rejected'] },
-        datePending: { $gte: previousDate },
+        datePending: { $lte: previousDate },
       };
       const orders: Array<OrderDoc> = await Order.find(query);
       if (!orders.length) return done();
@@ -111,7 +111,7 @@ export default class EscrowManager {
         const query = {
           status: 'paid',
           transactionStatus: 'ua-finished',
-          datePaid: { $gte: previousDate },
+          datePaid: { $lte: previousDate },
         };
         const orders: Array<OrderDoc> = await Order.find(query);
         if (!orders.length) return done();
