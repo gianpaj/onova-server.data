@@ -171,6 +171,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           triggeredType,
           message: notifI18n,
         });
+        debug(config.JOBNAMES.PUSH_ORDER, 'Job successfully saved');
         const doc = await Notification.create({
           data,
           notifI18n,

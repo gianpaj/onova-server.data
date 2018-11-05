@@ -131,7 +131,7 @@ const config = {
     SYSTEM_MSG: 'send-system-message',
   },
   settings: {
-    // Reserves products ror 15 minutes.
+    // Reserves products for 15 minutes.
     // TODO: 0 to disable
     // When time is reached, the order is cancelled. And Product is set back to 'forsale'.
     holdProductFor: 15, // mins
