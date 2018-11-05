@@ -11,8 +11,8 @@ import config from './config';
 
 import { agenda } from './express';
 
-// const debug = require('debug')('server-data:escrow');
-const debug = console.log;
+const debug = require('debug')('server-data:escrow');
+// const debug = console.log;
 
 export default class EscrowManager {
   constructor() {

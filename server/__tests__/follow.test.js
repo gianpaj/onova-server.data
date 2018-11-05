@@ -91,11 +91,10 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.CREATED)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(userId);
-          expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toMatchSnapshot();
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(userId);
+          expect(body.data.following).toBe(anotherUserId);
+          expect(Object.keys(body.data).sort()).toMatchSnapshot();
           firstUserFollowingCounter++;
         });
     });
@@ -126,11 +125,11 @@ describe('## Follow APIs', () => {
         return request(app)
           .get(`/api/users/${userId}`)
           .expect(httpStatus.OK)
-          .then(res => {
-            expect(res.body.username).toBe(user.username);
-            expect(res.body.emailAddress).toBe(user.emailAddress);
-            expect(res.body.followersCount).toBe(0);
-            expect(res.body.followingCount).toBe(2);
+          .then(({ body }) => {
+            expect(body.username).toBe(user.username);
+            expect(body.emailAddress).toBe(user.emailAddress);
+            expect(body.followersCount).toBe(firstUserFollowersCounter);
+            expect(body.followingCount).toBe(firstUserFollowingCounter);
           });
       });
 
@@ -138,11 +137,11 @@ describe('## Follow APIs', () => {
         return request(app)
           .get(`/api/users/${thirdUserId}`)
           .expect(httpStatus.OK)
-          .then(res => {
-            expect(res.body.username).toBe(thirdUser.username);
-            expect(res.body.emailAddress).toBe(thirdUser.emailAddress);
-            expect(res.body.followersCount).toBe(1);
-            expect(res.body.followingCount).toBe(0);
+          .then(({ body }) => {
+            expect(body.username).toBe(thirdUser.username);
+            expect(body.emailAddress).toBe(thirdUser.emailAddress);
+            expect(body.followersCount).toBe(1);
+            expect(body.followingCount).toBe(0);
           });
       });
     });
@@ -180,11 +179,10 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${userId}/follow`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.CREATED)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(anotherUserId);
-          expect(data.following).toBe(userId);
-          expect(data).toHaveProperty('dateCreated');
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(anotherUserId);
+          expect(body.data.following).toBe(userId);
+          expect(body.data).toHaveProperty('dateCreated');
           firstUserFollowersCounter++;
         });
     });
@@ -196,11 +194,10 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${anotherUserId}/unfollow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(userId);
-          expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toMatchSnapshot();
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(userId);
+          expect(body.data.following).toBe(anotherUserId);
+          expect(Object.keys(body.data).sort()).toMatchSnapshot();
           firstUserFollowingCounter--;
         });
     });
@@ -239,9 +236,9 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', thirdJwtToken)
         .expect(httpStatus.CREATED)
-        .then(res => {
-          expect(res.body.data.follower).toBe(thirdUserId);
-          expect(res.body.data.following).toBe(anotherUserId);
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(thirdUserId);
+          expect(body.data.following).toBe(anotherUserId);
         });
     });
 
@@ -250,12 +247,11 @@ describe('## Follow APIs', () => {
         .get(`/api/users/${userId}/followers`)
         .set('Authorization', thirdJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(Array.isArray(data)).toBe(true);
-          expect(data.length).toBe(firstUserFollowersCounter);
-          expect(data[0].amIAFollower).toBe(true);
-          expect(Object.keys(data[0]).sort()).toMatchSnapshot();
+        .then(({ body }) => {
+          expect(Array.isArray(body.data)).toBe(true);
+          expect(body.data.length).toBe(firstUserFollowersCounter);
+          expect(body.data[0].amIAFollower).toBe(true);
+          expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
         });
     });
   });
@@ -268,9 +264,9 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${forthUserId}/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.CREATED)
-        .then(res => {
-          expect(res.body.data.follower).toBe(userId);
-          expect(res.body.data.following).toBe(forthUserId);
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(userId);
+          expect(body.data.following).toBe(forthUserId);
           firstUserFollowingCounter++;
         });
       // wait until the push notification has been sent.
@@ -283,9 +279,9 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${thirdUserId}/follow`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.CREATED)
-        .then(res => {
-          expect(res.body.data.follower).toBe(anotherUserId);
-          expect(res.body.data.following).toBe(thirdUserId);
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(anotherUserId);
+          expect(body.data.following).toBe(thirdUserId);
         });
     });
 
@@ -294,12 +290,11 @@ describe('## Follow APIs', () => {
         .get(`/api/users/${userId}/following`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(Array.isArray(data)).toBe(true);
-          expect(data.length).toBe(firstUserFollowingCounter);
-          expect(data[0].amIAFollower).toBe(true);
-          expect(Object.keys(data[0]).sort()).toMatchSnapshot();
+        .then(({ body }) => {
+          expect(Array.isArray(body.data)).toBe(true);
+          expect(body.data.length).toBe(firstUserFollowingCounter);
+          expect(body.data[0].amIAFollower).toBe(true);
+          expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
         });
     });
   });
@@ -310,11 +305,10 @@ describe('## Follow APIs', () => {
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.CREATED)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(userId);
-          expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toMatchSnapshot();
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(userId);
+          expect(body.data.following).toBe(anotherUserId);
+          expect(Object.keys(body.data).sort()).toMatchSnapshot();
         });
     });
 
@@ -323,11 +317,10 @@ describe('## Follow APIs', () => {
         .get(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(userId);
-          expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toMatchSnapshot();
+        .then(({ body }) => {
+          expect(body.data.follower).toBe(userId);
+          expect(body.data.following).toBe(anotherUserId);
+          expect(Object.keys(body.data).sort()).toMatchSnapshot();
         });
     });
 
