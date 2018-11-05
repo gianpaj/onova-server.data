@@ -253,7 +253,7 @@ async function update(
 
     // // can go only from either 'paid' or 'shipped' -> 'completed'
     // if (foundOrder.status === 'pending' && newStatus === 'completed') {
-    //   throw new APIError('cannot complete an order that is pending', 400);
+    //   throw new APIError('cannot complete an order that is pending', httpStatus.BAD_REQUEST);
     // }
 
     // TODO: move this to a function that changes the state and keeps a transition log
@@ -270,7 +270,7 @@ async function update(
 
     if (newStatus === 'confirmed') {
       if (foundOrder.status !== 'paid') {
-        throw new APIError('cannot confirm an order that is not paid', 400);
+        throw new APIError('cannot confirm an order that is not paid', httpStatus.BAD_REQUEST);
       }
       // only the seller can confirm the order
       if (!iAmTheSeller) {

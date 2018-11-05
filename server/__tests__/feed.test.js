@@ -86,7 +86,7 @@ const notForSaleProduct = {
   typeIds: [1, 3],
   tags: ['WINTER'],
   description: 'nice scarf',
-  price: '30',
+  price: '130',
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
@@ -206,7 +206,7 @@ describe('## Feed APIs', () => {
         typeIds: [1, 3],
         tags: ['WINTER'],
         description: 'nice jumper',
-        price: '39',
+        price: '139',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
@@ -239,7 +239,7 @@ describe('## Feed APIs', () => {
         typeIds: [1, 5],
         tags: ['WINTER'],
         description: 'nice hoodie',
-        price: '69',
+        price: '169',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
@@ -271,7 +271,7 @@ describe('## Feed APIs', () => {
         typeIds: [1, 4],
         tags: ['warm'],
         description: 'nice socks',
-        price: '19',
+        price: '119',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
