@@ -220,21 +220,14 @@ export async function createManyProducts(num: number, jwtToken: string) {
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
+    price: '999',
   };
 
   const items = [];
-  for (let i = 0; i <= num; i++) {
-    // $FlowFixMe
-    p.price = Math.floor(Math.random() * 50).toString();
+  for (let i = 0; i < num; i++) {
     items.push(p);
   }
-  return await Promise.all(
-    items.map(async item => {
-      await createProduct(item, jwtToken);
-    })
-  )
-    .then(res => res)
-    .catch(e => e);
+  return Promise.all(items.map(item => createProduct(item, jwtToken)));
 }
 
 export function beforeAllTests(done: () => void) {
