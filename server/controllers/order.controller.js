@@ -50,6 +50,10 @@ declare class express$Request extends express$Request {
 export const i18n = {
   orderPaid: 'Congrats! 🎉 You have a new purchase!', // 37 chars
   orderCancelled: 'Your order has been cancelled! 😭', // 33 chars
+  orderNotConfirmedToBuyer:
+    "We're sorry, the seller didn't confirm the order one time.", // 58 chars
+  orderNotConfirmedToSeller:
+    "You didn't confirm the order one time. This will appear in your profile", // 71 chars
 };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
@@ -706,7 +710,7 @@ export function rejectPayment(order: OrderDoc): Promise<any> {
  *
  * See graph in `ORDER_PROCESS.md`
  */
-async function createOrderNotification(
+export async function createOrderNotification(
   order: OrderDoc,
   iAmTheSeller?: boolean
 ) {
@@ -758,6 +762,25 @@ async function createOrderNotification(
         targetUser: order.buyer._id,
         sourceUser: order.seller._id,
       };
+      break;
+
+    case 'failed_by_seller':
+      if (iAmTheSeller) {
+        notif = {
+          ...notif,
+          notifI18n: i18n.orderNotConfirmedToSeller,
+          targetUser: order.buyer._id,
+          sourceUser: order.seller._id,
+        };
+      } else {
+        // to buyer
+        notif = {
+          ...notif,
+          notifI18n: i18n.orderNotConfirmedToBuyer,
+          targetUser: order.seller._id,
+          sourceUser: order.buyer._id,
+        };
+      }
       break;
   }
   return notifCtrl.createNotification(notif);
