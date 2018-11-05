@@ -1,7 +1,10 @@
 //@flow
 
 import Order, { OrderDoc } from '../models/order.model';
-import { rejectPayment } from '../controllers/order.controller';
+import {
+  createOrderNotification,
+  rejectPayment,
+} from '../controllers/order.controller';
 import Product from '../models/product.model';
 
 import config from './config';
@@ -13,12 +16,12 @@ const debug = console.log;
 
 export default class EscrowManager {
   constructor() {
-    this.init();
+    this.initCheckoutJob();
+    this.initCancelPaidOrdersJob();
   }
 
-  init() {
+  initCheckoutJob() {
     this.defineCheckoutJob();
-    this.defineCancelPaidOrdersJob();
 
     agenda.on('ready', () => {
       agenda.cancel({ name: 'checkout' }, (err, numRemoved) => {
@@ -26,13 +29,18 @@ export default class EscrowManager {
         debug('escrowManager cleaned up jobs:', numRemoved);
         agenda.start();
         this.createCheckoutJob();
-        this.createCancelPaidOrdersJob();
       });
+    });
+  }
+
+  initCancelPaidOrdersJob() {
+    this.defineCancelPaidOrdersJob();
+
+    agenda.on('ready', () => {
       agenda.cancel({ name: 'cancelPaidOrders' }, (err, numRemoved) => {
         if (err) return console.error(err);
         debug('escrowManager cleaned up jobs:', numRemoved);
         agenda.start();
-        this.createCheckoutJob();
         this.createCancelPaidOrdersJob();
       });
     });
@@ -127,10 +135,26 @@ export default class EscrowManager {
         const updated = await this.removeProductsFromCheckout(
           productsToPutBackForSale
         );
-        debug('Products updated: ', updated.nModified);
+        debug('Products updated:', updated.nModified);
 
-        // TODO: notify buyer that order has been cancelled, because the seller didn't confirm
-        // TODO: notify seller that they did not confirm or canceled the order on time
+        const updatedOrders: Array<OrderDoc> = await Order.find({
+          _id: { $in: orders.map(o => o._id) },
+        });
+
+        // notify buyer that order has been cancelled, because the seller didn't confirm
+        // notify seller that they did not confirm or canceled the order on time
+
+        // create array of arrays of notification promises and then flatten/merge the arrays
+        const notificationPromises = [].concat.apply(
+          [],
+          updatedOrders.map(order => [
+            createOrderNotification(order, true),
+            createOrderNotification(order, false),
+          ])
+        );
+
+        await Promise.all(notificationPromises);
+
         done();
       } catch (error) {
         console.error(error);
