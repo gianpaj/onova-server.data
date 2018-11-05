@@ -166,7 +166,7 @@ describe('## Escrow Manager', () => {
       }
     });
 
-    it.skip("should cancel an order after the seller didn't confirm", async done => {
+    it("should cancel an order after the seller didn't confirm", async done => {
       const buyer = { ...user2, jwtToken: user2JwtToken };
       const seller = {
         ...user1,
@@ -181,9 +181,10 @@ describe('## Escrow Manager', () => {
         );
         const dealID = '9B27M6E';
 
+        // put the order payment 10 minutes back
         await Order.updateOne(
-          { _id: o._id },
-          { $set: { datePending: new Date(Date.now() - 10 * 60 * 1000) } }
+          { _id: o.id },
+          { $set: { datePaid: new Date(Date.now() - 10 * 60 * 1000) } }
         );
 
         // buyer starts payment
@@ -255,8 +256,77 @@ describe('## Escrow Manager', () => {
             expect(typeof push2.random).toBe('string');
             done();
           });
+        }, 4000);
+      } catch (error) {
+        console.error(error);
+      }
+    });
 
-          // done();
+    it("should NOT cancel an order after the seller didn't confirm", async done => {
+      const buyer = { ...user2, jwtToken: user2JwtToken };
+      const seller = {
+        ...user1,
+        jwtToken: user1JwtToken,
+        productUUID: user1ProductUuidA,
+      };
+
+      try {
+        const o = await createOrder(
+          { ...productA, uuid: seller.productUUID },
+          buyer.jwtToken
+        );
+        const dealID = '9B27M6E';
+
+        // buyer starts payment
+        mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+        mock.onPost('/deals').reply(200, { data: { id: dealID } });
+        mock.onPost(`/deals/${dealID}/payments`).reply(200);
+        mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
+        const { body: payment } = await request(app)
+          .post(`/api/orders/${o.id}/pay`)
+          .set('Authorization', buyer.jwtToken)
+          .send({ cvc: '123' })
+          .expect(httpStatus.CREATED);
+        expect(payment.data.order).toBeTruthy();
+        expect(payment.data.payment.redirectUrl).toContain(
+          '.uapay.ua/api/payments/'
+        );
+        expect(payment.data.payment.PaReq.length).toBeGreaterThan(400);
+
+        // buyer completes payment
+        mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
+        await request(app)
+          .get(`/api/orders/${o.id}/paymentStatus`)
+          .set('Authorization', buyer.jwtToken)
+          .expect(httpStatus.OK)
+          .then(({ body }) => {
+            expect(body.data.status).toBe('ua-finished');
+            expect(body.data.rawStatus).toBe('FINISHED');
+          });
+
+        mock
+          .onPost(`/deals/${dealID}/rejections`)
+          .reply(200, sellerCancelsAPaidDeal);
+
+        setTimeout(async () => {
+          const { body: product } = await request(app)
+            .get(`/api/products/${seller.productUUID}`)
+            .set('Authorization', user3JwtToken)
+            .expect(httpStatus.OK);
+
+          expect(product.data.status).toBe('reserved');
+          expect(typeof product.data.reservedDate).toBe('string');
+
+          const { body: orderFound } = await request(app)
+            .get(`/api/orders/${o.id}`)
+            .set('Authorization', buyer.jwtToken)
+            .expect(httpStatus.OK);
+
+          expect(orderFound.data.status).toBe('paid');
+          expect(orderFound.data.transactionStatus).toBe('ua-finished');
+          expect(typeof orderFound.data.datePaid).toBe('string');
+
+          done();
         }, 4000);
       } catch (error) {
         console.error(error);
