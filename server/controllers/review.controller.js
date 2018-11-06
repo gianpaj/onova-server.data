@@ -57,18 +57,16 @@ async function list(
 
   try {
     const user = await User.findById(userId);
-    if (!user) {
-      throw new APIError('Invalid userId', httpStatus.BAD_REQUEST);
-    }
+
+    if (!user) throw new APIError('Invalid userId', httpStatus.BAD_REQUEST);
+
     let match = {};
     let query = { targetUser: userId };
     if ('buyer' === as) {
       match = { buyer: userId };
-    }
-    if ('seller' === as) {
+    } else if ('seller' === as) {
       match = { seller: userId };
-    }
-    if ('both' === as) {
+    } else if ('both' === as) {
       query = {
         $or: [{ targetUser: userId }, { fromUser: userId }],
       };
@@ -76,9 +74,9 @@ async function list(
     let reviews = await Review.find(query)
       .sort({ createdAt: -1 })
       .populate({
-        path: 'order',
         match,
-        populate: { path: 'product buyer seller ' },
+        path: 'order',
+        populate: { path: 'product buyer seller' },
       });
 
     reviews = reviews.filter(r => r.order !== null);
