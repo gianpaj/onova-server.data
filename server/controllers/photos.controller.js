@@ -182,7 +182,7 @@ const storageForChatImages = gcsSharp({
   destination: '',
   acl: 'publicRead',
   filename: (req, file, cb) => {
-    // TODO: name files with the name of the chat room
+    // TODO: name files with the room id
     const uploadDate = Date.now();
     cb(null, uploadDate.toString());
   },

@@ -77,7 +77,7 @@ let firstJwtToken;
 let anotherJwtToken;
 
 describe('## Search APIs', () => {
-  // TODO: reset the collections for every set of tests (beforEach)
+  // TODO: reset the collections beforeEach
   beforeAll(beforeAllTests);
 
   // create 2 users/sellers + 2 products
