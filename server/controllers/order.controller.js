@@ -30,7 +30,7 @@ const axiosConfig = {
   },
 };
 
-// TODO: add function to User model
+// TODO: move function to User model
 function canUserTransact(user) {
   const { paymentInfo, shippingAddress } = user;
   return (
@@ -256,21 +256,12 @@ async function update(
     //   throw new APIError('cannot complete an order that is pending', httpStatus.BAD_REQUEST);
     // }
 
-    // TODO: move this to a function that changes the state and keeps a transition log
-    // // can go only from either 'pending' -> 'paid'
-    // if (
-    //   ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-    //   newStatus === 'paid'
-    // ) {
-    //   throw new APIError(
-    //     'cannot set an order status to paid if its not pending first',
-    //     400
-    //   );
-    // }
-
     if (newStatus === 'confirmed') {
       if (foundOrder.status !== 'paid') {
-        throw new APIError('cannot confirm an order that is not paid', httpStatus.BAD_REQUEST);
+        throw new APIError(
+          'cannot confirm an order that is not paid',
+          httpStatus.BAD_REQUEST
+        );
       }
       // only the seller can confirm the order
       if (!iAmTheSeller) {
@@ -464,6 +455,8 @@ function createPaymentUAPAY(
       const { shippingAddress: Bship } = buyer;
       const { shippingAddress: Sship } = seller;
 
+      // TODO: if existing order, get deal instead of creating a new one
+      // externalId: order._id,
       // Step 1 - Create cart
       const {
         data: { data: cart },
@@ -639,6 +632,7 @@ async function paymentStatus(
  * Used for /api/orders/:orderId/paymentStatus and internally when changing the state of an order (cancelling, confirming, etc.)
  */
 export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
+  // TODO: keep audit log
   return new Promise(async (resolve, reject) => {
     try {
       const {
@@ -718,8 +712,7 @@ export async function createOrderNotification(
   };
   switch (order.status) {
     case 'confirmed':
-      // seller can ship item.
-      // TODO: send 2 notifications
+      // seller can ship item. we send a system message
       return Promise.resolve();
     case 'paid':
       // check if notification already exists
@@ -741,7 +734,6 @@ export async function createOrderNotification(
 
     case 'shipped':
       // notify the buyer
-      // TODO: test
       notif = {
         ...notif,
         notifI18n: i18n.orderShipped,

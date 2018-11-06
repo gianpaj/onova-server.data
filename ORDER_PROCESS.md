@@ -74,20 +74,20 @@ sequenceDiagram
 
 ## Status updates and system messages:
 
-| Order status        | Send push notif. to | Send review reminder to | Send system message? | Notes                                                        | Refunds / Payments notes                              |
-| ------------------- | ------------------- | ----------------------- | -------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
-| `pending`           | _nobody_            | _none_                  | _n/a_                |                                                              |                                                       |
-| `cancelled`         | _nobody_            | _none_                  | _n/a_                | Buyer cancels before paying or doesn't pay in time           |                                                       |
-| `paid`              | seller              | _none_                  | _n/a_                |                                                              | Buyer pays item price + shipping fee                  |
-| `failed_by_seller`  | buyer (TODO)        | _none_                  | _n/a_                | Fails to confirm                                             | Buyer gets 100% back                                  |
-| `cancelled`         | buyer (TODO)        | _none_                  | _n/a_                | Seller cancels with a reason                                 | Buyer gets 100% back                                  |
-| `confirmed`         | _nobody_            | _none_                  | yes                  | Includes tracking number                                     |                                                       |
-| `shipped`           | _nobody_            | _none_                  | yes (TODO)           |                                                              |                                                       |
-| `failed_by_seller`  | _nobody_            | _none_                  | yes (TODO)           | Fails to ship                                                | Buyer gets 100% back                                  |
-| `delivered` (TODO?) | buyer (TODO)        | _none_                  | _no_                 |                                                              |                                                       |
-| `completed`         | _nobody_            | later                   | yes (TODO)           | Buyer collected the item :tada: The money will be transfered to the seller. Please don't forget to a review | Seller gets paid = item price - UAPay fee - Onova fee |
-| `failed_by_buyer`   | _nobody_            | _later_                 | yes (TODO)           | Fails to collect                                             | Seller pays for return shipping                       |
-| `failed_by_seller`  | _nobody_            | _later_                 | yes (TODO)           | Refuses item (not as described)                              | Seller pays for return shipping                       |
+| Order status       | Send push notif. to | Send review reminder to | Send system message? | Notes                                                        | Refunds / Payments notes                              |
+| ------------------ | ------------------- | ----------------------- | -------------------- | ------------------------------------------------------------ | ----------------------------------------------------- |
+| `pending`          | _nobody_            | _none_                  | _n/a_                |                                                              |                                                       |
+| `cancelled`        | _nobody_            | _none_                  | _n/a_                | Buyer cancels before paying or doesn't pay in time           |                                                       |
+| `paid`             | seller              | _none_                  | _n/a_                |                                                              | Buyer pays item price + shipping fee                  |
+| `failed_by_seller` | buyer (TODO)        | _none_                  | _n/a_                | Fails to confirm                                             | Buyer gets 100% back                                  |
+| `cancelled`        | buyer (TODO)        | _none_                  | _n/a_                | Seller cancels with a reason                                 | Buyer gets 100% back                                  |
+| `confirmed`        | _nobody_            | _none_                  | yes                  | Includes tracking number                                     |                                                       |
+| `shipped`          | _nobody_            | _none_                  | yes (TODO)           |                                                              |                                                       |
+| `failed_by_seller` | _nobody_            | _none_                  | yes (TODO)           | Fails to ship                                                | Buyer gets 100% back                                  |
+| `delivered`        | buyer (TODO)        | _none_                  | _no_                 |                                                              |                                                       |
+| `completed`        | _nobody_            | later                   | yes (TODO)           | Buyer collected the item :tada: The money will be transfered to the seller. Please don't forget to a review | Seller gets paid = item price - UAPay fee - Onova fee |
+| `failed_by_buyer`  | _nobody_            | _later_                 | yes (TODO)           | Fails to collect                                             | Seller pays for return shipping                       |
+| `failed_by_seller` | _nobody_            | _later_                 | yes (TODO)           | Refuses item (not as described)                              | Seller pays for return shipping                       |
 
 ## Notes
 
