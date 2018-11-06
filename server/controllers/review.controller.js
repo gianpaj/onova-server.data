@@ -28,7 +28,6 @@ declare class session$RequestCreate extends express$Request {
   user: UserDoc;
   body: {
     orderId: string,
-    trackingNumber: string,
     lang: string,
     rateNumber: number,
     text: string,
@@ -103,7 +102,7 @@ async function list(
  * @property {string} req.body.text
  * @property {number} req.body.rateNumber
  * @property {string} req.body.lang
- * @property {number} req.body.trackingNumber
+ * @property {number} req.body
  */
 async function create(
   req: session$RequestCreate,
@@ -117,7 +116,7 @@ async function create(
     );
     return next(APIerr);
   }
-  const { orderId, text, rateNumber, lang, trackingNumber } = req.body;
+  const { orderId, text, rateNumber, lang } = req.body;
   let order: OrderDoc;
 
   try {
@@ -139,44 +138,27 @@ async function create(
       );
     }
 
-    let cities;
-    try {
-      cities = await getValidTrackingNumberCities(
-        trackingNumber
-        // order.datePending
-      );
-      if (!cities) {
-        const APIerr = new APIError(
-          'The tracking number is not valid',
-          httpStatus.BAD_REQUEST
-        );
-        return next(APIerr);
-      }
-    } catch (err) {
-      console.error(err);
-      const APIerr = new APIError(
-        'The tracking number is not valid',
-        httpStatus.INTERNAL_SERVER_ERROR
-      );
-      return next(APIerr);
-    }
-
-    // count all the orders with this tracking number that don't match this _id
-    const count = await Order.countDocuments({
-      trackingNumber,
-      _id: { $ne: order._id },
-    });
-
-    if (count > 0) {
-      throw new APIError('Duplicate tracking number', httpStatus.BAD_REQUEST);
-    }
-
-    if (order.trackingNumber && order.trackingNumber !== trackingNumber) {
-      throw new APIError(
-        'The tracking number is not valid',
-        httpStatus.BAD_REQUEST
-      );
-    }
+    // let cities;
+    // try {
+    //   cities = await getValidTrackingNumberCities(
+    //     trackingNumber
+    //     // order.datePending
+    //   );
+    //   if (!cities) {
+    //     const APIerr = new APIError(
+    //       'The tracking number is not valid',
+    //       httpStatus.BAD_REQUEST
+    //     );
+    //     return next(APIerr);
+    //   }
+    // } catch (err) {
+    //   console.error(err);
+    //   const APIerr = new APIError(
+    //     'The tracking number is not valid',
+    //     httpStatus.INTERNAL_SERVER_ERROR
+    //   );
+    //   return next(APIerr);
+    // }
 
     const iAmTheSeller = req.user._id.toString() == order.seller._id.toString();
     const iAmTheBuyer = req.user._id.toString() == order.buyer._id.toString();
@@ -197,9 +179,11 @@ async function create(
       $inc: { reviewsCount: 1, ratingsTotal: rateNumber },
     });
 
-    order.trackingNumber = trackingNumber;
-    order.citySender = cities.citySender;
-    order.cityRecipient = cities.cityRecipient;
+    const buyer = await User.findById(order.buyer);
+    const seller = await User.findById(order.seller);
+
+    order.citySender = seller.shippingAddress.city;
+    order.cityRecipient = buyer.shippingAddress.city;
 
     // TODO: after integrating with payment provider do not mark product as sold like this
     if (iAmTheBuyer) {
@@ -224,7 +208,7 @@ async function create(
           fromSeller: iAmTheSeller,
           rateNumber: savedReview.rateNumber,
           targetUser: savedReview.targetUser,
-          trackingNumber: order.trackingNumber,
+          // trackingNumber: order.trackingNumber,
         },
       });
     }
