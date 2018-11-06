@@ -497,7 +497,7 @@ describe('## Notification APIs', () => {
     });
   });
 
-  describe.skip('# Comment with @mentions', () => {
+  describe('# Comment with @mentions', () => {
     // create comments
     beforeAll(async () => {
       const c1 = await createComment(
