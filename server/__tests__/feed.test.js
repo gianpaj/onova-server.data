@@ -43,6 +43,7 @@ const feedFields = [
   'typeIds',
   'updatedAt',
   'uuid',
+  'weight',
 ];
 
 const product = {
