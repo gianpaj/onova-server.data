@@ -291,7 +291,6 @@ async function list(
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
   }
 
-  // TODO: escapeRegex each tag
   if (tags) {
     if (Array.isArray(tags)) {
       const regexAllTags = tags.map(tag => new RegExp(escapeRegex(tag), 'i'));
@@ -440,7 +439,7 @@ function update(
       if (body.photos) {
         const date = Date.now();
 
-        // TODO: check if photos have been uploaded to GSC
+        // TODO: check if images have been uploaded to GSC
         try {
           const newPhotos = [];
           for (let i = 0; i < body.photos.length; i++) {
