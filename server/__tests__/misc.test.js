@@ -5,7 +5,7 @@ import httpStatus from 'http-status';
 
 import app from '../index';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 1500;
+jest.setTimeout(1500);
 
 describe('## Misc', () => {
   describe('# GET /api/health-check', () => {
