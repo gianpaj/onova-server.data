@@ -206,20 +206,20 @@ describe('## Order APIs', () => {
           },
           jwtToken2
         );
-        // const o2 = await Order.updateOne(
-        //   { _id: orderTwo.id },
-        //   { $set: { status: 'completed' } }
-        // );
-        reviewTwo.orderId = orderTwo.id;
-        // expect(o2.nModified).toBe(1);
-
-        orderThreePending = await createOrder(
-          {
-            uuid: productShortsUuid2,
-            price: productShorts.price,
-          },
-          jwtToken4
+        const o2 = await Order.updateOne(
+          { _id: orderTwo.id },
+          { $set: { status: 'completed' } }
         );
+        expect(o2.nModified).toBe(1);
+        reviewTwo.orderId = orderTwo.id;
+
+        // orderThreePending = await createOrder(
+        //   {
+        //     uuid: productShortsUuid2,
+        //     price: productShorts.price,
+        //   },
+        //   jwtToken4
+        // );
         orderSix = await createOrder(
           {
             uuid: productBootsUuid2,
@@ -429,6 +429,18 @@ describe('## Order APIs', () => {
         .then(({ body }) => expect(body.message).toBe('Invalid order'));
     });
 
+    it("should NOT create a review for an order that's is pending", () => {
+      return request(app)
+        .post(`/api/users/${user2._id}/reviews`)
+        .set('Authorization', jwtToken2)
+        .send({
+          ...reviewTwo,
+          orderId: orderSix.id,
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toBe('Invalid order'));
+    });
+
     // user4 reviews user1 [orderSix]
     it('should create a review by the buyer', () => {
       return request(app)
@@ -467,19 +479,9 @@ describe('## Order APIs', () => {
           expect(body.reviewsCount).toBe(reviewsCountUserAnother);
         });
     });
-
-    it('should not show products in the feed which have been reviewed by a buyer', () => {
-      return request(app)
-        .get('/api/feed/flat')
-        .set('Authorization', jwtToken1)
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body.data).toHaveLength(0);
-        });
-    });
   });
 
-  describe.skip('# GET /api/users/:userId/review', () => {
+  describe('# GET /api/users/:userId/review', () => {
     // delete all Product, Orders and Reviews
     beforeAll(done => {
       const collections = [
@@ -519,21 +521,21 @@ describe('## Order APIs', () => {
           { ...productShorts, uuid: productShortsUuid },
           jwtToken1
         );
-        // const o = await Order.updateOne(
-        //   { _id: orderFour.id },
-        //   { $set: { status: 'completed' } }
-        // );
-        // expect(o.nModified).toBe(1);
+        const o = await Order.updateOne(
+          { _id: orderFour.id },
+          { $set: { status: 'completed' } }
+        );
+        expect(o.nModified).toBe(1);
 
         orderFive = await createOrder(
           { ...productBoots, uuid: productBootsUuid },
           jwtToken2
         );
-        // const o2 = await Order.updateOne(
-        //   { _id: orderFive.id },
-        //   { $set: { status: 'completed' } }
-        // );
-        // expect(o2.nModified).toBe(1);
+        const o2 = await Order.updateOne(
+          { _id: orderFive.id },
+          { $set: { status: 'completed' } }
+        );
+        expect(o2.nModified).toBe(1);
       } catch (error) {
         console.error(error);
       }
@@ -599,7 +601,7 @@ describe('## Order APIs', () => {
           expect(o.order.id).toBe(orderFour.id);
           expect(o.order.priceOfItem).toBe(productShorts.price);
           expect(Object.keys(o.order.product).sort()).toEqual(
-            [...productFields, 'comments'].sort()
+            [...productFields, 'comments', 'reservedDate'].sort()
           );
           expect(Object.keys(o.order.buyer).sort()).toMatchSnapshot();
           expect(Object.keys(o.order.seller).sort()).toMatchSnapshot();
@@ -702,12 +704,14 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Array.isArray(o));
           expect(o).toHaveLength(2);
-          expect(o[0].id).toBe(orderFour.id);
-          expect(typeof o[0].reviewFromBuyer).toBe('string');
-          expect(typeof o[0].reviewFromSeller).toBe('string');
-          expect(o[1].id).toBe(orderFive.id);
-          expect(o[1].reviewFromBuyer).toBeUndefined();
-          expect(o[1].reviewFromSeller).toBeUndefined();
+          const o4 = o.find(order => order.id == orderFour.id);
+          const o5 = o.find(order => order.id == orderFive.id);
+          expect(o4.id).toBe(orderFour.id);
+          expect(typeof o4.reviewFromBuyer).toBe('string');
+          expect(typeof o4.reviewFromSeller).toBe('string');
+          expect(o5.id).toBe(orderFive.id);
+          expect(o5.reviewFromBuyer).toBeUndefined();
+          expect(o5.reviewFromSeller).toBeUndefined();
         });
     });
   });
