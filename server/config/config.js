@@ -141,7 +141,7 @@ const config = {
     cancelPaidOrdersAfter: 60 * 60 * 48, // hours
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
 
-    minPrice: 100,
+    minPrice: 150,
   },
   DEFAULT_FOLLOW: false,
 };
