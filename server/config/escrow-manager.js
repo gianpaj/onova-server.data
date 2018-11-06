@@ -4,7 +4,9 @@ import Order, { OrderDoc } from '../models/order.model';
 import {
   createOrderNotification,
   rejectPayment,
+  i18n,
 } from '../controllers/order.controller';
+import notifCtrl from '../controllers/notification.controller';
 import Product from '../models/product.model';
 
 import config from './config';
@@ -18,6 +20,7 @@ export default class EscrowManager {
   constructor() {
     this.initCheckoutJob();
     this.initCancelPaidOrdersJob();
+    this.initRemindToConfirmOrdersJob();
   }
 
   initCheckoutJob() {
@@ -26,7 +29,7 @@ export default class EscrowManager {
     agenda.on('ready', () => {
       agenda.cancel({ name: 'checkout' }, (err, numRemoved) => {
         if (err) return console.error(err);
-        debug('escrowManager cleaned up jobs:', numRemoved);
+        debug('checkout cleaned up jobs:', numRemoved);
         agenda.start();
         this.createCheckoutJob();
       });
@@ -39,10 +42,30 @@ export default class EscrowManager {
     agenda.on('ready', () => {
       agenda.cancel({ name: 'cancelPaidOrders' }, (err, numRemoved) => {
         if (err) return console.error(err);
-        debug('escrowManager cleaned up jobs:', numRemoved);
+        debug('cancelPaidOrders cleaned up jobs:', numRemoved);
         agenda.start();
         this.createCancelPaidOrdersJob();
       });
+    });
+  }
+
+  initRemindToConfirmOrdersJob() {
+    this.defineRemindToConfirmOrderJob();
+
+    agenda.on('ready', () => {
+      agenda.cancel(
+        { name: config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER },
+        (err, numRemoved) => {
+          if (err) return console.error(err);
+          debug(
+            config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER,
+            'cleaned up jobs:',
+            numRemoved
+          );
+          agenda.start();
+          this.createRemindToConfirmOrderJob();
+        }
+      );
     });
   }
 
@@ -57,6 +80,17 @@ export default class EscrowManager {
     const job = agenda.create('cancelPaidOrders');
     job.unique({ jobName: 'cancelPaidOrders' });
     job.repeatEvery(config.env === 'test' ? '3 seconds' : '60 minutes');
+    job.save();
+  }
+
+  createRemindToConfirmOrderJob() {
+    const job = agenda.create(config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER);
+    job.unique({ jobName: config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER });
+    job.repeatEvery(
+      config.env === 'test'
+        ? '3 seconds'
+        : config.settings.remindToConfirmOrderEvery
+    );
     job.save();
   }
 
@@ -163,6 +197,55 @@ export default class EscrowManager {
         done(error);
       }
     });
+  }
+
+  defineRemindToConfirmOrderJob() {
+    agenda.define(
+      config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER,
+      async (job, done) => {
+        console.log(
+          config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER + ' job running at',
+          new Date()
+        );
+
+        const previousDate = new Date(
+          Date.now() -
+            (config.env === 'test'
+              ? 30 * 1000
+              : config.settings.cancelPaidOrdersAfter * 1000)
+        );
+
+        try {
+          const query = {
+            status: 'paid',
+            transactionStatus: 'ua-finished',
+            datePaid: { $gt: previousDate },
+          };
+          const orders: Array<OrderDoc> = await Order.find(query);
+          if (!orders.length) return done();
+
+          const notifications = orders.map(order =>
+            notifCtrl.createNotification({
+              data: order,
+              notifI18n: i18n.orderPaidReminder,
+              sourceUser: order.buyer._id,
+              targetUser: order.seller._id,
+              triggeredBy: order._id,
+              triggeredType: 'Order',
+            })
+          );
+
+          await Promise.all(notifications);
+
+          debug(orders.length, 'scheduled remiders(s) to confirm orders');
+
+          done();
+        } catch (error) {
+          console.error(error);
+          done(error);
+        }
+      }
+    );
   }
 
   removeProductsFromCheckout(products): Promise<any> {

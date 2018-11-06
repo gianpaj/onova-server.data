@@ -50,7 +50,7 @@ describe('## Product APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     // seller comes after the user is created
-    price: '100.99', // if 1 decimal point .00 will be added
+    price: '2100.99', // if 1 decimal point .00 will be added
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
@@ -71,7 +71,7 @@ describe('## Product APIs', () => {
     typeIds: [1, 3],
     tags: ['spring'],
     description: 'nice scarf',
-    price: '130',
+    price: '3130',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
@@ -82,7 +82,7 @@ describe('## Product APIs', () => {
     typeIds: [1, 3],
     tags: ['lol@'],
     description: 'nice API',
-    price: '290.00',
+    price: '4290.00',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
@@ -300,7 +300,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken1)
-        .send({ ...product, price: '111.1' })
+        .send({ ...product, price: '211.1' })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           expect(body.data.price).toBe('111.10');
@@ -608,7 +608,7 @@ describe('## Product APIs', () => {
     it('should update the description, price, categoryIds and typeIds', () => {
       delete product.photos;
       product.description = 'amazing boots';
-      product.price = '119.99';
+      product.price = '319.99';
       product.categoryIds = [3];
       product.typeIds = [3];
       return request(app)
@@ -646,7 +646,7 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.data.price).toEqual('199.90'));
     });
 
-    it('should NOT create a product with a price too low', () => {
+    it('should NOT update a product with a price too low', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)
         .set('Authorization', jwtToken1)

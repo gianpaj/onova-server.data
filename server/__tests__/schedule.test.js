@@ -59,7 +59,7 @@ describe('## Schedule APIs', () => {
     typeIds: [1, 2, 3],
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
-    price: '100.99',
+    price: '1100.99',
     photos: ['http://storage.googleapis.com/1527232263107'],
   };
 
