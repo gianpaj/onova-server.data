@@ -591,7 +591,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should change the paymentMethod to `paypal`', () => {
+    it.skip('should change the paymentMethod to `paypal`', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', firstUserJwtToken)
@@ -599,7 +599,6 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
-          // TODO: after payment is tested it should return 'datePaid'
           expect(Object.keys(o).sort()).toMatchSnapshot();
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.paymentMethod).toBe('paypal');
@@ -730,10 +729,7 @@ describe('## Order APIs', () => {
       await request(app)
         .get(`/api/products/${orderPOST3ProdUUID}`)
         .expect(httpStatus.OK)
-        .then(res => {
-          const p = res.body.data;
-          expect(p.status).toBe('forsale');
-        });
+        .then(({ body }) => expect(body.data.status).toBe('forsale'));
     });
 
     it('should allow another buyer to create an order for the same product (after the previous order cancellation)', () => {
@@ -784,7 +780,7 @@ describe('## Order APIs', () => {
       ...photos,
     };
     let orderId, orderId2, orderId3, orderId4;
-    let order3ProdUUID;
+    let order2ProdUUID, order3ProdUUID;
 
     beforeAll(async () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
@@ -801,6 +797,7 @@ describe('## Order APIs', () => {
           o => {
             expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
+            order2ProdUUID = product.uuid;
             orderId2 = o.id;
           }
         )
@@ -932,7 +929,11 @@ describe('## Order APIs', () => {
           expect(typeof o.dateCancelled).toBe('string');
           expect(o.reason).toBe('i already sold this elsewhere');
         });
-      // TODO: test Product status is back 'forsale'
+
+      await request(app)
+        .get(`/api/products/${order2ProdUUID}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.status).toBe('forsale'));
     });
 
     test('a buyer should NOT cancel an order that has been paid', async () => {
