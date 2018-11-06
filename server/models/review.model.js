@@ -42,7 +42,7 @@ const ReviewSchema = new Schema({
   lang: {
     type: String,
     required: true,
-    enum: ['uk', 'en'],
+    enum: ['uk', 'en', 'n/a'],
   },
   createdAt: {
     type: Date,
