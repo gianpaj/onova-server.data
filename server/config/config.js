@@ -127,6 +127,7 @@ const config = {
     PUSH_FOLLOW: 'send-push-follow',
     PUSH_MSG: 'send-push-msg', // person to person
     PUSH_ORDER: 'send-push-order',
+    PUSH_ORDER_CONFIRM_REMINDER: 'send-push-order-confirmation-reminder',
     SCHEDULE: 'listing-schedule',
     SYSTEM_MSG: 'send-system-message',
   },
@@ -139,6 +140,9 @@ const config = {
     // Wait the seller to confirm the order for 48 hours.
     // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
     cancelPaidOrdersAfter: 60 * 60 * 48, // hours
+
+    remindToConfirmOrderEvery: '6 hours', // hours
+
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
 
     minPrice: 150,
