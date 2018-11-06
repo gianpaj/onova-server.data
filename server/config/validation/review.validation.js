@@ -38,10 +38,7 @@ export default {
         .min(1)
         .max(5),
       lang: Joi.string()
-        .valid(['uk', 'en'])
-        .required(),
-      trackingNumber: Joi.string()
-        .length(14)
+        .valid(['uk', 'en', 'n/a'])
         .required(),
     },
   },

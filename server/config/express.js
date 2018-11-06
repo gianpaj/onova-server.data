@@ -18,7 +18,7 @@ import Agenda from 'agenda';
 require('winston-daily-rotate-file');
 
 import winstonInstance from './winston';
-import routes from '../routes/index.route';
+import routes from '../routes';
 import config from './config';
 import APIError from '../helpers/APIError';
 import EscrowManager from './escrow-manager';

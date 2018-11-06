@@ -26,6 +26,8 @@ const reviewFields = [
   'createdAt',
 ];
 
+const kiev = '8d5a980d-391c-11dd-90d9-001a92567626';
+
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
 
@@ -94,7 +96,6 @@ describe('## Order APIs', () => {
     text: 'great stuff',
     rateNumber: 5,
     lang: 'en',
-    trackingNumber: '20450072617861',
   };
 
   let productBootsUuid, productBootsUuid2;
@@ -267,7 +268,7 @@ describe('## Order APIs', () => {
       }
     });
 
-    // user1 reviews user2 +5 [orderOne] with trackingNumber 20450072617861
+    // user1 reviews user2 +5 [orderOne]
     it('should create a review by the buyer', () => {
       return request(app)
         .post(`/api/users/${user2._id}/reviews`)
@@ -277,7 +278,6 @@ describe('## Order APIs', () => {
           text: 'great seller AAA+',
           rateNumber: 5,
           lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
         .then(async res => {
@@ -286,15 +286,13 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
-          expect(o.order.citySender).toBe('Львів');
-          expect(o.order.cityRecipient).toBe('Чернівці');
+          expect(o.order.citySender).toBe(kiev);
+          expect(o.order.cityRecipient).toBe(kiev);
           expect(o.fromUser).toBe(user1._id);
           expect(o.targetUser).toBe(user2._id);
           expect(o.text).toBe('great seller AAA+');
           expect(o.rateNumber).toBe(5);
           expect(o.lang).toBe('en');
-          const oo = await Order.findById(orderOne.id);
-          expect(oo.trackingNumber).toBe('20450072617861');
         });
     });
 
@@ -307,30 +305,12 @@ describe('## Order APIs', () => {
           text: 'great seller AAA+ dupe',
           rateNumber: 3,
           lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Duplicate review'));
     });
 
-    it('should NOT create a review for that order (as seller) with the wrong tracking number', () => {
-      return request(app)
-        .post(`/api/users/${user1._id}/reviews`)
-        .set('Authorization', jwtToken2)
-        .send({
-          orderId: orderOne.id,
-          text: 'great buyer AAA+ dupe',
-          rateNumber: 1,
-          lang: 'en',
-          trackingNumber: '20450072617862',
-        })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toBe('The tracking number is not valid')
-        );
-    });
-
-    // user2 reviews user1 +5 [orderOne] with trackingNumber 20450072617861
+    // user2 reviews user1 +5 [orderOne]
     it('should create a review by the seller', () => {
       return request(app)
         .post(`/api/users/${user1._id}/reviews`)
@@ -340,7 +320,6 @@ describe('## Order APIs', () => {
           text: 'great buyer AAA+',
           rateNumber: 5,
           lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
         .then(res => {
@@ -366,7 +345,6 @@ describe('## Order APIs', () => {
           text: 'great buyer AAA+ dupe',
           rateNumber: 5,
           lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Duplicate review'));
@@ -421,7 +399,7 @@ describe('## Order APIs', () => {
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
-          expect(body.message).toContain('must be one of [uk, en]')
+          expect(body.message).toContain('must be one of [uk, en, n/a]')
         );
     });
 
@@ -439,20 +417,6 @@ describe('## Order APIs', () => {
         );
     });
 
-    it('should NOT create a review with an invalid tracking number', () => {
-      return request(app)
-        .post(`/api/users/${user1._id}/reviews`)
-        .set('Authorization', jwtToken1)
-        .send({
-          ...reviewTwo,
-          trackingNumber: '000000000',
-        })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toContain('length must be 14 characters long')
-        );
-    });
-
     it('should NOT create a review for an order I`m not part of', () => {
       return request(app)
         .post(`/api/users/${user2._id}/reviews`)
@@ -465,15 +429,14 @@ describe('## Order APIs', () => {
         .then(({ body }) => expect(body.message).toBe('Invalid order'));
     });
 
-    // user4 reviews user1 [orderSix] with trackingNumber 20450072617862
-    it('should create a review by the buyer)', () => {
+    // user4 reviews user1 [orderSix]
+    it('should create a review by the buyer', () => {
       return request(app)
         .post(`/api/users/${user1._id}/reviews`)
         .set('Authorization', jwtToken4)
         .send({
           ...reviewTwo,
           orderId: orderSix.id,
-          trackingNumber: '20450072617862',
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -481,21 +444,6 @@ describe('## Order APIs', () => {
           ratingsTotalUserFirst += 5;
           reviewsCountUserFirst++;
         });
-    });
-
-    it('should NOT create a review on another order with a duplicate tracking number', () => {
-      return request(app)
-        .post(`/api/users/${user2._id}/reviews`)
-        .set('Authorization', jwtToken4)
-        .send({
-          ...reviewTwo,
-          orderId: orderThreePending.id,
-          trackingNumber: '20450072617862',
-        })
-        .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) =>
-          expect(body.message).toBe('Duplicate tracking number')
-        );
     });
 
     it('should have updated the number of reviews and rating of the buyer', () => {
@@ -606,7 +554,6 @@ describe('## Order APIs', () => {
           text: 'great seller AAA+',
           rateNumber: 5,
           lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
         .then(res => {
@@ -627,7 +574,6 @@ describe('## Order APIs', () => {
           text: 'great buyer AAA+',
           rateNumber: 5,
           lang: 'en',
-          trackingNumber: '20450072617861',
         })
         .expect(httpStatus.CREATED)
         .then(res => {
