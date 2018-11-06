@@ -44,3 +44,45 @@ Array [
   "username",
 ]
 `;
+
+exports[`## Order APIs # GET /api/users/:userId/review should get all the reviews of a user2 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "createdAt",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "paymentInfo",
+  "platform",
+  "pushToken",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "shippingAddress",
+  "tokens",
+  "updatedAt",
+  "username",
+]
+`;
+
+exports[`## Order APIs # GET /api/users/:userId/review should get all the reviews of a user2 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "createdAt",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "paymentInfo",
+  "platform",
+  "pushToken",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "shippingAddress",
+  "tokens",
+  "updatedAt",
+  "username",
+]
+`;
