@@ -126,7 +126,7 @@ describe('## Shipping', () => {
 
     it('should NOT get the shipping costs without recipientOfficeID', () => {
       const product = {
-        price: '100.99',
+        price: '300.99',
         weight: 300,
       };
       return request(app)
@@ -143,7 +143,7 @@ describe('## Shipping', () => {
 
     it('should get the shipping costs', () => {
       const product = {
-        price: '100.99',
+        price: '300.99',
         weight: 300,
       };
 
