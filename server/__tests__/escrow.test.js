@@ -254,12 +254,12 @@ describe('## Escrow Manager', () => {
             expect(push2.triggeredBy.toString()).toBe(o.id);
             expect(push2.triggeredType).toBe('Order');
             expect(typeof push2.random).toBe('string');
+
             agenda.jobs(
               { name: config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER },
               (err, jobs) => {
                 if (err) return done(err);
                 expect(jobs).toHaveLength(1);
-                console.log(jobs);
                 done();
               }
             );
