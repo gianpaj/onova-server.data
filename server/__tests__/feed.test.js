@@ -52,7 +52,7 @@ const product = {
   tags: ['winter', 'spring2007'], // optional
   description: 'nice boots',
   // seller comes after the user is created
-  price: '100.99', // if no decimal points .00 will be added
+  price: '1100.99', // if no decimal points .00 will be added
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
@@ -87,7 +87,7 @@ const notForSaleProduct = {
   typeIds: [1, 3],
   tags: ['WINTER'],
   description: 'nice scarf',
-  price: '130',
+  price: '1130',
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
@@ -207,7 +207,7 @@ describe('## Feed APIs', () => {
         typeIds: [1, 3],
         tags: ['WINTER'],
         description: 'nice jumper',
-        price: '139',
+        price: '1139',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
@@ -240,7 +240,7 @@ describe('## Feed APIs', () => {
         typeIds: [1, 5],
         tags: ['WINTER'],
         description: 'nice hoodie',
-        price: '169',
+        price: '1169',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
@@ -272,7 +272,7 @@ describe('## Feed APIs', () => {
         typeIds: [1, 4],
         tags: ['warm'],
         description: 'nice socks',
-        price: '119',
+        price: '1119',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],

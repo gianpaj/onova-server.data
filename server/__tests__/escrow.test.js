@@ -62,7 +62,7 @@ describe('## Escrow Manager', () => {
     categoryIds: [1, 2, 3],
     typeIds: [1, 2, 3],
     description: 'A - nice boots',
-    price: '100.99',
+    price: '190.99',
     ...photos,
   };
 
@@ -88,7 +88,7 @@ describe('## Escrow Manager', () => {
 
   describe('Product reservation and order cancellation', () => {
     // clear Product and Orders
-    // create 1 product
+    // create 2 products
     beforeEach(async () => {
       await Product.collection.deleteMany({}, { safe: true });
       await Order.collection.deleteMany({}, { safe: true });
@@ -254,7 +254,15 @@ describe('## Escrow Manager', () => {
             expect(push2.triggeredBy.toString()).toBe(o.id);
             expect(push2.triggeredType).toBe('Order');
             expect(typeof push2.random).toBe('string');
-            done();
+            agenda.jobs(
+              { name: config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER },
+              (err, jobs) => {
+                if (err) return done(err);
+                expect(jobs).toHaveLength(1);
+                console.log(jobs);
+                done();
+              }
+            );
           });
         }, 4000);
       } catch (error) {

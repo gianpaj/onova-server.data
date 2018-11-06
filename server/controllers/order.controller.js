@@ -48,12 +48,13 @@ declare class express$Request extends express$Request {
 }
 
 export const i18n = {
-  orderPaid: 'Congrats! 🎉 You have a new purchase!', // 37 chars
+  orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
+  orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
   orderCancelled: 'Your order has been cancelled! 😭', // 33 chars
   orderNotConfirmedToBuyer:
     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
   orderNotConfirmedToSeller:
-    "You didn't confirm the order one time. This will appear in your profile", // 71 chars
+    "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
 };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
