@@ -122,15 +122,10 @@ async function create(
   try {
     order = await Order.get(orderId, req.user._id.toString());
 
-    // TODO: after integration with payment provider do not allow reviews on `pending` status
     if (
-      [
-        'completed',
-        'failed_by_buyer',
-        'failed_by_seller',
-        'failed',
-        'pending',
-      ].indexOf(order.status) < 0
+      ['completed', 'failed_by_buyer', 'failed_by_seller'].indexOf(
+        order.status
+      ) < 0
     ) {
       throw new APIError(
         `Cannot create review on an order that is '${order.status}'`,
@@ -185,10 +180,7 @@ async function create(
     order.citySender = seller.shippingAddress.city;
     order.cityRecipient = buyer.shippingAddress.city;
 
-    // TODO: after integrating with payment provider do not mark product as sold like this
     if (iAmTheBuyer) {
-      order.product.status = 'sold';
-      await order.product.save();
       order.reviewFromBuyer = savedReview.id;
     } else {
       order.reviewFromSeller = savedReview.id;
