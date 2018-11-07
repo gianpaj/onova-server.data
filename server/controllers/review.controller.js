@@ -5,6 +5,7 @@ import request from 'request';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 
 import APIError from '../helpers/APIError';
+import City from '../models/cities.model';
 import Order, { OrderDoc } from '../models/order.model';
 import Review, { ReviewDoc } from '../models/review.model';
 import User, { UserDoc } from '../models/user.model';
@@ -43,7 +44,7 @@ declare class session$RequestCreate extends express$Request {
  * @property {*} req.params - express session parameters
  * @property {MongoId} req.params.userId
  * @property {*} req.query - express session query
- * @property {string} req.query.as buyer|seller|both
+ * @property {string} req.query.as buyer|seller|both (default is both)
  */
 async function list(
   req: session$RequestList,
@@ -53,35 +54,67 @@ async function list(
   const { userId } = req.params;
   const { as } = req.query;
   // const { limit = 50, lastId } = req.query;
-  // TODO: paginate inside list of reviews` array using limit & lastId
+  // TODO: paginate inside list of reviews using limit & lastId
 
+  // FIXME: embed review inside of Order model
   try {
     const user = await User.findById(userId);
 
     if (!user) throw new APIError('Invalid userId', httpStatus.BAD_REQUEST);
 
-    let match = {};
-    let query = { targetUser: userId };
+    // find all the orders with a finalised status
+    // populate all those reviews
+
+    let populate = 'product ';
+    let query = {
+      $or: [
+        {
+          status: { $in: ['completed', 'failed_by_buyer', 'failed_by_seller'] },
+        },
+        { status: 'cancelled', reason: { $exists: true } },
+      ],
+    };
+    // const match = { targetUser: userId };
+
     if ('buyer' === as) {
-      match = { buyer: userId };
+      query = { ...query, buyer: userId };
+      populate += 'reviewFromSeller';
     } else if ('seller' === as) {
-      match = { seller: userId };
+      query = { ...query, seller: userId };
+      populate += 'reviewFromBuyer';
+
+      // the default
     } else if ('both' === as) {
       query = {
-        $or: [{ targetUser: userId }, { fromUser: userId }],
+        ...query,
+        $or: [{ buyer: userId }, { seller: userId }],
       };
+      populate += 'reviewFromBuyer reviewFromSeller';
     }
-    let reviews = await Review.find(query)
+
+    let orders = await Order.find(query)
       .sort({ createdAt: -1 })
+      .populate(populate)
       .populate({
-        match,
-        path: 'order',
-        populate: { path: 'product buyer seller' },
+        path: 'buyer seller',
+        select: 'username',
       });
+    // FIXME: only return productURIs from DB
+    // .populate({
+    //   path: 'product',
+    //   select: 'photoURIs',
+    // })
 
-    reviews = reviews.filter(r => r.order !== null);
+    // orders = orders.map(o => ({
+    //   ...o,
+    //   product: { photoURIs: o.product.photoURIs },
+    // }));
 
-    return res.json({ data: reviews });
+    // sort by dateCompleted/dateFailed/dateCancelled
+    // return res.json({
+    //   data: orders.sort((a, b) => a.finalisedAt > b.finalisedAt),
+    // });
+    return res.json({ data: orders });
   } catch (err) {
     return next(err);
   }
@@ -175,8 +208,13 @@ async function create(
     const buyer = await User.findById(order.buyer);
     const seller = await User.findById(order.seller);
 
-    order.citySender = seller.shippingAddress.city;
-    order.cityRecipient = buyer.shippingAddress.city;
+    const citySender = await City.findOne({ id: seller.shippingAddress.city });
+    const cityRecipient = await City.findOne({
+      id: buyer.shippingAddress.city,
+    });
+
+    order.citySender = citySender.uk;
+    order.cityRecipient = cityRecipient.uk;
 
     if (iAmTheBuyer) {
       order.reviewFromBuyer = savedReview.id;
