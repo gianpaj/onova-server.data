@@ -9,7 +9,7 @@ import APIError from '../helpers/APIError';
 import config from '../config/config';
 import User, { UserDoc } from '../models/user.model';
 import City from '../models/cities.model';
-import Department from '../models/cities.model';
+import Department from '../models/departments.model';
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
