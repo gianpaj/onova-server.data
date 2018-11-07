@@ -303,7 +303,7 @@ describe('## Product APIs', () => {
         .send({ ...product, price: '211.1' })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
-          expect(body.data.price).toBe('111.10');
+          expect(body.data.price).toBe('211.10');
           productsCounter++;
         });
     });
