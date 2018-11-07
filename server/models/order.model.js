@@ -164,6 +164,19 @@ OrderSchema.virtual('total').get(function() {
   ).toString();
 });
 
+OrderSchema.virtual('finalisedAt').get(function() {
+  if (this.status === 'completed') {
+    return this.dateCompleted;
+  }
+  // cancelled by a seller
+  if (this.status === 'cancelled' && this.reason) {
+    return this.dateCancelled;
+  }
+  if (this.status === 'failed_by_buyer' || this.status === 'failed_by_seller') {
+    return this.dateFailed;
+  }
+});
+
 export class OrderDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
   archivedByBuyer: boolean;
