@@ -11,6 +11,17 @@ import Tag from './tag.model';
 import User from './user.model';
 import Verification from './verification.model';
 
+Block.syncIndexes();
+DefaultFollow.syncIndexes();
+Follow.syncIndexes();
+Notification.syncIndexes();
+Product.syncIndexes();
+Report.syncIndexes();
+Review.syncIndexes();
+Tag.syncIndexes();
+User.syncIndexes();
+Verification.syncIndexes();
+
 export {
   Block,
   DefaultFollow,
