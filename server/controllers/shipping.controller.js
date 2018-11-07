@@ -2,42 +2,16 @@
 
 import axios from 'axios';
 import httpStatus from 'http-status';
-import mongoose from 'mongoose';
 
 import Order, { OrderDoc } from '../models/order.model';
 
 import APIError from '../helpers/APIError';
 import config from '../config/config';
 import User, { UserDoc } from '../models/user.model';
+import City from '../models/cities.model';
+import Department from '../models/cities.model';
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
-
-const CitiesSchema = new mongoose.Schema(
-  { id: String, uk: String },
-  { collection: 'cities' }
-);
-
-const Cities = mongoose.model('cities', CitiesSchema);
-
-const DepartmentsSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-  },
-  uk: {
-    type: String,
-    required: true,
-    index: true,
-  },
-  maxWeight: Number,
-  cityID: {
-    type: String,
-    required: true,
-    index: true,
-  },
-});
-
-const Deparment = mongoose.model('departments', DepartmentsSchema);
 
 /**
  * Get list of cities for Nova Poshta
@@ -49,7 +23,7 @@ function cities(
   res: express$Response,
   next: express$NextFunction
 ) {
-  Cities.find({}, { _id: 0, uk: 1, id: 1 })
+  City.find({}, { _id: 0, uk: 1, id: 1 })
     .then(cities => {
       if (!cities.length) {
         throw new Error('Error getting cities');
@@ -148,7 +122,7 @@ async function departments(
   res: express$Response,
   next: express$NextFunction
 ) {
-  Deparment.find({ cityID: req.params.city }, { _id: 0, uk: 1, id: 1 })
+  Department.find({ cityID: req.params.city }, { _id: 0, uk: 1, id: 1 })
     .then(departments => {
       if (!departments.length) {
         throw new Error('Error getting departments');
