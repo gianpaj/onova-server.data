@@ -8,9 +8,10 @@ const debug = require('debug')('server-data:index');
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
 import config from '../config/config';
-import User, { UserDoc } from '../models/user.model';
-import Follow from '../models/follow.model';
 import DefaultFollow from '../models/defaultFollow.model';
+import Follow from '../models/follow.model';
+import Order from '../models/order.model';
+import User, { UserDoc } from '../models/user.model';
 import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 import followController from './follow.controller';
@@ -57,18 +58,36 @@ function load(
  * @property {MongoId} req.params.userId
  */
 async function get(req: session$Request, res: express$Response) {
+  const { userId } = req.params;
   let doc = _prepareUserJson(req.user);
   const followers = await Follow.find({
-    following: req.params.userId,
+    following: userId,
   }).populate('follower');
   const following = await Follow.find({
-    follower: req.params.userId,
+    follower: userId,
   }).populate('following');
+
+  const ordersAndReviewsCount = await Order.count({
+    $and: [
+      { $or: [{ buyer: userId }, { seller: userId }] },
+      {
+        $or: [
+          {
+            status: {
+              $in: ['completed', 'failed_by_buyer', 'failed_by_seller'],
+            },
+          },
+          { status: 'cancelled', reason: { $exists: true } },
+        ],
+      },
+    ],
+  });
 
   doc = {
     ...doc,
     followersCount: followers.filter(f => f.follower !== null).length,
     followingCount: following.filter(f => f.following !== null).length,
+    ordersAndReviewsCount: ordersAndReviewsCount,
   };
   return res.json(doc);
 }
@@ -82,14 +101,33 @@ async function get(req: session$Request, res: express$Response) {
  * @property {*} req.params - Express parameters
  * @property {ObjectId} req.params.userId
  */
-function getPersonal(req: session$Request, res: express$Response) {
+async function getPersonal(req: session$Request, res: express$Response) {
+  const userId = req.user._id;
   const doc = _prepareUserJson(req.user);
+
+  const ordersAndReviewsCount = await Order.count({
+    $and: [
+      { $or: [{ buyer: userId }, { seller: userId }] },
+      {
+        $or: [
+          {
+            status: {
+              $in: ['completed', 'failed_by_buyer', 'failed_by_seller'],
+            },
+          },
+          { status: 'cancelled', reason: { $exists: true } },
+        ],
+      },
+    ],
+  });
+
   return res.json({
     ...doc,
+    createdAt: req.user.createdAt,
     mobileNumber: req.user.mobileNumber,
+    ordersAndReviewsCount,
     paymentInfo: req.user.paymentInfo,
     shippingAddress: req.user.shippingAddress,
-    createdAt: req.user.createdAt,
   });
 }
 
@@ -481,7 +519,6 @@ function _prepareUserJson(user: UserDoc): Object {
     followingCount: user.followingCount,
     profilePic: user.profilePic,
     ratingsTotal: user.ratingsTotal,
-    reviewsCount: user.reviewsCount,
     sharedCount: user.sharedCount,
     tokens: user.tokens,
     username: user.username,
