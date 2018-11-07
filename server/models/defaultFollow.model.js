@@ -52,6 +52,6 @@ defaultFollowSchema.set('toJSON', {
   },
 });
 
-defaultFollowSchema.index({ user: 1 }); // created by `unique` schema setting above
+// defaultFollowSchema.index({ user: 1 }); // created by `unique` schema setting above
 
 export default mongoose.model('DefaultFollow', defaultFollowSchema);
