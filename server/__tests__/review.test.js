@@ -9,6 +9,8 @@ import {
   createUserAndLogin,
   createProduct,
   createOrder,
+  orderCompletedFieldsWithReview,
+  orderFields,
   productFields,
   beforeAllTests,
 } from './utils';
@@ -25,8 +27,6 @@ const reviewFields = [
   'lang',
   'createdAt',
 ];
-
-const kiev = '8d5a980d-391c-11dd-90d9-001a92567626';
 
 describe('## Order APIs', () => {
   beforeAll(beforeAllTests);
@@ -100,13 +100,21 @@ describe('## Order APIs', () => {
 
   let productBootsUuid, productBootsUuid2;
   let productFlipflopsUuid;
-  let productShortsUuid, productShortsUuid2;
+  let productShortsUser2Uuid, productShortsUser2Uuid2;
   let jwtToken1, jwtToken2, jwtToken4;
   let userNotActiveJwtToken;
   let reviewsCountUserAnother = 0;
   let reviewsCountUserFirst = 0;
   let ratingsTotalUserFirst = 0;
   let ratingsTotalUserAnother = 0;
+  let user1LeftReviewsAsBuyer = 0;
+  let user1ReceivedReviewsAsBuyer = 0;
+  let user1OrdersAsSeller = 0;
+  let user1OrdersAsBuyer = 0;
+  let user2ReceivedReviewsAsSeller = 0;
+  let user2LeftReviewsAsSeller = 0;
+  let user2OrdersAsSeller = 0;
+  let user2OrdersAsBuyer = 0;
 
   // create 3 users. 1 not activated
   beforeAll(async () => {
@@ -156,10 +164,10 @@ describe('## Order APIs', () => {
         productBootsUuid2 = p.uuid;
       });
       await createProduct(productShorts, jwtToken2).then(p => {
-        productShortsUuid = p.uuid;
+        productShortsUser2Uuid = p.uuid;
       });
       await createProduct(productShorts, jwtToken2).then(p => {
-        productShortsUuid2 = p.uuid;
+        productShortsUser2Uuid2 = p.uuid;
       });
 
       // create product and delete it
@@ -188,7 +196,7 @@ describe('## Order APIs', () => {
       try {
         orderOne = await createOrder(
           {
-            uuid: productShortsUuid,
+            uuid: productShortsUser2Uuid,
             price: productShorts.price,
           },
           jwtToken1
@@ -215,7 +223,7 @@ describe('## Order APIs', () => {
 
         // orderThreePending = await createOrder(
         //   {
-        //     uuid: productShortsUuid2,
+        //     uuid: productShortsUser2Uuid2,
         //     price: productShorts.price,
         //   },
         //   jwtToken4
@@ -286,8 +294,8 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
-          expect(o.order.citySender).toBe(kiev);
-          expect(o.order.cityRecipient).toBe(kiev);
+          expect(o.order.citySender).toBe('Київ');
+          expect(o.order.cityRecipient).toBe('Київ');
           expect(o.fromUser).toBe(user1._id);
           expect(o.targetUser).toBe(user2._id);
           expect(o.text).toBe('great seller AAA+');
@@ -500,25 +508,46 @@ describe('## Order APIs', () => {
       });
     });
 
-    let orderFour, orderFive;
+    let orderFour, orderFive, orderSix;
 
     // user1 lists product B
     // user2 lists product S
-    beforeAll(async () => {
-      await createProduct(productBoots, jwtToken1).then(p => {
-        productBootsUuid = p.uuid;
-      });
-      await createProduct(productShorts, jwtToken2).then(p => {
-        productShortsUuid = p.uuid;
-      });
-    });
+    // user2 lists product S2
+    beforeAll(async () =>
+      Promise.all([
+        createProduct(productBoots, jwtToken1).then(p => {
+          productBootsUuid = p.uuid;
+        }),
+        createProduct(productShorts, jwtToken2).then(p => {
+          productShortsUser2Uuid = p.uuid;
+        }),
+        createProduct(productShorts, jwtToken2).then(p => {
+          productShortsUser2Uuid2 = p.uuid;
+        }),
+      ]));
 
-    // user1 buys product S from user2 (orderFour)
-    // user2 buys product B from user1 (orderFive) but NO reviews
+    /**
+     * | from           | action     | target      | order     |
+     * | -------------- | ---------- | ----------- | --------- |
+     * | user1 (buyer)  | reviews -> | user2       | orderFour |
+     * | user2 (seller) | reviews -> | user1       | orderFour | - completed
+     * | user2 (buyer)  | buys    -> | user1       | orderFive | (no reviews) - completed
+     * | user1 (buyer)  | buys    -> | user2       | orderSix  | (seller user2 cancels) - cancelled
+     *
+     * user 2
+     *    2 orders as seller (orderFour and orderSix) (1 with review)
+     *    1 orders as buyer (orderFive) (without review)
+     * == 3 orders
+     *
+     * user 1
+     *    1 orders as seller (orderFive)
+     *    2 orders as buyer (orderFour and orderSix) (1 with review)
+     * == 3 orders
+     */
     beforeAll(async () => {
       try {
         orderFour = await createOrder(
-          { ...productShorts, uuid: productShortsUuid },
+          { ...productShorts, uuid: productShortsUser2Uuid },
           jwtToken1
         );
         const o = await Order.updateOne(
@@ -526,6 +555,8 @@ describe('## Order APIs', () => {
           { $set: { status: 'completed' } }
         );
         expect(o.nModified).toBe(1);
+        user2OrdersAsSeller++;
+        user1OrdersAsBuyer++;
 
         orderFive = await createOrder(
           { ...productBoots, uuid: productBootsUuid },
@@ -536,18 +567,23 @@ describe('## Order APIs', () => {
           { $set: { status: 'completed' } }
         );
         expect(o2.nModified).toBe(1);
+        user1OrdersAsSeller++;
+        user2OrdersAsBuyer++;
+
+        orderSix = await createOrder(
+          { ...productShorts, uuid: productShortsUser2Uuid2 },
+          jwtToken1
+        );
+        const o3 = await Order.updateOne(
+          { _id: orderSix.id },
+          { $set: { status: 'cancelled', reason: 'i sold it somewhere else' } }
+        );
+        user2OrdersAsSeller++;
+        user1OrdersAsBuyer++;
+        expect(o3.nModified).toBe(1);
       } catch (error) {
         console.error(error);
       }
-    });
-
-    /**
-     * | from user      | action     | target user | order     |
-     * | -------------- | ---------- | ----------- | --------- |
-     * | user1 (buyer)  | reviews -> | user2       | orderFour |
-     * | user2 (seller) | reviews -> | user1       | orderFour |
-     */
-    beforeAll(async () => {
       await request(app)
         .post(`/api/users/${user2._id}/reviews`)
         .set('Authorization', jwtToken1)
@@ -567,6 +603,8 @@ describe('## Order APIs', () => {
           expect(o.rateNumber).toBe(5);
           expect(o.lang).toBe('en');
         });
+      user1LeftReviewsAsBuyer++;
+      user2ReceivedReviewsAsSeller++;
 
       await request(app)
         .post(`/api/users/${user1._id}/reviews`)
@@ -587,67 +625,73 @@ describe('## Order APIs', () => {
           expect(o.rateNumber).toBe(5);
           expect(o.lang).toBe('en');
         });
+      user1ReceivedReviewsAsBuyer++;
+      user2LeftReviewsAsSeller++;
     });
 
-    it('should get all the reviews of a user2', () => {
+    it('should get all the user2 orders with reviews', () => {
       return request(app)
         .get(`/api/users/${user2._id}/reviews`)
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.data).toHaveLength(2);
-          const o = res.body.data[1];
-          expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
-          expect(o.order.id).toBe(orderFour.id);
-          expect(o.order.priceOfItem).toBe(productShorts.price);
-          expect(Object.keys(o.order.product).sort()).toEqual(
+          expect(res.body.data).toHaveLength(
+            user2OrdersAsSeller + user2OrdersAsBuyer
+          );
+          const o = res.body.data.find(o => o.id === orderFour.id);
+          expect(Object.keys(o).sort()).toEqual(orderCompletedFieldsWithReview);
+          expect(o.priceOfItem).toBe(productShorts.price);
+          expect(Object.keys(o.product).sort()).toEqual(
             [...productFields, 'comments', 'reservedDate'].sort()
           );
-          expect(Object.keys(o.order.buyer).sort()).toMatchSnapshot();
-          expect(Object.keys(o.order.seller).sort()).toMatchSnapshot();
-          expect(o.fromUser).toBe(user1._id);
-          expect(o.targetUser).toBe(user2._id);
-          expect(o.text).toBe('great seller AAA+');
-          expect(o.rateNumber).toBe(5);
-          expect(o.lang).toBe('en');
+          expect(Object.keys(o.buyer).sort()).toMatchSnapshot();
+          expect(Object.keys(o.seller).sort()).toMatchSnapshot();
+          expect(o.reviewFromBuyer.fromUser).toBe(user1._id);
+          expect(o.reviewFromBuyer.targetUser).toBe(user2._id);
+          expect(o.reviewFromBuyer.text).toBe('great seller AAA+');
+          expect(o.reviewFromBuyer.rateNumber).toBe(5);
+          expect(o.reviewFromBuyer.lang).toBe('en');
         });
     });
 
-    it('should get all the reviews of a user1', () => {
+    it('should get all the user1 orders with reviews', () => {
       return request(app)
         .get(`/api/users/${user1._id}/reviews`)
         .set('Authorization', jwtToken2)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.data).toHaveLength(2);
-          const o = res.body.data[0];
-          expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
-          expect(o.order.id).toBe(orderFour.id);
-          expect(o.order.priceOfItem).toBe(productShorts.price);
-          expect(o.fromUser).toBe(user2._id);
-          expect(o.targetUser).toBe(user1._id);
-          expect(o.text).toBe('great buyer AAA+');
-          expect(o.rateNumber).toBe(5);
-          expect(o.lang).toBe('en');
+          expect(res.body.data).toHaveLength(
+            user1OrdersAsSeller + user1OrdersAsBuyer
+          );
+          const o = res.body.data.find(o => o.id === orderFour.id);
+          expect(Object.keys(o).sort()).toEqual(orderCompletedFieldsWithReview);
+          expect(o.priceOfItem).toBe(productShorts.price);
+          expect(o.reviewFromSeller.fromUser).toBe(user2._id);
+          expect(o.reviewFromSeller.targetUser).toBe(user1._id);
+          expect(o.reviewFromSeller.text).toBe('great buyer AAA+');
+          expect(o.reviewFromSeller.rateNumber).toBe(5);
+          expect(o.reviewFromSeller.lang).toBe('en');
         });
     });
 
-    it('should get the reviews that user2 received as a seller', () => {
+    it('should get the orders with reviews that user2 received as a seller', () => {
       return request(app)
         .get(`/api/users/${user2._id}/reviews/?as=seller`)
         .set('Authorization', jwtToken2)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.data).toHaveLength(1);
-          const o = res.body.data[0];
-          expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
-          expect(o.order.id).toBe(orderFour.id);
-          expect(o.order.priceOfItem).toBe(productShorts.price);
-          expect(o.fromUser).toBe(user1._id);
-          expect(o.targetUser).toBe(user2._id);
-          expect(o.text).toBe('great seller AAA+');
-          expect(o.rateNumber).toBe(5);
-          expect(o.lang).toBe('en');
+          expect(res.body.data).toHaveLength(user2OrdersAsSeller);
+          expect(res.body.data.filter(o => o.reviewFromBuyer)).toHaveLength(
+            user2ReceivedReviewsAsSeller
+          );
+          const o = res.body.data.find(o => o.id === orderFour.id);
+          expect(Object.keys(o).sort()).toEqual(orderCompletedFieldsWithReview);
+          expect(o.priceOfItem).toBe(productShorts.price);
+          expect(o.reviewFromBuyer.fromUser).toBe(user1._id);
+          expect(o.reviewFromBuyer.targetUser).toBe(user2._id);
+          expect(o.reviewFromBuyer.text).toBe('great seller AAA+');
+          expect(o.reviewFromBuyer.rateNumber).toBe(5);
+          expect(o.reviewFromBuyer.lang).toBe('en');
         });
     });
 
@@ -657,16 +701,15 @@ describe('## Order APIs', () => {
         .set('Authorization', jwtToken2)
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.data).toHaveLength(1);
-          const o = res.body.data[0];
-          expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
-          expect(o.order.id).toBe(orderFour.id);
-          expect(o.order.priceOfItem).toBe(productShorts.price);
-          expect(o.fromUser).toBe(user2._id);
-          expect(o.targetUser).toBe(user1._id);
-          expect(o.text).toBe('great buyer AAA+');
-          expect(o.rateNumber).toBe(5);
-          expect(o.lang).toBe('en');
+          expect(res.body.data).toHaveLength(user1OrdersAsBuyer);
+          const o = res.body.data.find(o => o.id === orderFour.id);
+          expect(Object.keys(o).sort()).toEqual(orderCompletedFieldsWithReview);
+          expect(o.priceOfItem).toBe(productShorts.price);
+          expect(o.reviewFromSeller.fromUser).toBe(user2._id);
+          expect(o.reviewFromSeller.targetUser).toBe(user1._id);
+          expect(o.reviewFromSeller.text).toBe('great buyer AAA+');
+          expect(o.reviewFromSeller.rateNumber).toBe(5);
+          expect(o.reviewFromSeller.lang).toBe('en');
         });
     });
 
@@ -675,7 +718,13 @@ describe('## Order APIs', () => {
         .get(`/api/users/${user1._id}/reviews/?as=seller`)
         .set('Authorization', jwtToken2)
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data).toHaveLength(0));
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(1);
+          const o = body.data.find(o => o.id === orderFive.id);
+          expect(o.status).toBe('completed');
+          expect(o.reviewFromSeller).toBeUndefined();
+          expect(o.reviewFromBuyer).toBeUndefined();
+        });
     });
 
     it('should get the reviews that user2 received as a buyer', () => {
@@ -683,7 +732,7 @@ describe('## Order APIs', () => {
         .get(`/api/users/${user2._id}/reviews/?as=buyer`)
         .set('Authorization', jwtToken2)
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data).toHaveLength(0));
+        .then(({ body }) => expect(body.data).toHaveLength(user2OrdersAsBuyer));
     });
 
     it('should NOT get the reviews of an invalid user', () => {
@@ -703,7 +752,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(o).toHaveLength(2);
+          expect(o).toHaveLength(3);
           const o4 = o.find(order => order.id == orderFour.id);
           const o5 = o.find(order => order.id == orderFive.id);
           expect(o4.id).toBe(orderFour.id);
