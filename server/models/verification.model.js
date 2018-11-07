@@ -14,7 +14,6 @@ const VerificationSchema = new mongoose.Schema({
   resetToken: {
     type: String,
     required: true,
-    index: true,
   },
   createdAt: {
     type: Date,
