@@ -14,7 +14,13 @@ const http = axios.create({
 });
 
 const CitiesSchema = new mongoose.Schema(
-  { id: String, uk: String },
+  {
+    id: {
+      type: String,
+      index: true,
+    },
+    uk: String,
+  },
   { collection: 'cities' }
 );
 
