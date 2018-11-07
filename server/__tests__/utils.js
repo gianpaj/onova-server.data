@@ -20,6 +20,7 @@ export const orderFields = [
   'createdAt',
   'currency',
   'datePending',
+  // 'finalisedAt',
   'id',
   'onovaFee',
   'priceOfItem',
@@ -30,6 +31,14 @@ export const orderFields = [
   'transactionFee',
   'updatedAt',
 ];
+
+export const orderCompletedFieldsWithReview = [
+  ...orderFields,
+  'cityRecipient',
+  'citySender',
+  'reviewFromBuyer',
+  'reviewFromSeller',
+].sort();
 
 // should only return these fields
 export const productFields = [

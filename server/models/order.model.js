@@ -117,7 +117,9 @@ var OrderSchema = new Schema(
         'completed',
 
         // (1)
-        // Buyer fails to collect or refuses the item (not as described)
+        // Buyer fails to collect
+        // or
+        // Buyer refuses the item (not as described)
         'failed_by_buyer',
 
         // (1) or Escrow Manager
