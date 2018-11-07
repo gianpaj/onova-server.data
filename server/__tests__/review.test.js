@@ -103,8 +103,8 @@ describe('## Order APIs', () => {
   let productShortsUser2Uuid, productShortsUser2Uuid2;
   let jwtToken1, jwtToken2, jwtToken4;
   let userNotActiveJwtToken;
-  let reviewsCountUserAnother = 0;
-  let reviewsCountUserFirst = 0;
+  let ordersAndReviewsCountUser2 = 0;
+  let ordersAndReviewsCountUser1 = 0;
   let ratingsTotalUserFirst = 0;
   let ratingsTotalUserAnother = 0;
   let user1LeftReviewsAsBuyer = 0;
@@ -190,7 +190,7 @@ describe('## Order APIs', () => {
 
     // user1 orders productShorts (from user2)  [orderOne]
     // user2 orders productBoots  (from user1)  [orderTwo] {reviewTwo}
-    // user4 orders productShorts2 (from user2) [orderThreePending]
+    // ~user4 orders productShorts2 (from user2) [orderThreePending]~
     // user4 orders productBoots2  (from user1) [orderSix]
     beforeAll(async () => {
       try {
@@ -206,6 +206,8 @@ describe('## Order APIs', () => {
           { $set: { status: 'completed' } }
         );
         expect(o.nModified).toBe(1);
+        ordersAndReviewsCountUser1++;
+        ordersAndReviewsCountUser2++;
 
         orderTwo = await createOrder(
           {
@@ -220,6 +222,8 @@ describe('## Order APIs', () => {
         );
         expect(o2.nModified).toBe(1);
         reviewTwo.orderId = orderTwo.id;
+        ordersAndReviewsCountUser1++;
+        ordersAndReviewsCountUser2++;
 
         // orderThreePending = await createOrder(
         //   {
@@ -240,6 +244,7 @@ describe('## Order APIs', () => {
           { $set: { status: 'completed' } }
         );
         expect(o6.nModified).toBe(1);
+        ordersAndReviewsCountUser1++;
       } catch (error) {
         console.error(error);
       }
@@ -290,7 +295,6 @@ describe('## Order APIs', () => {
         .expect(httpStatus.CREATED)
         .then(async res => {
           ratingsTotalUserAnother += 5;
-          reviewsCountUserAnother++;
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
@@ -332,7 +336,6 @@ describe('## Order APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           ratingsTotalUserFirst += 5;
-          reviewsCountUserFirst++;
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
@@ -462,7 +465,6 @@ describe('## Order APIs', () => {
         .then(({ body }) => {
           expect(body.data.order.id).toBe(orderSix.id);
           ratingsTotalUserFirst += 5;
-          reviewsCountUserFirst++;
         });
     });
 
@@ -473,7 +475,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.ratingsTotal).toBe(ratingsTotalUserFirst);
-          expect(body.reviewsCount).toBe(reviewsCountUserFirst);
+          expect(body.ordersAndReviewsCount).toBe(ordersAndReviewsCountUser1);
         });
     });
 
@@ -484,7 +486,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.ratingsTotal).toBe(ratingsTotalUserAnother);
-          expect(body.reviewsCount).toBe(reviewsCountUserAnother);
+          expect(body.ordersAndReviewsCount).toBe(ordersAndReviewsCountUser2);
         });
     });
   });

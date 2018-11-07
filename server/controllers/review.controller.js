@@ -202,7 +202,7 @@ async function create(
     const savedReview = await review.save();
 
     await User.findByIdAndUpdate(targetUser, {
-      $inc: { reviewsCount: 1, ratingsTotal: rateNumber },
+      $inc: { ratingsTotal: rateNumber },
     });
 
     const buyer = await User.findById(order.buyer);
