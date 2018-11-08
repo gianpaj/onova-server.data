@@ -5,26 +5,26 @@ import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import request from 'supertest';
 
-import { agenda } from '../config/express';
-import config from '../config/config';
+import { agenda } from '../../config/express';
+import config from '../../config/config';
 
-import app from '../index';
+import app from '../../index';
 
-import Order from '../models/order.model';
-import Product from '../models/product.model';
+import Order from '../../models/order.model';
+import Product from '../../models/product.model';
 
 import {
   beforeAllTests,
   createOrder,
   createProduct,
   createUserAndLogin,
-} from './utils';
+} from '../utils';
 import {
   buyerNeedsToPay,
   buyerPaidDeal,
   sellerCancelsAPaidDeal,
   sellerConfirmedResponse,
-} from '../helpers/shipping';
+} from '../../helpers/shipping';
 
 const photos = {
   photos: [
