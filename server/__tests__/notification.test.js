@@ -370,7 +370,7 @@ describe('## Notification APIs', () => {
                 expect(data.targetUser.toString()).toBe(anotherUserId);
                 expect(data.triggeredBy.toString()).toBe(orderId);
                 expect(data.triggeredType).toBe('Order');
-                expect(data.message).toContain('Your order has been cancelled');
+                expect(data.message).toBe(i18n.orderCancelled);
                 expect(typeof data.random).toBe('string');
                 done();
               });
