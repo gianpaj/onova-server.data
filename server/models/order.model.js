@@ -6,6 +6,7 @@ import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import Block from '../models/block.model';
 import { userPopulateFields, productPopulateFields } from './user.model';
+import { NP } from '../helpers/shipping';
 
 const { Schema } = mongoose;
 
@@ -148,6 +149,11 @@ var OrderSchema = new Schema(
       type: String,
       enum: ['novaposhta'],
     },
+    shippingStatus: {
+      type: String,
+      enum: [NP.generated, NP.shipped, NP.delivered, NP.refused, NP.collected],
+    },
+    shippingUpdatedAt: Date,
   },
   // assigns 'createdAt' and 'updatedAt' fields to your schema
   { timestamps: true }
@@ -212,7 +218,8 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   shippingFee: ?number;
   // shippingMethod: string;
   shippingProvider: ?string;
-  // shippingStatus: string;
+  shippingStatus: string;
+  shippingUpdatedAt: string;
   // shippingTax: number;
 }
 

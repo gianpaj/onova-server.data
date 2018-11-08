@@ -1,0 +1,147 @@
+//@flow
+
+import Order, { OrderDoc } from '../models/order.model';
+import Product from '../models/product.model';
+import Shipping, { NP } from '../helpers/shipping';
+import JobManager from '../helpers/job';
+
+import config from '../config/config';
+
+import { agenda } from '../config/express';
+
+const checkShippingStatusEveryHours = parseInt(
+  config.settings.checkShippingStatusEvery.slice(' ')[0]
+);
+
+const debug = require('debug')('server-data:escrow');
+// const debug = console.log;
+
+export default class ShippingRunner {
+  constructor() {
+    this.initStatusStarterJob();
+    this.initStatusCheckerJobs();
+  }
+
+  initStatusStarterJob() {
+    this.defineStatusStarterJob();
+
+    agenda.on('ready', () => {
+      agenda.cancel({ name: 'shipping-status-starter' }, (err, numRemoved) => {
+        if (err) return console.error(err);
+        debug('shipping-status-starter cleaned up jobs:', numRemoved);
+        agenda.start();
+        this.createStatusStarterJob();
+      });
+    });
+  }
+
+  initStatusCheckerJobs() {
+    this.defineStatusCheckerJobs();
+
+    agenda.on('ready', () => {
+      agenda.cancel({ name: 'shipping-status-checker' }, (err, numRemoved) => {
+        if (err) return console.error(err);
+        debug('shipping-status-checker cleaned up jobs:', numRemoved);
+        agenda.start();
+      });
+    });
+  }
+
+  createStatusStarterJob() {
+    const job = agenda.create('shipping-status-starter');
+    job.unique({ jobName: 'shipping-status-starter' });
+    job.repeatEvery(
+      config.env === 'test'
+        ? '3 seconds'
+        : config.settings.checkShippingStatusEvery
+    );
+    job.save();
+  }
+
+  createStatusCheckerJob(orderId: string) {
+    return new Promise((resolve, reject) => {
+      const job = agenda.create('shipping-status-checker');
+      job.unique({ jobName: 'shipping-status-checker', orderId });
+      job.save(err => {
+        if (err) {
+          const error = new Error(`Job failed with error: ${err}`);
+          return reject(error);
+        }
+        debug('shipping-status-checker', 'Job successfully saved');
+        resolve();
+      });
+    });
+  }
+
+  /**
+   * checks if there are order shipping statuses that need to be updated
+   */
+  defineStatusStarterJob() {
+    agenda.define('shipping-status-starter', async (job, done) => {
+      console.log('shipping-status-starter job running at', new Date());
+
+      const previousDate = new Date(
+        Date.now() -
+          (config.env === 'test'
+            ? 1 * 1000
+            : checkShippingStatusEveryHours * 60 * 60 * 1000)
+      );
+
+      const orders: Array<OrderDoc> = await Order.find({
+        status: { $in: ['confirmed', 'shipped', 'delivered'] },
+        // shippingStatus: { $in: [NP.generated, NP.shipped] },
+        shippingUpdatedAt: { $lte: previousDate },
+      });
+      if (!orders.length) return done();
+
+      const Promises = orders.map(order =>
+        this.createStatusCheckerJob(order.id)
+      );
+
+      try {
+        await Promise.all(Promises);
+        done();
+      } catch (error) {
+        console.error(error);
+        done(error);
+      }
+    });
+  }
+
+  defineStatusCheckerJobs() {
+    // define job for checking shipping status that needs to be updated and send system message
+    agenda.define('shipping-status-checker', async (job, done) => {
+      console.log('shipping-status-checker job running at', new Date());
+
+      const { orderId } = job.attrs;
+      // TODO: (later) validate order still needs to be updated
+
+      try {
+        const order: OrderDoc = await Order.findById(orderId);
+
+        if (!order) {
+          throw new Error('Error getting order for checking shipping status');
+        }
+
+        console.log(order);
+
+        const { status } = await Shipping.getShippingStatus(
+          order.trackingNumber
+        );
+
+        console.log(status);
+
+        order.shippingStatus = status;
+        order.shippingUpdatedAt = new Date();
+        order.save();
+
+        // // send system message for the various shippingStatus
+        // await JobManager.sendSystemMessage(order);
+        done();
+      } catch (error) {
+        console.error(error);
+        done(error);
+      }
+    });
+  }
+}
