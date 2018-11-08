@@ -10,6 +10,7 @@ import config from '../../config/config';
 
 import app from '../../index';
 
+import { i18n } from '../../controllers/order.controller';
 import Order from '../../models/order.model';
 import Product from '../../models/product.model';
 
@@ -148,43 +149,22 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          console.log(orderFound1);
-
           // test order is now 'shipped'
           expect(orderFound1.shippingStatus).toBe(NP.shipped);
 
-          // agenda.jobs({ name: 'config.JOBNAMES.PUSH_ORDER' }, (err, jobs) => {
-          //   if (err) return done(err);
-          //   expect(jobs).toHaveLength(3);
-          //   const targetUsers = jobs
-          //     .map(j => j.attrs)
-          //     .map(({ data }) => data.targetUser.toString())
-          //     .slice(1); // remove the first push notification job
-
-          //   expect(targetUsers.find(u => u === buyer._id)).toBeTruthy();
-          //   expect(targetUsers.find(u => u === seller._id)).toBeTruthy();
-
-          //   const { data: push1 } = jobs.map(j => j.attrs)[1];
-          //   expect(push1.triggeredBy.toString()).toBe(o.id);
-          //   expect(push1.triggeredType).toBe('Order');
-          //   expect(typeof push1.random).toBe('string');
-          //   const { data: push2 } = jobs.map(j => j.attrs)[2];
-          //   expect(push2.triggeredBy.toString()).toBe(o.id);
-          //   expect(push2.triggeredType).toBe('Order');
-          //   expect(typeof push2.random).toBe('string');
-
-          //   agenda.jobs(
-          //     { name: config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER },
-          //     (err, jobs) => {
-          //       if (err) return done(err);
-          //       expect(jobs).toHaveLength(1);
-          //       done();
-          //     }
-          //   );
-          // });
-
-          done();
-        }, 7000);
+          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+            if (err) return done(err);
+            const data = jobs.map(job => job.attrs.data);
+            expect(data).toHaveLength(2);
+            // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
+            data.map(data => {
+              // expect(data.shippingStatus).toBe(NP.shipped);
+              if (data.message.startsWith(i18n.orderShipped.slice(0, 10))) {
+                done();
+              }
+            });
+          });
+        }, 6000);
       } catch (error) {
         console.error(error);
       }

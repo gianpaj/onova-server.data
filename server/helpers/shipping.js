@@ -36,8 +36,6 @@ export default class Shipping {
 
           const result = data.data[0];
 
-          console.log(result);
-
           // Number not found
           if (result.StatusCode === '3') {
             return resolve(false);
