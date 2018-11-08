@@ -123,20 +123,16 @@ export default class ShippingRunner {
           throw new Error('Error getting order for checking shipping status');
         }
 
-        console.log(order);
-
         const { status } = await Shipping.getShippingStatus(
           order.trackingNumber
         );
-
-        console.log(status);
 
         order.shippingStatus = status;
         order.shippingUpdatedAt = new Date();
         order.save();
 
-        // // send system message for the various shippingStatus
-        // await JobManager.sendSystemMessage(order);
+        // send system message for the various shippingStatus
+        await JobManager.sendSystemMessage(order);
         done();
       } catch (error) {
         console.error(error);
