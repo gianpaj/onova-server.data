@@ -55,12 +55,14 @@ export const i18n = {
     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
   orderNotConfirmedToSeller:
     "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
-  orderShipped:
-    'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
   orderConfirmed:
     "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
+  orderShipped:
+    'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
   orderDelivered:
     'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
+  orderCompleted:
+    'The package with tracking number: __TRACKING_NUM__\n has been collected',
 };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
