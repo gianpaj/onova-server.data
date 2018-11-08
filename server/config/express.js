@@ -21,7 +21,8 @@ import winstonInstance from './winston';
 import routes from '../routes';
 import config from './config';
 import APIError from '../helpers/APIError';
-import EscrowManager from './escrow-manager';
+import EscrowRunner from '../runners/escrow.runner';
+import ShippingRunner from '../runners/shipping.runner';
 
 const debug = require('debug')('server-data:index');
 
@@ -44,7 +45,12 @@ if (config.env === 'test') {
 /**
  * Escrow manager to cancel unpaid orders, notify of status updates on payments and shipping
  */
-new EscrowManager();
+new EscrowRunner();
+
+/**
+ * Shipping manager to updates users on the status of their shipping. From order ready to ship to finilised.
+ */
+new ShippingRunner();
 
 /**
  * API keys and Passport configuration.

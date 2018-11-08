@@ -141,7 +141,9 @@ const config = {
     // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
     cancelPaidOrdersAfter: 60 * 60 * 48, // hours
 
-    remindToConfirmOrderEvery: '6 hours', // hours
+    remindToConfirmOrderEvery: '6 hours',
+
+    checkShippingStatusEvery: '2 hours',
 
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
 
