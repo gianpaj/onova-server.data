@@ -60,7 +60,7 @@ export default class ShippingRunner {
 
   createStatusCheckerJob(orderId: string) {
     return new Promise((resolve, reject) => {
-      const job = agenda.create('shipping-status-checker');
+      const job = agenda.create('shipping-status-checker', { orderId });
       job.unique({ jobName: 'shipping-status-checker', orderId });
       job.save(err => {
         if (err) {
