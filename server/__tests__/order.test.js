@@ -76,7 +76,7 @@ describe('## Order APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     // seller id is the user who creates the product
-    price: '100.99', // if no decimal points .00 will be added
+    price: '190.99', // if no decimal points .00 will be added
     ...photos,
   };
 
@@ -85,7 +85,7 @@ describe('## Order APIs', () => {
     typeIds: [1, 3],
     tags: ['summer'],
     description: 'nice flipflops',
-    price: '110.99',
+    price: '190.99',
     ...photos,
   };
 
@@ -184,7 +184,9 @@ describe('## Order APIs', () => {
       )
     );
 
-    Promise.all(Promises).then(() => done());
+    Promise.all(Promises)
+      .then(() => done())
+      .catch(e => console.error(e));
   });
 
   describe('# POST /api/orders', () => {
