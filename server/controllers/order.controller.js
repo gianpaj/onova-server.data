@@ -12,7 +12,7 @@ import User, { UserDoc } from '../models/user.model';
 import Block from '../models/block.model';
 import Notification from '../models/notification.model';
 import notifCtrl from '../controllers/notification.controller';
-import { sellerConfirmedResponse } from '../helpers/shipping';
+import { sellerConfirmedResponse, NP } from '../helpers/shipping';
 import JobManager from '../helpers/job';
 
 import type { NotifPayload } from '../controllers/notification.controller';
@@ -55,6 +55,10 @@ export const i18n = {
     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
   orderNotConfirmedToSeller:
     "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
+  orderShipped:
+    'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
+  orderConfirmed:
+    "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
 };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
@@ -293,7 +297,11 @@ async function update(
       await checkPaymentStatusAndUpdateOrder(foundOrder);
 
       // Schedule a msg with tracking number to notify both parties via chat
-      await sendSystemMessage(foundOrder);
+      const message = i18n.orderConfirmed.replace(
+        '__TRACKING_NUM__',
+        foundOrder.trackingNumber
+      );
+      await sendSystemMessage(foundOrder, message);
 
       foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
@@ -660,6 +668,8 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
           else if (data.status === 'PAID') {
             order.transactionStatus = 'ua-finished';
             order.status = 'paid';
+            order.shippingStatus = NP.generated;
+            order.shippingUpdatedAt = new Date();
             // only update first time we check
             if (!order.datePaid) order.datePaid = new Date();
             createOrderNotification(order)
