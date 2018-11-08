@@ -32,6 +32,16 @@ export default class JobManager {
           };
 
           break;
+        case NP.delivered:
+          msg = {
+            ...msg,
+            message: i18n.orderDelivered.replace(
+              '__TRACKING_NUM__',
+              order.trackingNumber
+            ),
+          };
+
+          break;
 
         default:
           reject(new Error('invalid shippingStatus'));

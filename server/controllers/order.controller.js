@@ -59,6 +59,8 @@ export const i18n = {
     'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
   orderConfirmed:
     "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
+  orderDelivered:
+    'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
 };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
