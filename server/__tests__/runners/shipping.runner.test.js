@@ -120,7 +120,6 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          // test order is now 'shipped'
           expect(orderFound1.shippingStatus).toBe(NP.shipped);
 
           agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
@@ -130,7 +129,7 @@ describe('## Shipping Runner', () => {
             // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
             data.map(data => {
               // expect(data.shippingStatus).toBe(NP.shipped);
-              if (data.message.startsWith(i18n.orderShipped.slice(0, 10))) {
+              if (data.message.endsWith(i18n.orderShipped.slice(-10))) {
                 done();
               }
             });
@@ -161,19 +160,56 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          console.log(orderFound);
-
-          // test order is now 'delivered'
           expect(orderFound.shippingStatus).toBe(NP.delivered);
 
           agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
             if (err) return done(err);
             const data = jobs.map(job => job.attrs.data);
-            expect(data).toHaveLength(2);
+            expect(data).toHaveLength(3);
             // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
             data.map(data => {
               // expect(data.shippingStatus).toBe(NP.shipped);
-              if (data.message.startsWith(i18n.orderDelivered.slice(0, 10))) {
+              if (data.message.endsWith(i18n.orderDelivered.slice(-10))) {
+                done();
+              }
+            });
+          });
+        }, 6000);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    it('should have checked an order has been collected', async done => {
+      try {
+        const dealID = '1B27M6E';
+        await payOrder(o1.id, user2JwtToken, dealID);
+        // seller needs to ships after confirming
+        await confirmOrder(o1.id, user1JwtToken, dealID);
+
+        mock
+          .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
+          .reply(200, novaPoshta.collected);
+
+        // test system message has been scheduled
+        setTimeout(async () => {
+          const {
+            body: { data: orderFound },
+          } = await request(app)
+            .get(`/api/orders/${o1.id}`)
+            .set('Authorization', user2JwtToken)
+            .expect(httpStatus.OK);
+
+          expect(orderFound.shippingStatus).toBe(NP.collected);
+
+          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+            if (err) return done(err);
+            const data = jobs.map(job => job.attrs.data);
+            expect(data).toHaveLength(4);
+            // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
+            data.map(data => {
+              // expect(data.shippingStatus).toBe(NP.shipped);
+              if (data.message.endsWith(i18n.orderCompleted.slice(-10))) {
                 done();
               }
             });

@@ -27,17 +27,3 @@ Array [
   "username",
 ]
 `;
-
-exports[` 3`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "sharedCount",
-  "tokens",
-  "username",
-]
-`;
