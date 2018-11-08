@@ -9,14 +9,14 @@ import {
 import notifCtrl from '../controllers/notification.controller';
 import Product from '../models/product.model';
 
-import config from './config';
+import config from '../config/config';
 
-import { agenda } from './express';
+import { agenda } from '../config/express';
 
 const debug = require('debug')('server-data:escrow');
 // const debug = console.log;
 
-export default class EscrowManager {
+export default class EscrowRunner {
   constructor() {
     this.initCheckoutJob();
     this.initCancelPaidOrdersJob();
@@ -40,7 +40,7 @@ export default class EscrowManager {
     this.defineCancelPaidOrdersJob();
 
     agenda.on('ready', () => {
-      agenda.cancel({ name: 'cancelPaidOrders' }, (err, numRemoved) => {
+      agenda.cancel({ name: 'cancel-paid-orders' }, (err, numRemoved) => {
         if (err) return console.error(err);
         debug('cancelPaidOrders cleaned up jobs:', numRemoved);
         agenda.start();
@@ -77,8 +77,8 @@ export default class EscrowManager {
   }
 
   createCancelPaidOrdersJob() {
-    const job = agenda.create('cancelPaidOrders');
-    job.unique({ jobName: 'cancelPaidOrders' });
+    const job = agenda.create('cancel-paid-orders');
+    job.unique({ jobName: 'cancel-paid-orders' });
     job.repeatEvery(config.env === 'test' ? '3 seconds' : '60 minutes');
     job.save();
   }
@@ -131,8 +131,8 @@ export default class EscrowManager {
   }
 
   defineCancelPaidOrdersJob() {
-    agenda.define('cancelPaidOrders', async (job, done) => {
-      console.log('cancelPaidOrders job running at', new Date());
+    agenda.define('cancel-paid-orders', async (job, done) => {
+      console.log('cancel-paid-orders job running at', new Date());
 
       const previousDate = new Date(
         Date.now() -
