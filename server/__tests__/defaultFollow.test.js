@@ -3,7 +3,7 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import app from '../index';
 import DefaultFollow from '../models/defaultFollow.model';

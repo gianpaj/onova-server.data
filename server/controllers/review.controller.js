@@ -5,6 +5,7 @@ import request from 'request';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 
 import APIError from '../helpers/APIError';
+import City from '../models/cities.model';
 import Order, { OrderDoc } from '../models/order.model';
 import Review, { ReviewDoc } from '../models/review.model';
 import User, { UserDoc } from '../models/user.model';
@@ -28,7 +29,6 @@ declare class session$RequestCreate extends express$Request {
   user: UserDoc;
   body: {
     orderId: string,
-    trackingNumber: string,
     lang: string,
     rateNumber: number,
     text: string,
@@ -44,7 +44,7 @@ declare class session$RequestCreate extends express$Request {
  * @property {*} req.params - express session parameters
  * @property {MongoId} req.params.userId
  * @property {*} req.query - express session query
- * @property {string} req.query.as buyer|seller|both
+ * @property {string} req.query.as buyer|seller|both (default is both)
  */
 async function list(
   req: session$RequestList,
@@ -54,37 +54,67 @@ async function list(
   const { userId } = req.params;
   const { as } = req.query;
   // const { limit = 50, lastId } = req.query;
-  // TODO: paginate inside list of reviews` array using limit & lastId
+  // TODO: paginate inside list of reviews using limit & lastId
 
+  // FIXME: embed review inside of Order model
   try {
     const user = await User.findById(userId);
-    if (!user) {
-      throw new APIError('Invalid userId', httpStatus.BAD_REQUEST);
-    }
-    let match = {};
-    let query = { targetUser: userId };
+
+    if (!user) throw new APIError('Invalid userId', httpStatus.BAD_REQUEST);
+
+    // find all the orders with a finalised status
+    // populate all those reviews
+
+    let populate = 'product ';
+    let query = {
+      $or: [
+        {
+          status: { $in: ['completed', 'failed_by_buyer', 'failed_by_seller'] },
+        },
+        { status: 'cancelled', reason: { $exists: true } },
+      ],
+    };
+    // const match = { targetUser: userId };
+
     if ('buyer' === as) {
-      match = { buyer: userId };
-    }
-    if ('seller' === as) {
-      match = { seller: userId };
-    }
-    if ('both' === as) {
+      query = { ...query, buyer: userId };
+      populate += 'reviewFromSeller';
+    } else if ('seller' === as) {
+      query = { ...query, seller: userId };
+      populate += 'reviewFromBuyer';
+
+      // the default
+    } else if ('both' === as) {
       query = {
-        $or: [{ targetUser: userId }, { fromUser: userId }],
+        ...query,
+        $or: [{ buyer: userId }, { seller: userId }],
       };
+      populate += 'reviewFromBuyer reviewFromSeller';
     }
-    let reviews = await Review.find(query)
+
+    let orders = await Order.find(query)
       .sort({ createdAt: -1 })
+      .populate(populate)
       .populate({
-        path: 'order',
-        match,
-        populate: { path: 'product buyer seller ' },
+        path: 'buyer seller',
+        select: 'username',
       });
+    // FIXME: only return productURIs from DB
+    // .populate({
+    //   path: 'product',
+    //   select: 'photoURIs',
+    // })
 
-    reviews = reviews.filter(r => r.order !== null);
+    // orders = orders.map(o => ({
+    //   ...o,
+    //   product: { photoURIs: o.product.photoURIs },
+    // }));
 
-    return res.json({ data: reviews });
+    // sort by dateCompleted/dateFailed/dateCancelled
+    // return res.json({
+    //   data: orders.sort((a, b) => a.finalisedAt > b.finalisedAt),
+    // });
+    return res.json({ data: orders });
   } catch (err) {
     return next(err);
   }
@@ -103,7 +133,7 @@ async function list(
  * @property {string} req.body.text
  * @property {number} req.body.rateNumber
  * @property {string} req.body.lang
- * @property {number} req.body.trackingNumber
+ * @property {number} req.body
  */
 async function create(
   req: session$RequestCreate,
@@ -117,21 +147,16 @@ async function create(
     );
     return next(APIerr);
   }
-  const { orderId, text, rateNumber, lang, trackingNumber } = req.body;
+  const { orderId, text, rateNumber, lang } = req.body;
   let order: OrderDoc;
 
   try {
     order = await Order.get(orderId, req.user._id.toString());
 
-    // TODO: after integration with payment provider do not allow reviews on `pending` status
     if (
-      [
-        'completed',
-        'failed_by_buyer',
-        'failed_by_seller',
-        'failed',
-        'pending',
-      ].indexOf(order.status) < 0
+      ['completed', 'failed_by_buyer', 'failed_by_seller'].indexOf(
+        order.status
+      ) < 0
     ) {
       throw new APIError(
         `Cannot create review on an order that is '${order.status}'`,
@@ -139,44 +164,27 @@ async function create(
       );
     }
 
-    let cities;
-    try {
-      cities = await getValidTrackingNumberCities(
-        trackingNumber
-        // order.datePending
-      );
-      if (!cities) {
-        const APIerr = new APIError(
-          'The tracking number is not valid',
-          httpStatus.BAD_REQUEST
-        );
-        return next(APIerr);
-      }
-    } catch (err) {
-      console.error(err);
-      const APIerr = new APIError(
-        'The tracking number is not valid',
-        httpStatus.INTERNAL_SERVER_ERROR
-      );
-      return next(APIerr);
-    }
-
-    // count all the orders with this tracking number that don't match this _id
-    const count = await Order.countDocuments({
-      trackingNumber,
-      _id: { $ne: order._id },
-    });
-
-    if (count > 0) {
-      throw new APIError('Duplicate tracking number', httpStatus.BAD_REQUEST);
-    }
-
-    if (order.trackingNumber && order.trackingNumber !== trackingNumber) {
-      throw new APIError(
-        'The tracking number is not valid',
-        httpStatus.BAD_REQUEST
-      );
-    }
+    // let cities;
+    // try {
+    //   cities = await getValidTrackingNumberCities(
+    //     trackingNumber
+    //     // order.datePending
+    //   );
+    //   if (!cities) {
+    //     const APIerr = new APIError(
+    //       'The tracking number is not valid',
+    //       httpStatus.BAD_REQUEST
+    //     );
+    //     return next(APIerr);
+    //   }
+    // } catch (err) {
+    //   console.error(err);
+    //   const APIerr = new APIError(
+    //     'The tracking number is not valid',
+    //     httpStatus.INTERNAL_SERVER_ERROR
+    //   );
+    //   return next(APIerr);
+    // }
 
     const iAmTheSeller = req.user._id.toString() == order.seller._id.toString();
     const iAmTheBuyer = req.user._id.toString() == order.buyer._id.toString();
@@ -194,17 +202,21 @@ async function create(
     const savedReview = await review.save();
 
     await User.findByIdAndUpdate(targetUser, {
-      $inc: { reviewsCount: 1, ratingsTotal: rateNumber },
+      $inc: { ratingsTotal: rateNumber },
     });
 
-    order.trackingNumber = trackingNumber;
-    order.citySender = cities.citySender;
-    order.cityRecipient = cities.cityRecipient;
+    const buyer = await User.findById(order.buyer);
+    const seller = await User.findById(order.seller);
 
-    // TODO: after integrating with payment provider do not mark product as sold like this
+    const citySender = await City.findOne({ id: seller.shippingAddress.city });
+    const cityRecipient = await City.findOne({
+      id: buyer.shippingAddress.city,
+    });
+
+    order.citySender = citySender.uk;
+    order.cityRecipient = cityRecipient.uk;
+
     if (iAmTheBuyer) {
-      order.product.status = 'sold';
-      await order.product.save();
       order.reviewFromBuyer = savedReview.id;
     } else {
       order.reviewFromSeller = savedReview.id;
@@ -224,7 +236,7 @@ async function create(
           fromSeller: iAmTheSeller,
           rateNumber: savedReview.rateNumber,
           targetUser: savedReview.targetUser,
-          trackingNumber: order.trackingNumber,
+          // trackingNumber: order.trackingNumber,
         },
       });
     }

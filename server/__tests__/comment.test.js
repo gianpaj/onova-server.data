@@ -35,7 +35,7 @@ const product = {
   tags: ['winter', 'spring2007'], // optional
   description: 'nice boots',
   // seller comes after the user is created
-  price: '100.99', // if no decimal points .00 will be added
+  price: '1100.99', // if no decimal points .00 will be added
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
@@ -80,7 +80,7 @@ const notForSaleProduct = {
   typeIds: [1, 3],
   tags: ['WINTER'],
   description: 'nice scarf',
-  price: '30',
+  price: '1130',
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],

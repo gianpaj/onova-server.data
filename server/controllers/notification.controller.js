@@ -1,7 +1,7 @@
 // @flow
 
 import httpStatus from 'http-status';
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import APIError from '../helpers/APIError';
 import config from '../config/config';
@@ -171,6 +171,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           triggeredType,
           message: notifI18n,
         });
+        debug(config.JOBNAMES.PUSH_ORDER, 'Job successfully saved');
         const doc = await Notification.create({
           data,
           notifI18n,

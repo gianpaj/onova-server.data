@@ -4,7 +4,7 @@ import shortid from 'shortid';
 import httpStatus from 'http-status';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 import path from 'path';
-// const debug = require('debug')('express-mongoose-es6-rest-api:index');
+// const debug = require('debug')('server-data:index');
 const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
 });
@@ -102,7 +102,7 @@ async function create(
       product.locality = geodata.admin1.name;
     } catch (err) {
       console.error(err);
-      const APIerr = new APIError('Invalid location', 400);
+      const APIerr = new APIError('Invalid location', httpStatus.BAD_REQUEST);
       return next(APIerr);
     }
   }
@@ -125,7 +125,7 @@ async function create(
   User.findById(req.user._id)
     .then(async seller => {
       if (!seller) {
-        throw new APIError('Seller not found', 400);
+        throw new APIError('Seller not found', httpStatus.BAD_REQUEST);
       }
       if (seller.accountStatus !== 'verified') {
         throw new APIError(
@@ -150,7 +150,7 @@ async function create(
       }
 
       // if (body.socials.indexOf('fb') > -1 && !seller.facebook) {
-      //   throw new APIError('Please authorize with Facebook', 400);
+      //   throw new APIError('Please authorize with Facebook', httpStatus.BAD_REQUEST);
       // }
 
       product.seller = req.user._id;
@@ -160,7 +160,7 @@ async function create(
       );
 
       if (correctPhotos.length < 1) {
-        throw new APIError('Invalid photos', 400);
+        throw new APIError('Invalid photos', httpStatus.BAD_REQUEST);
       }
 
       const date = Date.now();

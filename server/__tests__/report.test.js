@@ -33,7 +33,7 @@ describe('## Report methods', () => {
     categoryIds: [2],
     typeIds: [3],
     description: 'nice boots',
-    price: '100.99',
+    price: '1100.99',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],

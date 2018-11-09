@@ -32,7 +32,7 @@ const product = {
   tags: ['winter', 'spring2007'], // optional
   description: 'nice boots',
   // seller comes after the user is created
-  price: '100.99', // if no decimal points .00 will be added
+  price: '1100.99', // if no decimal points .00 will be added
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
@@ -65,7 +65,7 @@ const notForSaleProduct = {
   typeIds: [1, 3],
   tags: ['WINTER'],
   description: 'nice scarf',
-  price: '30',
+  price: '1130',
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
@@ -77,7 +77,7 @@ let firstJwtToken;
 let anotherJwtToken;
 
 describe('## Search APIs', () => {
-  // TODO: reset the collections for every set of tests (beforEach)
+  // TODO: reset the collections beforeEach
   beforeAll(beforeAllTests);
 
   // create 2 users/sellers + 2 products
@@ -190,7 +190,7 @@ describe('## Search APIs', () => {
         typeIds: [1, 3],
         tags: ['WINTER'],
         description: 'nice jumper',
-        price: '39',
+        price: '239',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
@@ -240,7 +240,7 @@ describe('## Search APIs', () => {
         typeIds: [1, 5],
         tags: ['WINTER'],
         description: 'nice hoodie',
-        price: '69',
+        price: '169',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],
@@ -291,7 +291,7 @@ describe('## Search APIs', () => {
         typeIds: [1, 4],
         tags: ['warm'],
         description: 'nice socks',
-        price: '19',
+        price: '219',
         photos: [
           'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
         ],

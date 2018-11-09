@@ -13,7 +13,7 @@ import Product from '../models/product.model';
 import User from '../models/user.model';
 import { createUserAndLogin, beforeAllTests } from './utils';
 
-jasmine.DEFAULT_TIMEOUT_INTERVAL = 15000;
+jest.setTimeout(15000);
 
 // if server.push is NOT running
 const schedulerIsRunning = process.env.SCHEDULER_IS_RUNNING == 'true';
@@ -59,7 +59,7 @@ describe('## Schedule APIs', () => {
     typeIds: [1, 2, 3],
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
-    price: '100.99',
+    price: '1100.99',
     photos: ['http://storage.googleapis.com/1527232263107'],
   };
 

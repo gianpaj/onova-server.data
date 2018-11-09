@@ -8,7 +8,6 @@ Array [
   "followersCount",
   "followingCount",
   "ratingsTotal",
-  "reviewsCount",
   "sharedCount",
   "tokens",
   "username",
@@ -23,7 +22,6 @@ Array [
   "followersCount",
   "followingCount",
   "ratingsTotal",
-  "reviewsCount",
   "sharedCount",
   "tokens",
   "username",
@@ -38,9 +36,22 @@ Array [
   "followersCount",
   "followingCount",
   "ratingsTotal",
-  "reviewsCount",
   "sharedCount",
   "tokens",
+  "username",
+]
+`;
+
+exports[`## Order APIs # GET /api/users/:userId/review should get all the user2 orders with reviews 1`] = `
+Array [
+  "_id",
+  "username",
+]
+`;
+
+exports[`## Order APIs # GET /api/users/:userId/review should get all the user2 orders with reviews 2`] = `
+Array [
+  "_id",
   "username",
 ]
 `;

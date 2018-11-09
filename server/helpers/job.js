@@ -1,38 +1,74 @@
 // @flow
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import { agenda } from '../config/express';
-import { OrderDoc } from '../models/order.model';
 import config from '../config/config';
-
-export const i18n = {
-  orderConfirmed:
-    "Awesome! Here's the tracking number:\n__TRACKING_NUM__\nThe item can now be shipped from Nova Poshta",
-  orderShipped: 'The package has been shipped! 🎉',
-};
-
-type SystemMessage = {};
+import { OrderDoc } from '../models/order.model';
+import { i18n } from '../controllers/order.controller';
+import { NP } from '../helpers/shipping';
 
 export default class JobManager {
   static sendSystemMessage(order: OrderDoc) {
     return new Promise((resolve, reject) => {
-      // send Tracking Number
+      let msg = { order };
 
-      // if (order.status === 'confirmed')
-      const message: SystemMessage = {
-        order,
-        message: i18n.orderConfirmed.replace(
-          '__TRACKING_NUM__',
-          order.trackingNumber
-        ),
-      };
+      switch (order.shippingStatus) {
+        case NP.generated:
+          msg = {
+            ...msg,
+            message: i18n.orderConfirmed.replace(
+              '__TRACKING_NUM__',
+              order.trackingNumber
+            ),
+          };
+          break;
+        case NP.shipped:
+          msg = {
+            ...msg,
+            message: i18n.orderShipped.replace(
+              '__TRACKING_NUM__',
+              order.trackingNumber
+            ),
+          };
 
-      const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, message);
+          break;
+        case NP.delivered:
+          msg = {
+            ...msg,
+            message: i18n.orderDelivered.replace(
+              '__TRACKING_NUM__',
+              order.trackingNumber
+            ),
+          };
+
+          break;
+        case NP.collected:
+          msg = {
+            ...msg,
+            message: i18n.orderCompleted.replace(
+              '__TRACKING_NUM__',
+              order.trackingNumber
+            ),
+          };
+
+          break;
+
+        default:
+          reject(new Error('invalid shippingStatus'));
+          break;
+      }
+
+      const job = agenda.create(config.JOBNAMES.SYSTEM_MSG, msg);
+      job.unique({
+        jobName: config.JOBNAMES.SYSTEM_MSG,
+        shippingStatus: order.shippingStatus,
+        trackingNumber: order.trackingNumber,
+      });
 
       job.save(err => {
         if (err) {
           const error = new Error(`Job failed with error: ${err}`);
-          reject(error);
+          return reject(error);
         }
         debug(config.JOBNAMES.SYSTEM_MSG, 'Job successfully saved');
         resolve();

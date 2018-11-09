@@ -76,7 +76,7 @@ describe('## Order APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     // seller id is the user who creates the product
-    price: '100.99', // if no decimal points .00 will be added
+    price: '190.99', // if no decimal points .00 will be added
     ...photos,
   };
 
@@ -85,7 +85,7 @@ describe('## Order APIs', () => {
     typeIds: [1, 3],
     tags: ['summer'],
     description: 'nice flipflops',
-    price: '10.99',
+    price: '190.99',
     ...photos,
   };
 
@@ -184,7 +184,9 @@ describe('## Order APIs', () => {
       )
     );
 
-    Promise.all(Promises).then(() => done());
+    Promise.all(Promises)
+      .then(() => done())
+      .catch(e => console.error(e));
   });
 
   describe('# POST /api/orders', () => {
@@ -591,7 +593,7 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should change the paymentMethod to `paypal`', () => {
+    it.skip('should change the paymentMethod to `paypal`', () => {
       return request(app)
         .put(`/api/orders/${orderPOST1}`)
         .set('Authorization', firstUserJwtToken)
@@ -599,7 +601,6 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const o = res.body.data;
-          // TODO: after payment is tested it should return 'datePaid'
           expect(Object.keys(o).sort()).toMatchSnapshot();
           expect(o.priceOfItem).toBe(productPOST1.price);
           expect(o.paymentMethod).toBe('paypal');
@@ -730,10 +731,7 @@ describe('## Order APIs', () => {
       await request(app)
         .get(`/api/products/${orderPOST3ProdUUID}`)
         .expect(httpStatus.OK)
-        .then(res => {
-          const p = res.body.data;
-          expect(p.status).toBe('forsale');
-        });
+        .then(({ body }) => expect(body.data.status).toBe('forsale'));
     });
 
     it('should allow another buyer to create an order for the same product (after the previous order cancellation)', () => {
@@ -784,7 +782,7 @@ describe('## Order APIs', () => {
       ...photos,
     };
     let orderId, orderId2, orderId3, orderId4;
-    let order3ProdUUID;
+    let order2ProdUUID, order3ProdUUID;
 
     beforeAll(async () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
@@ -801,6 +799,7 @@ describe('## Order APIs', () => {
           o => {
             expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
+            order2ProdUUID = product.uuid;
             orderId2 = o.id;
           }
         )
@@ -871,7 +870,7 @@ describe('## Order APIs', () => {
     });
 
     it('should NOT create a payment for an order if payment info', () => {
-      mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
+      mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
       mock.onPost(`/deals/9B27M6E/payments`).reply(200, buyerNeedsToPay);
       mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaymentFailure);
@@ -927,12 +926,16 @@ describe('## Order APIs', () => {
           const o = res.body.data;
           expect(o.priceOfItem).toBe(productPOST2.price);
           expect(o.status).toBe('cancelled');
-          expect(o.transactionStatus).toBe('ua-reversed');
+          expect(o.transactionStatus).toBe('ua-finished');
           expect(o.transactionId).toBe(dealID);
           expect(typeof o.dateCancelled).toBe('string');
           expect(o.reason).toBe('i already sold this elsewhere');
         });
-      // TODO: test Product status is back 'forsale'
+
+      await request(app)
+        .get(`/api/products/${order2ProdUUID}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.status).toBe('forsale'));
     });
 
     test('a buyer should NOT cancel an order that has been paid', async () => {
@@ -1105,12 +1108,13 @@ describe('## Order APIs', () => {
     });
 
     describe('get a payment finished status', () => {
+      const dealID = '9B27M6E';
       beforeAll(() => {
         // start payment
-        mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
-        mock.onPost('/deals').reply(200, { data: { id: '9B27M6E' } });
-        mock.onPost(`/deals/9B27M6E/payments`).reply(200);
-        mock.onGet(`/deals/9B27M6E`).reply(200, buyerNeedsToPay);
+        mock.onPost('/carts').reply(200, { data: { id: 576, deals: [] } });
+        mock.onPost('/deals').reply(200, { data: { id: dealID } });
+        mock.onPost(`/deals/${dealID}/payments`).reply(200);
+        mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
         return request(app)
           .post(`/api/orders/${orderId}/pay`)
           .set('Authorization', anotherJwtToken)
@@ -1126,7 +1130,7 @@ describe('## Order APIs', () => {
       });
 
       it('should get payment status', () => {
-        mock.onGet(`/deals/9B27M6E`).reply(200, buyerPaidDeal);
+        mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
         return request(app)
           .get(`/api/orders/${orderId}/paymentStatus`)
           .set('Authorization', anotherJwtToken)
