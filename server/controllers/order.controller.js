@@ -48,22 +48,45 @@ declare class express$Request extends express$Request {
 }
 
 export const i18n = {
-  orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
-  orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
-  orderCancelled: 'Your order has been cancelled! 😭', // 33 chars
-  orderNotConfirmedToBuyer:
-    "We're sorry, the seller didn't confirm the order one time.", // 58 chars
+  // push notifications
+  orderPaid: 'Вітаємо, підтвердіть нове замовлення!',
+  orderPaidReminder: 'Замовлення чекає вашого підтвердження',
+  orderCancelled: 'Ваше замовлення скасовано, ваші кошти повернуться вам',
+  orderNotConfirmedToBuyer: 'Шкода, продавець не підтвердив замовлення вчасно',
   orderNotConfirmedToSeller:
-    "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
+    "Ти не підтвердив замовлення вчасно, це з'явиться в твоїх відгуках",
+
+  // system messages
   orderConfirmed:
     "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
+  failsToShip: 'TODO',
   orderShipped:
     'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
   orderDelivered:
     'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
   orderCompleted:
     'The package with tracking number: __TRACKING_NUM__\n has been collected',
+  failedToCollect: 'TODO',
+  refusedItem: 'TODO',
 };
+
+// export const i18n = {
+//   orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
+//   orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
+//   orderCancelled: 'Your order has been cancelled! Your money will be returned', // 33 chars
+//   orderNotConfirmedToBuyer:
+//     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
+//   orderNotConfirmedToSeller:
+//     "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
+//   orderConfirmed:
+//     "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
+//   orderShipped:
+//     'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
+//   orderDelivered:
+//     'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
+//   orderCompleted:
+//     'The package with tracking number: __TRACKING_NUM__\n has been collected',
+// };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
 const UAPAY_PERC = 0.015; // 1.5%
@@ -729,9 +752,6 @@ export async function createOrderNotification(
     triggeredType: 'Order',
   };
   switch (order.status) {
-    case 'confirmed':
-      // seller can ship item. we send a system message
-      return Promise.resolve();
     case 'paid':
       // check if notification already exists
       const notifExists = await Notification.findOne({
@@ -749,6 +769,10 @@ export async function createOrderNotification(
         sourceUser: order.buyer._id,
       };
       break;
+
+    case 'confirmed':
+      // seller can ship item. we send a system message
+      return Promise.resolve();
 
     case 'shipped':
       // notify the buyer
