@@ -66,6 +66,7 @@ Array [
   "accountStatus",
   "displayName",
   "profilePic",
+  "shippingAddress",
   "username",
 ]
 `;
@@ -86,6 +87,7 @@ Array [
   "typeIds",
   "updatedAt",
   "uuid",
+  "weight",
 ]
 `;
 
@@ -95,6 +97,7 @@ Array [
   "accountStatus",
   "displayName",
   "profilePic",
+  "shippingAddress",
   "username",
 ]
 `;

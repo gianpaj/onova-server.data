@@ -1,6 +1,6 @@
 // @flow
 
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 import axios from 'axios';
 import httpStatus from 'http-status';
@@ -12,6 +12,7 @@ import User, { UserDoc } from '../models/user.model';
 import Block from '../models/block.model';
 import Notification from '../models/notification.model';
 import notifCtrl from '../controllers/notification.controller';
+import { sellerConfirmedResponse, NP } from '../helpers/shipping';
 import JobManager from '../helpers/job';
 
 import type { NotifPayload } from '../controllers/notification.controller';
@@ -29,7 +30,7 @@ const axiosConfig = {
   },
 };
 
-// TODO: add function to User model
+// TODO: move function to User model
 function canUserTransact(user) {
   const { paymentInfo, shippingAddress } = user;
   return (
@@ -47,9 +48,45 @@ declare class express$Request extends express$Request {
 }
 
 export const i18n = {
-  orderPaid: 'Congrats! 🎉 You have a new purchase!', // 37 chars
-  orderCancelled: 'Your order has been cancelled! 😭', // 33 chars
+  // push notifications
+  orderPaid: 'Вітаємо, підтвердіть нове замовлення!',
+  orderPaidReminder: 'Замовлення чекає вашого підтвердження',
+  orderCancelled: 'Ваше замовлення скасовано, ваші кошти повернуться вам',
+  orderNotConfirmedToBuyer: 'Шкода, продавець не підтвердив замовлення вчасно',
+  orderNotConfirmedToSeller:
+    "Ти не підтвердив замовлення вчасно, це з'явиться в твоїх відгуках",
+
+  // system messages
+  orderConfirmed:
+    "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
+  failsToShip: 'TODO',
+  orderShipped:
+    'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
+  orderDelivered:
+    'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
+  orderCompleted:
+    'The package with tracking number: __TRACKING_NUM__\n has been collected',
+  failedToCollect: 'TODO',
+  refusedItem: 'TODO',
 };
+
+// export const i18n = {
+//   orderPaid: 'Congrats! 🎉 You have a new purchase request! Please confirm', // 60 chars
+//   orderPaidReminder: 'You still have an order that needs to be confirmed', // 50 chars
+//   orderCancelled: 'Your order has been cancelled! Your money will be returned', // 33 chars
+//   orderNotConfirmedToBuyer:
+//     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
+//   orderNotConfirmedToSeller:
+//     "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
+//   orderConfirmed:
+//     "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
+//   orderShipped:
+//     'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
+//   orderDelivered:
+//     'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
+//   orderCompleted:
+//     'The package with tracking number: __TRACKING_NUM__\n has been collected',
+// };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
 const UAPAY_PERC = 0.015; // 1.5%
@@ -248,24 +285,15 @@ async function update(
 
     // // can go only from either 'paid' or 'shipped' -> 'completed'
     // if (foundOrder.status === 'pending' && newStatus === 'completed') {
-    //   throw new APIError('cannot complete an order that is pending', 400);
-    // }
-
-    // TODO: move this to a function that changes the state and keeps a transition log
-    // // can go only from either 'pending' -> 'paid'
-    // if (
-    //   ['shipped', 'completed'].indexOf(foundOrder.status) > -1 &&
-    //   newStatus === 'paid'
-    // ) {
-    //   throw new APIError(
-    //     'cannot set an order status to paid if its not pending first',
-    //     400
-    //   );
+    //   throw new APIError('cannot complete an order that is pending', httpStatus.BAD_REQUEST);
     // }
 
     if (newStatus === 'confirmed') {
       if (foundOrder.status !== 'paid') {
-        throw new APIError('cannot confirm an order that is not paid', 400);
+        throw new APIError(
+          'cannot confirm an order that is not paid',
+          httpStatus.BAD_REQUEST
+        );
       }
       // only the seller can confirm the order
       if (!iAmTheSeller) {
@@ -293,7 +321,11 @@ async function update(
       await checkPaymentStatusAndUpdateOrder(foundOrder);
 
       // Schedule a msg with tracking number to notify both parties via chat
-      await sendSystemMessage(foundOrder);
+      const message = i18n.orderConfirmed.replace(
+        '__TRACKING_NUM__',
+        foundOrder.trackingNumber
+      );
+      await sendSystemMessage(foundOrder, message);
 
       foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
@@ -327,12 +359,7 @@ async function update(
         foundOrder.transactionStatus == 'ua-pending')
     ) {
       try {
-        await axios.post(
-          `/deals/${foundOrder.transactionId}/rejections`,
-          null,
-          axiosConfig
-        );
-        foundOrder.transactionStatus = 'ua-reversed';
+        await rejectPayment(foundOrder);
       } catch (error) {
         console.log(error);
         const err = new APIError(
@@ -344,7 +371,7 @@ async function update(
     }
 
     foundOrder.dateCancelled = new Date();
-    await removeProductToCheckout(foundOrder.product._id);
+    await removeProductFromCheckout(foundOrder.product._id);
   }
 
   foundOrder.status = newStatus ? newStatus : foundOrder.status;
@@ -464,6 +491,8 @@ function createPaymentUAPAY(
       const { shippingAddress: Bship } = buyer;
       const { shippingAddress: Sship } = seller;
 
+      // TODO: if existing order, get deal instead of creating a new one
+      // externalId: order._id,
       // Step 1 - Create cart
       const {
         data: { data: cart },
@@ -638,7 +667,8 @@ async function paymentStatus(
 /**
  * Used for /api/orders/:orderId/paymentStatus and internally when changing the state of an order (cancelling, confirming, etc.)
  */
-async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
+export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
+  // TODO: keep audit log
   return new Promise(async (resolve, reject) => {
     try {
       const {
@@ -662,6 +692,8 @@ async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
           else if (data.status === 'PAID') {
             order.transactionStatus = 'ua-finished';
             order.status = 'paid';
+            order.shippingStatus = NP.generated;
+            order.shippingUpdatedAt = new Date();
             // only update first time we check
             if (!order.datePaid) order.datePaid = new Date();
             createOrderNotification(order)
@@ -695,12 +727,19 @@ async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
   });
 }
 
+export function rejectPayment(order: OrderDoc): Promise<any> {
+  return Promise.all([
+    Order.updateOne({ _id: order.id }, { transactionStatus: 'ua-reversed' }),
+    axios.post(`/deals/${order.transactionId}/rejections`, null, axiosConfig),
+  ]);
+}
+
 /**
  * Creates the approprate notification(s) for each order status transition
  *
  * See graph in `ORDER_PROCESS.md`
  */
-async function createOrderNotification(
+export async function createOrderNotification(
   order: OrderDoc,
   iAmTheSeller?: boolean
 ) {
@@ -710,10 +749,6 @@ async function createOrderNotification(
     triggeredType: 'Order',
   };
   switch (order.status) {
-    case 'confirmed':
-      // seller can ship item.
-      // TODO: send 2 notifications
-      return Promise.resolve();
     case 'paid':
       // check if notification already exists
       const notifExists = await Notification.findOne({
@@ -732,9 +767,12 @@ async function createOrderNotification(
       };
       break;
 
+    case 'confirmed':
+      // seller can ship item. we send a system message
+      return Promise.resolve();
+
     case 'shipped':
       // notify the buyer
-      // TODO: test
       notif = {
         ...notif,
         notifI18n: i18n.orderShipped,
@@ -753,20 +791,40 @@ async function createOrderNotification(
         sourceUser: order.seller._id,
       };
       break;
+
+    case 'failed_by_seller':
+      if (iAmTheSeller) {
+        notif = {
+          ...notif,
+          notifI18n: i18n.orderNotConfirmedToSeller,
+          targetUser: order.buyer._id,
+          sourceUser: order.seller._id,
+        };
+      } else {
+        // to buyer
+        notif = {
+          ...notif,
+          notifI18n: i18n.orderNotConfirmedToBuyer,
+          targetUser: order.seller._id,
+          sourceUser: order.buyer._id,
+        };
+      }
+      break;
   }
   return notifCtrl.createNotification(notif);
 }
 
 function addProductToCheckout(product) {
-  // const doc = new Checkout({ product });
-  // doc.save();
   product.status = 'reserved';
+  product.reservedDate = new Date();
   return product.save();
 }
 
-function removeProductToCheckout(productId: string) {
-  // Checkout.find({ product: productId });
-  return Product.updateOne({ _id: productId }, { status: 'forsale' });
+function removeProductFromCheckout(productId: string) {
+  return Product.updateOne(
+    { _id: productId },
+    { status: 'forsale', $unset: { reservedDate: '' } }
+  );
 }
 
 const sleep = ms => {

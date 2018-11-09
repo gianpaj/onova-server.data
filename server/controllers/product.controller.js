@@ -14,6 +14,8 @@ import config from '../config/config';
 import Analytics from '../config/analytics';
 import path from 'path';
 
+const { minPrice } = config.settings;
+
 const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
 });
@@ -123,6 +125,15 @@ async function create(
   next: express$NextFunction
 ) {
   const { body } = req;
+
+  if (parseFloat(body.price) <= minPrice) {
+    const APIerr = new APIError(
+      `Invalid product price. The minimum price is ${minPrice} UAH`,
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
+
   const product = new Product({
     categoryIds: body.categoryIds,
     // currency: body.currency,
@@ -145,7 +156,7 @@ async function create(
       product.locality = geodata.admin1.name;
     } catch (err) {
       console.error(err);
-      const APIerr = new APIError('Invalid location', 400);
+      const APIerr = new APIError('Invalid location', httpStatus.BAD_REQUEST);
       return next(APIerr);
     }
   }
@@ -160,7 +171,7 @@ async function create(
   User.findById(req.user._id)
     .then(async seller => {
       if (!seller) {
-        throw new APIError('Seller not found', 400);
+        throw new APIError('Seller not found', httpStatus.BAD_REQUEST);
       }
       if (seller.accountStatus !== 'verified') {
         throw new APIError(
@@ -191,7 +202,10 @@ async function create(
       );
 
       if (correctPhotos.length < 1) {
-        throw new APIError('Product photo(s) are required', 400);
+        throw new APIError(
+          'Product photo(s) are required',
+          httpStatus.BAD_REQUEST
+        );
       }
 
       const date = Date.now();
@@ -277,7 +291,6 @@ async function list(
     query = { ...query, photoURIs: { $exists: true, $not: { $size: 0 } } };
   }
 
-  // TODO: escapeRegex each tag
   if (tags) {
     if (Array.isArray(tags)) {
       const regexAllTags = tags.map(tag => new RegExp(escapeRegex(tag), 'i'));
@@ -399,14 +412,25 @@ function update(
 ) {
   const { body } = req;
 
+  if (parseFloat(body.price) <= minPrice) {
+    const APIerr = new APIError(
+      `Invalid product price. The minimum price is ${minPrice} UAH`,
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
+
   Product.findOne({ uuid: req.params.uuid })
     .then(async foundProduct => {
       if (!foundProduct) {
-        throw new APIError('Product not found', 400);
+        throw new APIError('Product not found', httpStatus.BAD_REQUEST);
       }
 
       if (foundProduct.status === 'sold') {
-        throw new APIError('Cannot update a product that has been sold', 400);
+        throw new APIError(
+          'Cannot update a product that has been sold',
+          httpStatus.BAD_REQUEST
+        );
       }
 
       // create Tag documents
@@ -415,7 +439,7 @@ function update(
       if (body.photos) {
         const date = Date.now();
 
-        // TODO: check if photos have been uploaded to GSC
+        // TODO: check if images have been uploaded to GSC
         try {
           const newPhotos = [];
           for (let i = 0; i < body.photos.length; i++) {

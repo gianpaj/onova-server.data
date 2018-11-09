@@ -83,6 +83,7 @@ var ProductSchema = new Schema(
       type: Schema.Types.Decimal,
       required: true,
     },
+    reservedDate: Date,
     seller: {
       type: Schema.Types.ObjectId,
       ref: 'User',
@@ -138,6 +139,7 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   };
   locality: string;
   price: number;
+  reservedDate: Date;
   seller: string;
   status: string;
   tags: Array<string>; // optional

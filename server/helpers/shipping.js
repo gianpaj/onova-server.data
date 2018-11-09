@@ -1,7 +1,100 @@
 // @flow
+import axios from 'axios';
+
+const NovaPoshta_URL = 'https://api.novaposhta.ua/v2.0/json';
+
+export const NP = {
+  // 1
+  generated: 'np-generated',
+  // 6 or 101
+  shipped: 'np-shipped',
+  // 7 or 8
+  delivered: 'np-delivered',
+  // 102, 103 or 108
+  refused: 'np-refused',
+  // TODO: which one didn't collect
+  // TODO: which one didn't ship
+  // 9
+  collected: 'np-collected',
+};
 
 export default class Shipping {
-  // static;
+  static async getShippingStatus(trackingNumber: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      axios
+        .post(`${NovaPoshta_URL}/documentsTracking/`, {
+          json: {
+            modelName: 'TrackingDocument',
+            calledMethod: 'getStatusDocuments',
+            methodProperties: {
+              Documents: [{ DocumentNumber: trackingNumber, Phone: '' }],
+            },
+          },
+        })
+        .then(({ data }) => {
+          if (!data.success) return reject(data);
+
+          const result = data.data[0];
+
+          // Number not found
+          if (result.StatusCode === '3') {
+            return resolve(false);
+          }
+
+          // e.g. convert `string` 08-05-2018 to a `Date` Tue May 08 2018
+          const trackingNumberDate = new Date(
+            result.ScheduledDeliveryDate.replace(
+              /(\d{2})-(\d{2})-(\d{4})/,
+              '$2/$1/$3'
+            )
+          );
+
+          return resolve({
+            raw: result,
+            scheduledDeliveryDate: trackingNumberDate,
+            status: this.getInternalStatus(result.StatusCode),
+            statusCode: result.StatusCode,
+            statusMessage: result.Status,
+          });
+        })
+        .catch(error => reject(error));
+    });
+  }
+
+  static getInternalStatus(statusCode: string): string | void {
+    switch (statusCode) {
+      case '1':
+        return NP.generated;
+        break;
+      case '6':
+        return NP.shipped;
+        break;
+      case '101':
+        return NP.shipped;
+        break;
+      case '7':
+        return NP.delivered;
+        break;
+      case '8':
+        return NP.delivered;
+        break;
+      case '102':
+        return NP.refused;
+        break;
+      case '103':
+        return NP.refused;
+        break;
+      case '108':
+        return NP.refused;
+        break;
+      case '9':
+        return NP.collected;
+        break;
+      default:
+        return;
+        break;
+    }
+  }
 }
 
 export const buyerNeedsToPay = {
@@ -347,75 +440,75 @@ export const dealConfirmationResp = {
 
 export const buyerPaymentFailure = {
   data: {
-  id: 'Z8QK927',
-  externalId: null,
-  cartId: 791,
-  productTitle: "I don't know if you",
-  productPrice: 11111,
-  productWeight: 3000,
-  handlerPrice: 3500,
-  status: 'NEW',
-  reasonStep: null,
-  buyerFirstName: 'Тим',
-  buyerLastName: 'Пррп',
-  buyerPatronymic: '',
-  buyerPhone: '380987987987',
-  buyerEmail: 'gianpa+test@gmail.com',
-  sellerFirstName: 'Алех',
-  sellerLastName: 'Костінскї',
-  sellerPatronymic: '',
-  sellerPhone: '380677929197',
-  sellerEmail: 'gianpa+test3@gmail.com',
-  lg: 'uk',
-  createdAt: '2018-11-01T15:36:03.000Z',
-  adId: null,
-  handler: {
+    id: 'Z8QK927',
+    externalId: null,
+    cartId: 791,
+    productTitle: "I don't know if you",
+    productPrice: 11111,
+    productWeight: 3000,
+    handlerPrice: 3500,
     status: 'NEW',
-    statusCode: null,
-    statusText: null,
-    waybillNumber: null,
-    senderCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
-    senderCityName: null,
-    senderOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
-    senderOfficeName: null,
-    recipientCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
-    recipientCityName: null,
-    recipientOfficeId: '511fcf97-e1c2-11e3-8c4a-0050568002cf',
-    recipientOfficeName: null,
-    type: 'NovaPoshta_ONOVA',
-  },
-  productPayment: {
-    id: 1678,
-    amount: 11111,
-    commissionAmount: 1667,
-    status: 'REJECTED',
-    statusCode: 'REJECTED',
-    statusText:
-      '{"code":"AUTHENTICATION_ERROR","message":"Internal server error","responseCode":"074","source":"TAS_P2P"}',
-    type: 'P2P_ONOVA',
-    waitingFor: null,
-    details: null,
-    payReceipt:
-      'https://api.demo.uapay.ua/api/receipts/27a30371-a07d-4991-9d8f-a7f3c94e8edb.pdf',
-    reverseReceipt: null,
-    finishReceipt: null,
-  },
-  handlerPayment: {
-    id: 1677,
-    amount: 3500,
-    commissionAmount: 0,
-    status: 'REJECTED',
-    statusCode: 'REJECTED',
-    statusText:
-      '{"code":"INVALID_CREDENTIAL","message":"Unable to authenticate","pluginId":"1","responseCode":"074","source":"TAS_ECOM"}',
-    type: 'ECOM_ONOVA',
-    waitingFor: null,
-    details: null,
-    payReceipt:
-      'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/887db946-6623-42a1-b91d-6229f0aeda80.pdf',
-    reverseReceipt: null,
-    finishReceipt: null,
-  },
+    reasonStep: null,
+    buyerFirstName: 'Тим',
+    buyerLastName: 'Пррп',
+    buyerPatronymic: '',
+    buyerPhone: '380987987987',
+    buyerEmail: 'gianpa+test@gmail.com',
+    sellerFirstName: 'Алех',
+    sellerLastName: 'Костінскї',
+    sellerPatronymic: '',
+    sellerPhone: '380677929197',
+    sellerEmail: 'gianpa+test3@gmail.com',
+    lg: 'uk',
+    createdAt: '2018-11-01T15:36:03.000Z',
+    adId: null,
+    handler: {
+      status: 'NEW',
+      statusCode: null,
+      statusText: null,
+      waybillNumber: null,
+      senderCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      senderCityName: null,
+      senderOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      senderOfficeName: null,
+      recipientCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      recipientCityName: null,
+      recipientOfficeId: '511fcf97-e1c2-11e3-8c4a-0050568002cf',
+      recipientOfficeName: null,
+      type: 'NovaPoshta_ONOVA',
+    },
+    productPayment: {
+      id: 1678,
+      amount: 11111,
+      commissionAmount: 1667,
+      status: 'REJECTED',
+      statusCode: 'REJECTED',
+      statusText:
+        '{"code":"AUTHENTICATION_ERROR","message":"Internal server error","responseCode":"074","source":"TAS_P2P"}',
+      type: 'P2P_ONOVA',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.demo.uapay.ua/api/receipts/27a30371-a07d-4991-9d8f-a7f3c94e8edb.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+    handlerPayment: {
+      id: 1677,
+      amount: 3500,
+      commissionAmount: 0,
+      status: 'REJECTED',
+      statusCode: 'REJECTED',
+      statusText:
+        '{"code":"INVALID_CREDENTIAL","message":"Unable to authenticate","pluginId":"1","responseCode":"074","source":"TAS_ECOM"}',
+      type: 'ECOM_ONOVA',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/887db946-6623-42a1-b91d-6229f0aeda80.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
   },
 };
 
@@ -423,7 +516,7 @@ export const novaPoshta = {
   // 1 - Tracking number generated. Waiting for seller to ship package.
   //
   // @SELLER please ship the item ASAP.
-  notShipped: {
+  generated: {
     success: true,
     data: [
       {
@@ -663,86 +756,6 @@ export const novaPoshta = {
     infoCodes: [],
   },
 
-  // 6 - Package in transit towards <city>
-  onItsWay: {
-    success: true,
-    data: [
-      {
-        Number: '20400106547369',
-        DateCreated: '31-10-2018 17:13:22',
-        DocumentWeight: 5,
-        CheckWeight: 0,
-        DocumentCost: 73,
-        SumBeforeCheckWeight: 0,
-        PayerType: 'Recipient',
-        RecipientFullName: '',
-        RecipientDateTime: '',
-        OwnerDocumentType: '',
-        ScheduledDeliveryDate: '01-11-2018',
-        PaymentMethod: 'Cash',
-        CargoDescriptionString: '',
-        CargoType: 'Parcel',
-        CitySender: 'Львів',
-        CityRecipient: 'Львів',
-        WarehouseRecipient: 'Відділення №15 (до 30 кг): вул. Героїв УПА, 6',
-        CounterpartyType: 'PrivatePerson',
-        Redelivery: 0,
-        RedeliverySum: '',
-        RedeliveryNum: '',
-        RedeliveryPayer: '',
-        AfterpaymentOnGoodsCost: '',
-        ServiceType: 'WarehouseWarehouse',
-        WarehouseRecipientInternetAddressRef:
-          '39931b85-e1c2-11e3-8c4a-0050568002cf',
-        UndeliveryReasonsSubtypeDescription: '',
-        WarehouseRecipientNumber: 15,
-        LastCreatedOnTheBasisNumber: '',
-        LastCreatedOnTheBasisDocumentType: '',
-        LastCreatedOnTheBasisPayerType: '',
-        LastCreatedOnTheBasisDateTime: '',
-        LastTransactionStatusGM: '',
-        LastTransactionDateTimeGM: '',
-        MarketplacePartnerToken: '***REMOVED***',
-        ClientBarcode: '',
-        SenderAddress: '',
-        RecipientAddress: '',
-        CounterpartySenderDescription: '',
-        CounterpartyRecipientDescription: '',
-        CounterpartySenderType: 'PrivatePerson',
-        DateScan: '22:43 30.10.2018',
-        PaymentStatus: 'PAYED',
-        PaymentStatusDate: '30.10.2018 17:14:10',
-        AmountToPay: 73,
-        AmountPaid: 73,
-        WarehouseRecipientRef: '490501cb-a33f-11e2-a57a-d4ae527baec3',
-        InternationalDeliveryType: '',
-        AnnouncedPrice: '',
-        OwnerDocumentNumber: '',
-        RecipientWarehouseTypeRef: '841339c7-591a-42e2-8233-7a0a00f0ed6f',
-        Status:
-          'Відправлення у місті Львів. Очікуйте повідомлення про прибуття',
-        StatusCode: '6',
-        RefEW: '5b22917c-dc56-11e8-a8ec-0025b502b06e',
-        RedeliveryPaymentCardRef: '',
-        RedeliveryPaymentCardDescription: '',
-        CreatedOnTheBasis: '',
-        DatePayedKeeping: '',
-      },
-    ],
-    errors: [],
-    warnings: [
-      {
-        ID_20400106547369:
-          'Please enter a valid phone number from the express invoice to show full information',
-      },
-    ],
-    info: [],
-    messageCodes: [],
-    errorCodes: [],
-    warningCodes: [],
-    infoCodes: [],
-  },
-
   // 7 - Package arrived at office.
   //
   // @BUYER please colect the item ASAP.
@@ -913,4 +926,69 @@ export const novaPoshta = {
     warningCodes: [],
     infoCodes: [],
   },
+};
+
+let data = {
+  Number: '20450072617861',
+  Redelivery: 0,
+  RedeliverySum: '',
+  RedeliveryNum: '',
+  RedeliveryPayer: '',
+  OwnerDocumentType: '',
+  LastCreatedOnTheBasisDocumentType: '',
+  LastCreatedOnTheBasisPayerType: '',
+  LastCreatedOnTheBasisDateTime: '',
+  LastTransactionStatusGM: '',
+  LastTransactionDateTimeGM: '',
+  DateCreated: '07-05-2018 12:41:31',
+  CheckWeight: 0,
+  SumBeforeCheckWeight: 0,
+  PayerType: 'Recipient',
+  RecipientFullName: '',
+  RecipientDateTime: '08.05.2018 13:36:49',
+  ScheduledDeliveryDate: '08-05-2018',
+  PaymentMethod: 'Cash',
+  CargoDescriptionString: '',
+  CargoType: 'Parcel',
+  CitySender: 'Львів',
+  CityRecipient: 'Чернівці',
+  WarehouseRecipient:
+    'Відділення №14 (до 30 кг на одне місце): вул. Небесної Сотні, 20',
+  CounterpartyType: 'PrivatePerson',
+  AfterpaymentOnGoodsCost: '',
+  ServiceType: 'WarehouseWarehouse',
+  UndeliveryReasonsSubtypeDescription: '',
+  WarehouseRecipientNumber: 14,
+  LastCreatedOnTheBasisNumber: '',
+  WarehouseRecipientInternetAddressRef: '01ae25ec-e1c2-11e3-8c4a-0050568002cf',
+  MarketplacePartnerToken: '***REMOVED***',
+  ClientBarcode: '',
+  SenderAddress: '',
+  RecipientAddress: '',
+  CounterpartySenderDescription: '',
+  CounterpartyRecipientDescription: '',
+  CounterpartySenderType: 'PrivatePerson',
+  DateScan: '0001-01-01 00:00:00',
+  PaymentStatus: 'PAYED',
+  PaymentStatusDate: '06.05.2018 12:42:55',
+  AmountToPay: 58,
+  AmountPaid: 58,
+  LastAmountTransferGM: '',
+  LastAmountReceivedCommissionGM: '',
+  DocumentCost: 58,
+  DocumentWeight: 5,
+  AnnouncedPrice: '',
+  UndeliveryReasonsDate: '',
+  RecipientWarehouseTypeRef: '841339c7-591a-42e2-8233-7a0a00f0ed6f',
+  RedeliveryPaymentCardRef: '',
+  RedeliveryPaymentCardDescription: '',
+  OwnerDocumentNumber: '',
+  InternationalDeliveryType: '',
+  WarehouseSender: 'Відділення №15 (до 30 кг): вул. Героїв УПА, 6',
+  WarehouseRecipientRef: '7ddcc4e5-c432-11e1-86b4-0026b97ed48a',
+  Status: 'Відправлення отримано',
+  StatusCode: '9',
+  RefEW: 'acc06e3c-5111-11e8-aa3a-0025b501a04b',
+  CreatedOnTheBasis: '',
+  DatePayedKeeping: '',
 };

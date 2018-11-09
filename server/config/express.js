@@ -18,11 +18,13 @@ import Agenda from 'agenda';
 require('winston-daily-rotate-file');
 
 import winstonInstance from './winston';
-import routes from '../routes/index.route';
+import routes from '../routes';
 import config from './config';
 import APIError from '../helpers/APIError';
+import EscrowRunner from '../runners/escrow.runner';
+import ShippingRunner from '../runners/shipping.runner';
 
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 
 const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
   config.mongo.jobDb
@@ -39,6 +41,16 @@ if (config.env === 'test') {
     });
   });
 }
+
+/**
+ * Escrow manager to cancel unpaid orders, notify of status updates on payments and shipping
+ */
+new EscrowRunner();
+
+/**
+ * Shipping manager to updates users on the status of their shipping. From order ready to ship to finilised.
+ */
+new ShippingRunner();
 
 /**
  * API keys and Passport configuration.

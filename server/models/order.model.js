@@ -6,6 +6,7 @@ import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import Block from '../models/block.model';
 import { userPopulateFields, productPopulateFields } from './user.model';
+import { NP } from '../helpers/shipping';
 
 const { Schema } = mongoose;
 
@@ -93,39 +94,40 @@ var OrderSchema = new Schema(
         // Unpaid - Customer started the checkout process. Payment is not completed.
         'pending',
 
-        // [Can be set only set when checking status via Payment Provider]
+        // (1)
         // Buyer pays and waiting for seller to confirm – Product status is now 'reserved'
         'paid',
 
-        // [Can be set only set when checking status via Payment Provider]
+        // (1)
         // Product is ready for shipment. Tracking number is generated automatically
         'confirmed',
 
-        // [Can be set only by Shipping Provider] (i.e. NovaPohsta)
+        // (2)
         'shipped',
 
-        // Seller cancels order (doesn't confirm). Requires reason.
+        // Seller cancels order. Requires reason.
         // or
         // Buyer cancels order (or doesn't pay in 15 mins). Reason if internal process (payment denied/timeout)
         'cancelled',
 
-        // [Can be set only by Shipping Provider]
+        // (2)
         'delivered',
 
-        // [Can be set only by Shipping Provider]. Item has been collected
+        // (2)
+        // Item has been collected
         'completed',
 
-        // [Can be set only set when checking status via Payment Provider]
-        // Buyer fails to collect or refuses the item (not as described)
+        // (1)
+        // Buyer fails to collect
+        // or
+        // Buyer refuses the item (not as described)
         'failed_by_buyer',
 
-        // [Can be set only by Escrow Payment Provider]
+        // (1) or Escrow Manager
         // Seller fails to ship
+        // or
+        // Seller doesn't confirm order
         'failed_by_seller',
-
-        // TODO: the holdProductFor or orderPendingFor windows expired without a response
-        // [by Internal Process]
-        'failed',
       ],
     },
     taxAmount: String,
@@ -147,10 +149,20 @@ var OrderSchema = new Schema(
       type: String,
       enum: ['novaposhta'],
     },
+    shippingStatus: {
+      type: String,
+      enum: [NP.generated, NP.shipped, NP.delivered, NP.refused, NP.collected],
+    },
+    shippingUpdatedAt: Date,
   },
   // assigns 'createdAt' and 'updatedAt' fields to your schema
   { timestamps: true }
 );
+
+/**
+ * 1) Can be set only set when checking payment status via Payment Provider i.e. UAPAY
+ * 2) Can be set only set when checking tracking code status via Shipping Provider i.e. NovaPohsta
+ */
 
 OrderSchema.virtual('total').get(function() {
   return (
@@ -158,6 +170,19 @@ OrderSchema.virtual('total').get(function() {
     parseFloat(this.priceOfItem) +
     parseFloat(this.shippingFee || 0)
   ).toString();
+});
+
+OrderSchema.virtual('finalisedAt').get(function() {
+  if (this.status === 'completed') {
+    return this.dateCompleted;
+  }
+  // cancelled by a seller
+  if (this.status === 'cancelled' && this.reason) {
+    return this.dateCancelled;
+  }
+  if (this.status === 'failed_by_buyer' || this.status === 'failed_by_seller') {
+    return this.dateFailed;
+  }
 });
 
 export class OrderDoc /*:: extends Mongoose$Document */ {
@@ -193,7 +218,8 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   shippingFee: ?number;
   // shippingMethod: string;
   shippingProvider: ?string;
-  // shippingStatus: string;
+  shippingStatus: string;
+  shippingUpdatedAt: string;
   // shippingTax: number;
 }
 
@@ -319,6 +345,7 @@ OrderSchema.set('toJSON', {
 });
 
 OrderSchema.index({ product: 1, buyer: 1 }, { unique: true });
+OrderSchema.index({ status: 1, transactionStatus: 1 });
 OrderSchema.index({ seller: 1 });
 OrderSchema.index({ buyer: 1 });
 

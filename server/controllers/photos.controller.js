@@ -12,7 +12,7 @@ import APIError from '../helpers/APIError';
 import config from '../config/config';
 import photos from '../helpers/photos';
 
-const debug = require('debug')('express-mongoose-es6-rest-api:index');
+const debug = require('debug')('server-data:index');
 const download = require('image-downloader');
 
 const MAX_WIDTH = 1440;
@@ -182,7 +182,7 @@ const storageForChatImages = gcsSharp({
   destination: '',
   acl: 'publicRead',
   filename: (req, file, cb) => {
-    // TODO: name files with the name of the chat room
+    // TODO: name files with the room id
     const uploadDate = Date.now();
     cb(null, uploadDate.toString());
   },

@@ -64,8 +64,8 @@ Start server:
 # Start server
 yarn dev:start
 
-# set DEBUG env var to get logs
-DEBUG=express-mongoose-es6-rest-api:* yarn start
+# set DEBUG env var to get debugging logs
+DEBUG=server-data:* yarn start
 ```
 
 Start with HTTPS and different port:
@@ -194,22 +194,22 @@ mongorestore dump/onova-data -d onova-data-test --drop
 
 ### Verify if new cities or deparments are in Nova Poshta
 
-1. Export the departments collection with \_id fields
+1.  Export the departments collection with \_id fields
 
         mongoexport --host localhost -d onova-data -c departments | sed '/"\_id":/s/"\_id":[^,]\*,//' > dep-before.json
 
-2. Drop the existing collection
-3. Download the "new" departments
-4. Export the new departments (called today)
+2.  Drop the existing collection
+3.  Download the "new" departments
+4.  Export the new departments (called today)
 
-       mongoexport --host localhost -d onova-data -c departments | sed '/"\_id":/s/"\_id":[^,]\*,//' > dep-today.json
+    mongoexport --host localhost -d onova-data -c departments | sed '/"\_id":/s/"\_id":[^,]\*,//' > dep-today.json
 
-5. Sort the json files (or sort at `mongoexport` stage)
+5.  Sort the json files (or sort at `mongoexport` stage)
 
-       sort dep-before.json > dep-before-sorted.json
-       sort dep-today.json > dep-today-sorted.json
+    sort dep-before.json > dep-before-sorted.json
+    sort dep-today.json > dep-today-sorted.json
 
-6. Compare with `diff` or Beyond Compare
+6.  Compare with `diff` or Beyond Compare
 
 ## Logging
 

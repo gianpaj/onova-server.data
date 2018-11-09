@@ -113,16 +113,7 @@ const UserSchema = new Schema(
       default: 0,
       min: 0,
     },
-    reviewsCount: {
-      type: Number,
-      required: true,
-      default: 0,
-      min: 0,
-      validate: {
-        validator: Number.isInteger,
-        message: '{VALUE} is not an integer value',
-      },
-    },
+
     shippingAddress: {
       firstName: String,
       lastName: String,
@@ -164,7 +155,6 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   profilePic: ?string;
   pushToken: ?string;
   ratingsTotal: number;
-  reviewsCount: number;
   shippingAddress: ?any;
   tokens: Array<any>;
   updatedAt: Date;

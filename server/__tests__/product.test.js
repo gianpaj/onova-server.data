@@ -50,7 +50,7 @@ describe('## Product APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     // seller comes after the user is created
-    price: '100.99', // if 1 decimal point .00 will be added
+    price: '2100.99', // if 1 decimal point .00 will be added
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
@@ -71,7 +71,7 @@ describe('## Product APIs', () => {
     typeIds: [1, 3],
     tags: ['spring'],
     description: 'nice scarf',
-    price: '30',
+    price: '3130',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
@@ -82,7 +82,7 @@ describe('## Product APIs', () => {
     typeIds: [1, 3],
     tags: ['lol@'],
     description: 'nice API',
-    price: '290.00',
+    price: '4290.00',
     photos: [
       'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
     ],
@@ -139,6 +139,17 @@ describe('## Product APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('Product photo(s) are required')
+        );
+    });
+
+    it('should NOT create a product with a price too low', () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken1)
+        .send({ ...product, price: '99' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Invalid product price. The minimum')
         );
     });
 
@@ -289,10 +300,10 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken1)
-        .send({ ...product, price: '111.1' })
+        .send({ ...product, price: '211.1' })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
-          expect(body.data.price).toBe('111.10');
+          expect(body.data.price).toBe('211.10');
           productsCounter++;
         });
     });
@@ -597,7 +608,7 @@ describe('## Product APIs', () => {
     it('should update the description, price, categoryIds and typeIds', () => {
       delete product.photos;
       product.description = 'amazing boots';
-      product.price = '9.99';
+      product.price = '319.99';
       product.categoryIds = [3];
       product.typeIds = [3];
       return request(app)
@@ -627,20 +638,30 @@ describe('## Product APIs', () => {
     });
 
     it('should update the price with decimal points', () => {
-      product.price = '199.9';
       return request(app)
         .put(`/api/products/${productUuid}`)
-        .send(product)
+        .send({ ...product, price: '199.9' })
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data.price).toEqual('199.90'));
     });
 
+    it('should NOT update a product with a price too low', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .set('Authorization', jwtToken1)
+        .send({ ...product, price: '99' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Invalid product price. The minimum')
+        );
+    });
+
     it('should update the price without decimal points', () => {
-      product.price = '199';
       return request(app)
         .put(`/api/products/${productUuid}`)
         .send(product)
+        .send({ ...product, price: '199' })
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data.price).toEqual('199'));

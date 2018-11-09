@@ -11,6 +11,7 @@ import config from '../config/config';
 
 import app from '../index';
 
+import { i18n } from '../controllers/order.controller';
 import Order from '../models/order.model';
 import Tag from '../models/tag.model';
 import {
@@ -25,6 +26,8 @@ import { buyerPaidDeal } from '../helpers/shipping';
 
 // This sets the mock adapter on the default instance
 const mock = new MockAdapter(axios);
+
+jest.setTimeout(10000);
 
 /**
  * root level hooks
@@ -67,7 +70,7 @@ const product = {
   tags: ['winter', 'spring2007'], // optional
   description: 'nice boots',
   // seller comes after the user is created
-  price: '100.99', // if no decimal points .00 will be added
+  price: '1010.99', // if no decimal points .00 will be added
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
   ],
@@ -367,7 +370,7 @@ describe('## Notification APIs', () => {
                 expect(data.targetUser.toString()).toBe(anotherUserId);
                 expect(data.triggeredBy.toString()).toBe(orderId);
                 expect(data.triggeredType).toBe('Order');
-                expect(data.message).toContain('Your order has been cancelled');
+                expect(data.message).toBe(i18n.orderCancelled);
                 expect(typeof data.random).toBe('string');
                 done();
               });
@@ -441,7 +444,7 @@ describe('## Notification APIs', () => {
                 expect(data.targetUser.toString()).toBe(userId);
                 expect(data.triggeredBy.toString()).toBe(orderId);
                 expect(data.triggeredType).toBe('Order');
-                expect(data.message).toContain('You have a new purchase!');
+                expect(data.message).toContain(i18n.orderPaid);
                 expect(typeof data.random).toBe('string');
                 done();
               });
@@ -457,7 +460,7 @@ describe('## Notification APIs', () => {
           .then(res => {
             const { data } = res.body;
             expect(data[0].triggeredBy.id).toBe(orderId);
-            expect(data[0].notifI18n).toContain('You have a new purchase!');
+            expect(data[0].notifI18n).toContain(i18n.orderPaid);
             expect(data).toHaveLength(numberOfNotifForFirstUser);
           });
       });
@@ -487,9 +490,11 @@ describe('## Notification APIs', () => {
             .expect(httpStatus.OK)
             .then(res => {
               const { data } = res.body;
-              expect(data[0].triggeredBy.id).toBe(orderId);
-              expect(data[0].notifI18n).toContain('You have a new purchase!');
-              expect(data).toHaveLength(numberOfNotifForFirstUser);
+              const notifs = data.filter(
+                n => n.notifI18n !== i18n.orderPaidReminder
+              );
+              expect(notifs[0].notifI18n).toContain(i18n.orderPaid);
+              expect(notifs).toHaveLength(numberOfNotifForFirstUser);
               done();
             });
         }, 500);
@@ -497,7 +502,7 @@ describe('## Notification APIs', () => {
     });
   });
 
-  describe.skip('# Comment with @mentions', () => {
+  describe('# Comment with @mentions', () => {
     // create comments
     beforeAll(async () => {
       const c1 = await createComment(
@@ -586,7 +591,7 @@ describe('## Notification APIs', () => {
           );
           expect(comment).toBeUndefined();
           expect(data[0].data.text).not.toContain('oops thats');
-          expect(data).toHaveLength(numberOfNotifForFirstUser);
+          expect(data).toHaveLength(numberOfNotifForFirstUser + 1);
         });
     });
   });

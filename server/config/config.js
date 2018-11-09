@@ -127,18 +127,27 @@ const config = {
     PUSH_FOLLOW: 'send-push-follow',
     PUSH_MSG: 'send-push-msg', // person to person
     PUSH_ORDER: 'send-push-order',
+    PUSH_ORDER_CONFIRM_REMINDER: 'send-push-order-confirmation-reminder',
     SCHEDULE: 'listing-schedule',
     SYSTEM_MSG: 'send-system-message',
   },
   settings: {
-    // TODO: Reserves products ror 15 minutes.
+    // Reserves products for 15 minutes.
     // TODO: 0 to disable
     // When time is reached, the order is cancelled. And Product is set back to 'forsale'.
-    holdProductFor: 900,
-    // TODO: Wait the seller to confirm the order for X hours.
+    holdProductFor: 60 * 15, // mins
+
+    // Wait the seller to confirm the order for 48 hours.
     // When time is reached, the pending order is cancelled. And Product is set back to 'forsale'.
-    orderPendingFor: 3600 * 1,
+    cancelPaidOrdersAfter: 60 * 60 * 48, // hours
+
+    remindToConfirmOrderEvery: '6 hours',
+
+    checkShippingStatusEvery: '2 hours',
+
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
+
+    minPrice: 150,
   },
   DEFAULT_FOLLOW: false,
 };
