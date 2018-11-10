@@ -107,6 +107,8 @@ describe('## Order APIs', () => {
   let ordersAndReviewsCountUser1 = 0;
   let ratingsTotalUserFirst = 0;
   let ratingsTotalUserAnother = 0;
+  let reviewsCountUserFirst = 0;
+  let reviewsCountUserAnother = 0;
   let user1LeftReviewsAsBuyer = 0;
   let user1ReceivedReviewsAsBuyer = 0;
   let user1OrdersAsSeller = 0;
@@ -295,6 +297,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.CREATED)
         .then(async res => {
           ratingsTotalUserAnother += 5;
+          reviewsCountUserAnother++;
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
@@ -336,6 +339,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.CREATED)
         .then(res => {
           ratingsTotalUserFirst += 5;
+          reviewsCountUserFirst++;
           const o = res.body.data;
           expect(Object.keys(o).sort()).toEqual(reviewFields.sort());
           expect(o.order.id).toBe(orderOne.id);
@@ -465,6 +469,7 @@ describe('## Order APIs', () => {
         .then(({ body }) => {
           expect(body.data.order.id).toBe(orderSix.id);
           ratingsTotalUserFirst += 5;
+          reviewsCountUserFirst++;
         });
     });
 
@@ -475,6 +480,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.ratingsTotal).toBe(ratingsTotalUserFirst);
+          expect(body.reviewsCount).toBe(reviewsCountUserFirst);
           expect(body.ordersAndReviewsCount).toBe(ordersAndReviewsCountUser1);
         });
     });
@@ -486,6 +492,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.ratingsTotal).toBe(ratingsTotalUserAnother);
+          expect(body.reviewsCount).toBe(reviewsCountUserAnother);
           expect(body.ordersAndReviewsCount).toBe(ordersAndReviewsCountUser2);
         });
     });
