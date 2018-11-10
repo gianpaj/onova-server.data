@@ -519,6 +519,7 @@ function _prepareUserJson(user: UserDoc): Object {
     followingCount: user.followingCount,
     profilePic: user.profilePic,
     ratingsTotal: user.ratingsTotal,
+    reviewsCount: user.reviewsCount,
     sharedCount: user.sharedCount,
     tokens: user.tokens,
     username: user.username,
