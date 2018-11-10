@@ -105,6 +105,7 @@ describe('## User APIs', () => {
             expect(data.followersCount).toBe(0);
             expect(data.followingCount).toBe(0);
             expect(data.ratingsTotal).toBe(0);
+            expect(data.reviewsCount).toBe(0);
             expect(data.username).toBe(user.username);
             expect(typeof res.body.token).toBe('string');
             expect(Object.keys(data).sort()).toMatchSnapshot();
