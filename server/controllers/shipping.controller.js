@@ -59,13 +59,13 @@ async function costs(
 ) {
   const { recipientOfficeID, orderId, price, weight } = req.query;
   try {
-    const recipientDeparment: Deparment = await Deparment.findOne({
+    const recipientDepartment = await Department.findOne({
       id: recipientOfficeID,
     });
     const order: OrderDoc = await Order.findById(orderId);
 
-    if (!recipientDeparment || !order) {
-      throw new APIError('Error retrieving the deparment(s)');
+    if (!recipientDepartment || !order) {
+      throw new APIError('Error retrieving the department(s)');
     }
 
     const seller: UserDoc = await User.findById(order.seller);
@@ -80,8 +80,8 @@ async function costs(
         productPrice: parseInt(price.replace('.', '')), // TODO: convert price properly to number
         senderOfficeId: Sship.departmentNovaposhta,
         senderCityId: Sship.city,
-        recipientOfficeId: recipientDeparment.id,
-        recipientCityId: recipientDeparment.cityID,
+        recipientOfficeId: recipientDepartment.id,
+        recipientCityId: recipientDepartment.cityID,
       },
       auth: {
         username: config.UAPAY_CLIENTID,
@@ -97,6 +97,7 @@ async function costs(
     if (error.response && error.response.data)
       console.error(error.response.data);
     if (!(error instanceof APIError)) {
+      console.error(error);
       return next(
         new APIError(
           'Error calculating shipping costs',
