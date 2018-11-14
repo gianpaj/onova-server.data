@@ -127,6 +127,11 @@ export default class ShippingRunner {
           order.trackingNumber
         );
 
+        if (status == NP.shipped) {
+          order.status = 'shipped';
+          order.dateShipped = new Date();
+        }
+
         if (status == NP.delivered) {
           order.status = 'delivered';
           order.dateDelivered = new Date(raw.DateFirstDayStorage);
