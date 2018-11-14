@@ -128,6 +128,46 @@ describe('## Shipping Runner', () => {
         return resolve();
       });
     });
+
+    it('should have checked an order tracking number has been generated', async done => {
+      try {
+        const dealID = '1B27M6E';
+        await payOrder(o1.id, user2JwtToken, dealID);
+        // seller needs to ships after confirming
+        await confirmOrder(o1.id, user1JwtToken, dealID);
+
+        mock
+          .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
+          .reply(200, novaPoshta.generated);
+
+        // test system message has been scheduled
+        setTimeout(async () => {
+          const {
+            body: { data: orderFound1 },
+          } = await request(app)
+            .get(`/api/orders/${o1.id}`)
+            .set('Authorization', user2JwtToken)
+            .expect(httpStatus.OK);
+
+          expect(orderFound1.shippingStatus).toBe(NP.generated);
+          expect(orderFound1.status).toBe('confirmed');
+
+          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+            if (err) return done(err);
+            const data = jobs.map(job => job.attrs.data);
+            expect(data).toHaveLength(1);
+            // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
+            expect(
+              data[0].message.endsWith(i18n.orderConfirmed.slice(-10))
+            ).toBeTruthy();
+            done();
+          });
+        }, 6000);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
     it('should have checked an order has been shipped', async done => {
       try {
         const dealID = '1B27M6E';
