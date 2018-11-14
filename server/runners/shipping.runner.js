@@ -123,9 +123,14 @@ export default class ShippingRunner {
           throw new Error('Error getting order for checking shipping status');
         }
 
-        const { status } = await Shipping.getShippingStatus(
+        const { status, raw } = await Shipping.getShippingStatus(
           order.trackingNumber
         );
+
+        if (status == NP.delivered) {
+          order.status = 'delivered';
+          order.dateDelivered = new Date(raw.DateFirstDayStorage);
+        }
 
         if (status == NP.collected) {
           order.status = 'completed';
