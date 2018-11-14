@@ -709,6 +709,9 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
           break;
         // The bank has not been able to make debit for technical reasons
         case 'REJECTED':
+          console.log('payment rejected:');
+          console.error(data);
+          console.error(order);
           order.transactionStatus = 'ua-rejected';
           break;
         // The payment was returned to the sender's card
