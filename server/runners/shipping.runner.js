@@ -127,6 +127,11 @@ export default class ShippingRunner {
           order.trackingNumber
         );
 
+        if (status == NP.collected) {
+          order.status = 'completed';
+          order.dateCompleted = new Date();
+        }
+
         order.shippingStatus = status;
         order.shippingUpdatedAt = new Date();
         order.save();
