@@ -231,11 +231,17 @@ describe('## Shipping Runner', () => {
             .expect(httpStatus.OK);
 
           expect(orderFound.shippingStatus).toBe(NP.delivered);
+          expect(orderFound.dateDelivered).toBe(
+            new Date(
+              novaPoshta.delivered.data[0].DateFirstDayStorage
+            ).toISOString()
+          );
+          expect(orderFound.status).toBe('delivered');
 
           agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
             if (err) return done(err);
             const data = jobs.map(job => job.attrs.data);
-            expect(data).toHaveLength(3);
+            expect(data).toHaveLength(2);
             // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
             data.map(data => {
               // expect(data.shippingStatus).toBe(NP.shipped);
@@ -244,13 +250,13 @@ describe('## Shipping Runner', () => {
               }
             });
           });
-        }, 6000);
+        }, 4000);
       } catch (error) {
         console.error(error);
       }
     });
 
-    it('should have checked an order has been collected', async done => {
+    it.skip('should have checked an order has been collected', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
