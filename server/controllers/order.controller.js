@@ -687,6 +687,10 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
           if (data.status === 'CONFIRMED') {
             order.trackingNumber = data.handler.waybillNumber;
             order.shippingProvider = 'novaposhta';
+
+            // set by newStatus when seller send API request
+            // order.dateConfirmed = new Date();
+            // order.status = 'confirmed';
           }
           // check needed because payment status is still PAID if deal has been confirmed
           else if (data.status === 'PAID') {

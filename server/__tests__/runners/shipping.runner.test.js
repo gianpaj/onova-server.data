@@ -129,7 +129,7 @@ describe('## Shipping Runner', () => {
       });
     });
 
-    it('should have checked an order tracking number has been generated', async done => {
+    it.skip('should have checked an order tracking number has been generated', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
@@ -168,7 +168,7 @@ describe('## Shipping Runner', () => {
       }
     });
 
-    it('should have checked an order has been shipped', async done => {
+    it.skip('should have checked an order has been shipped', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
