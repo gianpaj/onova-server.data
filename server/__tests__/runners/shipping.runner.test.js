@@ -64,7 +64,6 @@ describe('## Shipping Runner', () => {
     ...photos,
   };
 
-  let user1ProductUuidA;
   let user1JwtToken, user2JwtToken;
 
   // create 3 users
@@ -89,12 +88,8 @@ describe('## Shipping Runner', () => {
       await Product.collection.deleteMany({}, { safe: true });
       await Order.collection.deleteMany({}, { safe: true });
       try {
-        const p1 = await createProduct(productA, user1JwtToken);
-        user1ProductUuidA = p1.uuid;
-        o1 = await createOrder(
-          { ...productA, uuid: user1ProductUuidA },
-          user2JwtToken
-        );
+        const { uuid } = await createProduct(productA, user1JwtToken);
+        o1 = await createOrder({ ...productA, uuid }, user2JwtToken);
       } catch (error) {
         console.error(error);
       }
@@ -201,11 +196,13 @@ describe('## Shipping Runner', () => {
             .expect(httpStatus.OK);
 
           expect(orderFound.shippingStatus).toBe(NP.collected);
+          expect(orderFound.status).toBe('completed');
+          expect(typeof orderFound.dateCompleted).toBe('string');
 
           agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
             if (err) return done(err);
             const data = jobs.map(job => job.attrs.data);
-            expect(data).toHaveLength(4);
+            expect(data).toHaveLength(2);
             // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
             data.map(data => {
               // expect(data.shippingStatus).toBe(NP.shipped);
