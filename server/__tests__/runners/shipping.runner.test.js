@@ -128,6 +128,7 @@ describe('## Shipping Runner', () => {
         return resolve();
       });
     });
+    it('should have checked an order has been shipped', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
@@ -148,6 +149,8 @@ describe('## Shipping Runner', () => {
             .expect(httpStatus.OK);
 
           expect(orderFound1.shippingStatus).toBe(NP.shipped);
+          expect(orderFound1.status).toBe('shipped');
+          expect(typeof orderFound1.dateShipped).toBe('string');
 
           agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
             if (err) return done(err);
