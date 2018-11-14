@@ -142,6 +142,14 @@ export default class ShippingRunner {
           order.dateCompleted = new Date();
         }
 
+        if (status == NP.refused) {
+          // TODO: distinguish between "Buyer fails to collect" and "Buyer refuses the item (not as described)"
+          order.status = 'failed_by_buyer';
+          order.dateFailed = new Date();
+        }
+
+        // TODO: 'failed_by_seller' - did not ship on time - no status associated from Nova Poshta?
+
         order.shippingStatus = status;
         order.shippingUpdatedAt = new Date();
         order.save();

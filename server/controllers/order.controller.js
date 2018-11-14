@@ -59,15 +59,17 @@ export const i18n = {
   // system messages
   orderConfirmed:
     "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
-  failsToShip: 'TODO',
+  // failsToShip: 'TODO',
   orderShipped:
     'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
   orderDelivered:
     'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
   orderCompleted:
     'The package with tracking number: __TRACKING_NUM__\n has been collected',
-  failedToCollect: 'TODO',
-  refusedItem: 'TODO',
+  // failedToCollect:
+  //   'TODO - The package with tracking number: __TRACKING_NUM__\n was not collected on time',
+  refusedItem:
+    'The package with tracking number: __TRACKING_NUM__\n was refused by the buyer',
 };
 
 // export const i18n = {
@@ -78,14 +80,6 @@ export const i18n = {
 //     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
 //   orderNotConfirmedToSeller:
 //     "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
-//   orderConfirmed:
-//     "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
-//   orderShipped:
-//     'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
-//   orderDelivered:
-//     'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
-//   orderCompleted:
-//     'The package with tracking number: __TRACKING_NUM__\n has been collected',
 // };
 
 const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
@@ -321,11 +315,7 @@ async function update(
       await checkPaymentStatusAndUpdateOrder(foundOrder);
 
       // Schedule a msg with tracking number to notify both parties via chat
-      const message = i18n.orderConfirmed.replace(
-        '__TRACKING_NUM__',
-        foundOrder.trackingNumber
-      );
-      await sendSystemMessage(foundOrder, message);
+      await sendSystemMessage(foundOrder);
 
       foundOrder.dateConfirmed = new Date();
       await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
