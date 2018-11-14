@@ -311,10 +311,10 @@ async function update(
         return next(err);
       }
 
-      // checks status of deal and saves tracking number
+      // checks status of deal and saves tracking number (shippingStatus = NP.generated)
       await checkPaymentStatusAndUpdateOrder(foundOrder);
 
-      // Schedule a msg with tracking number to notify both parties via chat
+      // Schedule a msg with tracking number to notify both parties via chat (orderConfirmed)
       await sendSystemMessage(foundOrder);
 
       foundOrder.dateConfirmed = new Date();

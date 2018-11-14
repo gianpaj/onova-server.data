@@ -216,11 +216,9 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   transactionId: ?string;
   transactionStatus: ?string;
   shippingFee: ?number;
-  // shippingMethod: string;
   shippingProvider: ?string;
   shippingStatus: string;
   shippingUpdatedAt: string;
-  // shippingTax: number;
 }
 
 OrderSchema.loadClass(OrderDoc);
