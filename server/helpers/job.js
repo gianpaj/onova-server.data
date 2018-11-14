@@ -22,6 +22,7 @@ export default class JobManager {
             ),
           };
           break;
+
         case NP.shipped:
           msg = {
             ...msg,
@@ -30,8 +31,8 @@ export default class JobManager {
               order.trackingNumber
             ),
           };
-
           break;
+
         case NP.delivered:
           msg = {
             ...msg,
@@ -40,8 +41,18 @@ export default class JobManager {
               order.trackingNumber
             ),
           };
-
           break;
+
+        case NP.refused:
+          msg = {
+            ...msg,
+            message: i18n.refusedItem.replace(
+              '__TRACKING_NUM__',
+              order.trackingNumber
+            ),
+          };
+          break;
+
         case NP.collected:
           msg = {
             ...msg,
@@ -50,11 +61,15 @@ export default class JobManager {
               order.trackingNumber
             ),
           };
-
           break;
 
         default:
-          reject(new Error('invalid shippingStatus'));
+          reject(
+            new Error(
+              'Invalid shippingStatus for scheduling system message:' +
+                order.shippingStatus
+            )
+          );
           break;
       }
 

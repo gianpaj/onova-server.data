@@ -210,7 +210,7 @@ describe('## Shipping Runner', () => {
       }
     });
 
-    it('should have checked an order has been delivered', async done => {
+    it.skip('should have checked an order has been delivered', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
@@ -288,6 +288,46 @@ describe('## Shipping Runner', () => {
             data.map(data => {
               // expect(data.shippingStatus).toBe(NP.shipped);
               if (data.message.endsWith(i18n.orderCompleted.slice(-10))) {
+                done();
+              }
+            });
+          });
+        }, 6000);
+      } catch (error) {
+        console.error(error);
+      }
+    });
+
+    it('should have checked an order for a shipment that has been refused', async done => {
+      try {
+        const dealID = '1B27M6E';
+        await payOrder(o1.id, user2JwtToken, dealID);
+        // seller needs to ships after confirming
+        await confirmOrder(o1.id, user1JwtToken, dealID);
+
+        mock
+          .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
+          .reply(200, novaPoshta.refused);
+
+        // test system message has been scheduled
+        setTimeout(async () => {
+          const {
+            body: { data: orderFound },
+          } = await request(app)
+            .get(`/api/orders/${o1.id}`)
+            .set('Authorization', user2JwtToken)
+            .expect(httpStatus.OK);
+
+          expect(orderFound.shippingStatus).toBe(NP.refused);
+          expect(orderFound.status).toBe('failed_by_buyer');
+          expect(typeof orderFound.dateFailed).toBe('string');
+
+          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+            if (err) return done(err);
+            const data = jobs.map(job => job.attrs.data);
+            expect(data).toHaveLength(2);
+            data.map(data => {
+              if (data.message.endsWith(i18n.refusedItem.slice(-10))) {
                 done();
               }
             });

@@ -11,11 +11,11 @@ export const NP = {
   // 7 or 8
   delivered: 'np-delivered',
   // 102, 103 or 108
-  refused: 'np-refused',
   // TODO: which one didn't collect
-  // TODO: which one didn't ship
+  refused: 'np-refused',
   // 9
   collected: 'np-collected',
+  // TODO: which one didn't ship
 };
 
 export default class Shipping {
@@ -673,7 +673,7 @@ export const novaPoshta = {
     infoCodes: [],
   },
 
-  // 41 - Preparing package to be shipped towards <city>
+  // NOT USED - 41 - Preparing package to be shipped towards <city>
   preparedForDeparture: {
     success: true,
     data: [
@@ -756,9 +756,7 @@ export const novaPoshta = {
     infoCodes: [],
   },
 
-  // 7 - Package arrived at office.
-  //
-  // @BUYER please colect the item ASAP.
+  // 7 - Package arrived at office
   delivered: {
     success: true,
     data: [
@@ -911,6 +909,90 @@ export const novaPoshta = {
         RefEW: '5b22917c-dc56-11e8-a8ec-0025b502b06e',
         CreatedOnTheBasis: '',
         DatePayedKeeping: '',
+      },
+    ],
+    errors: [],
+    warnings: [
+      {
+        ID_20400106547369:
+          'Please enter a valid phone number from the express invoice to show full information',
+      },
+    ],
+    info: [],
+    messageCodes: [],
+    errorCodes: [],
+    warningCodes: [],
+    infoCodes: [],
+  },
+
+  // 102 (was not retrieve from API) - entered manually
+  refused: {
+    success: true,
+    data: [
+      {
+        Number: '20400106547369',
+        DateCreated: '31-10-2018 17:13:22',
+        DocumentWeight: 5,
+        CheckWeight: 0,
+        SumBeforeCheckWeight: 0,
+        PayerType: 'Recipient',
+        RecipientFullName: '',
+        RecipientDateTime: '',
+        OwnerDocumentType: '',
+        ScheduledDeliveryDate: '01-11-2018',
+        PaymentMethod: 'Cash',
+        CargoDescriptionString: '',
+        CargoType: 'Parcel',
+        CitySender: 'Львів',
+        CityRecipient: 'Львів',
+        WarehouseRecipient: 'Відділення №15 (до 30 кг): вул. Героїв УПА, 6',
+        CounterpartyType: 'PrivatePerson',
+        Redelivery: 0,
+        RedeliverySum: '',
+        RedeliveryNum: '',
+        RedeliveryPayer: '',
+        AfterpaymentOnGoodsCost: '',
+        ServiceType: 'WarehouseWarehouse',
+        UndeliveryReasonsSubtypeDescription: '',
+        WarehouseRecipientNumber: 15,
+        LastCreatedOnTheBasisNumber: '',
+        LastCreatedOnTheBasisDocumentType: '',
+        LastCreatedOnTheBasisPayerType: '',
+        LastCreatedOnTheBasisDateTime: '',
+        LastTransactionStatusGM: '',
+        LastTransactionDateTimeGM: '',
+        WarehouseRecipientInternetAddressRef:
+          '39931b85-e1c2-11e3-8c4a-0050568002cf',
+        MarketplacePartnerToken: '***REMOVED***',
+        DateScan: '10:24 31.10.2018',
+        ClientBarcode: '',
+        SenderAddress: '',
+        RecipientAddress: '',
+        CounterpartySenderDescription: '',
+        CounterpartyRecipientDescription: '',
+        CounterpartySenderType: 'PrivatePerson',
+        PaymentStatus: 'PAYED',
+        PaymentStatusDate: '30.10.2018 17:14:10',
+        AmountToPay: 73,
+        AmountPaid: 73,
+        WarehouseRecipientRef: '490501cb-a33f-11e2-a57a-d4ae527baec3',
+        DocumentCost: 73,
+        AnnouncedPrice: '',
+        OwnerDocumentNumber: '',
+        DateFirstDayStorage: '2018-11-06',
+        DateReturnCargo: '',
+        InternationalDeliveryType: '',
+        DaysStorageCargo: '',
+        RecipientWarehouseTypeRef: '841339c7-591a-42e2-8233-7a0a00f0ed6f',
+        StorageAmount: '',
+        StoragePrice: '',
+        Status: 'Відмова одержувача',
+        StatusCode: '102',
+        RefEW: '5b22917c-dc56-11e8-a8ec-0025b502b06e',
+        RedeliveryPaymentCardRef: '',
+        RedeliveryPaymentCardDescription: '',
+        CreatedOnTheBasis: '',
+        DatePayedKeeping: '2018-11-06 00:00:00',
       },
     ],
     errors: [],
