@@ -165,6 +165,7 @@ function create(
       // FIXME: extend APIError to be able to send extra data
       if (order) {
         order.status = 'pending';
+        order.datePending = new Date();
         order.save();
 
         await addProductToCheckout(product);
