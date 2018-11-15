@@ -13,6 +13,7 @@ import app from '../index';
 
 import Tag from '../models/tag.model';
 import Order from '../models/order.model';
+import { i18n } from '../controllers/order.controller';
 import {
   beforeAllTests,
   createOrder,
@@ -28,7 +29,6 @@ import {
   sellerConfirmedResponse,
   dealConfirmationResp,
 } from '../helpers/shipping';
-import { i18n } from '../helpers/job';
 
 const photos = {
   photos: [
@@ -76,7 +76,7 @@ describe('## Order APIs', () => {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     // seller id is the user who creates the product
-    price: '190.99', // if no decimal points .00 will be added
+    price: '1190.99', // if no decimal points .00 will be added
     ...photos,
   };
 
@@ -99,8 +99,8 @@ describe('## Order APIs', () => {
 
   let firstUserProductAUuid, firstUserProductBUuid2, anotherUserProductUuid;
   let firstUserJwtToken, anotherJwtToken, nonActiveUserJwtToken, forthJwtToken;
-  let ordersByfirstUser = 0;
-  let ordersTofirstUser = 0;
+  let ordersByFirstUser = 0;
+  let ordersToFirstUser = 0;
   let ordersByAnotherUser = 0;
   let ordersToAnotherUser = 0;
 
@@ -178,7 +178,7 @@ describe('## Order APIs', () => {
           .expect(httpStatus.NO_CONTENT)
           .then(res => {
             expect(res.body).toMatchObject({});
-            ordersByfirstUser++;
+            ordersByFirstUser++;
             firstUserProductBUuid2 = p.uuid;
           })
       )
@@ -190,7 +190,7 @@ describe('## Order APIs', () => {
   });
 
   describe('# POST /api/orders', () => {
-    it('should create an order', () => {
+    it('should create an order for a product under 1000', () => {
       return request(app)
         .post('/api/orders')
         .set('Authorization', firstUserJwtToken)
@@ -201,14 +201,34 @@ describe('## Order APIs', () => {
           expect(Object.keys(o).sort()).toEqual(orderFields);
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((productC.price * 1).toString());
-          expect(o.total).toBe(
-            (
-              parseFloat(productC.price) + parseFloat(o.transactionFee)
-            ).toString()
-          );
+          expect(o.onovaFee).toBe((productC.price * 0.085).toString()); // 8.5 %
+          expect(o.total).toBe(parseFloat(productC.price).toString()); // for buyer
+          expect(o.transactionFee).toBe(
+            parseFloat(productC.price * 0.1 + 10).toString()
+          ); // for seller
           expect(o.priceOfItem).toBe(productC.price);
           ordersToAnotherUser++;
+        });
+    });
+
+    it('should create an order for a product over 1000', () => {
+      const price = parseFloat(productA.price);
+      return request(app)
+        .post('/api/orders')
+        .set('Authorization', anotherJwtToken)
+        .send({ product: firstUserProductAUuid })
+        .expect(httpStatus.CREATED)
+        .then(res => {
+          const o = res.body.data;
+          expect(Object.keys(o).sort()).toEqual(orderFields);
+          expect(o.status).toBe('pending');
+          expect(o.currency).toBe('UAH');
+          expect(o.onovaFee).toBe((price * 0.035).toString()); // 3.5 %
+          expect(o.total).toBe(price.toString()); // for buyer
+          expect(o.transactionFee).toBe((price * 0.05 + 10).toString()); // for seller
+          expect(o.priceOfItem).toBe(productA.price);
+          ordersToFirstUser++;
+          ordersByAnotherUser++;
         });
     });
 
@@ -323,12 +343,9 @@ describe('## Order APIs', () => {
             { ...product, ...productGET1OfAnother },
             firstUserJwtToken
           ).then(o => {
-            expect(o.onovaFee).toBe(
-              (productGET1OfAnother.price * 1).toString()
-            );
             expect(o.priceOfItem).toBe(productGET1OfAnother.price);
             orderGET1 = o.id;
-            ordersByfirstUser++;
+            ordersByFirstUser++;
             ordersToAnotherUser++;
           })
         )
@@ -338,10 +355,9 @@ describe('## Order APIs', () => {
         createProduct(productGET2, firstUserJwtToken).then(product =>
           createOrder({ ...product, ...productGET2 }, anotherJwtToken).then(
             o => {
-              expect(o.onovaFee).toBe((productGET2.price * 1).toString());
               expect(o.priceOfItem).toBe(productGET2.price);
               ordersByAnotherUser++;
-              ordersTofirstUser++;
+              ordersToFirstUser++;
             }
           )
         )
@@ -366,7 +382,6 @@ describe('## Order APIs', () => {
           expect(o.id).toBe(orderGET1);
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((productGET1OfAnother.price * 1).toString());
           expect(o.priceOfItem).toBe(productGET1OfAnother.price);
         });
     });
@@ -393,7 +408,6 @@ describe('## Order APIs', () => {
           expect(o.id).toBe(orderGET1);
           expect(o.status).toBe('pending');
           expect(o.currency).toBe('UAH');
-          expect(o.onovaFee).toBe((productGET1OfAnother.price * 1).toString());
           expect(o.priceOfItem).toBe(productGET1OfAnother.price);
         });
     });
@@ -406,7 +420,7 @@ describe('## Order APIs', () => {
         .then(res => {
           const o = res.body.data;
           expect(Array.isArray(o));
-          expect(o.length).toBe(ordersByfirstUser + ordersTofirstUser);
+          expect(o.length).toBe(ordersByFirstUser + ordersToFirstUser);
           expect(Object.keys(o[0]).sort()).toEqual(orderFields);
           expect(Object.keys(o[0].buyer).sort()).toMatchSnapshot();
           // this user didn't upload a profilePic
@@ -451,7 +465,6 @@ describe('## Order APIs', () => {
         createProduct(productPOST1, anotherJwtToken).then(product =>
           createOrder({ ...product, ...productPOST1 }, firstUserJwtToken).then(
             o => {
-              expect(o.onovaFee).toBe((productPOST1.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST1.price);
               orderPOST1 = o.id;
             }
@@ -463,7 +476,6 @@ describe('## Order APIs', () => {
         createProduct(productPOST2, firstUserJwtToken).then(product =>
           createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
             o => {
-              expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST2.price);
               orderPOST2 = o.id;
             }
@@ -475,7 +487,6 @@ describe('## Order APIs', () => {
         createProduct(productPOST2, firstUserJwtToken).then(product =>
           createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
             o => {
-              expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
               expect(o.priceOfItem).toBe(productPOST2.price);
               orderPOST3 = o.id;
             }
@@ -676,7 +687,6 @@ describe('## Order APIs', () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
           o => {
-            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
             orderPOST3ProdUUID = product.uuid;
             orderPOST3 = o.id;
@@ -687,7 +697,6 @@ describe('## Order APIs', () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
           o => {
-            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
             orderPOST4ProdUUID = product.uuid;
             orderPOST4 = o.id;
@@ -701,7 +710,6 @@ describe('## Order APIs', () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
           o => {
-            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
             orderPOST5 = o.id;
           }
@@ -788,7 +796,6 @@ describe('## Order APIs', () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
           o => {
-            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
             orderId = o.id;
           }
@@ -797,7 +804,6 @@ describe('## Order APIs', () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
           o => {
-            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
             order2ProdUUID = product.uuid;
             orderId2 = o.id;
@@ -807,7 +813,6 @@ describe('## Order APIs', () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
           o => {
-            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
             order3ProdUUID = product.uuid;
             orderId3 = o.id;
@@ -817,7 +822,6 @@ describe('## Order APIs', () => {
       await createProduct(productPOST2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...productPOST2 }, anotherJwtToken).then(
           o => {
-            expect(o.onovaFee).toBe((productPOST2.price * 1).toString());
             expect(o.priceOfItem).toBe(productPOST2.price);
             orderId4 = o.id;
           }
@@ -1067,7 +1071,6 @@ describe('## Order APIs', () => {
     beforeAll(async () => {
       await createProduct(product2, firstUserJwtToken).then(product =>
         createOrder({ ...product, ...product2 }, anotherJwtToken).then(o => {
-          expect(o.onovaFee).toBe((product2.price * 1).toString());
           expect(o.priceOfItem).toBe(product2.price);
           orderId = o.id;
         })

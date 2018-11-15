@@ -12,7 +12,7 @@ import User, { UserDoc } from '../models/user.model';
 import Block from '../models/block.model';
 import Notification from '../models/notification.model';
 import notifCtrl from '../controllers/notification.controller';
-import { sellerConfirmedResponse, NP } from '../helpers/shipping';
+import { NP } from '../helpers/shipping';
 import JobManager from '../helpers/job';
 
 import type { NotifPayload } from '../controllers/notification.controller';
@@ -82,8 +82,11 @@ export const i18n = {
 //     "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
 // };
 
-const ONOVA_RATE = 1; // 1 = 100% -- 0.1 = 10%
-const UAPAY_PERC = 0.015; // 1.5%
+// i.e. if priceOfItem > 1000
+const PRICE_THRESHOLD = 1000;
+const ONOVA_PERC_UNTIL_1000 = 0.085; // 8.5% (up to and including 1000)
+const ONOVA_PERC_FROM_1000 = 0.035; // 3.5%
+const UAPAY_PERC = 0.015; // 1.5 %
 const UAPAY_EXTRA = 10; // UAH
 
 /**
@@ -186,19 +189,27 @@ function create(
       return product;
     })
     .then(async product => {
-      const pPrice = product.price.toString();
-      const onovaFee = (parseFloat(pPrice) * ONOVA_RATE).toString();
-      const transactionFee = product.price * UAPAY_PERC + UAPAY_EXTRA;
+      let onovaFee, perc_total;
+
+      if (product.price > PRICE_THRESHOLD) {
+        onovaFee = product.price * ONOVA_PERC_FROM_1000;
+        perc_total = UAPAY_PERC + ONOVA_PERC_FROM_1000;
+      } else {
+        onovaFee = product.price * ONOVA_PERC_UNTIL_1000;
+        perc_total = UAPAY_PERC + ONOVA_PERC_UNTIL_1000;
+      }
+
+      const transactionFee = product.price * perc_total + UAPAY_EXTRA;
 
       const order = new Order({
         buyer: req.user._id,
         currency: product.currency, // 'UAH' by default
         // datePending // Date.now by default
-        onovaFee,
+        onovaFee, // paid by the seller
         priceOfItem: product.price,
         product: product._id,
         seller: product.seller._id,
-        transactionFee,
+        transactionFee, // paid by the seller
         // weight, // TODO: add weight
         // status // 'pending' by default
       });
