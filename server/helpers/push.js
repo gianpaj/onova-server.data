@@ -117,18 +117,12 @@ export async function sendPush({
   } else if (triggeredType == 'Order') {
     return Order.findById(triggeredBy)
       .then(order => {
-        if (!order) {
-          throw new Error('Cannot find order');
-        }
-
-        return User.findById(targetUser).then(target => {
-          if (!target) {
-            throw new Error('Cannot find target');
-          }
-          return { target };
-        });
+        if (!order) throw new Error('Cannot find order');
       })
-      .then(({ target }: { target: UserDoc }) => {
+      .then(() => {
+        const target: UserDoc = User.findById(targetUser);
+        if (!target) throw new Error('Cannot find target');
+
         const pushData = {
           data,
           message,
