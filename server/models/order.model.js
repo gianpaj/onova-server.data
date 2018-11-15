@@ -166,9 +166,7 @@ var OrderSchema = new Schema(
 
 OrderSchema.virtual('total').get(function() {
   return (
-    parseFloat(this.transactionFee || 0) +
-    parseFloat(this.priceOfItem) +
-    parseFloat(this.shippingFee || 0)
+    parseFloat(this.priceOfItem) + parseFloat(this.shippingFee || 0)
   ).toString();
 });
 
@@ -325,6 +323,7 @@ function transform(doc, ret) {
   ret.priceOfItem = ret.priceOfItem.toString();
   // ret.taxAmount = ret.taxAmount.toString();
   if (doc.transactionFee) ret.transactionFee = ret.transactionFee.toString();
+  if (doc.shippingFee) ret.shippingFee = ret.shippingFee.toString();
   delete ret._id;
   delete ret.__v;
   return ret;

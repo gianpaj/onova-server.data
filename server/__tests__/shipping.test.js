@@ -113,9 +113,8 @@ describe('## Shipping', () => {
     beforeAll(() => {
       return createProduct(productDoc, user1JwtToken).then(product =>
         createOrder({ ...product, ...productDoc }, user2JwtToken).then(o => {
-          expect(o.onovaFee).toBe((productDoc.price * 1).toString());
           expect(o.priceOfItem).toBe(productDoc.price);
-          orderProdUUID = product.uuid;
+          // orderProdUUID = product.uuid;
           orderId = o.id;
         })
       );
