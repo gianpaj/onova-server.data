@@ -15,9 +15,11 @@ import Product from '../../models/product.model';
 
 import {
   beforeAllTests,
+  clearJobs,
   createOrder,
   createProduct,
   createUserAndLogin,
+  closeDBConnection,
 } from '../utils';
 import {
   buyerNeedsToPay,
@@ -92,6 +94,7 @@ describe('## Escrow Manager', () => {
     beforeEach(async () => {
       await Product.collection.deleteMany({}, { safe: true });
       await Order.collection.deleteMany({}, { safe: true });
+      await clearJobs();
       try {
         const p1 = await createProduct(productA, user1JwtToken);
         user1ProductUuidA = p1.uuid;
@@ -101,6 +104,8 @@ describe('## Escrow Manager', () => {
         console.error(error);
       }
     });
+
+    afterEach(() => closeDBConnection());
 
     it('should reserve a product and put back forsale', async done => {
       try {
@@ -315,7 +320,11 @@ describe('## Escrow Manager', () => {
   });
 });
 
-async function payOrder(orderId: string, buyerJWTToken, dealID) {
+async function payOrder(
+  orderId: string,
+  buyerJWTToken: string,
+  dealID: string
+) {
   mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
   mock.onPost('/deals').reply(200, { data: { id: dealID } });
   mock.onPost(`/deals/${dealID}/payments`).reply(200);
