@@ -528,7 +528,7 @@ function createPaymentUAPAY(
             cardToId: seller.paymentInfo.card_token,
           },
           handler: {
-            type: 'NovaPoshta_ONOVA',
+            type: 'NovaPoshta',
             senderFirstName: Sship.firstName,
             senderLastName: Sship.lastName,
             senderPatronymic: '',
