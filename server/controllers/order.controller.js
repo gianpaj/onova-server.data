@@ -164,8 +164,12 @@ function create(
       });
       // FIXME: extend APIError to be able to send extra data
       if (order) {
-        order.status = 'pending';
+        const { onovaFee, transactionFee } = calculateFees(product.price);
         order.datePending = new Date();
+        order.status = 'pending';
+        order.priceOfItem = product.price;
+        order.onovaFee = onovaFee;
+        order.transactionFee = transactionFee;
         order.save();
 
         await addProductToCheckout(product);
@@ -190,17 +194,7 @@ function create(
       return product;
     })
     .then(async product => {
-      let onovaFee, perc_total;
-
-      if (product.price > PRICE_THRESHOLD) {
-        onovaFee = product.price * ONOVA_PERC_FROM_1000;
-        perc_total = UAPAY_PERC + ONOVA_PERC_FROM_1000;
-      } else {
-        onovaFee = product.price * ONOVA_PERC_UNTIL_1000;
-        perc_total = UAPAY_PERC + ONOVA_PERC_UNTIL_1000;
-      }
-
-      const transactionFee = product.price * perc_total + UAPAY_EXTRA;
+      const { onovaFee, transactionFee } = calculateFees(product.price);
 
       const order = new Order({
         buyer: req.user._id,
@@ -229,6 +223,22 @@ function create(
       }
       next(e);
     });
+}
+
+function calculateFees(productPrice) {
+  let onovaFee, perc_total;
+
+  if (productPrice > PRICE_THRESHOLD) {
+    onovaFee = productPrice * ONOVA_PERC_FROM_1000;
+    perc_total = UAPAY_PERC + ONOVA_PERC_FROM_1000;
+  } else {
+    onovaFee = productPrice * ONOVA_PERC_UNTIL_1000;
+    perc_total = UAPAY_PERC + ONOVA_PERC_UNTIL_1000;
+  }
+
+  const transactionFee = productPrice * perc_total + UAPAY_EXTRA;
+
+  return { onovaFee, transactionFee };
 }
 
 /**
