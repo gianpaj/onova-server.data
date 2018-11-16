@@ -138,7 +138,7 @@ async function create(
     categoryIds: body.categoryIds,
     // currency: body.currency,
     description: body.description,
-    price: body.price,
+    price: parseFloat(body.price).toFixed(2),
     // status: body.status, // 'forsale' by default
     tags: body.tags,
     typeIds: body.typeIds,
@@ -488,12 +488,9 @@ function update(
         ? body.description
         : foundProduct.description;
 
-      if (/\.\d{1}$/.test(body.price)) {
-        body.price += '0';
-      }
-
+      // always put 2 decimal points
       foundProduct.price = body.price
-        ? mongoose.Types.Decimal128.fromString(body.price)
+        ? parseFloat(body.price).toFixed(2)
         : foundProduct.price;
       foundProduct.tags = body.tags ? body.tags : foundProduct.tags;
       foundProduct.typeIds = body.typeIds ? body.typeIds : foundProduct.typeIds;

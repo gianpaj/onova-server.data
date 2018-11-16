@@ -668,7 +668,7 @@ describe('## Product APIs', () => {
         .send({ ...product, price: '199' })
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data.price).toEqual('199'));
+        .then(({ body }) => expect(body.data.price).toEqual('199.00'));
     });
 
     it('should replace the photos', () => {
