@@ -147,7 +147,7 @@ describe('## Shipping', () => {
       };
 
       mock
-        .onGet('/handlers/NovaPoshta_ONOVA/costs')
+        .onGet('/handlers/NovaPoshta/costs')
         .reply(200, { data: { handlerPrice: 2500 } });
       return request(app)
         .get(

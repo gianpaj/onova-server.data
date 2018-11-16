@@ -74,7 +74,7 @@ async function costs(
     if (!Sship.city || !Sship.departmentNovaposhta)
       throw new Error('Seller is missing payment or shipping info');
 
-    const provider = await axios.get('/handlers/NovaPoshta_ONOVA/costs', {
+    const provider = await axios.get('/handlers/NovaPoshta/costs', {
       params: {
         productWeight: weight,
         productPrice: parseInt(price.replace('.', '')), // TODO: convert price properly to number
