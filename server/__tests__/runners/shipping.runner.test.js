@@ -4,7 +4,6 @@ import httpStatus from 'http-status';
 import axios from 'axios';
 import MockAdapter from 'axios-mock-adapter';
 import request from 'supertest';
-const { MongoClient } = require('mongodb');
 
 import { agenda } from '../../config/express';
 import config from '../../config/config';
@@ -19,9 +18,11 @@ import { NP } from '../../helpers/shipping';
 
 import {
   beforeAllTests,
+  clearJobs,
   createOrder,
   createProduct,
   createUserAndLogin,
+  closeDBConnection,
 } from '../utils';
 import {
   buyerNeedsToPay,
@@ -38,31 +39,6 @@ const photos = {
 };
 
 jest.setTimeout(10000);
-
-let mongoClient = null;
-
-function clearJobs() {
-  return new Promise((resolve, reject) => {
-    const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
-      config.mongo.jobDb
-    }`;
-    MongoClient.connect(
-      jobDb,
-      (err, client) => {
-        mongoClient = client;
-        const mongoDb = client.db(config.mongo.jobDb);
-        mongoDb
-          .collection('agendaJobs')
-          .deleteMany({})
-          .then(res => {
-            // console.log(res.deletedCount);
-            resolve();
-          });
-        if (err) reject(err);
-      }
-    );
-  });
-}
 
 // This sets the mock adapter on the default instance
 const mock = new MockAdapter(axios);
@@ -123,10 +99,7 @@ describe('## Shipping Runner', () => {
     });
 
     afterEach(() => {
-      return new Promise(async resolve => {
-        await mongoClient.close();
-        return resolve();
-      });
+      return closeDBConnection();
     });
 
     it.skip('should have checked an order tracking number has been generated', async done => {

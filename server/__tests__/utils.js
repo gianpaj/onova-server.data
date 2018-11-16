@@ -2,6 +2,7 @@
 
 import httpStatus from 'http-status';
 import request from 'supertest';
+import { MongoClient } from 'mongodb';
 
 import Block from '../models/block.model';
 import DefaultFollow from '../models/defaultFollow.model';
@@ -13,6 +14,7 @@ import Tag from '../models/tag.model';
 import User, { UserDoc } from '../models/user.model';
 import Verification from '../models/verification.model';
 import app from '../index';
+import config from '../config/config';
 
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
@@ -259,5 +261,37 @@ export function beforeAllTests(done: () => void) {
     collection.deleteMany({}, { safe: true }, () => {
       if (--todo === 0) done();
     });
+  });
+}
+
+let mongoClient = null;
+
+export function clearJobs() {
+  return new Promise((resolve, reject) => {
+    const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
+      config.mongo.jobDb
+    }`;
+    MongoClient.connect(
+      jobDb,
+      (err, client) => {
+        mongoClient = client;
+        const mongoDb = client.db(config.mongo.jobDb);
+        mongoDb
+          .collection('agendaJobs')
+          .deleteMany({})
+          .then(res => {
+            // console.log(res.deletedCount);
+            resolve();
+          });
+        if (err) reject(err);
+      }
+    );
+  });
+}
+
+export function closeDBConnection() {
+  return new Promise(async resolve => {
+    await mongoClient.close();
+    return resolve();
   });
 }
