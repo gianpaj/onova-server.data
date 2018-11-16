@@ -119,8 +119,8 @@ export async function sendPush({
       .then(order => {
         if (!order) throw new Error('Cannot find order');
       })
-      .then(() => {
-        const target: UserDoc = User.findById(targetUser);
+      .then(async () => {
+        const target: UserDoc = await User.findById(targetUser);
         if (!target) throw new Error('Cannot find target');
 
         const pushData = {
