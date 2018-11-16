@@ -134,7 +134,7 @@ export const buyerNeedsToPay = {
       recipientCityName: null,
       recipientOfficeId: '7b422fbe-e1b8-11e3-8c4a-0050568002cf',
       recipientOfficeName: null,
-      type: 'NovaPoshta_ONOVA',
+      type: 'NovaPoshta',
     },
     productPayment: {
       id: 617,
@@ -217,7 +217,7 @@ export const buyerPaidDeal = {
       recipientCityName: null,
       recipientOfficeId: '7b422fbe-e1b8-11e3-8c4a-0050568002cf',
       recipientOfficeName: null,
-      type: 'NovaPoshta_ONOVA',
+      type: 'NovaPoshta',
     },
     productPayment: {
       id: 1297,
@@ -301,7 +301,7 @@ export const sellerConfirmedResponse = {
       recipientOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
       recipientOfficeName:
         'Відділення №1: вул. Червонопрапорна, 34 (Корчувате)',
-      type: 'NovaPoshta_ONOVA',
+      type: 'NovaPoshta',
     },
     productPayment: {
       id: 1343,
@@ -384,7 +384,7 @@ export const sellerCancelsAPaidDeal = {
       recipientCityName: null,
       recipientOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
       recipientOfficeName: null,
-      type: 'NovaPoshta_ONOVA',
+      type: 'NovaPoshta',
     },
     productPayment: {
       id: 1373,
@@ -475,7 +475,7 @@ export const buyerPaymentFailure = {
       recipientCityName: null,
       recipientOfficeId: '511fcf97-e1c2-11e3-8c4a-0050568002cf',
       recipientOfficeName: null,
-      type: 'NovaPoshta_ONOVA',
+      type: 'NovaPoshta',
     },
     productPayment: {
       id: 1678,
