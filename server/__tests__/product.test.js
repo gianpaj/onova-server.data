@@ -13,6 +13,7 @@ import {
   createProduct,
   createUserAndLogin,
   productFields,
+  createOrder,
 } from './utils';
 
 describe('## Product APIs', () => {
@@ -594,8 +595,8 @@ describe('## Product APIs', () => {
     });
   });
 
-  describe('# UPDATE /api/products/:uuid', () => {
-    let photoURIs;
+  describe('# PUT /api/products/:uuid', () => {
+    let photoURIs, forthProdUuid;
     beforeAll(async () => {
       const p = await createProduct(thirdProduct, jwtToken1);
       thirdProdUuid = p.uuid;
@@ -603,6 +604,9 @@ describe('## Product APIs', () => {
         { uuid: thirdProdUuid },
         { $set: { status: 'sold' } }
       );
+      const p2 = await createProduct(thirdProduct, jwtToken1);
+      forthProdUuid = p2.uuid;
+      await createOrder(p2, jwtToken2);
     });
 
     it('should update the description, price, categoryIds and typeIds', () => {
@@ -733,6 +737,16 @@ describe('## Product APIs', () => {
           expect(body.message).toBe(
             'Cannot update a product that has been sold'
           )
+        );
+    });
+
+    it('should NOT update a product that is reserved', () => {
+      return request(app)
+        .put(`/api/products/${forthProdUuid}`)
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe('Cannot update a product that is reserved')
         );
     });
   });
