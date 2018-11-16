@@ -431,6 +431,11 @@ function update(
           'Cannot update a product that has been sold',
           httpStatus.BAD_REQUEST
         );
+      } else if (foundProduct.status === 'reserved') {
+        throw new APIError(
+          'Cannot update a product that is reserved',
+          httpStatus.BAD_REQUEST
+        );
       }
 
       // create Tag documents
