@@ -58,18 +58,17 @@ export const i18n = {
 
   // system messages
   orderConfirmed:
-    "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
+    'Замовлення підтверджено та чекає відправлення продавцем за номером накладної\n__TRACKING_NUM__',
   // failsToShip: 'TODO',
   orderShipped:
-    'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
+    'Замовлення за номером накладної __TRACKING_NUM__\n було відправлено!',
   orderDelivered:
-    'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
-  orderCompleted:
-    'The package with tracking number: __TRACKING_NUM__\n has been collected',
+    'Замовлення за номером накладної __TRACKING_NUM__\n доставлено на відділення нової пошти та чекає покупця',
+  orderCompleted: 'Замовлення за номером накладної __TRACKING_NUM__\n отримано',
   // failedToCollect:
   //   'TODO - The package with tracking number: __TRACKING_NUM__\n was not collected on time',
   refusedItem:
-    'The package with tracking number: __TRACKING_NUM__\n was refused by the buyer',
+    'Замовлення за номером накладної __TRACKING_NUM__\n було скасовано покупцем на відділенні нової пошти',
 };
 
 // export const i18n = {
@@ -80,6 +79,19 @@ export const i18n = {
 //     "We're sorry, the seller didn't confirm the order one time.", // 58 chars
 //   orderNotConfirmedToSeller:
 //     "You didn't confirm the order on time. This will appear in your profile reviews", // 78 chars
+
+// system messages
+//   orderConfirmed:
+//     "Awesome! Here's the tracking number: __TRACKING_NUM__\n The item can now be shipped from Nova Poshta",
+//   failsToShip: 'TODO',
+//   orderShipped:
+//     'The package with tracking number: __TRACKING_NUM__\n has shipped 🎉',
+//   orderDelivered:
+//     'The package with tracking number: __TRACKING_NUM__\n has been delivered and is ready to be picked up',
+//   orderCompleted:
+//     'The package with tracking number: __TRACKING_NUM__\n has been collected',
+//   refusedItem:
+//     'The package with tracking number: __TRACKING_NUM__\n was refused by the buyer',
 // };
 
 // i.e. if priceOfItem > 1000
