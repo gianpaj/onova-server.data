@@ -105,10 +105,8 @@
     "testRunner": "jest-circus/runner",
     "verbose": true,
     "forceExit": true,
-    "testPathIgnorePatterns": [
-      "node_modules",
-      "lib",
-      "server/__tests__/utils.js"
+    "roots": [
+      "./server"
     ]
   }
 }
