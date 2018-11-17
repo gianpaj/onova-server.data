@@ -10,6 +10,7 @@ import config from '../../config/config';
 
 import app from '../../index';
 
+import { i18n } from '../../controllers/order.controller';
 import Order from '../../models/order.model';
 import Product from '../../models/product.model';
 
@@ -256,16 +257,18 @@ describe('## Escrow Manager', () => {
             expect(push2.triggeredType).toBe('Order');
             expect(typeof push2.random).toBe('string');
 
-            agenda.jobs(
-              { name: config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER },
-              (err, jobs) => {
-                if (err) return done(err);
-                expect(jobs).toHaveLength(1);
-                done();
-              }
-            );
+            agenda.jobs({ name: config.JOBNAMES.PUSH_ORDER }, (err, jobs) => {
+              if (err) return done(err);
+              const data = jobs.map(job => job.attrs.data);
+              expect(
+                data.find(d =>
+                  d.message.endsWith(i18n.orderPaidReminder.slice(-10))
+                )
+              ).toBeTruthy();
+              done();
+            });
           });
-        }, 4000);
+        }, 6000);
       } catch (error) {
         console.error(error);
       }
