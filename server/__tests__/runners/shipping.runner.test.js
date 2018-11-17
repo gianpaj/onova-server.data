@@ -98,11 +98,9 @@ describe('## Shipping Runner', () => {
       }
     });
 
-    afterEach(() => {
-      return closeDBConnection();
-    });
+    afterEach(() => closeDBConnection());
 
-    it.skip('should have checked an order tracking number has been generated', async done => {
+    it('should have checked an order tracking number has been generated', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
@@ -127,11 +125,11 @@ describe('## Shipping Runner', () => {
 
           agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
             if (err) return done(err);
+            expect(jobs).toHaveLength(1);
             const data = jobs.map(job => job.attrs.data);
-            expect(data).toHaveLength(1);
             // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
             expect(
-              data[0].message.endsWith(i18n.orderConfirmed.slice(-10))
+              data[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
             ).toBeTruthy();
             done();
           });
@@ -141,7 +139,7 @@ describe('## Shipping Runner', () => {
       }
     });
 
-    it.skip('should have checked an order has been shipped', async done => {
+    it('should have checked an order has been shipped', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
@@ -183,7 +181,7 @@ describe('## Shipping Runner', () => {
       }
     });
 
-    it.skip('should have checked an order has been delivered', async done => {
+    it('should have checked an order has been delivered', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
@@ -229,7 +227,7 @@ describe('## Shipping Runner', () => {
       }
     });
 
-    it.skip('should have checked an order has been collected', async done => {
+    it('should have checked an order has been collected', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);

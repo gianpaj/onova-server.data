@@ -16,6 +16,9 @@ const checkShippingStatusEveryHours = parseInt(
 const debug = require('debug')('server-data:escrow');
 // const debug = console.log;
 
+const { JOBNAMES } = config;
+const { RECURRING } = JOBNAMES;
+
 export default class ShippingRunner {
   constructor() {
     this.initStatusStarterJob();
@@ -26,12 +29,15 @@ export default class ShippingRunner {
     this.defineStatusStarterJob();
 
     agenda.on('ready', () => {
-      agenda.cancel({ name: 'shipping-status-starter' }, (err, numRemoved) => {
-        if (err) return console.error(err);
-        debug('shipping-status-starter cleaned up jobs:', numRemoved);
-        agenda.start();
-        this.createStatusStarterJob();
-      });
+      agenda.cancel(
+        { name: RECURRING.SHIPPING_STATUS_STARTER },
+        (err, numRemoved) => {
+          if (err) return console.error(err);
+          debug('shipping-status-starter cleaned up jobs:', numRemoved);
+          agenda.start();
+          this.createStatusStarterJob();
+        }
+      );
     });
   }
 
@@ -39,17 +45,20 @@ export default class ShippingRunner {
     this.defineStatusCheckerJobs();
 
     agenda.on('ready', () => {
-      agenda.cancel({ name: 'shipping-status-checker' }, (err, numRemoved) => {
-        if (err) return console.error(err);
-        debug('shipping-status-checker cleaned up jobs:', numRemoved);
-        agenda.start();
-      });
+      agenda.cancel(
+        { name: JOBNAMES.SHIPPING_STATUS_CHECKER },
+        (err, numRemoved) => {
+          if (err) return console.error(err);
+          debug('shipping-status-checker cleaned up jobs:', numRemoved);
+          agenda.start();
+        }
+      );
     });
   }
 
   createStatusStarterJob() {
-    const job = agenda.create('shipping-status-starter');
-    job.unique({ jobName: 'shipping-status-starter' });
+    const job = agenda.create(RECURRING.SHIPPING_STATUS_STARTER);
+    job.unique({ jobName: RECURRING.SHIPPING_STATUS_STARTER });
     job.repeatEvery(
       config.env === 'test'
         ? '3 seconds'
@@ -60,14 +69,14 @@ export default class ShippingRunner {
 
   createStatusCheckerJob(orderId: string) {
     return new Promise((resolve, reject) => {
-      const job = agenda.create('shipping-status-checker', { orderId });
-      job.unique({ jobName: 'shipping-status-checker', orderId });
+      const job = agenda.create(JOBNAMES.SHIPPING_STATUS_CHECKER, { orderId });
+      job.unique({ jobName: JOBNAMES.SHIPPING_STATUS_CHECKER, orderId });
       job.save(err => {
         if (err) {
           const error = new Error(`Job failed with error: ${err}`);
           return reject(error);
         }
-        debug('shipping-status-checker', 'Job successfully saved');
+        debug(JOBNAMES.SHIPPING_STATUS_CHECKER, 'Job successfully saved');
         resolve();
       });
     });
@@ -77,7 +86,7 @@ export default class ShippingRunner {
    * checks if there are order shipping statuses that need to be updated
    */
   defineStatusStarterJob() {
-    agenda.define('shipping-status-starter', async (job, done) => {
+    agenda.define(RECURRING.SHIPPING_STATUS_STARTER, async (job, done) => {
       console.log('shipping-status-starter job running at', new Date());
 
       const previousDate = new Date(
@@ -110,7 +119,7 @@ export default class ShippingRunner {
 
   defineStatusCheckerJobs() {
     // define job for checking shipping status that needs to be updated and send system message
-    agenda.define('shipping-status-checker', async (job, done) => {
+    agenda.define(JOBNAMES.SHIPPING_STATUS_CHECKER, async (job, done) => {
       console.log('shipping-status-checker job running at', new Date());
 
       const { orderId } = job.attrs;

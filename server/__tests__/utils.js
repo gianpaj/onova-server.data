@@ -267,6 +267,8 @@ export function beforeAllTests(done: () => void) {
 let mongoClient = null;
 
 export function clearJobs() {
+  const { RECURRING } = config.JOBNAMES;
+
   return new Promise((resolve, reject) => {
     const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${
       config.mongo.jobDb
@@ -278,7 +280,7 @@ export function clearJobs() {
         const mongoDb = client.db(config.mongo.jobDb);
         mongoDb
           .collection('agendaJobs')
-          .deleteMany({})
+          .deleteMany({ name: { $nin: Object.values(RECURRING) } })
           .then(res => {
             // console.log(res.deletedCount);
             resolve();

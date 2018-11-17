@@ -16,6 +16,8 @@ import { agenda } from '../config/express';
 const debug = require('debug')('server-data:escrow');
 // const debug = console.log;
 
+const { RECURRING: JOB } = config.JOBNAMES;
+
 export default class EscrowRunner {
   constructor() {
     this.initCheckoutJob();
@@ -27,7 +29,7 @@ export default class EscrowRunner {
     this.defineCheckoutJob();
 
     agenda.on('ready', () => {
-      agenda.cancel({ name: 'checkout' }, (err, numRemoved) => {
+      agenda.cancel({ name: JOB.CHECKOUT }, (err, numRemoved) => {
         if (err) return console.error(err);
         debug('checkout cleaned up jobs:', numRemoved);
         agenda.start();
@@ -40,7 +42,7 @@ export default class EscrowRunner {
     this.defineCancelPaidOrdersJob();
 
     agenda.on('ready', () => {
-      agenda.cancel({ name: 'cancel-paid-orders' }, (err, numRemoved) => {
+      agenda.cancel({ name: JOB.CANCEL_PAID_ORDERS }, (err, numRemoved) => {
         if (err) return console.error(err);
         debug('cancelPaidOrders cleaned up jobs:', numRemoved);
         agenda.start();
@@ -54,11 +56,11 @@ export default class EscrowRunner {
 
     agenda.on('ready', () => {
       agenda.cancel(
-        { name: config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER },
+        { name: JOB.PUSH_ORDER_CONFIRM_REMINDER },
         (err, numRemoved) => {
           if (err) return console.error(err);
           debug(
-            config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER,
+            JOB.PUSH_ORDER_CONFIRM_REMINDER,
             'cleaned up jobs:',
             numRemoved
           );
@@ -70,22 +72,22 @@ export default class EscrowRunner {
   }
 
   createCheckoutJob() {
-    const job = agenda.create('checkout');
-    job.unique({ jobName: 'checkout' });
+    const job = agenda.create(JOB.CHECKOUT);
+    job.unique({ jobName: JOB.CHECKOUT });
     job.repeatEvery(config.env === 'test' ? '3 seconds' : '30 seconds');
     job.save();
   }
 
   createCancelPaidOrdersJob() {
-    const job = agenda.create('cancel-paid-orders');
-    job.unique({ jobName: 'cancel-paid-orders' });
+    const job = agenda.create(JOB.CANCEL_PAID_ORDERS);
+    job.unique({ jobName: JOB.CANCEL_PAID_ORDERS });
     job.repeatEvery(config.env === 'test' ? '3 seconds' : '60 minutes');
     job.save();
   }
 
   createRemindToConfirmOrderJob() {
-    const job = agenda.create(config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER);
-    job.unique({ jobName: config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER });
+    const job = agenda.create(JOB.PUSH_ORDER_CONFIRM_REMINDER);
+    job.unique({ jobName: JOB.PUSH_ORDER_CONFIRM_REMINDER });
     job.repeatEvery(
       config.env === 'test'
         ? '3 seconds'
@@ -95,7 +97,7 @@ export default class EscrowRunner {
   }
 
   defineCheckoutJob() {
-    agenda.define('checkout', async (job, done) => {
+    agenda.define(JOB.CHECKOUT, async (job, done) => {
       console.log('checkout job running at', new Date());
 
       const previousDate = new Date(
@@ -131,7 +133,7 @@ export default class EscrowRunner {
   }
 
   defineCancelPaidOrdersJob() {
-    agenda.define('cancel-paid-orders', async (job, done) => {
+    agenda.define(JOB.CANCEL_PAID_ORDERS, async (job, done) => {
       console.log('cancel-paid-orders job running at', new Date());
 
       const previousDate = new Date(
@@ -200,52 +202,49 @@ export default class EscrowRunner {
   }
 
   defineRemindToConfirmOrderJob() {
-    agenda.define(
-      config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER,
-      async (job, done) => {
-        console.log(
-          config.JOBNAMES.PUSH_ORDER_CONFIRM_REMINDER + ' job running at',
-          new Date()
+    agenda.define(JOB.PUSH_ORDER_CONFIRM_REMINDER, async (job, done) => {
+      console.log(
+        JOB.PUSH_ORDER_CONFIRM_REMINDER + ' job running at',
+        new Date()
+      );
+
+      const previousDate = new Date(
+        Date.now() -
+          (config.env === 'test'
+            ? 30 * 1000
+            : config.settings.cancelPaidOrdersAfter * 1000)
+      );
+
+      try {
+        const query = {
+          status: 'paid',
+          transactionStatus: 'ua-finished',
+          datePaid: { $gt: previousDate },
+        };
+        const orders: Array<OrderDoc> = await Order.find(query);
+        if (!orders.length) return done();
+
+        const notifications = orders.map(order =>
+          notifCtrl.createNotification({
+            data: order,
+            notifI18n: i18n.orderPaidReminder,
+            sourceUser: order.buyer._id,
+            targetUser: order.seller._id,
+            triggeredBy: order._id,
+            triggeredType: 'Order',
+          })
         );
 
-        const previousDate = new Date(
-          Date.now() -
-            (config.env === 'test'
-              ? 30 * 1000
-              : config.settings.cancelPaidOrdersAfter * 1000)
-        );
+        await Promise.all(notifications);
 
-        try {
-          const query = {
-            status: 'paid',
-            transactionStatus: 'ua-finished',
-            datePaid: { $gt: previousDate },
-          };
-          const orders: Array<OrderDoc> = await Order.find(query);
-          if (!orders.length) return done();
+        debug(orders.length, 'scheduled remiders(s) to confirm orders');
 
-          const notifications = orders.map(order =>
-            notifCtrl.createNotification({
-              data: order,
-              notifI18n: i18n.orderPaidReminder,
-              sourceUser: order.buyer._id,
-              targetUser: order.seller._id,
-              triggeredBy: order._id,
-              triggeredType: 'Order',
-            })
-          );
-
-          await Promise.all(notifications);
-
-          debug(orders.length, 'scheduled remiders(s) to confirm orders');
-
-          done();
-        } catch (error) {
-          console.error(error);
-          done(error);
-        }
+        done();
+      } catch (error) {
+        console.error(error);
+        done(error);
       }
-    );
+    });
   }
 
   removeProductsFromCheckout(products): Promise<any> {
