@@ -127,9 +127,15 @@ const config = {
     PUSH_FOLLOW: 'send-push-follow',
     PUSH_MSG: 'send-push-msg', // person to person
     PUSH_ORDER: 'send-push-order',
-    PUSH_ORDER_CONFIRM_REMINDER: 'send-push-order-confirmation-reminder',
     SCHEDULE: 'listing-schedule',
     SYSTEM_MSG: 'send-system-message',
+    RECURRING: {
+      CHECKOUT: 'checkout',
+      CANCEL_PAID_ORDERS: 'cancel-paid-orders',
+      PUSH_ORDER_CONFIRM_REMINDER: 'send-push-order-confirmation-reminder',
+      SHIPPING_STATUS_STARTER: 'shipping-status-starter',
+    },
+    SHIPPING_STATUS_CHECKER: 'shipping-status-checker',
   },
   settings: {
     // Reserves products for 15 minutes.

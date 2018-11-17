@@ -162,7 +162,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Order') {
-      // Order update, created, cancelled, etc.
+      // Order update, created, cancelled, confirmation-reminder etc.
       try {
         await sendPush({
           data,
