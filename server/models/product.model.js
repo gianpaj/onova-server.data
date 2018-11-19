@@ -106,7 +106,7 @@ var ProductSchema = new Schema(
     },
     weight: {
       type: Number,
-      default: 3000, // 3kg
+      default: 5000, // 5kg
       required: true,
     },
     uuid: {
