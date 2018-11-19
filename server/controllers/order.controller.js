@@ -614,6 +614,20 @@ function createPaymentUAPAY(
 
       const { productPayment: paym } = newDeal;
 
+      // TODO: test with demo UAPAY API
+      if (config.env === 'DISABLED') {
+        // validate deal
+        if (newDeal.productWeight !== product.weight) {
+          throw new Error('Error with productWeight');
+        }
+        if (
+          newDeal.productPrice.toString() !==
+          product.price.toString().replace('.', '')
+        ) {
+          throw new Error('Error with productPrice');
+        }
+      }
+
       // console.log(newDeal);
       // TODO: check commissionAmount is equal to agreed
       if (
