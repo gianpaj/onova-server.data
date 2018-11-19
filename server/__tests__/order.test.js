@@ -853,13 +853,16 @@ describe('## Order APIs', () => {
         });
     });
 
-    it('should create a payment for an order', () => {
+    it('should create a payment for an order', async () => {
       const dealID = '9B27M6A';
       mock.onPost('/carts').reply(200, { data: { id: 574, deals: [] } });
       mock.onPost('/deals').reply(200, { data: { id: dealID } });
       mock.onPost(`/deals/${dealID}/payments`).reply(200, buyerNeedsToPay);
       mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-      return request(app)
+      mock
+        .onGet('/handlers/NovaPoshta/costs')
+        .reply(200, { data: { handlerPrice: 2500 } });
+      await request(app)
         .post(`/api/orders/${orderId}/pay`)
         .set('Authorization', anotherJwtToken)
         .send({ cvc: '123' })
@@ -870,6 +873,19 @@ describe('## Order APIs', () => {
             '.uapay.ua/api/payments/'
           );
           expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
+        });
+
+      return request(app)
+        .get(`/api/orders/${orderId}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.id).toBe(orderId);
+          expect(body.data.status).toBe('pending');
+          expect(body.data.transactionStatus).toBe('ua-pending');
+          expect(body.data.currency).toBe('UAH');
+          expect(body.data.priceOfItem).toBe(productPOST2.price);
+          expect(body.data.shippingFee).toBe('2500.00');
         });
     });
 
