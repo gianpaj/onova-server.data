@@ -128,7 +128,7 @@ export function getShippingCost(
     .then(result => {
       if (!result || !result.data)
         throw new APIError('Error getting the costs from UAPAY');
-      return parseFloat(result.data.data.handlerPrice).toFixed(2);
+      return parseFloat(result.data.data.handlerPrice / 100).toFixed(2);
     });
 }
 
