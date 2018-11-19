@@ -156,7 +156,7 @@ describe('## Shipping', () => {
           }&orderId=${orderId}&recipientOfficeID=${recipientOfficeID}`
         )
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data).toBe('2500.00'));
+        .then(({ body }) => expect(body.data).toBe('25.00'));
     });
   });
 });

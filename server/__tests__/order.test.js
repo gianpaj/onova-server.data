@@ -885,7 +885,7 @@ describe('## Order APIs', () => {
           expect(body.data.transactionStatus).toBe('ua-pending');
           expect(body.data.currency).toBe('UAH');
           expect(body.data.priceOfItem).toBe(productPOST2.price);
-          expect(body.data.shippingFee).toBe('2500.00');
+          expect(body.data.shippingFee).toBe('25.00');
         });
     });
 
