@@ -144,6 +144,7 @@ export class ProductDoc /*:: extends Mongoose$Document */ {
   status: string;
   tags: Array<string>; // optional
   typeIds: Array<Number>;
+  weight: Number;
   uuid: string;
 }
 

@@ -47,7 +47,7 @@ function cities(
  * GET /api/shipping/costs
  *
  * @property {*} req.query - Express query parameters
- * @property {number} req.query.price
+ * @property {number} req.query.price // TODO: price and weight should be retrieved in the order as buyer cannot change those
  * @property {number} req.query.weight
  * @property {number} req.query.recipientOfficeID
  * @property {number} req.query.orderId
@@ -74,25 +74,12 @@ async function costs(
     if (!Sship.city || !Sship.departmentNovaposhta)
       throw new Error('Seller is missing payment or shipping info');
 
-    const provider = await axios.get('/handlers/NovaPoshta/costs', {
-      params: {
-        productWeight: weight,
-        productPrice: parseInt(price.replace('.', '')), // TODO: convert price properly to number
-        senderOfficeId: Sship.departmentNovaposhta,
-        senderCityId: Sship.city,
-        recipientOfficeId: recipientDepartment.id,
-        recipientCityId: recipientDepartment.cityID,
-      },
-      auth: {
-        username: config.UAPAY_CLIENTID,
-        password: config.UAPAY_KEY,
-      },
+    const costs = await getShippingCost(weight, price, Sship, {
+      departmentNovaposhta: recipientDepartment.id,
+      city: recipientDepartment.cityID,
     });
 
-    if (!provider || !provider.data)
-      throw new APIError('Error getting the costs from UAPAY');
-
-    res.json({ data: provider.data.data.handlerPrice });
+    res.json({ data: costs });
   } catch (error) {
     if (error.response && error.response.data)
       console.error(error.response.data);
@@ -107,6 +94,42 @@ async function costs(
     }
     next(error);
   }
+}
+
+export function getShippingCost(
+  weight: number,
+  price: string,
+  senderShippingAddress: any,
+  recipientShippingAddress: any
+): Promise<string> {
+  const {
+    departmentNovaposhta: senderOfficeId,
+    city: senderCityId,
+  } = senderShippingAddress;
+  const {
+    departmentNovaposhta: recipientOfficeId,
+    city: recipientCityId,
+  } = recipientShippingAddress;
+  return axios
+    .get('/handlers/NovaPoshta/costs', {
+      params: {
+        productWeight: weight,
+        productPrice: parseInt(price.replace('.', '')), // TODO: convert price properly to number
+        senderOfficeId,
+        senderCityId,
+        recipientOfficeId,
+        recipientCityId,
+      },
+      auth: {
+        username: config.UAPAY_CLIENTID,
+        password: config.UAPAY_KEY,
+      },
+    })
+    .then(result => {
+      if (!result || !result.data)
+        throw new APIError('Error getting the costs from UAPAY');
+      return parseFloat(result.data.data.handlerPrice).toFixed(2);
+    });
 }
 
 /**

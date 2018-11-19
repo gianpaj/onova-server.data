@@ -12,6 +12,7 @@ import User, { UserDoc } from '../models/user.model';
 import Block from '../models/block.model';
 import Notification from '../models/notification.model';
 import notifCtrl from '../controllers/notification.controller';
+import { getShippingCost } from '../controllers/shipping.controller';
 import { NP } from '../helpers/shipping';
 import JobManager from '../helpers/job';
 
@@ -472,15 +473,25 @@ async function pay(
         httpStatus.BAD_REQUEST
       );
 
-    const product = await Product.findOne({ _id: order.product });
+    const product: ProductDoc = await Product.findOne({ _id: order.product });
 
     if (!product)
       throw new APIError('Product not found.', httpStatus.NOT_FOUND);
 
+    // confirmation info
     const payment = await createPaymentUAPAY(order, product, body.cvc);
+
+    const shippingFee = await getShippingCost(
+      product.weight,
+      product.price.toString(),
+      order.seller.shippingAddress,
+      order.buyer.shippingAddress
+    );
 
     // TODO: check transaction hasn't already started
     order.transactionStatus = 'ua-pending';
+    order.shippingFee = shippingFee;
+    order.save();
 
     res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
