@@ -67,7 +67,7 @@ async function get(req: session$Request, res: express$Response) {
     follower: userId,
   }).populate('following');
 
-  const ordersAndReviewsCount = await Order.count({
+  const ordersAndReviewsCount = await Order.countDocuments({
     $and: [
       { $or: [{ buyer: userId }, { seller: userId }] },
       {
@@ -105,7 +105,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
   const userId = req.user._id;
   const doc = _prepareUserJson(req.user);
 
-  const ordersAndReviewsCount = await Order.count({
+  const ordersAndReviewsCount = await Order.countDocuments({
     $and: [
       { $or: [{ buyer: userId }, { seller: userId }] },
       {
