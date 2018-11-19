@@ -906,31 +906,7 @@ describe('## Order APIs', () => {
 
     test('a seller should cancel an order that has been paid', async () => {
       const dealID = '9B27M6E';
-      mock.onPost('/carts').reply(200, { data: { id: 575, deals: [] } });
-      mock.onPost('/deals').reply(200, { data: { id: dealID } });
-      mock.onPost(`/deals/${dealID}/payments`).reply(200);
-      mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-      await request(app)
-        .post(`/api/orders/${orderId2}/pay`)
-        .set('Authorization', anotherJwtToken)
-        .send({ cvc: '123' })
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.payment.redirectUrl).toContain(
-            '.uapay.ua/api/payments/'
-          );
-          expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
-        });
-
-      mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
-      await request(app)
-        .get(`/api/orders/${orderId2}/paymentStatus`)
-        .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body.data.status).toBe('ua-finished');
-          expect(body.data.rawStatus).toBe('FINISHED');
-        });
+      await payOrder(orderId2, anotherJwtToken, dealID);
 
       // FYI: we're skipping the step where the seller confirms the order
 
@@ -959,32 +935,7 @@ describe('## Order APIs', () => {
     });
 
     test('a buyer should NOT cancel an order that has been paid', async () => {
-      const dealID = '9B27M6A';
-      mock.onPost('/carts').reply(200, { data: { id: 576, deals: [] } });
-      mock.onPost('/deals').reply(200, { data: { id: dealID } });
-      mock.onPost(`/deals/${dealID}/payments`).reply(200);
-      mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-      await request(app)
-        .post(`/api/orders/${orderId4}/pay`)
-        .set('Authorization', anotherJwtToken)
-        .send({ cvc: '123' })
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.payment.redirectUrl).toContain(
-            '.uapay.ua/api/payments/'
-          );
-          expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
-        });
-
-      mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
-      await request(app)
-        .get(`/api/orders/${orderId4}/paymentStatus`)
-        .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body.data.status).toBe('ua-finished');
-          expect(body.data.rawStatus).toBe('FINISHED');
-        });
+      await payOrder(orderId4, anotherJwtToken, '9B27M6A');
 
       // FYI: we're skipping the step where the seller confirms the order
 
@@ -1001,31 +952,7 @@ describe('## Order APIs', () => {
 
     test('a seller should confirm an order that has been paid', async done => {
       const dealID = '9B27M6F';
-      mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
-      mock.onPost('/deals').reply(200, { data: { id: dealID } });
-      mock.onPost(`/deals/${dealID}/payments`).reply(200);
-      mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
-      await request(app)
-        .post(`/api/orders/${orderId3}/pay`)
-        .set('Authorization', anotherJwtToken)
-        .send({ cvc: '123' })
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.payment.redirectUrl).toContain(
-            '.uapay.ua/api/payments/'
-          );
-          expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
-        });
-
-      mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
-      await request(app)
-        .get(`/api/orders/${orderId3}/paymentStatus`)
-        .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body.data.status).toBe('ua-finished');
-          expect(body.data.rawStatus).toBe('FINISHED');
-        });
+      await payOrder(orderId3, anotherJwtToken, dealID);
 
       // FYI: we're skipping the step where the seller confirms the order
 
@@ -1162,3 +1089,34 @@ describe('## Order APIs', () => {
     });
   });
 });
+
+async function payOrder(orderId: string, buyerJWTToken, dealID) {
+  mock.onPost('/carts').reply(200, { data: { id: 577, deals: [] } });
+  mock.onPost('/deals').reply(200, { data: { id: dealID } });
+  mock.onPost(`/deals/${dealID}/payments`).reply(200);
+  mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
+  mock
+    .onGet('/handlers/NovaPoshta/costs')
+    .reply(200, { data: { handlerPrice: 2500 } });
+  await request(app)
+    .post(`/api/orders/${orderId}/pay`)
+    .set('Authorization', buyerJWTToken)
+    .send({ cvc: '123' })
+    .expect(httpStatus.CREATED)
+    .then(({ body }) => {
+      expect(body.data.payment.redirectUrl).toContain(
+        '.uapay.ua/api/payments/'
+      );
+      expect(body.data.payment.PaReq.length).toBeGreaterThan(400);
+    });
+
+  mock.onGet(`/deals/${dealID}`).reply(200, buyerPaidDeal);
+  return request(app)
+    .get(`/api/orders/${orderId}/paymentStatus`)
+    .set('Authorization', buyerJWTToken)
+    .expect(httpStatus.OK)
+    .then(({ body }) => {
+      expect(body.data.status).toBe('ua-finished');
+      expect(body.data.rawStatus).toBe('FINISHED');
+    });
+}
