@@ -11,9 +11,7 @@ export default {
   costs: {
     query: {
       price: Joi.string().required(),
-      weight: Joi.number()
-        .default(5000)
-        .required(),
+      weight: Joi.number().default(5000),
       orderId: Joi.string()
         .hex()
         .length(24)
