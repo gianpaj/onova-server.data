@@ -239,17 +239,15 @@ function create(
 }
 
 function calculateFees(productPrice) {
-  let onovaFee, perc_total;
+  let onovaFee;
 
   if (productPrice > PRICE_THRESHOLD) {
     onovaFee = productPrice * ONOVA_PERC_FROM_1000;
-    perc_total = UAPAY_PERC + ONOVA_PERC_FROM_1000;
   } else {
     onovaFee = productPrice * ONOVA_PERC_UNTIL_1000;
-    perc_total = UAPAY_PERC + ONOVA_PERC_UNTIL_1000;
   }
 
-  const transactionFee = productPrice * perc_total + UAPAY_EXTRA;
+  const transactionFee = productPrice * UAPAY_PERC + UAPAY_EXTRA;
 
   return { onovaFee, transactionFee };
 }

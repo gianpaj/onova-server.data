@@ -204,7 +204,7 @@ describe('## Order APIs', () => {
           expect(o.onovaFee).toBe((productC.price * 0.085).toString()); // 8.5 %
           expect(o.total).toBe(parseFloat(productC.price).toString()); // for buyer
           expect(o.transactionFee).toBe(
-            parseFloat(productC.price * 0.1 + 10).toString()
+            parseFloat(productC.price * 0.015 + 10).toString()
           ); // for seller
           expect(o.priceOfItem).toBe(productC.price);
           ordersToAnotherUser++;
@@ -225,7 +225,7 @@ describe('## Order APIs', () => {
           expect(o.currency).toBe('UAH');
           expect(o.onovaFee).toBe((price * 0.035).toString()); // 3.5 %
           expect(o.total).toBe(price.toString()); // for buyer
-          expect(o.transactionFee).toBe((price * 0.05 + 10).toString()); // for seller
+          expect(o.transactionFee).toBe((price * 0.015 + 10).toString()); // for seller
           expect(o.priceOfItem).toBe(productA.price);
           ordersToFirstUser++;
           ordersByAnotherUser++;
