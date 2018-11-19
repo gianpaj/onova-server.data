@@ -4,15 +4,22 @@ import httpStatus from 'http-status';
 import request from 'supertest';
 import { MongoClient } from 'mongodb';
 
-import Block from '../models/block.model';
-import DefaultFollow from '../models/defaultFollow.model';
-import Follow from '../models/follow.model';
-import Notification from '../models/notification.model';
-import Order, { OrderDoc } from '../models/order.model';
-import Product, { CommentDoc, ProductDoc } from '../models/product.model';
-import Tag from '../models/tag.model';
-import User, { UserDoc } from '../models/user.model';
-import Verification from '../models/verification.model';
+import {
+  Block,
+  CommentDoc,
+  DefaultFollow,
+  Follow,
+  Notification,
+  Order,
+  OrderDoc,
+  Product,
+  ProductDoc,
+  Tag,
+  User,
+  UserDoc,
+  Verification,
+} from '../models';
+
 import app from '../index';
 import config from '../config/config';
 
