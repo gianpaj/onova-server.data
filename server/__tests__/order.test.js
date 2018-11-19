@@ -626,7 +626,7 @@ describe('## Order APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
           expect(res.body.message).toBe(
-            '"paymentMethod" must be one of [paypal, liqpay]'
+            '"paymentMethod" must be one of [paypal, uapay]'
           );
           expect(res.body.ok).toBe(false);
         });

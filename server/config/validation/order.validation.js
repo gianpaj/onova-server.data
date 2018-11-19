@@ -28,7 +28,7 @@ export default {
         .min(10)
         .max(300),
       // eslint-disable-next-line
-      paymentMethod: Joi.string().only(['paypal', 'liqpay']),
+      paymentMethod: Joi.string().only(['paypal', 'uapay']),
     },
   },
 
