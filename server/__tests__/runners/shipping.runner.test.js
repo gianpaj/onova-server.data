@@ -316,6 +316,9 @@ async function payOrder(orderId: string, buyerJWTToken, dealID) {
   mock.onPost('/deals').reply(200, { data: { id: dealID } });
   mock.onPost(`/deals/${dealID}/payments`).reply(200);
   mock.onGet(`/deals/${dealID}`).reply(200, buyerNeedsToPay);
+  mock
+    .onGet('/handlers/NovaPoshta/costs')
+    .reply(200, { data: { handlerPrice: 2500 } });
   await request(app)
     .post(`/api/orders/${orderId}/pay`)
     .set('Authorization', buyerJWTToken)

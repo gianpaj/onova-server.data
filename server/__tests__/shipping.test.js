@@ -158,7 +158,7 @@ describe('## Shipping', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           // expect(typeof body.data).toBe('number');
-          expect(body.data).toBe(2500);
+          expect(body.data).toBe('2500.00');
         });
     });
   });
