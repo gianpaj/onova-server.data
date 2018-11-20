@@ -512,6 +512,89 @@ export const buyerPaymentFailure = {
   },
 };
 
+const sellerShippedPackage = {
+  data: {
+    id: '3YSEBLB',
+    externalId: null,
+    cartId: 409,
+    productTitle: 'Great boots. Senator Docksides. Size 42 US',
+    productPrice: 25000,
+    productWeight: 3000,
+    handlerPrice: 3600,
+    status: 'SENT',
+    reasonStep: null,
+    buyerFirstName: 'Олександр',
+    buyerLastName: 'Ковальський',
+    buyerPatronymic: '',
+    buyerPhone: '380977217884',
+    buyerEmail: 'isho@ukr.net',
+    sellerFirstName: 'Вовт',
+    sellerLastName: 'Адад',
+    sellerPatronymic: '',
+    sellerPhone: '380977414301',
+    sellerEmail: 'gianpa@gmail.com',
+    lg: 'uk',
+    createdAt: '2018-11-16T18:03:25.000Z',
+    adId: null,
+    handler: {
+      status: 'CREATED',
+      statusCode: '1',
+      statusText: 'Нова пошта очікує надходження від відправника',
+      waybillNumber: 20600000077982,
+      senderCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      senderCityName: 'Київ',
+      senderOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
+      senderOfficeName: 'Відділення №1: вул. Червонопрапорна, 34 (Корчувате)',
+      recipientCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
+      recipientCityName: 'Київ',
+      recipientOfficeId: '39931b76-e1c2-11e3-8c4a-0050568002cf',
+      recipientOfficeName: 'Відділення №15: вул. Малинська, 18 (Новобіличи)',
+      type: 'NovaPoshta',
+    },
+    productPayment: {
+      id: 717,
+      amount: 25000,
+      commissionAmount: 0,
+      status: 'PAID',
+      statusCode: 'FINISHED',
+      statusText: null,
+      type: 'P2P_ONOVA',
+      waitingFor: null,
+      details: {
+        confirmation: {
+          type: '3DS',
+          url: 'https://acs.privatbank.ua/pPaReqMC.jsp',
+          form: {
+            PaReq:
+              'eJxVUttuwjAMfeYvqn1AcyktDQqR2HgY0rox1j1PVbGgbIQuaXf5+9kpIBapqn2O7cTH1uXOASxeoO4dGF2A99UWomYzu1nN1/D5JtKxTJQYcyVzfmNGOsBmNNJf4HxztEbEPJaanV1k2sqaVGQTlaeZ4onKJ7nSjFAkC3D1rrId2iNd1Z+3y0eTykxlQrOTS8wB3HJh+HDk8MOIAaYAWx3AlOC76FwxKiv/0Nj3SLNAUlR97G3nfk3Ox5qdHSJ692F2XddOGRNygi3wWEwTPKxYLdkafHu0HlbuWKMkjd3Ge99qRlmYzK6a0KuebD/c99NsTFG+8mJfpEX5/P1ULsfFYv59+maaUQRFbqoOjOQiF0JkkeRTnkwlyhTwoM2Bnmtkim/jqM3gEtPSjfMLTew1FPrunQNb/xqVI3vxiIIfbA0oVbOLTU1dNaLv7k/zqTvUOxEikTLPJlLSkAJ2KtWgnjgeFWo1QVzNKBvrhU0hscJSofVv2f4AxHG56g==',
+          },
+          redirectUrl:
+            'https://api.escrowbox.demo.uapay.ua/api/payments/717/confirmations',
+        },
+      },
+      payReceipt:
+        'https://api.demo.uapay.ua/api/receipts/a102ef28-e6dc-4ec1-8e85-a0e065e5c138.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+    handlerPayment: {
+      id: 716,
+      amount: 3600,
+      commissionAmount: 0,
+      status: 'PAID',
+      statusCode: 'FINISHED',
+      statusText: null,
+      type: 'ECOM',
+      waitingFor: null,
+      details: null,
+      payReceipt:
+        'https://api.demo.uapay.ua/api/acquiring/receipts/escrowbox/ab11648d-776d-46dd-8ddc-a6c6ae443a38.pdf',
+      reverseReceipt: null,
+      finishReceipt: null,
+    },
+  },
+};
+
 export const novaPoshta = {
   // 1 - Tracking number generated. Waiting for seller to ship package.
   //
