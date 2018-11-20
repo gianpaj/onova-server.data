@@ -34,6 +34,7 @@ export default {
     .max(300),
   photos: Joi.array()
     .unique()
+    .min(1)
     .max(6)
     .items(Joi.string().uri())
     .single(),

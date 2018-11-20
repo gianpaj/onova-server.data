@@ -610,35 +610,36 @@ describe('## Product APIs', () => {
     });
 
     it('should update the description, price, categoryIds and typeIds', () => {
-      delete product.photos;
-      product.description = 'amazing boots';
-      product.price = '319.99';
-      product.categoryIds = [3];
-      product.typeIds = [3];
       return request(app)
         .put(`/api/products/${productUuid}`)
-        .send(product)
+        .send({
+          description: 'amazing boots',
+          price: '319.99',
+          categoryIds: [3],
+          typeIds: [3],
+        })
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           const p = body.data;
-          expect(p.description).toBe(product.description);
-          expect(p.price).toBe(product.price);
-          expect(p.categoryIds).toEqual(product.categoryIds);
-          expect(p.typeIds).toEqual(product.typeIds);
+          expect(p.description).toBe('amazing boots');
+          expect(p.price).toBe('319.99');
+          expect(p.categoryIds).toEqual([3]);
+          expect(p.typeIds).toEqual([3]);
           expect(p.photoURIs[0]).not.toContain('thumb');
           expect(p.photoURIs[0]).toContain('/products/');
         });
     });
 
     it('should update the tags', () => {
-      product.tags = ['amazing', 'yolo'];
       return request(app)
         .put(`/api/products/${productUuid}`)
-        .send(product)
+        .send({ ...product, tags: ['amazing', 'yolo'] })
         .set('Authorization', jwtToken1)
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.data.tags).toEqual(product.tags));
+        .then(({ body }) =>
+          expect(body.data.tags).toEqual(['amazing', 'yolo'])
+        );
     });
 
     it('should update the price with decimal points', () => {
@@ -684,12 +685,40 @@ describe('## Product APIs', () => {
         .expect(httpStatus.OK)
         .then(({ body }) => {
           const p = body.data;
+          expect(p.photoURIs).toHaveLength(1);
           expect(p.photoURIs[0]).not.toContain('thumb');
           expect(p.photoURIs[0]).not.toContain('temp-uploads');
           expect(p.photoURIs[0]).toContain('/products/');
           expect(p.tags).toEqual(product.tags);
           photoURIs = p.photoURIs;
         });
+    });
+
+    it('should NOT update remove all the photos', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send({
+          ...product,
+          photos: [],
+        })
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe('"photos" must contain at least 1 items')
+        );
+    });
+
+    it('should not require to update the photos', () => {
+      const { photos, ...restOfKeys } = product;
+
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send(restOfKeys)
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.OK)
+        .then(({ body }) =>
+          expect(body.data.photoURIs[0]).toContain('/products/')
+        );
     });
 
     it('should update one photo', () => {
