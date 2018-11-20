@@ -22,6 +22,7 @@ export default {
   hashtag,
   categoriesOrTypes: Joi.array()
     .unique()
+    .min(1)
     .max(5)
     .items(
       Joi.number()
