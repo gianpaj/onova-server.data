@@ -126,7 +126,7 @@ async function create(
 ) {
   const { body } = req;
 
-  if (parseFloat(body.price) <= minPrice) {
+  if (parseFloat(body.price) < minPrice) {
     const APIerr = new APIError(
       `Invalid product price. The minimum price is ${minPrice} UAH`,
       httpStatus.BAD_REQUEST
@@ -159,10 +159,6 @@ async function create(
       const APIerr = new APIError('Invalid location', httpStatus.BAD_REQUEST);
       return next(APIerr);
     }
-  }
-
-  if (/\.\d{1}$/.test(product.price)) {
-    product.price += '0';
   }
 
   // create Tag documents
