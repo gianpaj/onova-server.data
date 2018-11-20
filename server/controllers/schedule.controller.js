@@ -10,12 +10,12 @@ const geocoder = require('offline-geocoder')({
 });
 
 import { agenda } from '../config/express';
+import config from '../config/config';
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
 import Product, { ProductDoc } from '../models/product.model';
 import Tag, { TagDoc } from '../models/tag.model';
 import User, { UserDoc } from '../models/user.model';
-import config from '../config/config';
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -54,6 +54,8 @@ function load(
     .catch(e => next(e));
 }
 
+const { minPrice } = config.settings;
+
 /**
  * Schedule a new listing with a specific dropId
  *
@@ -79,12 +81,29 @@ async function create(
   next: express$NextFunction
 ) {
   const { body } = req;
+
+  if (parseFloat(body.price) < minPrice) {
+    const APIerr = new APIError(
+      `Invalid product price. The minimum price is ${minPrice} UAH`,
+      httpStatus.BAD_REQUEST
+    );
+    return next(APIerr);
+  }
+
+  if (differenceInCalendarDays(body.date, Date.now()) > 90) {
+    const APIerr = new APIError(
+      'Cannot schedule listings after 90 days from today',
+      400
+    );
+    return next(APIerr);
+  }
+
   const product = new Product({
     categoryIds: body.categoryIds,
     // currency: body.currency,
     description: body.description,
     dropId: body.dropId,
-    price: body.price,
+    price: parseFloat(body.price).toFixed(2),
     // status: body.status, // 'forsale' by default
     tags: body.tags,
     typeIds: body.typeIds,
@@ -105,18 +124,6 @@ async function create(
       const APIerr = new APIError('Invalid location', httpStatus.BAD_REQUEST);
       return next(APIerr);
     }
-  }
-
-  if (/\.\d{1}$/.test(product.price)) {
-    product.price += '0';
-  }
-
-  if (differenceInCalendarDays(body.date, Date.now()) > 90) {
-    const APIerr = new APIError(
-      'Cannot schedule listings after 90 days from today',
-      400
-    );
-    return next(APIerr);
   }
 
   // create Tag documents
@@ -201,9 +208,9 @@ async function create(
         }
       );
     })
-    .then(savedListing => {
-      return res.status(httpStatus.CREATED).json({ data: savedListing });
-    })
+    .then(savedListing =>
+      res.status(httpStatus.CREATED).json({ data: savedListing })
+    )
     .catch(e => next(e));
 }
 

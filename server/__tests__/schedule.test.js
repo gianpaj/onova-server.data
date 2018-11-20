@@ -12,6 +12,7 @@ import { agenda } from '../config/express';
 import Product from '../models/product.model';
 import User from '../models/user.model';
 import { createUserAndLogin, beforeAllTests } from './utils';
+import config from '../config/config';
 
 jest.setTimeout(15000);
 
@@ -154,6 +155,23 @@ describe('## Schedule APIs', () => {
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
+    });
+
+    it('should NOT schedule with a price to low', () => {
+      return request(app)
+        .post('/api/schedule')
+        .set('Authorization', jwtToken1)
+        .send({
+          ...product,
+          dropId: new BSON.ObjectId(),
+          price: (config.settings.minPrice - 10).toString(),
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain(
+            'Invalid product price. The minimum price is'
+          )
+        );
     });
 
     it(`should NOT schedule without if seller doesn't have a shipping address`, () => {
