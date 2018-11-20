@@ -455,10 +455,30 @@ function update(
               ) {
                 await photos.generateThumbnails(firstPhoto);
               } else {
+                if (firstPhoto.indexOf('/temp-uploads') === -1) {
+                  newPhotos[i] = photo;
+                  continue;
+                }
                 // if the first photo is new copy the thumbnail (from temp)
                 const thumb = photo.replace('.jpeg', 'thumb.jpeg');
-                await photos.copyPhoto(thumb, foundProduct.uuid, 0, date, true);
+                await photos.copyPhoto(
+                  thumb,
+                  foundProduct.uuid,
+                  0,
+                  date,
+                  '-thumb'
+                );
               }
+            } else {
+              // also move the generated thumbnail (used when editing a product)
+              const thumb = photo.replace('.jpeg', 'thumb.jpeg');
+              await photos.copyPhoto(
+                thumb,
+                foundProduct.uuid,
+                i,
+                date,
+                '-thumb'
+              );
             }
 
             // if the photo is not new
