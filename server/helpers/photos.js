@@ -181,14 +181,16 @@ function generateThumbnails(photo: string): Promise<void | Error> {
           THUMB_MAX_WIDTH,
           THUMB_MAX_HEIGHT,
           buffer,
-          `${filename}-thumb.jpg`
+          `${filename}-thumb.jpg`,
+          bucket
         );
 
         uploadThumbnailToGCS(
           THUMB_MAX_WIDTH * 2,
           THUMB_MAX_HEIGHT * 2,
           buffer,
-          `${filename}-thumb@2x.jpg`
+          `${filename}-thumb@2x.jpg`,
+          bucket
         );
         resolve();
       } catch (err) {
@@ -207,7 +209,7 @@ function uploadThumbnailToGCS(
   height: number,
   file: any,
   photoURL: string,
-  bucket: any = bucket
+  bucket: any
 ): Promise<void | Error> {
   return new Promise((resolve, reject) => {
     const gcsFile = bucket.file(photoURL);
@@ -245,6 +247,10 @@ function uploadThumbnailToGCS(
 const srcBucketName = 'temp-uploads.onova.co';
 const destBucketName = config.CLOUD_BUCKET;
 
+/**
+ * Copy image from one GCS bucket to another. From temp bucket to
+ * Used when a product is created via the Schedule (Drop) or when editing product's images.
+ */
 async function copyPhoto(
   photo: string,
   uuid: string,
@@ -276,14 +282,14 @@ async function copyPhoto(
       .makePublic();
 
     const path = `${destBucketName}/${destFilename}`;
-    let cloudStoragePublicUrl = `https://storage.googleapis.com/${path}`;
     if (config.env === 'production') {
-      cloudStoragePublicUrl = `http://${path}`;
+      return `http://${path}`;
     }
-    return cloudStoragePublicUrl;
+    // for development
+    return `https://storage.googleapis.com/${path}`;
   } catch (err) {
     console.error('ERROR:', err);
-    return err;
+    throw err;
   }
 }
 
