@@ -408,7 +408,7 @@ function update(
 ) {
   const { body } = req;
 
-  if (parseFloat(body.price) <= minPrice) {
+  if (parseFloat(body.price) < minPrice) {
     const APIerr = new APIError(
       `Invalid product price. The minimum price is ${minPrice} UAH`,
       httpStatus.BAD_REQUEST
