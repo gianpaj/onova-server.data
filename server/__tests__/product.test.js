@@ -631,6 +631,24 @@ describe('## Product APIs', () => {
         });
     });
 
+    it('should NOT update the with empty categoryIds', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send({
+          description: 'amazing boots',
+          price: '319.99',
+          categoryIds: [],
+          typeIds: [3],
+        })
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe(
+            '"categoryIds" must contain at least 1 items'
+          )
+        );
+    });
+
     it('should update the tags', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)
