@@ -66,6 +66,9 @@ yarn dev:start
 
 # set DEBUG env var to get debugging logs
 DEBUG=server-data:* yarn start
+
+# Debug Mongoose
+DEBUG=server-data:* MONGOOSE_DEBUG=true yarn dev:start
 ```
 
 Start with HTTPS and different port:
