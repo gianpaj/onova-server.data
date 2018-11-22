@@ -112,23 +112,30 @@ export default class EscrowRunner {
         transactionStatus: { $nin: ['ua-finished', 'ua-rejected'] },
         datePending: { $lte: previousDate },
       };
-      const orders: Array<OrderDoc> = await Order.find(query);
-      if (!orders.length) return done();
 
-      const ordersUpdated: Array<OrderDoc> = await Order.updateMany(query, {
-        $set: { status: 'cancelled', dateCancelled: new Date() },
-      });
+      try {
+        const orders: Array<OrderDoc> = await Order.find(query);
+        if (!orders.length) return done();
 
-      debug('Unpaid orders cancelled:', ordersUpdated.nModified);
-      const productsToPutBackForSale = orders
-        .map(order => order.product)
-        .filter(p => p);
-      debug('productsToPutBackForSale:', productsToPutBackForSale);
-      const updated = await this.removeProductsFromCheckout(
-        productsToPutBackForSale
-      );
-      debug('Products updated: ', updated.nModified);
-      done();
+        const ordersUpdated: Array<OrderDoc> = await Order.updateMany(query, {
+          $set: { status: 'cancelled', dateCancelled: new Date() },
+        });
+
+        debug('Unpaid orders cancelled:', ordersUpdated.nModified);
+        const productsToPutBackForSale = orders
+          .map(order => order.product)
+          .filter(p => p);
+        debug('productsToPutBackForSale:', productsToPutBackForSale);
+        const updated = await this.removeProductsFromCheckout(
+          productsToPutBackForSale
+        );
+        debug('Products updated: ', updated.nModified);
+        done();
+      } catch (error) {
+        console.error(JOB.CHECKOUT);
+        console.error(error);
+        done(error);
+      }
     });
   }
 
@@ -195,6 +202,7 @@ export default class EscrowRunner {
 
         done();
       } catch (error) {
+        console.error(JOB.CANCEL_PAID_ORDERS);
         console.error(error);
         done(error);
       }
@@ -241,6 +249,7 @@ export default class EscrowRunner {
 
         done();
       } catch (error) {
+        console.error(JOB.PUSH_ORDER_CONFIRM_REMINDER);
         console.error(error);
         done(error);
       }
