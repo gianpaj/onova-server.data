@@ -1,7 +1,6 @@
 //@flow
 
-import Order, { OrderDoc } from '../models/order.model';
-import Product from '../models/product.model';
+import { Order, OrderDoc } from '../models';
 import Shipping, { NP } from '../helpers/shipping';
 import JobManager from '../helpers/job';
 
@@ -111,6 +110,7 @@ export default class ShippingRunner {
         await Promise.all(Promises);
         done();
       } catch (error) {
+        console.log(RECURRING.SHIPPING_STATUS_STARTER);
         console.error(error);
         done(error);
       }
@@ -167,6 +167,7 @@ export default class ShippingRunner {
         await JobManager.sendSystemMessage(order);
         done();
       } catch (error) {
+        console.log(RECURRING.SHIPPING_STATUS_CHECKER);
         console.error(error);
         done(error);
       }
