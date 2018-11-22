@@ -512,6 +512,7 @@ export const buyerPaymentFailure = {
   },
 };
 
+// we check novaPoshta to see if a package is shipped, not UAPAY
 const sellerShippedPackage = {
   data: {
     id: '3YSEBLB',

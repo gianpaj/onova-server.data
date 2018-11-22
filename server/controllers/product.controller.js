@@ -401,7 +401,7 @@ function remove(
  * @property {Array<string>=} req.body.tags
  * @property {Array<number>} req.body.typeIds
  */
-function update(
+async function update(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -442,55 +442,30 @@ function update(
 
         // TODO: check if images have been uploaded to GSC
         try {
-          const newPhotos = [];
-          for (let i = 0; i < body.photos.length; i++) {
-            const photo = body.photos[i];
-
-            if (i === 0) {
-              const firstPhoto = body.photos[i];
-              // if the first existing photo is re-sorted, re-generate the thumbnail
-              if (
-                firstPhoto !== foundProduct.photoURIs[i] &&
-                firstPhoto.indexOf('/temp-uploads') === -1
-              ) {
-                await photos.generateThumbnails(firstPhoto);
-              } else {
-                if (firstPhoto.indexOf('/temp-uploads') === -1) {
-                  newPhotos[i] = photo;
-                  continue;
-                }
-                // if the first photo is new copy the thumbnail (from temp)
-                const thumb = photo.replace('.jpeg', 'thumb.jpeg');
-                await photos.copyPhoto(
-                  thumb,
-                  foundProduct.uuid,
-                  0,
-                  date,
-                  '-thumb'
-                );
+          foundProduct.photoURIs = await Promise.all(
+            body.photos.map(async (photo, i) => {
+              // if it's an existing photo
+              if (!photo.includes('/temp-uploads')) return photo;
+              else {
+                // move both thumbnails
+                const thumb = photo.replace('.jpg', '-thumb.jpg');
+                const thumb2x = photo.replace('.jpg', '-thumb@2x.jpg');
+                const allPhotos = await Promise.all([
+                  photos.copyPhoto(thumb, foundProduct.uuid, i, date, '-thumb'),
+                  photos.copyPhoto(
+                    thumb2x,
+                    foundProduct.uuid,
+                    i,
+                    date,
+                    '-thumb@2x'
+                  ),
+                  photos.copyPhoto(photo, foundProduct.uuid, i, date),
+                ]);
+                // only store the large size copied photo
+                return allPhotos[2];
               }
-            } else {
-              // also move the generated thumbnail (used when editing a product)
-              const thumb = photo.replace('.jpeg', 'thumb.jpeg');
-              await photos.copyPhoto(
-                thumb,
-                foundProduct.uuid,
-                i,
-                date,
-                '-thumb'
-              );
-            }
-
-            // if the photo is not new
-            if (photo.indexOf('/temp-uploads') === -1) {
-              newPhotos[i] = photo;
-              continue;
-            }
-
-            const p = await photos.copyPhoto(photo, foundProduct.uuid, i, date);
-            newPhotos[i] = p;
-          }
-          foundProduct.photoURIs = newPhotos;
+            })
+          );
         } catch (err) {
           console.error(err);
           throw new APIError('Error copying photos', 500);
