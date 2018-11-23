@@ -51,7 +51,7 @@ async function main() {
   // find all the cities in which we haven't loaded the departments from
   const departments = await Department.find({}, { cityID: 1 });
   let currentCities = departments.map(depart => depart.cityID);
-  console.log('current cities:', await City.count());
+  console.log('current cities:', await City.countDocuments());
   currentCities = new Set(currentCities);
   console.log('current cities with departments:', currentCities.size);
   const citiesToLoad = await City.find({
