@@ -5,16 +5,16 @@ import path from 'path';
 import httpStatus from 'http-status';
 import Storage from '@google-cloud/storage';
 import sharp from 'sharp';
-const request = require('request').defaults({ encoding: null });
+// const request = require('request').defaults({ encoding: null });
 const debug = require('debug')('server-data:index');
 
 import { UserDoc } from '../models/user.model';
-import Product, { ProductDoc } from '../models/product.model';
+// import Product, { ProductDoc } from '../models/product.model';
 import APIError from './APIError';
 import config from '../config/config';
 
-const THUMB_MAX_WIDTH = 350;
-const THUMB_MAX_HEIGHT = 350;
+// const THUMB_MAX_WIDTH = 350;
+// const THUMB_MAX_HEIGHT = 350;
 
 const storage = Storage({
   // Service account key: 'storage-data-server'
@@ -49,7 +49,7 @@ const uploadMulter = multer({
 
 /**
  * Upload product images to GCS
- */
+ * /
 function uploadProductImages(product: ProductDoc, files: Array<any>) {
   const uploadDate = Date.now();
 
@@ -121,6 +121,7 @@ function uploadProductImages(product: ProductDoc, files: Array<any>) {
     stream.end(image.buffer);
   });
 }
+*/
 
 /**
  * Upload profile image to GCS
@@ -166,7 +167,7 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
 /**
  * Generate 2 square thumbnails when an image is re-ordered
  * @param {string} photo URL
- */
+ * /
 function generateThumbnails(photo: string): Promise<void | Error> {
   return new Promise((resolve, reject) => {
     request.get(photo, async (err, res, buffer) => {
@@ -200,6 +201,7 @@ function generateThumbnails(photo: string): Promise<void | Error> {
     });
   });
 }
+*/
 
 /**
  * Upload higher resolution image to GCS
@@ -295,7 +297,7 @@ async function copyPhoto(
 
 export default {
   copyPhoto,
-  generateThumbnails,
+  // generateThumbnails,
   uploadMulter,
   uploadThumbnailToGCS,
   // uploadProductImages,
