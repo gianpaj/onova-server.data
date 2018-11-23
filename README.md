@@ -134,15 +134,15 @@ From [generate_geonames.sh](https://github.com/lucaspiller/offline-geocoder/blob
 
 ```bash
 http "https://api.escrowbox.demo.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json
-# remove the "data: []" so it's only an array of objects
-mongoimport -d onova-data -c cities.json --jsonArray --drop
+# remove the "data: [" so it's only an array of objects
+mongoimport -d onova-data -c cities cities.json --jsonArray --drop
 # output
 2018-10-11T12:33:15.248+0300	connected to: localhost
 2018-10-11T12:33:15.249+0300	dropping: onova-data.cities
 2018-10-11T12:33:15.356+0300	imported 993 documents
 ```
 
-3. Load the departments for every city, 993 of them
+3. Load the departments for every city, 993 of them, and delete cities without any departments
 
 ```
 node loadDepartments.js
@@ -150,16 +150,21 @@ node loadDepartments.js
 connected to mongodb://localhost:27017/onova-data
 loading cities
 current cities: 993
-current cities with departments: 838
-citiesToLoad: 155
-Миколаїв
-Київ
-Маріуполь
-Вінниця
-Черкаси
-Львів
-Херсон
-Чернігів
+current cities with departments: 0
+citiesToLoad: 993
+Володарське
+Очаків
+Березанка
+Пустомити
+Мангуш
+Веселинове
+Нова Одеса
+Снігурівка
+Березнегувате
+Новий Буг
+Казанка
+Баштанка
+Тарутине
 Арциз
 []
 ...
@@ -195,24 +200,26 @@ mongorestore dump/onova-data -d onova-data-test --drop
 2018-10-11T13:09:25.960+0300 done
 ```
 
-### Verify if new cities or deparments are in Nova Poshta
+### Verify if the just-loaded cities or deparments have been updated
 
-1.  Export the departments collection with \_id fields
+1.  Export the departments collection without \_id field
 
-        mongoexport --host localhost -d onova-data -c departments | sed '/"\_id":/s/"\_id":[^,]\*,//' > dep-before.json
+        mongoexport --host localhost -d onova-data -c departments | sed '/"_id":/s/"_id":[^,]*,//' | sed '/"__v":/s/"__v"*,//' > dep-before.json
 
 2.  Drop the existing collection
-3.  Download the "new" departments
-4.  Export the new departments (called today)
+3.  Load the "new" departments into MongoDB
+4.  Export the new departments without \_id field
 
-    mongoexport --host localhost -d onova-data -c departments | sed '/"\_id":/s/"\_id":[^,]\*,//' > dep-today.json
+        mongoexport --host localhost -d onova-data -c departments | sed '/"_id":/s/"_id":[^,]*,//' | sed '/"__v":/s/"__v"*,//' > dep-today.json
 
 5.  Sort the json files (or sort at `mongoexport` stage)
 
-    sort dep-before.json > dep-before-sorted.json
-    sort dep-today.json > dep-today-sorted.json
+        sort dep-before.json > dep-before-sorted.json
+        sort dep-today.json > dep-today-sorted.json
 
-6.  Compare with `diff` or Beyond Compare
+6.  Compare with `diff` or a GUI tool like Beyond Compare
+
+        diff dep-before-sorted.json dep-today-sorted.json
 
 ## Logging
 
