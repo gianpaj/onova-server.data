@@ -22,6 +22,8 @@ if (config.env == 'production') {
     instanceLocator: config.chatkit.instanceLocator,
     key: config.chatkit.key,
   });
+} else {
+  console.warn('not running in production. Chatkit account creation disabled');
 }
 
 declare class session$Request extends express$Request {
@@ -149,22 +151,6 @@ async function create(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const doc: Object = {
-    username: req.body.username,
-    emailAddress: req.body.emailAddress,
-    // displayName:  req.body.displayName,
-    password: req.body.password,
-    // accountStatus: 'notverified' (default)
-  };
-
-  const { body } = req;
-
-  if (body.mobileNumber) doc.mobileNumber = body.mobileNumber;
-  if (body.platform) doc.platform = body.platform;
-  if (body.pushToken) doc.pushToken = body.pushToken;
-
-  const user = new User(doc);
-
   User.findOne({
     $or: [
       // mongoose changes the email to lowercase
@@ -180,6 +166,22 @@ async function create(
         );
         throw APIerr;
       }
+
+      const doc: Object = {
+        username: req.body.username,
+        emailAddress: req.body.emailAddress,
+        // displayName:  req.body.displayName,
+        password: req.body.password,
+        // accountStatus: 'notverified' (default)
+      };
+
+      const { body } = req;
+
+      if (body.mobileNumber) doc.mobileNumber = body.mobileNumber;
+      if (body.platform) doc.platform = body.platform;
+      if (body.pushToken) doc.pushToken = body.pushToken;
+
+      const user = new User(doc);
 
       if (body.emailAddress.startsWith('onovaapp')) {
         user.accountStatus = 'verified';
