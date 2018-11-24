@@ -95,7 +95,8 @@ if (error) {
   throw new Error(`Config validation error: ${error.message}`);
 }
 
-const config = {
+export default {
+  ...envVars,
   env: envVars.NODE_ENV,
   port: envVars.PORT,
   mongooseDebug: envVars.MONGOOSE_DEBUG,
@@ -118,8 +119,6 @@ const config = {
     instanceLocator: envVars.CHATKIT_INSTANCE,
     key: envVars.CHATKIT_KEY,
   },
-
-  ...envVars,
 
   // hard coded settings
   JOBNAMES: {
@@ -157,5 +156,3 @@ const config = {
   },
   DEFAULT_FOLLOW: false,
 };
-
-export default config;
