@@ -1,6 +1,9 @@
 # Logs
 *.log
 npm-debug.log*
+*.log.gz
+# winston-daily-rotate-file
+.audit.json
 
 # IDE
 .idea
