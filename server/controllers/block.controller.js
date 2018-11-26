@@ -3,9 +3,7 @@
 import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
-import User, { UserDoc } from '../models/user.model';
-import Block from '../models/block.model';
-import Follow from '../models/follow.model';
+import { User, UserDoc, Block, Follow } from '../models';
 
 declare class session$Request extends express$Request {
   user: UserDoc;

@@ -2,10 +2,7 @@
 import shortid from 'shortid';
 const debug = require('debug')('server-data:index');
 
-import Block from '../models/block.model';
-import Order, { OrderDoc } from '../models/order.model';
-import Product, { ProductDoc } from '../models/product.model';
-import User, { UserDoc } from '../models/user.model';
+import { Block, Order, Product, ProductDoc, User, UserDoc } from '../models';
 import type { NotifPayload } from '../controllers/notification.controller';
 import { agenda } from '../config/express';
 import config from '../config/config';

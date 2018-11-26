@@ -1,13 +1,12 @@
 //@flow
 
-import Order, { OrderDoc } from '../models/order.model';
+import { Order, OrderDoc, Product } from '../models';
 import {
   createOrderNotification,
   rejectPayment,
   i18n,
 } from '../controllers/order.controller';
 import notifCtrl from '../controllers/notification.controller';
-import Product from '../models/product.model';
 
 import config from '../config/config';
 

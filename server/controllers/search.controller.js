@@ -4,9 +4,7 @@ import httpStatus from 'http-status';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
-import { UserDoc, userPopulateFields } from '../models/user.model';
-import Block from '../models/block.model';
-import Product from '../models/product.model';
+import { Block, UserDoc, userPopulateFields, Product } from '../models';
 import config from '../config/config';
 
 declare class session$Request extends express$Request {

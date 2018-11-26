@@ -11,8 +11,7 @@ import config from '../../config/config';
 import app from '../../index';
 
 import { i18n } from '../../controllers/order.controller';
-import Order from '../../models/order.model';
-import Product from '../../models/product.model';
+import { Order, Product } from '../../models';
 
 import {
   beforeAllTests,
@@ -212,6 +211,7 @@ describe('## Escrow Manager', () => {
             .get(`/api/products/${seller.productUUID}`)
             .set('Authorization', user3JwtToken)
             .expect(httpStatus.OK);
+
           expect(product.data.status).toBe('forsale');
           expect(product.data.datePending).toBe(undefined);
 
