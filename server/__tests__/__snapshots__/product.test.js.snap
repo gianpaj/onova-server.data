@@ -64,9 +64,19 @@ exports[`## Product APIs # GET /api/products/ should get all products 1`] = `
 Array [
   "_id",
   "accountStatus",
+  "createdAt",
   "displayName",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "paymentInfo",
   "profilePic",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
   "shippingAddress",
+  "tokens",
+  "updatedAt",
   "username",
 ]
 `;
@@ -95,9 +105,19 @@ exports[`## Product APIs # GET /api/products/:uuid should get an existing produc
 Array [
   "_id",
   "accountStatus",
+  "createdAt",
   "displayName",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "paymentInfo",
   "profilePic",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
   "shippingAddress",
+  "tokens",
+  "updatedAt",
   "username",
 ]
 `;
