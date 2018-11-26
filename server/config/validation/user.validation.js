@@ -49,8 +49,11 @@ export default {
   // UPDATE /api/users/:userId
   updateUser: {
     body: {
-      bio: Joi.string().max(300),
+      bio: Joi.string()
+        .empty('')
+        .max(300),
       displayName: Joi.string()
+        .empty('')
         .min(3)
         .max(30),
       username: validation.username,
