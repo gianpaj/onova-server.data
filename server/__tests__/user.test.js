@@ -875,6 +875,18 @@ describe('## User APIs', () => {
           expect(res.body.shippingAddress.fathersName).toBe('banana');
         });
     });
+
+    it("should allow to delete a bio and displayName user's details", () => {
+      return request(app)
+        .put(`/api/users/${anotherUserId}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ ...anotherUser, bio: '', displayName: '' })
+        .expect(httpStatus.OK)
+        .then(res => {
+          expect(res.body.bio).toBe('');
+          expect(res.body.displayName).toBe('');
+        });
+    });
   });
 
   describe('# GET /api/auth/random-number', () => {
