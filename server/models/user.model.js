@@ -30,7 +30,7 @@ const UserSchema = new Schema(
     bio: String,
     displayName: {
       type: String,
-      minlength: 3,
+      minlength: 0,
       maxlength: 30,
     },
     emailAddress: {
