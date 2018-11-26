@@ -5,9 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import Tag from '../models/tag.model';
-import Product from '../models/product.model';
-import { UserDoc } from '../models/user.model';
+import { Tag, Product, UserDoc } from '../models';
 import {
   beforeAllTests,
   createProduct,

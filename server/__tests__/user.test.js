@@ -8,8 +8,7 @@ import jwt from 'jsonwebtoken';
 
 import app from '../index';
 import config from '../config/config';
-import Verification from '../models/verification.model';
-import User, { UserDoc } from '../models/user.model';
+import { Verification, User, UserDoc } from '../models';
 import { createUserAndLogin, beforeAllTests } from './utils';
 
 /**

@@ -4,9 +4,7 @@ import httpStatus from 'http-status';
 const IncomingWebhook = require('@slack/client').IncomingWebhook;
 
 import APIError from '../helpers/APIError';
-import User, { UserDoc, userPopulateFields } from '../models/user.model';
-import Product from '../models/product.model';
-import Report from '../models/report.model';
+import { User, UserDoc, Product, Report } from '../models';
 import config from '../config/config';
 
 const webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);

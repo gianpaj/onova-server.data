@@ -11,8 +11,7 @@ import {
   createProduct,
   createOrder,
 } from './utils';
-import { UserDoc } from '../models/user.model';
-import { ProductDoc } from '../models/product.model';
+import { UserDoc, ProductDoc } from '../models';
 
 const blockFields = ['createdAt', '_id', 'sourceUser', 'targetUser'];
 

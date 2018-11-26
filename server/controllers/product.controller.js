@@ -1,15 +1,20 @@
 // @flow
 
 import shortid from 'shortid';
-import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
-import Block from '../models/block.model';
-import Product, { ProductDoc } from '../models/product.model';
-import Tag, { TagDoc } from '../models/tag.model';
-import User, { UserDoc, userPopulateFields } from '../models/user.model';
+import {
+  Block,
+  Product,
+  ProductDoc,
+  Tag,
+  TagDoc,
+  User,
+  UserDoc,
+  userPopulateFields,
+} from '../models';
 import config from '../config/config';
 import Analytics from '../config/analytics';
 import path from 'path';

@@ -3,8 +3,7 @@ import httpStatus from 'http-status';
 import passport from 'passport';
 const debug = require('debug')('server-data:index');
 
-import User from '../models/user.model';
-import Verification from '../models/verification.model';
+import { User, Verification } from '../models';
 import mailCtrl from './mail.controller';
 import APIError from '../helpers/APIError';
 import config from '../config/config';

@@ -4,8 +4,7 @@ import httpStatus from 'http-status';
 const debug = require('debug')('server-data:index');
 
 import APIError from '../helpers/APIError';
-import User, { UserDoc } from '../models/user.model';
-import Product, { ProductDoc, CommentDoc } from '../models/product.model';
+import { User, UserDoc, Product, ProductDoc, CommentDoc } from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import type { NotifPayload } from '../controllers/notification.controller';
 

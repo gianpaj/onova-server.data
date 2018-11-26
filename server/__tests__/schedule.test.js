@@ -9,8 +9,7 @@ import BSON from 'bson';
 import app from '../index';
 import { agenda } from '../config/express';
 
-import Product from '../models/product.model';
-import User from '../models/user.model';
+import { Product, User } from '../models';
 import { createUserAndLogin, beforeAllTests } from './utils';
 import config from '../config/config';
 
