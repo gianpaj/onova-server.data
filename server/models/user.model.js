@@ -27,7 +27,10 @@ const UserSchema = new Schema(
       default: 'notverified',
       enum: ['verified', 'notverified', 'banned', 'deleted'],
     },
-    bio: String,
+    bio: {
+      type: String,
+      maxlength: 300,
+    },
     displayName: {
       type: String,
       minlength: 0,

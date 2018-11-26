@@ -54,7 +54,6 @@ export default {
         .max(300),
       displayName: Joi.string()
         .empty('')
-        .min(3)
         .max(30),
       username: validation.username,
       mobileNumber: myCustomJoi
