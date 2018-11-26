@@ -287,9 +287,9 @@ function update(
 ) {
   const { body, user } = req;
 
-  user.bio = body.bio;
-  user.displayName = body.displayName;
-  if (typeof body.mobileNumber !== 'undefined')
+  if (typeof body.bio === 'string') user.bio = body.bio;
+  if (typeof body.displayName === 'string') user.displayName = body.displayName;
+  if (typeof body.mobileNumber === 'string')
     user.mobileNumber = body.mobileNumber;
   // update password (automatically hashed on save() hook)
   if (body.password) user.password = body.password;
