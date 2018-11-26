@@ -132,6 +132,7 @@ exports[`## User APIs # GET /api/users/ should get personal info: personal info 
 Array [
   "_id",
   "accountStatus",
+  "bio",
   "createdAt",
   "emailAddress",
   "facebook",
