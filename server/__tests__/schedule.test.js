@@ -115,36 +115,21 @@ describe('## Schedule APIs', () => {
   // });
 
   describe('# POST /api/schedule', () => {
-    beforeAll(async () => {
-      // update Facebook Token
-      // await request(app)
-      //   .put(`/api/users/${user._id}`)
-      //   .set('Authorization', jwtToken)
-      //   .send({
-      //     ...user,
-      //     _id: undefined,
-      //     facebook: '101010101',
-      //     accessToken: 'FBaccesssToen1020Numbers',
-      //   })
-      //   .expect(httpStatus.OK)
-      //   .then(({ body }) => {
-      //     expect(body.facebook).toBe('101010101');
-      //   });
-      await request(app)
+    beforeAll(() => {
+      return request(app)
         .post('/api/photos/upload')
         .set('Authorization', jwtToken1)
         .attach('photo', path.join(__dirname, 'images/boots-larger.jpeg'))
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
-          const { data } = body;
-          expect(data).toContain(
+          expect(body.data).toContain(
             'https://storage.googleapis.com/temp-uploads.onova.co/'
           );
-          product.photos = [data];
+          product.photos = [body.data];
         });
     });
 
-    it('should NOT schedule invalid images', () => {
+    it('should NOT schedule a drop invalid images', () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
@@ -157,7 +142,7 @@ describe('## Schedule APIs', () => {
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
     });
 
-    it('should NOT schedule with a price to low', () => {
+    it('should NOT schedule a drop with a price to low', () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
@@ -174,7 +159,7 @@ describe('## Schedule APIs', () => {
         );
     });
 
-    it(`should NOT schedule without if seller doesn't have a shipping address`, () => {
+    it(`should NOT schedule a drop if seller doesn't have a shipping address`, () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken3)
@@ -185,7 +170,7 @@ describe('## Schedule APIs', () => {
         );
     });
 
-    it(`should NOT schedule without if seller doesn't have payment info`, () => {
+    it(`should NOT schedule a drop if seller doesn't have payment info`, () => {
       return request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken4)
