@@ -1,7 +1,7 @@
 import Block, { BlockDoc } from './block.model';
 import DefaultFollow, { DefaultFollowDoc } from './defaultFollow.model';
 import Cities from './cities.model';
-import Deparments from './departments.model';
+import Departments from './departments.model';
 import Follow, { FollowDoc } from './follow.model';
 // import Like from './like.model';
 import Notification, { NotificationDoc } from './notification.model';
@@ -12,6 +12,11 @@ import Review, { ReviewDoc } from './review.model';
 import Tag, { TagDoc } from './tag.model';
 import User, { UserDoc } from './user.model';
 import Verification, { VerificationDoc } from './verification.model';
+
+const userPopulateFields =
+  'username accountStatus profilePic displayName shippingAddress';
+
+const productPopulateFields = 'currency photoURIs price status uuid';
 
 Block.syncIndexes();
 DefaultFollow.syncIndexes();
@@ -29,7 +34,7 @@ export {
   BlockDoc,
   Cities,
   CommentDoc,
-  Deparments,
+  Departments,
   DefaultFollow,
   DefaultFollowDoc,
   Follow,
@@ -41,6 +46,7 @@ export {
   OrderDoc,
   Product,
   ProductDoc,
+  productPopulateFields,
   Report,
   ReportDoc,
   Review,
@@ -49,6 +55,7 @@ export {
   TagDoc,
   User,
   UserDoc,
+  userPopulateFields,
   Verification,
   VerificationDoc,
 };

@@ -11,8 +11,7 @@ import config from '../../config/config';
 import app from '../../index';
 
 import { i18n } from '../../controllers/order.controller';
-import Order from '../../models/order.model';
-import Product from '../../models/product.model';
+import { Order, Product } from '../../models';
 
 import { NP } from '../../helpers/shipping';
 

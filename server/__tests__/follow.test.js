@@ -5,7 +5,7 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import User from '../models/user.model';
+import { User } from '../models';
 import { beforeAllTests, createUserAndLogin } from './utils';
 
 /**

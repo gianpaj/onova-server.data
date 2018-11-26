@@ -3,7 +3,7 @@ const debug = require('debug')('server-data:index');
 
 import { agenda } from '../config/express';
 import config from '../config/config';
-import { OrderDoc } from '../models/order.model';
+import { OrderDoc } from '../models';
 import { i18n } from '../controllers/order.controller';
 import { NP } from '../helpers/shipping';
 

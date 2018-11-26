@@ -6,11 +6,16 @@ import axios from 'axios';
 import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
-import Order, { OrderDoc } from '../models/order.model';
-import Product, { ProductDoc } from '../models/product.model';
-import User, { UserDoc } from '../models/user.model';
-import Block from '../models/block.model';
-import Notification from '../models/notification.model';
+import {
+  Block,
+  Notification,
+  Order,
+  OrderDoc,
+  Product,
+  ProductDoc,
+  User,
+  UserDoc,
+} from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import { getShippingCost } from '../controllers/shipping.controller';
 import { NP } from '../helpers/shipping';

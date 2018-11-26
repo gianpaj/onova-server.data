@@ -4,8 +4,7 @@ import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 
 import APIError from '../helpers/APIError';
-import Block from '../models/block.model';
-import { userPopulateFields, productPopulateFields } from './user.model';
+import { Block, userPopulateFields, productPopulateFields } from '../models';
 import { NP } from '../helpers/shipping';
 
 const { Schema } = mongoose;

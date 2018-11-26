@@ -11,8 +11,7 @@ import config from '../config/config';
 
 import app from '../index';
 
-import Tag from '../models/tag.model';
-import Order from '../models/order.model';
+import {Tag, Order} from '../models';
 import { i18n } from '../controllers/order.controller';
 import {
   beforeAllTests,

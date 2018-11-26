@@ -5,10 +5,15 @@ import request from 'request';
 import differenceInCalendarDays from 'date-fns/difference_in_calendar_days';
 
 import APIError from '../helpers/APIError';
-import City from '../models/cities.model';
-import Order, { OrderDoc } from '../models/order.model';
-import Review, { ReviewDoc } from '../models/review.model';
-import User, { UserDoc } from '../models/user.model';
+import {
+  Cities,
+  Order,
+  OrderDoc,
+  Review,
+  ReviewDoc,
+  User,
+  UserDoc,
+} from '../models';
 
 import config from '../config/config';
 import Analytics from '../config/analytics';
@@ -208,8 +213,10 @@ async function create(
     const buyer = await User.findById(order.buyer);
     const seller = await User.findById(order.seller);
 
-    const citySender = await City.findOne({ id: seller.shippingAddress.city });
-    const cityRecipient = await City.findOne({
+    const citySender = await Cities.findOne({
+      id: seller.shippingAddress.city,
+    });
+    const cityRecipient = await Cities.findOne({
       id: buyer.shippingAddress.city,
     });
 

@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 const debug = require('debug')('server-data:index');
 
 import app from '../index';
-import DefaultFollow from '../models/defaultFollow.model';
+import { DefaultFollow } from '../models';
 import { beforeAllTests, createUserAndLogin } from './utils';
 
 const sleep = ms => {

@@ -3,13 +3,9 @@
 import axios from 'axios';
 import httpStatus from 'http-status';
 
-import Order, { OrderDoc } from '../models/order.model';
-
+import { Cities, Departments, User, UserDoc, Order, OrderDoc } from '../models';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
-import User, { UserDoc } from '../models/user.model';
-import City from '../models/cities.model';
-import Department from '../models/departments.model';
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
@@ -23,7 +19,7 @@ function cities(
   res: express$Response,
   next: express$NextFunction
 ) {
-  City.find({}, { _id: 0, uk: 1, id: 1 })
+  Cities.find({}, { _id: 0, uk: 1, id: 1 })
     .then(cities => {
       if (!cities.length) {
         throw new Error('Error getting cities');
@@ -59,7 +55,7 @@ async function costs(
 ) {
   const { recipientOfficeID, orderId, price, weight } = req.query;
   try {
-    const recipientDepartment = await Department.findOne({
+    const recipientDepartment = await Departments.findOne({
       id: recipientOfficeID,
     });
     const order: OrderDoc = await Order.findById(orderId);
@@ -146,7 +142,7 @@ async function departments(
   res: express$Response,
   next: express$NextFunction
 ) {
-  Department.find({ cityID: req.params.city }, { _id: 0, uk: 1, id: 1 })
+  Departments.find({ cityID: req.params.city }, { _id: 0, uk: 1, id: 1 })
     .then(departments => {
       if (!departments.length) {
         throw new Error('Error getting departments');
