@@ -386,7 +386,7 @@ describe('## Notification APIs', () => {
           .then(res => {
             const { data } = res.body;
             expect(data[0].triggeredBy.id).toBe(orderId);
-            expect(data[0].notifI18n).toContain('cancelled');
+            expect(data[0].notifI18n).toBe(i18n.orderCancelled);
             expect(data).toHaveLength(numberOfNotifForAnotherUser);
           });
       });
