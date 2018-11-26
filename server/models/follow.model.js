@@ -5,7 +5,7 @@ import httpStatus from 'http-status';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
-import User from '../models/user.model';
+import { User } from '../models';
 
 const { Schema } = mongoose;
 // const FeedManager = stream.FeedManager;

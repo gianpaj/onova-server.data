@@ -58,7 +58,7 @@ async function main() {
     id: { $nin: Array.from(currentCities) },
   }); // .limit(10);
   console.log('citiesToLoad:', citiesToLoad.length);
-  // await Deparment.collection.deleteMany({}, { safe: true });
+  // await Department.collection.deleteMany({}, { safe: true });
 
   const promises = citiesToLoad.map(
     throat(5, async city => {

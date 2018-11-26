@@ -8,8 +8,8 @@ import sharp from 'sharp';
 // const request = require('request').defaults({ encoding: null });
 const debug = require('debug')('server-data:index');
 
-import { UserDoc } from '../models/user.model';
-// import Product, { ProductDoc } from '../models/product.model';
+import { UserDoc } from '../models';
+// import { Product, ProductDoc } from '../models';
 import APIError from './APIError';
 import config from '../config/config';
 

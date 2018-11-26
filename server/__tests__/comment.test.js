@@ -4,8 +4,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
-import Product from '../models/product.model';
-import Tag from '../models/tag.model';
+import { Product, Tag } from '../models';
 
 import app from '../index';
 import {

@@ -4,10 +4,14 @@ import httpStatus from 'http-status';
 
 const debug = require('debug')('server-data:index');
 import APIError from '../helpers/APIError';
-import Block from '../models/block.model';
-import User, { UserDoc } from '../models/user.model';
-import Follow, { FollowDoc } from '../models/follow.model';
-import DefaultFollow from '../models/defaultFollow.model';
+import {
+  Block,
+  DefaultFollow,
+  User,
+  UserDoc,
+  Follow,
+  FollowDoc,
+} from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import type { NotifPayload } from '../controllers/notification.controller';
 

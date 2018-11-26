@@ -3,8 +3,7 @@
 import mailjet from 'node-mailjet';
 import crypto from 'crypto';
 
-import Verification from '../models/verification.model';
-import UserDoc from '../models/user.model';
+import { UserDoc, Verification } from '../models';
 import config from '../config/config';
 
 const mailjetClient = mailjet.connect(

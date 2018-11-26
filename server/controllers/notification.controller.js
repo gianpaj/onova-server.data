@@ -3,11 +3,10 @@
 import httpStatus from 'http-status';
 const debug = require('debug')('server-data:index');
 
+import { sendPush } from '../helpers/push';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
-import { sendPush } from '../helpers/push';
-import { UserDoc } from '../models/user.model';
-import Notification, { NotificationDoc } from '../models/notification.model';
+import { UserDoc, Notification, NotificationDoc } from '../models';
 
 declare class session$Request extends express$Request {
   user: UserDoc;

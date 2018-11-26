@@ -13,9 +13,7 @@ import { agenda } from '../config/express';
 import config from '../config/config';
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
-import Product, { ProductDoc } from '../models/product.model';
-import Tag, { TagDoc } from '../models/tag.model';
-import User, { UserDoc } from '../models/user.model';
+import { Product, ProductDoc, Tag, TagDoc, User, UserDoc } from '../models';
 
 declare class session$Request extends express$Request {
   user: UserDoc;

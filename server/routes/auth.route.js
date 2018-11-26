@@ -6,10 +6,10 @@ import passport from 'passport';
 import httpStatus from 'http-status';
 const request = require('request');
 
+import config from '../config/config';
 import paramValidation from '../config/validation/auth.validation';
 import authCtrl from '../controllers/auth.controller';
-import config from '../config/config';
-import User from '../models/user.model';
+import { User } from '../models';
 import APIError from '../helpers/APIError';
 
 const requireAuth = passport.authenticate('jwt', { session: false });

@@ -6,8 +6,7 @@ import path from 'path';
 
 import app from '../index';
 
-import Product from '../models/product.model';
-import User from '../models/user.model';
+import { Product, User } from '../models';
 import {
   beforeAllTests,
   createProduct,
