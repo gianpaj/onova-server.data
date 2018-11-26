@@ -215,7 +215,7 @@ async function create(
       let promises = [];
 
       for (let i = 0; i < correctPhotos.length; i++) {
-        const photo = array[i];
+        const photo = correctPhotos[i];
         const thumb = photo.replace('.jpg', '-thumb.jpg');
         const thumb2x = photo.replace('.jpg', '-thumb@2x.jpg');
         promises.push(photos.copyPhoto(thumb, product.uuid, 0, date, '-thumb'));
