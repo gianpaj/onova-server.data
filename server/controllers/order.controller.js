@@ -31,8 +31,8 @@ axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
 const axiosConfig = {
   auth: {
-    username: config.UAPAY_CLIENTID,
-    password: config.UAPAY_KEY,
+    username: config.UAPAY_CLIENTID_ESCROW,
+    password: config.UAPAY_KEY_ESCROW,
   },
 };
 
