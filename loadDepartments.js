@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const throat = require('throat');
 
 const http = axios.create({
-  baseURL: 'https://api.escrowbox.demo.uapay.ua/api',
+  baseURL: 'https://api.escrowbox.uapay.ua/api',
   headers: {
     'Cache-Control': 'no-cache',
   },
