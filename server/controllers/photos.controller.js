@@ -15,12 +15,12 @@ import photos from '../helpers/photos';
 const debug = require('debug')('server-data:index');
 const download = require('image-downloader');
 
-const MAX_WIDTH = 1440;
-const MAX_HEIGHT = 1440;
-const MAX_WIDTH_AP = (MAX_WIDTH / 3) * 4;
-const MAX_HEIGHT_AP = (MAX_WIDTH / 3) * 4;
-const THUMB_MAX_WIDTH = 350;
-const THUMB_MAX_HEIGHT = 350;
+const MIN_WIDTH = 1440;
+const MIN_HEIGHT = 1440;
+const MIN_WIDTH_AP = (MIN_WIDTH / 3) * 4;
+const MIN_HEIGHT_AP = (MIN_WIDTH / 3) * 4;
+const THUMB_WIDTH = 350;
+const THUMB_HEIGHT = 350;
 const TEMP_PATH = '/tmp';
 
 const storage = Storage({
@@ -42,9 +42,9 @@ async function tempUploadProductImage(
   const pipeline = sharp(file.buffer);
   const metadata = await pipeline.metadata();
 
-  if (metadata.width < MAX_WIDTH || metadata.height < MAX_HEIGHT) {
+  if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
     const APIerr = new APIError(
-      `Image too small. Min width and height ${MAX_WIDTH} px. The uploaded image is ${
+      `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${
         metadata.width
       }x${metadata.height}`,
       httpStatus.BAD_REQUEST
@@ -56,22 +56,22 @@ async function tempUploadProductImage(
 
   // if square image, do not change aspect ratio
   if (metadata.width === metadata.height) {
-    height = MAX_HEIGHT;
-    width = MAX_HEIGHT;
+    height = MIN_HEIGHT;
+    width = MIN_HEIGHT;
   } else if (metadata.width < metadata.height) {
     // if portrait pic, resize to width of 1440 and height of up to aspect ratio of 3:4
-    height = Math.min(metadata.height, MAX_HEIGHT_AP);
-    width = MAX_WIDTH;
+    height = Math.min(metadata.height, MIN_HEIGHT_AP);
+    width = MIN_WIDTH;
   } else {
     // if landscape pic, resize to height of 1440 and width of up to aspect ratio of 4:3
-    height = MAX_HEIGHT;
-    width = Math.min(metadata.width, MAX_WIDTH_AP);
+    height = MIN_HEIGHT;
+    width = Math.min(metadata.width, MIN_WIDTH_AP);
   }
 
   // save locally for test
   if (config.env === 'test') {
     pipeline
-      .resize(THUMB_MAX_WIDTH, THUMB_MAX_HEIGHT)
+      .resize(THUMB_WIDTH, THUMB_HEIGHT)
       .crop(sharp.strategy.entropy)
       .on('error', err => {
         console.log('Error generating thumbnail', err);
@@ -89,7 +89,7 @@ async function tempUploadProductImage(
       });
 
     pipeline
-      .resize(THUMB_MAX_WIDTH * 2, THUMB_MAX_HEIGHT * 2)
+      .resize(THUMB_WIDTH * 2, THUMB_HEIGHT * 2)
       .crop(sharp.strategy.entropy)
       .on('error', err => {
         console.log('Error generating thumbnail', err);
@@ -128,15 +128,15 @@ async function tempUploadProductImage(
     // generate 2 square thumbnails
     const gcsname = `${uploadDate}.jpg`;
     photos.uploadThumbnailToGCS(
-      THUMB_MAX_WIDTH,
-      THUMB_MAX_HEIGHT,
+      THUMB_WIDTH,
+      THUMB_HEIGHT,
       file,
       gcsname.replace('.jpg', '-thumb.jpg'),
       tempBucket
     );
     photos.uploadThumbnailToGCS(
-      THUMB_MAX_WIDTH * 2,
-      THUMB_MAX_HEIGHT * 2,
+      THUMB_WIDTH * 2,
+      THUMB_HEIGHT * 2,
       file,
       gcsname.replace('.jpg', '-thumb@2x.jpg'),
       tempBucket
@@ -189,13 +189,13 @@ const storageForChatImages = gcsSharp({
   sizes: [
     {
       suffix: 'thumb.jpeg',
-      width: MAX_WIDTH / 2,
-      height: MAX_WIDTH / 2,
+      width: MIN_WIDTH / 2,
+      height: MIN_WIDTH / 2,
     },
     {
       suffix: '.jpeg',
-      width: MAX_WIDTH,
-      height: MAX_HEIGHT,
+      width: MIN_WIDTH,
+      height: MIN_HEIGHT,
     },
   ],
   // crop: 16, // sharp.strategy.entropy
