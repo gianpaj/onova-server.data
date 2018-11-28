@@ -221,8 +221,6 @@ function requestPassReset(req, res) {
   });
 }
 
-const JWTsecret = '***REMOVED***'; // TODO: add to .env
-
 /**
  * GET /api/auth/get-token - (Unprotected route)
  *
@@ -233,12 +231,12 @@ function getTokenForRequestingCardId(req, res, next) {
   jwt.sign(
     {
       params: {
-        clientId: '2', // TODO: add to .env
+        clientId: config.UAPAY_CLIENTID_P2P,
         method: 'createCard',
         enableRedirectResponse: false,
       },
     },
-    JWTsecret,
+    config.UAPAY_SECRET_P2P,
     (err, jws) => {
       if (err) {
         console.log(err);
