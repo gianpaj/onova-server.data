@@ -358,7 +358,7 @@ describe('## Product APIs', () => {
             'product.seller'
           );
           expect(p.seller.profilePic).toContain(
-            'http://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
+            'https://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
           );
           expect(p.seller.profilePic).toContain('.jpg');
           expect(p.status).toBe('forsale');
