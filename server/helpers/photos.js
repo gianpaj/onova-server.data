@@ -130,7 +130,7 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
   return new Promise((resolve, reject) => {
     if (config.env === 'test')
       return resolve(
-        'http://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
+        'https://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg'
       );
 
     const gcspath = `users/${user._id.toString()}-${Date.now()}.jpg`;
@@ -151,7 +151,7 @@ function uploadProfilePic(user: UserDoc, image: any): Promise<any> {
           const path = `${config.CLOUD_BUCKET}/${gcspath}`;
           let cloudStoragePublicUrl = `https://storage.googleapis.com/${path}`;
           if (config.env === 'production') {
-            cloudStoragePublicUrl = `http://${path}`;
+            cloudStoragePublicUrl = `https://${path}`;
           }
           resolve(cloudStoragePublicUrl);
         })
@@ -267,7 +267,7 @@ async function copyPhoto(
   const destFilename = `products/${uuid}-${i + 1}-${date}${suffix}.jpg`;
 
   if (config.env === 'test') {
-    return `http://${destBucketName}/${destFilename}`;
+    return `https://${destBucketName}/${destFilename}`;
   }
 
   try {
@@ -285,7 +285,7 @@ async function copyPhoto(
 
     const path = `${destBucketName}/${destFilename}`;
     if (config.env === 'production') {
-      return `http://${path}`;
+      return `https://${path}`;
     }
     // for development
     return `https://storage.googleapis.com/${path}`;
