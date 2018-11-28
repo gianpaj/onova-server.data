@@ -133,7 +133,7 @@ From [generate_geonames.sh](https://github.com/lucaspiller/offline-geocoder/blob
 2. Import the cities (TODO: import the cities via the Nodejs script)
 
 ```bash
-http "https://api.escrowbox.demo.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json
+http "https://api.escrowbox.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json
 # remove the "data: [" so it's only an array of objects
 mongoimport -d onova-data -c cities cities.json --jsonArray --drop
 # output
@@ -149,28 +149,24 @@ node loadDepartments.js
 # output
 connected to mongodb://localhost:27017/onova-data
 loading cities
-current cities: 993
+current cities: 1145
 current cities with departments: 0
-citiesToLoad: 993
-Володарське
-Очаків
-Березанка
+citiesToLoad: 1145
 Пустомити
+Очаків
+Нікольське
+Березанка(Миколаївська обл.)
 Мангуш
-Веселинове
 Нова Одеса
-Снігурівка
-Березнегувате
-Новий Буг
-Казанка
 Баштанка
-Тарутине
-Арциз
+Казанка
+Веселинове
+Новий Буг
 []
 ...
 done loading
-latestCities: 838
-citiesToDelete: 155
+latestCities: 1138
+citiesToDelete: 7
 ```
 
 NOTE: there are 155 cities that do not have any Nova Poshta departments
@@ -198,6 +194,13 @@ mongorestore dump/onova-data -d onova-data-test --drop
 2018-10-11T13:09:25.886+0300 restoring indexes for collection onova-data-test.departments from metadata
 2018-10-11T13:09:25.960+0300 finished restoring onova-data-test.departments (2118 documents)
 2018-10-11T13:09:25.960+0300 done
+```
+
+5. Add these collections to production as well
+
+```
+mongorestore --host localhost --port 9999 -d onova-data -c cities dump/onova-data/cities.bson --drop
+mongorestore --host localhost --port 9999 -d onova-data -c departments dump/onova-data/departments.bson --drop
 ```
 
 ### Verify if the just-loaded cities or deparments have been updated
