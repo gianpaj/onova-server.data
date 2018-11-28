@@ -233,7 +233,7 @@ function getTokenForRequestingCardId(req, res, next) {
   jwt.sign(
     {
       params: {
-        clientId: '742', // TODO: add to .env
+        clientId: '2', // TODO: add to .env
         method: 'createCard',
         enableRedirectResponse: false,
       },
