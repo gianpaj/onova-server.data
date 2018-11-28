@@ -77,12 +77,20 @@ const envVarsSchema = Joi.object({
   SEGMENT: Joi.string()
     .required()
     .description('Segment.com Analytics write key'),
-  UAPAY_CLIENTID: Joi.string()
+  UAPAY_CLIENTID_P2P: Joi.string()
     .required()
-    .description('UAPAY API Client ID'),
-  UAPAY_KEY: Joi.string()
+    .description(
+      'UAPAY param for JWT clientId for P2P - to a request card token'
+    ),
+  UAPAY_SECRET_P2P: Joi.string()
     .required()
-    .description('UAPAY API Key'),
+    .description('UAPAY JWT secret for P2P'),
+  UAPAY_CLIENTID_ESCROW: Joi.string()
+    .required()
+    .description('UAPAY API Client ID for EscrowBow'),
+  UAPAY_KEY_ESCROW: Joi.string()
+    .required()
+    .description('UAPAY API Key for Escrowbox'),
   UAPAY_BASE_URL: Joi.string()
     .required()
     .description('UAPAY API URL'),
