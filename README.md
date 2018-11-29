@@ -120,11 +120,37 @@ yarn start
 
 ## Generate SQLite DB for Reverse Geocoding
 
-Taken from [here](http://download.geonames.org/export/dump/).
+1. Clone git Node library for offline geocoding
 
-    bash generate_geonames.sh
+```bash
+git clone git@github.com:lucaspiller/offline-geocoder.git
+```
 
-From [generate_geonames.sh](https://github.com/lucaspiller/offline-geocoder/blob/master/scripts/generate_geonames.sh)
+2. Run script
+
+```bash
+cd offline-geocoder/scripts/
+./generate_geonames.sh
+```
+
+```output
+Downloading cities from Geonames...
+--2018-11-29 20:55:18--  http://download.geonames.org/export/dump/cities1000.zip
+Resolving download.geonames.org... 188.40.33.19
+Connecting to download.geonames.org|188.40.33.19|:80... connected.
+HTTP request sent, awaiting response... 200 OK
+Length: 7744485 (7.4M) [application/zip]
+Saving to: 'cities1000.zip'
+
+cities1000.zip                   100%[============================================================>]   7.38M  1.25MB/s   in 6.0s
+....
+
+2018-11-29 20:55:26 (319 KB/s) - 'countryInfo.txt' saved [31642/31642]
+
+
+Generating...
+Created db.sqlite with 132399 features.
+```
 
 ## Import NovaPoshta cities and departments into MongoDB
 
