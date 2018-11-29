@@ -11,7 +11,7 @@ import config from '../config/config';
 
 import app from '../index';
 
-import {Tag, Order} from '../models';
+import { Tag, Order } from '../models';
 import { i18n } from '../controllers/order.controller';
 import {
   beforeAllTests,
@@ -970,9 +970,12 @@ describe('## Order APIs', () => {
           expect(o.status).toBe('confirmed');
           expect(o.transactionStatus).toBe('ua-finished');
           expect(o.transactionId).toBe(dealID);
+          expect(o.cityRecipient).toBe('Львів');
+          expect(o.citySender).toBe('Київ');
           expect(o.trackingNumber).toBe(
             sellerConfirmedResponse.data.handler.waybillNumber.toString()
           );
+          expect(o.shippingProvider).toBe('novaposhta');
           expect(typeof o.dateConfirmed).toBe('string');
         });
       await request(app)
@@ -990,6 +993,7 @@ describe('## Order APIs', () => {
           expect(jobs).toHaveLength(1);
           const { data } = jobs.map(j => j.attrs)[0];
           expect(data.order._id.toString()).toBe(orderId3);
+          expect(data.order.shippingProvider).toBe('novaposhta');
           expect(data.order.trackingNumber).toBe(
             sellerConfirmedResponse.data.handler.waybillNumber.toString()
           );
