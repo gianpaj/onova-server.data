@@ -81,25 +81,23 @@ async function create(
   const { product, text, user } = req.body;
   let slackJSON;
 
-  if (req.user.accountStatus !== 'verified') {
-    const err = new APIError(
-      'Please verify your account before making a report',
-      httpStatus.BAD_REQUEST
-    );
-    return next(err);
-  }
+  try {
+    if (req.user.accountStatus !== 'verified') {
+      throw new APIError(
+        'Please verify your account before making a report',
+        httpStatus.BAD_REQUEST
+      );
+    }
 
-  const report = new Report({ text });
+    const report = new Report({ text });
 
-  if (user) {
-    let foundUser;
-    try {
-      foundUser = await User.findById(user);
+    if (user) {
+      if (user === req.user._id.toString()) {
+        throw new APIError('Cannot report yourself', httpStatus.BAD_REQUEST);
+      }
+      const foundUser = await User.findById(user);
       if (!foundUser) {
         throw new APIError('User not found', httpStatus.NOT_FOUND);
-      }
-      if (foundUser._id.toString() === req.user._id.toString()) {
-        throw new APIError('Cannot report yourself', httpStatus.BAD_REQUEST);
       }
       if (foundUser.accountStatus == 'deleted') {
         throw new APIError(
@@ -107,34 +105,31 @@ async function create(
           httpStatus.BAD_REQUEST
         );
       }
-    } catch (err) {
-      return next(err);
+      slackJSON = {
+        attachments: [
+          {
+            title: 'User reported',
+            pretext: `User (@${foundUser.username}) was reported by @${
+              req.user.username
+            }`,
+            text:
+              `User: @${foundUser.username}\n` +
+              `Reporter: @${req.user.username}\n` +
+              `Message: ${text}`,
+          },
+        ],
+      };
+
+      report.user = foundUser._id;
     }
-    slackJSON = {
-      attachments: [
-        {
-          title: 'User reported',
-          pretext: `User (@${foundUser.username}) reported from @${
-            req.user.username
-          }`,
-          text:
-            `User: @${foundUser.username}\n` +
-            `Reporter: @${req.user.username}\n` +
-            `Message: ${text}`,
-        },
-      ],
-    };
 
-    report.user = foundUser._id;
-  }
-
-  if (product) {
-    let foundProduct;
-    try {
-      foundProduct = await Product.findOne({ uuid: product });
-      if (!foundProduct) {
+    if (product) {
+      const foundProduct = await Product.findOne({ uuid: product }).populate(
+        'seller'
+      );
+      if (!foundProduct)
         throw new APIError('Product not found', httpStatus.NOT_FOUND);
-      }
+
       if (
         foundProduct.status === 'banned' ||
         foundProduct.status === 'deleted'
@@ -144,65 +139,53 @@ async function create(
           httpStatus.NOT_FOUND
         );
       }
-      if (foundProduct.seller.toString() === req.user._id.toString()) {
+      if (foundProduct.seller._id.toString() === req.user._id.toString()) {
         throw new APIError(
           'Cannot report your product',
           httpStatus.BAD_REQUEST
         );
       }
-    } catch (err) {
-      return next(err);
+      slackJSON = {
+        attachments: [
+          {
+            title: 'Item reported',
+            pretext: `Item (${foundProduct.uuid}) reported from @${
+              req.user.username
+            }`,
+            text:
+              `Item id: ${foundProduct.uuid}\n` +
+              `Owner: @${foundProduct.seller.username}\n` +
+              `Reporter: @${req.user.username}\n` +
+              `Message: ${text}`,
+          },
+        ],
+      };
+
+      report.product = foundProduct._id;
     }
 
-    slackJSON = {
-      attachments: [
-        {
-          title: 'Item reported',
-          pretext: `Item (${foundProduct.uuid}) reported from @${
-            req.user.username
-          }`,
-          text:
-            `Item id: ${foundProduct.uuid}\n` +
-            `Owner: @${foundProduct.seller.username}\n` +
-            `Reporter: @${req.user.username}\n` +
-            `Message: ${text}`,
-        },
-      ],
-    };
+    report.reporter = req.user._id;
 
-    report.product = foundProduct._id;
+    const response = await report.save();
+
+    if (config.env === 'production') {
+      webhook.send(slackJSON, err => {
+        if (err) return console.error('Slack Error:', err);
+        console.log('Report sent to Slack');
+      });
+    }
+    return res.status(httpStatus.CREATED).json({ data: response });
+  } catch (err) {
+    if (!(err instanceof APIError)) {
+      // mongoose validation error for neither 'user' or 'product' fields
+      if (err.name == 'ValidationError') {
+        err = new APIError('Report a user or product', httpStatus.BAD_REQUEST);
+      } else {
+        err = new APIError('Error reporting', httpStatus.INTERNAL_SERVER_ERROR);
+      }
+    }
+    return next(err);
   }
-
-  report.reporter = req.user._id;
-
-  return report
-    .save()
-    .then(report => {
-      if (config.env === 'production') {
-        webhook.send(slackJSON, err => {
-          if (err) return console.error('Slack Error:', err);
-          console.log('Report sent to Slack');
-        });
-      }
-      return res.status(httpStatus.CREATED).json({ data: report });
-    })
-    .catch(err => {
-      if (!(err instanceof APIError)) {
-        // mongoose validation error for neither 'user' or 'product' fields
-        if (err.name == 'ValidationError') {
-          err = new APIError(
-            'Report a user or product',
-            httpStatus.BAD_REQUEST
-          );
-        } else {
-          err = new APIError(
-            'Error reporting',
-            httpStatus.INTERNAL_SERVER_ERROR
-          );
-        }
-      }
-      next(err);
-    });
 }
 
 export default {
