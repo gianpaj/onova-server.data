@@ -8,6 +8,7 @@ import httpStatus from 'http-status';
 import APIError from '../helpers/APIError';
 import {
   Block,
+  Cities,
   Notification,
   Order,
   OrderDoc,
@@ -727,6 +728,8 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
         data: { data },
       } = await axios.get(`/deals/${order.transactionId}`, axiosConfig);
 
+      const { handler } = data;
+
       switch (data.productPayment.status) {
         // payment not yet created
         case 'NEW':
@@ -737,7 +740,9 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
           break;
         case 'PAID':
           if (data.status === 'CONFIRMED') {
-            order.trackingNumber = data.handler.waybillNumber;
+            order.cityRecipient = await getCityName(handler.recipientCityId);
+            order.citySender = await getCityName(handler.senderCityId);
+            order.trackingNumber = handler.waybillNumber;
             order.shippingProvider = 'novaposhta';
 
             // set by newStatus when seller send API request
@@ -871,6 +876,15 @@ export async function createOrderNotification(
       break;
   }
   return notifCtrl.createNotification(notif);
+}
+
+async function getCityName(name): Promise<any> {
+  try {
+    const city = await Cities.findOne({ id: name });
+    return city.uk;
+  } catch (error) {
+    console.error(error);
+  }
 }
 
 function addProductToCheckout(product) {

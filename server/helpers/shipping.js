@@ -296,11 +296,10 @@ export const sellerConfirmedResponse = {
       senderCityName: 'Київ',
       senderOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
       senderOfficeName: 'Відділення №1: вул. Червонопрапорна, 34 (Корчувате)',
-      recipientCityId: '8d5a980d-391c-11dd-90d9-001a92567626',
-      recipientCityName: 'Київ',
-      recipientOfficeId: '1ec09d88-e1c2-11e3-8c4a-0050568002cf',
-      recipientOfficeName:
-        'Відділення №1: вул. Червонопрапорна, 34 (Корчувате)',
+      recipientCityId: 'db5c88f5-391c-11dd-90d9-001a92567626',
+      recipientCityName: 'Львів',
+      recipientOfficeId: 'd6db6193-5620-11e5-8d8d-005056887b8d',
+      recipientOfficeName: 'Відділення №66 (до 30 кг): вул. Городоцька,131',
       type: 'NovaPoshta',
     },
     productPayment: {
