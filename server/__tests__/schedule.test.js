@@ -191,7 +191,7 @@ describe('## Schedule APIs', () => {
         );
     });
 
-    it('should schedule listings in order', async done => {
+    it.skip('should schedule listings in order', async done => {
       const dropDate = Date.now(); // in milliseconds
       const dropId = new BSON.ObjectId();
       let uuids;
