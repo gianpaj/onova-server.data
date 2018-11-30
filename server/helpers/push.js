@@ -52,7 +52,7 @@ export async function sendPush({
       })
       .then(({ sender, target }: { sender: UserDoc, target: UserDoc }) => {
         const pushData = {
-          message: interpolate(notifI18n, { senderName: data.senderName }),
+          message: notifI18n,
           platform: target.platform,
           pushToken: target.pushToken,
           triggeredBy: sender._id,

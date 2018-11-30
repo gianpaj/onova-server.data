@@ -15,8 +15,9 @@ import {
 import notifCtrl from '../controllers/notification.controller';
 import type { NotifPayload } from '../controllers/notification.controller';
 
-const i18n = {
-  newFollower: 'started following you',
+export const i18n = {
+  // newFollower: 'started following you',
+  newFollower: 'став вашим клієнтом',
 };
 
 declare class session$Request extends express$Request {

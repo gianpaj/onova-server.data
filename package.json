@@ -102,6 +102,7 @@
   },
   "license": "MIT",
   "jest": {
+    "testEnvironment": "node",
     "testRunner": "jest-circus/runner",
     "verbose": true,
     "forceExit": true,
