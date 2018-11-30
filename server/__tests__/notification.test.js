@@ -12,6 +12,7 @@ import config from '../config/config';
 import app from '../index';
 
 import { i18n } from '../controllers/order.controller';
+import { i18n as i18nFollow } from '../controllers/follow.controller';
 import { Order, Tag } from '../models';
 import {
   beforeAllTests,
@@ -317,7 +318,7 @@ describe('## Notification APIs', () => {
         .then(res => {
           const { data } = res.body;
           expect(data[0].triggeredBy._id).toBe(userId);
-          expect(data[0].notifI18n).toBe('started following you');
+          expect(data[0].notifI18n).toBe(i18nFollow.newFollower);
           expect(data).toHaveLength(numberOfNotifForAnotherUser);
         });
     });
