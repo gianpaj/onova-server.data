@@ -180,8 +180,9 @@ describe('## Schedule APIs', () => {
         );
     });
 
-    it('should schedule listing in order', async done => {
+    it('should schedule listings in order', async done => {
       const dropDate = Date.now(); // in milliseconds
+      const dropId = new BSON.ObjectId();
       const uuids = [];
       const promises = [
         request(app)
@@ -189,42 +190,45 @@ describe('## Schedule APIs', () => {
           .set('Authorization', jwtToken1)
           .send({
             ...product,
-            dropId: new BSON.ObjectId(),
-            date: new Date(dropDate),
+            dropId,
+            date: new Date(dropDate - 100),
           })
           .expect(httpStatus.CREATED)
-          .then(async ({ body }) => {
+          .then(({ body }) => {
             const p = body.data.data.product;
             expect(p.categoryIds.sort()).toEqual(product.categoryIds);
+            expect(p.createdAt).toBe(new Date(dropDate - 100).toISOString());
             expect(p.description).toBe(product.description);
+            expect(p.dropId).toBe(dropId.toHexString());
             uuids.push(p.uuid);
-
-            if (!schedulerIsRunning) done();
           }),
         request(app)
           .post('/api/schedule')
           .set('Authorization', jwtToken1)
           .send({
             ...product,
-            dropId: new BSON.ObjectId(),
-            date: new Date(dropDate + 100),
+            dropId,
+            date: new Date(dropDate),
           })
           .expect(httpStatus.CREATED)
-          .then(async ({ body }) => {
+          .then(({ body }) => {
             const p = body.data.data.product;
             expect(p.categoryIds.sort()).toEqual(product.categoryIds);
+            expect(p.createdAt).toBe(new Date(dropDate).toISOString());
             expect(p.description).toBe(product.description);
+            expect(p.dropId).toBe(dropId.toHexString());
             uuids.push(p.uuid);
-
-            if (!schedulerIsRunning) done();
           }),
       ];
       try {
         await Promise.all(promises);
       } catch (error) {
         console.error(error);
+        return done(error);
       }
-      let res;
+
+      if (!schedulerIsRunning) return done();
+
       const waitFor = 15 * 1000; // seconds
       const interval = Math.floor(waitFor / 100);
       let totalTime = interval;
@@ -233,7 +237,7 @@ describe('## Schedule APIs', () => {
       const timer = setInterval(async () => {
         totalTime += interval;
 
-        res = await request(app)
+        const res = await request(app)
           .get(`/api/products/?userid=${user1._id}`)
           .expect(httpStatus.OK);
         const p = res.body.data;
