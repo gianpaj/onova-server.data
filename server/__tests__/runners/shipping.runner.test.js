@@ -86,10 +86,10 @@ describe('## Shipping Runner', () => {
     // clear Product and Orders
     // create 2 products
     beforeEach(async () => {
-      await Product.collection.deleteMany({}, { safe: true });
-      await Order.collection.deleteMany({}, { safe: true });
-      await clearJobs();
       try {
+        await Product.collection.deleteMany({}, { safe: true });
+        await Order.collection.deleteMany({}, { safe: true });
+        await clearJobs();
         const { uuid } = await createProduct(productA, user1JwtToken);
         o1 = await createOrder({ ...productA, uuid }, user2JwtToken);
       } catch (error) {
