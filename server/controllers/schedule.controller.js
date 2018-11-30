@@ -106,6 +106,7 @@ async function create(
     tags: body.tags,
     typeIds: body.typeIds,
     uuid: shortid.generate(), // needed here for photos' filenames
+    createdAt: new Date(body.date),
   });
 
   if (body.longitude && body.latitude) {
