@@ -123,9 +123,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           sourceUser,
           triggeredType,
         })
-          .then(doc => {
-            resolve(doc);
-          })
+          .then(doc => resolve(doc))
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Product') {

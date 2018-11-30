@@ -75,6 +75,7 @@ Array [
   "_id",
   "categoryIds",
   "comments",
+  "createdAt",
   "currency",
   "description",
   "dropId",
