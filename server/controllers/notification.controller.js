@@ -155,9 +155,7 @@ function createNotification(notif: NotifPayload): Promise<null> {
           triggeredBy,
           triggeredType,
         })
-          .then(doc => {
-            resolve(doc);
-          })
+          .then(doc => resolve(doc))
           .catch(e => reject(e));
       }
     } else if (triggeredType == 'Order') {
