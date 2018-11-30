@@ -9,7 +9,8 @@ import BSON from 'bson';
 import app from '../index';
 import { agenda } from '../config/express';
 
-import { Product, User } from '../models';
+import { Notification, Product, User } from '../models';
+import { i18n } from '../controllers/schedule.controller';
 import { createUserAndLogin, beforeAllTests } from './utils';
 import config from '../config/config';
 
@@ -255,15 +256,14 @@ describe('## Schedule APIs', () => {
       }, interval);
     });
 
-    it.skip('should schedule a listing very soon', done => {
+    it('should schedule a listing very soon', done => {
       request(app)
         .post('/api/schedule')
         .set('Authorization', jwtToken1)
         .send({ ...product, dropId: new BSON.ObjectId() })
         .expect(httpStatus.CREATED)
-        .then(async ({ body }) => {
+        .then(({ body }) => {
           const p = body.data.data.product;
-          // expect(body.data.data.socials).toEqual([product.socials]);
           expect(body.data.nextRunAt).toBe(product.date.toISOString());
           expect(Object.keys(body.data).sort()).toMatchSnapshot();
           expect(p.categoryIds.sort()).toEqual(product.categoryIds);
@@ -277,27 +277,47 @@ describe('## Schedule APIs', () => {
           expect(p.tags).toEqual(product.tags);
           expect(p.typeIds.sort()).toEqual(product.typeIds);
           expect(Object.keys(p).sort()).toMatchSnapshot();
+
+          if (!schedulerIsRunning) return done();
+
           productUuid = p.uuid;
-          // productsCounter++;
-
-          if (!schedulerIsRunning) done();
-
-          let found;
           const waitFor = 15 * 1000; // seconds
           const interval = Math.floor(waitFor / 100);
           let totalTime = interval;
 
-          // Check a Product has been created every 150ms up to 15 seconds
+          // Check every 150ms up to 15 seconds that
+          // a Product has been created
+          // a Notification has been created to the seller
+          // a Push notification has been scheduled to the seller
           const timer = setInterval(async () => {
             totalTime += interval;
-            found = await Product.findOne({ uuid: productUuid });
-            if (found) {
+            const prod = await Product.findOne({ uuid: productUuid });
+
+            if (prod) {
+              const notif = await Notification.findOne({
+                notifI18n: i18n.listedDrop,
+              });
+
+              expect(notif.data.product.uuid).toBe(productUuid);
+              done();
               clearInterval(timer);
 
-              expect(found.uuid).toBe(productUuid);
+              expect(prod.uuid).toBe(productUuid);
               expect(p.photoURIs[0]).not.toContain('thumb');
               expect(p.photoURIs[0]).toContain('/products/');
-              done();
+
+              agenda.jobs(
+                { name: config.JOBNAMES.PUSH_DROP_LISTED },
+                (err, jobs) => {
+                  if (err) return done(err);
+                  expect(jobs).toHaveLength(1);
+                  const data = jobs.map(job => job.attrs.data);
+                  data.map(data => {
+                    expect(data.message).toBe(i18n.listedDrop);
+                    done();
+                  });
+                }
+              );
             }
             if (totalTime >= waitFor) {
               clearInterval(timer);
