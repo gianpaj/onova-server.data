@@ -16,10 +16,10 @@ import config from '../config/config';
 jest.setTimeout(15000);
 
 // if server.push is NOT running
-const schedulerIsRunning = process.env.SCHEDULER_IS_RUNNING == 'true';
+const schedulerIsRunning = process.env.SCHEDULER_IS_RUNNING !== 'true';
 
 if (!schedulerIsRunning) {
-  console.log('skipping tests with scheduler (server.push)');
+  console.warn('skipping tests with scheduler (server.push)');
 }
 
 describe('## Schedule APIs', () => {
@@ -207,14 +207,14 @@ describe('## Schedule APIs', () => {
 
           if (!schedulerIsRunning) done();
 
-          let count = 0;
           let found;
-          const waitFor = 15; // seconds
-          const interval = Math.floor((waitFor * 10000) / 100);
+          const waitFor = 15 * 1000; // seconds
+          const interval = Math.floor(waitFor / 100);
+          let totalTime = interval;
 
-          // Check a Product notification has been created every 100ms for X seconds
+          // Check a Product has been created every 150ms up to 15 seconds
           const timer = setInterval(async () => {
-            count++;
+            totalTime += interval;
             found = await Product.findOne({ uuid: productUuid });
             if (found) {
               clearInterval(timer);
@@ -224,11 +224,10 @@ describe('## Schedule APIs', () => {
               expect(p.photoURIs[0]).toContain('/products/');
               done();
             }
-            if (count >= waitFor) {
+            if (totalTime >= waitFor) {
               clearInterval(timer);
               throw new Error('timeout');
             }
-            // console.log(count);
           }, interval);
         });
     });

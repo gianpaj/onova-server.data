@@ -118,7 +118,7 @@ yarn --production
 yarn start
 ```
 
-## Generate SQLite DB for Reverse Geocoding
+## Generate SQLite DB for Reverse Geocoding (`db.sqlite`)
 
 1. Clone git Node library for offline geocoding
 
