@@ -64,7 +64,7 @@ describe('## Schedule APIs', () => {
     photos: ['http://storage.googleapis.com/1527232263107'],
   };
 
-  let productUuid, jwtToken1, jwtToken2, jwtToken3, jwtToken4;
+  let jwtToken1, jwtToken2, jwtToken3, jwtToken4;
 
   // let productsCounter = 0;
 
@@ -88,25 +88,19 @@ describe('## Schedule APIs', () => {
     );
     user4._id = resUser4._id;
     jwtToken4 = token4;
-    await request(app)
-      .put(`/api/users/${user1._id}`)
-      .set('Authorization', jwtToken1)
-      .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
-      .expect(httpStatus.OK);
-    await request(app)
-      .put(`/api/users/${user3._id}`)
-      .set('Authorization', jwtToken3)
-      .send({ shippingAddress: {} })
-      .expect(httpStatus.OK);
-    await User.updateOne({ _id: user4._id }, { $unset: { paymentInfo: '' } });
-  });
-
-  beforeEach(async () => {
-    try {
-      await clearJobs();
-    } catch (error) {
-      console.error(error);
-    }
+    await Promise.all([
+      request(app)
+        .put(`/api/users/${user1._id}`)
+        .set('Authorization', jwtToken1)
+        .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+        .expect(httpStatus.OK),
+      request(app)
+        .put(`/api/users/${user3._id}`)
+        .set('Authorization', jwtToken3)
+        .send({ shippingAddress: {} })
+        .expect(httpStatus.OK),
+      User.updateOne({ _id: user4._id }, { $unset: { paymentInfo: '' } }),
+    ]);
   });
 
   // describe('# POST /api/schedule', () => {
@@ -200,7 +194,7 @@ describe('## Schedule APIs', () => {
     it('should schedule listings in order', async done => {
       const dropDate = Date.now(); // in milliseconds
       const dropId = new BSON.ObjectId();
-      const uuids = [];
+      let uuids;
       const promises = [
         request(app)
           .post('/api/schedule')
@@ -217,7 +211,7 @@ describe('## Schedule APIs', () => {
             expect(p.createdAt).toBe(new Date(dropDate - 300).toISOString());
             expect(p.description).toBe(product.description);
             expect(p.dropId).toBe(dropId.toHexString());
-            uuids.push(p.uuid);
+            return p.uuid;
           }),
         request(app)
           .post('/api/schedule')
@@ -234,11 +228,11 @@ describe('## Schedule APIs', () => {
             expect(p.createdAt).toBe(new Date(dropDate).toISOString());
             expect(p.description).toBe(product.description);
             expect(p.dropId).toBe(dropId.toHexString());
-            uuids.push(p.uuid);
+            return p.uuid;
           }),
       ];
       try {
-        await Promise.all(promises);
+        uuids = await Promise.all(promises);
       } catch (error) {
         console.error(error);
         return done(error);
@@ -296,7 +290,7 @@ describe('## Schedule APIs', () => {
 
           if (!schedulerIsRunning) return done();
 
-          productUuid = p.uuid;
+          const productUuid = p.uuid;
           const waitFor = 15 * 1000; // seconds
           const interval = Math.floor(waitFor / 100);
           let totalTime = interval;
@@ -315,11 +309,8 @@ describe('## Schedule APIs', () => {
               });
 
               expect(notif.data.product.uuid).toBe(productUuid);
-              done();
-              clearInterval(timer);
 
               expect(prod.uuid).toBe(productUuid);
-              expect(p.photoURIs[0]).not.toContain('thumb');
               expect(p.photoURIs[0]).toContain('/products/');
 
               agenda.jobs(
@@ -390,27 +381,27 @@ describe('## Schedule APIs', () => {
   });
 
   describe('# GET /api/schedule', () => {
-    beforeAll(async done => {
-      product.photos = [
-        'https://storage.googleapis.com/temp-uploads.onova.co/',
-      ];
-
+    beforeAll(async () => {
       try {
-        await request(app)
-          .post('/api/schedule')
-          .set('Authorization', jwtToken1)
-          .send({ ...product, dropId: new BSON.ObjectId() })
-          .expect(httpStatus.CREATED);
-        await request(app)
-          .post('/api/schedule')
-          .set('Authorization', jwtToken2)
-          .send({ ...product, dropId: new BSON.ObjectId() })
-          .expect(httpStatus.CREATED);
+        product.photos = [
+          'https://storage.googleapis.com/temp-uploads.onova.co/',
+        ];
 
-        done();
+        await Promise.all([
+          clearJobs(),
+          request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken1)
+            .send({ ...product, dropId: new BSON.ObjectId() })
+            .expect(httpStatus.CREATED),
+          request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken2)
+            .send({ ...product, dropId: new BSON.ObjectId() })
+            .expect(httpStatus.CREATED),
+        ]);
       } catch (error) {
         console.error(error);
-        done(error);
       }
     });
 
@@ -468,34 +459,33 @@ describe('## Schedule APIs', () => {
   });
 
   describe('# GET /api/schedule', () => {
-    beforeAll(async done => {
-      product.photos = [
-        'https://storage.googleapis.com/temp-uploads.onova.co/',
-      ];
-
+    beforeAll(async () => {
       const drop1 = new BSON.ObjectId();
-
       try {
-        await request(app)
-          .post('/api/schedule')
-          .set('Authorization', jwtToken1)
-          .send({ ...product, dropId: drop1 })
-          .expect(httpStatus.CREATED);
-        await request(app)
-          .post('/api/schedule')
-          .set('Authorization', jwtToken2)
-          .send({ ...product, dropId: drop1 })
-          .expect(httpStatus.CREATED);
-        await request(app)
-          .post('/api/schedule')
-          .set('Authorization', jwtToken2)
-          .send({ ...product, dropId: new BSON.ObjectId() })
-          .expect(httpStatus.CREATED);
+        product.photos = [
+          'https://storage.googleapis.com/temp-uploads.onova.co/',
+        ];
 
-        done();
+        await Promise.all([
+          clearJobs(),
+          request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken1)
+            .send({ ...product, dropId: drop1 })
+            .expect(httpStatus.CREATED),
+          request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken2)
+            .send({ ...product, dropId: drop1 })
+            .expect(httpStatus.CREATED),
+          request(app)
+            .post('/api/schedule')
+            .set('Authorization', jwtToken2)
+            .send({ ...product, dropId: new BSON.ObjectId() })
+            .expect(httpStatus.CREATED),
+        ]);
       } catch (error) {
         console.error(error);
-        done(error);
       }
     });
 
