@@ -236,7 +236,7 @@ function unfollow(
 }
 
 /**
- * Get list of followers of a specific user
+ * Get list of followers of a specific user and if I am following them or not (amIAFollower)
  *
  * GET /api/users/:userId/followers
  *
@@ -247,7 +247,7 @@ function unfollow(
  * @property {number} req.query.skip Number of users to be skipped.
  * @property {number} req.query.limit Limit number of users to be returned.
  */
-function listFollowers(
+async function listFollowers(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -256,45 +256,47 @@ function listFollowers(
 
   const DBquery = { following: req.params.userId, status: { $ne: -1 } };
 
-  // use static method from FollowSchema
+  // using static method from FollowSchema
   // flow-disable-next-line
-  Follow.list({ DBquery, limit, skip })
-    .then(async followers => {
-      if (followers) {
-        // filter followers that not longer exist (populate returns null)
-        followers = followers.filter(f => f.follower !== null);
-        // TODO: filter followers that are deleted
-        // get the list of followers ids of the queried User
-        const ids = followers.map(f => f.follower._id.toString());
-        // get the list of users I follow based on that list ^
-        let myFollowings = await Follow.find({
-          follower: req.user._id.toString(),
-          following: { $in: ids },
-        });
-        myFollowings = myFollowings.map(f => f.following.toString());
-        followers = followers.map((f: FollowDoc) => {
-          f = f.toJSON();
-          let doc = {
-            ...f.follower,
-            dateCreated: f.dateCreated,
-            amIAFollower: false,
-          };
-          if (
-            myFollowings &&
-            myFollowings.indexOf(f.follower._id.toString()) > -1
-          ) {
-            doc.amIAFollower = true;
-          }
-          return doc;
-        });
-      }
-      res.json({ data: followers });
-    })
-    .catch(e => next(e));
+  try {
+    let followers = await Follow.list({ DBquery, limit, skip });
+    if (followers) {
+      // filter followers that not longer exist (populate returns null)
+      followers = followers.filter(f => f.follower !== null);
+
+      // get only the list of followers ids of the queried User
+      const ids = followers.map(f => f.follower._id.toString());
+
+      // get the list of users I follow based on that list ^
+      let myFollowings = await Follow.find({
+        follower: req.user._id.toString(),
+        following: { $in: ids },
+      });
+      myFollowings = myFollowings.map(f => f.following.toString());
+      followers = followers.map((f: FollowDoc) => {
+        f = f.toJSON();
+        const doc = {
+          ...f.follower,
+          dateCreated: f.dateCreated,
+          amIAFollower: false,
+        };
+        if (
+          myFollowings &&
+          myFollowings.indexOf(f.follower._id.toString()) > -1
+        ) {
+          doc.amIAFollower = true;
+        }
+        return doc;
+      });
+    }
+    res.json({ data: followers });
+  } catch (error) {
+    next(error);
+  }
 }
 
 /**
- * Get list of users a specific user is following
+ * Get list of users a specific user is following and if I am following them or not (amIAFollower)
  *
  * GET /api/users/:userId/following
  *
@@ -305,7 +307,7 @@ function listFollowers(
  * @property {number} req.query.skip Number of users to be skipped.
  * @property {number} req.query.limit Limit number of users to be returned.
  */
-function listFollowing(
+async function listFollowing(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -316,36 +318,37 @@ function listFollowing(
 
   // use static method from FollowSchema
   // flow-disable-next-line
-  Follow.list({ DBquery, limit, skip })
-    .then(async followings => {
-      if (followings) {
-        // filter followers that not longer exist (populate returns null)
-        followings = followings.filter(f => f.following !== null);
-        // TODO: filter followings that are deleted
-        // get the list ids of the queried User is following
-        const ids = followings.map(f => f.following._id.toString());
-        // get the list of users I follow based on that list ^
-        let myFollowings = await Follow.find({
-          follower: req.user._id.toString(),
-          following: { $in: ids },
-        });
-        myFollowings = myFollowings.map(f => f.following.toString());
-        followings = followings.map((f: FollowDoc) => {
-          f = f.toJSON();
-          let doc = {
-            ...f.following,
-            dateCreated: f.dateCreated,
-            amIAFollower: false,
-          };
-          if (myFollowings.indexOf(f.following._id.toString()) > -1) {
-            doc.amIAFollower = true;
-          }
-          return doc;
-        });
-      }
-      res.json({ data: followings });
-    })
-    .catch(e => next(e));
+  try {
+    let followings = await Follow.list({ DBquery, limit, skip });
+    if (followings) {
+      // filter followers that not longer exist (populate returns null)
+      followings = followings.filter(f => f.following !== null);
+      // TODO: filter followings that are deleted
+      // get the list ids of the queried User is following
+      const ids = followings.map(f => f.following._id.toString());
+      // get the list of users I follow based on that list ^
+      let myFollowings = await Follow.find({
+        follower: req.user._id.toString(),
+        following: { $in: ids },
+      });
+      myFollowings = myFollowings.map(f => f.following.toString());
+      followings = followings.map((f: FollowDoc) => {
+        f = f.toJSON();
+        let doc = {
+          ...f.following,
+          dateCreated: f.dateCreated,
+          amIAFollower: false,
+        };
+        if (myFollowings.indexOf(f.following._id.toString()) > -1) {
+          doc.amIAFollower = true;
+        }
+        return doc;
+      });
+    }
+    res.json({ data: followings });
+  } catch (error) {
+    next(error);
+  }
 }
 
 export default {
