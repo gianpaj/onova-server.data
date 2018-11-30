@@ -15,6 +15,11 @@ import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
 import { Product, ProductDoc, Tag, TagDoc, User, UserDoc } from '../models';
 
+export const i18n = {
+  // listedDrop: 'Your drop has been posted',
+  listedDrop: 'Ваш Дроп виставлено на продаж',
+};
+
 declare class session$Request extends express$Request {
   user: UserDoc;
   product: ProductDoc;
