@@ -11,7 +11,7 @@ import { agenda } from '../config/express';
 
 import { Notification, Product, User } from '../models';
 import { i18n } from '../controllers/schedule.controller';
-import { createUserAndLogin, beforeAllTests } from './utils';
+import { clearJobs, createUserAndLogin, beforeAllTests } from './utils';
 import config from '../config/config';
 
 jest.setTimeout(15000);
@@ -101,6 +101,14 @@ describe('## Schedule APIs', () => {
     await User.updateOne({ _id: user4._id }, { $unset: { paymentInfo: '' } });
   });
 
+  beforeEach(async () => {
+    try {
+      await clearJobs();
+    } catch (error) {
+      console.error(error);
+    }
+  });
+
   // describe('# POST /api/schedule', () => {
   //   it("should NOT scheduled an item to FB if user doesn't have a FB token", () => {
   //     return request(app)
@@ -127,6 +135,14 @@ describe('## Schedule APIs', () => {
           );
           product.photos = [body.data];
         });
+    });
+
+    beforeEach(() => {
+      return Promise.all([
+        Product.collection.deleteMany({}, { safe: true }),
+        Notification.collection.deleteMany({}, { safe: true }),
+        clearJobs(),
+      ]);
     });
 
     it('should NOT schedule a drop invalid images', () => {
@@ -192,13 +208,13 @@ describe('## Schedule APIs', () => {
           .send({
             ...product,
             dropId,
-            date: new Date(dropDate - 100),
+            date: new Date(dropDate - 300),
           })
           .expect(httpStatus.CREATED)
           .then(({ body }) => {
             const p = body.data.data.product;
             expect(p.categoryIds.sort()).toEqual(product.categoryIds);
-            expect(p.createdAt).toBe(new Date(dropDate - 100).toISOString());
+            expect(p.createdAt).toBe(new Date(dropDate - 300).toISOString());
             expect(p.description).toBe(product.description);
             expect(p.dropId).toBe(dropId.toHexString());
             uuids.push(p.uuid);
@@ -374,34 +390,28 @@ describe('## Schedule APIs', () => {
   });
 
   describe('# GET /api/schedule', () => {
-    beforeAll(done => {
-      agenda.purge(async err => {
-        if (err) {
-          console.error(err);
-          return done(err);
-        }
-        product.photos = [
-          'https://storage.googleapis.com/temp-uploads.onova.co/',
-        ];
+    beforeAll(async done => {
+      product.photos = [
+        'https://storage.googleapis.com/temp-uploads.onova.co/',
+      ];
 
-        try {
-          await request(app)
-            .post('/api/schedule')
-            .set('Authorization', jwtToken1)
-            .send({ ...product, dropId: new BSON.ObjectId() })
-            .expect(httpStatus.CREATED);
-          await request(app)
-            .post('/api/schedule')
-            .set('Authorization', jwtToken2)
-            .send({ ...product, dropId: new BSON.ObjectId() })
-            .expect(httpStatus.CREATED);
+      try {
+        await request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken1)
+          .send({ ...product, dropId: new BSON.ObjectId() })
+          .expect(httpStatus.CREATED);
+        await request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken2)
+          .send({ ...product, dropId: new BSON.ObjectId() })
+          .expect(httpStatus.CREATED);
 
-          done();
-        } catch (error) {
-          console.error(error);
-          done(error);
-        }
-      });
+        done();
+      } catch (error) {
+        console.error(error);
+        done(error);
+      }
     });
 
     it('should NOT get scheduled listings without auth', () => {
@@ -458,41 +468,35 @@ describe('## Schedule APIs', () => {
   });
 
   describe('# GET /api/schedule', () => {
-    beforeAll(done => {
-      agenda.purge(async err => {
-        if (err) {
-          console.error(err);
-          return done(err);
-        }
-        product.photos = [
-          'https://storage.googleapis.com/temp-uploads.onova.co/',
-        ];
+    beforeAll(async done => {
+      product.photos = [
+        'https://storage.googleapis.com/temp-uploads.onova.co/',
+      ];
 
-        const drop1 = new BSON.ObjectId();
+      const drop1 = new BSON.ObjectId();
 
-        try {
-          await request(app)
-            .post('/api/schedule')
-            .set('Authorization', jwtToken1)
-            .send({ ...product, dropId: drop1 })
-            .expect(httpStatus.CREATED);
-          await request(app)
-            .post('/api/schedule')
-            .set('Authorization', jwtToken2)
-            .send({ ...product, dropId: drop1 })
-            .expect(httpStatus.CREATED);
-          await request(app)
-            .post('/api/schedule')
-            .set('Authorization', jwtToken2)
-            .send({ ...product, dropId: new BSON.ObjectId() })
-            .expect(httpStatus.CREATED);
+      try {
+        await request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken1)
+          .send({ ...product, dropId: drop1 })
+          .expect(httpStatus.CREATED);
+        await request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken2)
+          .send({ ...product, dropId: drop1 })
+          .expect(httpStatus.CREATED);
+        await request(app)
+          .post('/api/schedule')
+          .set('Authorization', jwtToken2)
+          .send({ ...product, dropId: new BSON.ObjectId() })
+          .expect(httpStatus.CREATED);
 
-          done();
-        } catch (error) {
-          console.error(error);
-          done(error);
-        }
-      });
+        done();
+      } catch (error) {
+        console.error(error);
+        done(error);
+      }
     });
 
     it('should get my scheduled listings', () => {
