@@ -37,7 +37,6 @@ async function list(
   try {
     const found = await SuggestedUsers.findOne({ user: req.user._id });
     // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
-    console.log(found);
     if (found) return res.json({ data: found.suggestions, new: false });
 
     // else compute them and save them in the collection
@@ -52,13 +51,19 @@ async function list(
     });
 
     const discarded = (await DiscardedUser.find({ source: req.user._id })).map(
-      d => d.target
+      d => d.target.toString()
     );
 
     const filteredSuggestions = freshSuggestions.filter(
-      fresh => -1 === discarded.indexOf(fresh._id)
+      fresh => -1 === discarded.indexOf(fresh._id.toString())
     );
 
+    const discard = freshSuggestions.map(sugg =>
+      DiscardedUser.create({ source: req.user._id, target: sugg._id })
+    );
+    Promise.all(discard)
+      .then(d => debug('discarded', d.length))
+      .catch(() => debug('its ok'));
 
     res.json({ data: filteredSuggestions, new: true });
   } catch (error) {
