@@ -2,6 +2,7 @@ import Block, { BlockDoc } from './block.model';
 import DefaultFollow, { DefaultFollowDoc } from './defaultFollow.model';
 import Cities from './cities.model';
 import Departments from './departments.model';
+import DiscardedUser, { DiscardedUserDoc } from './discardedUser.model';
 import Follow, { FollowDoc } from './follow.model';
 // import Like from './like.model';
 import Notification, { NotificationDoc } from './notification.model';
@@ -9,6 +10,7 @@ import Order, { OrderDoc } from './order.model';
 import Product, { ProductDoc, CommentDoc } from './product.model';
 import Report, { ReportDoc } from './report.model';
 import Review, { ReviewDoc } from './review.model';
+import SuggestedUsers, { SuggestedUsersDoc } from './suggestedUsers.model';
 import Tag, { TagDoc } from './tag.model';
 import User, { UserDoc } from './user.model';
 import Verification, { VerificationDoc } from './verification.model';
@@ -37,6 +39,8 @@ export {
   Departments,
   DefaultFollow,
   DefaultFollowDoc,
+  DiscardedUser,
+  DiscardedUserDoc,
   Follow,
   FollowDoc,
   // Like,
@@ -51,6 +55,8 @@ export {
   ReportDoc,
   Review,
   ReviewDoc,
+  SuggestedUsers,
+  SuggestedUsersDoc,
   Tag,
   TagDoc,
   User,
