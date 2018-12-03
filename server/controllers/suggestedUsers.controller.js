@@ -43,12 +43,12 @@ async function list(
     // TODO: filter also those who have been discarded
     const freshSuggestions = await getSuggestions(req.user._id);
 
-    if (!freshSuggestions.length) return res.json({ data: [], new: true });
-
     await SuggestedUsers.create({
       user: req.user._id,
       suggestions: freshSuggestions,
     });
+
+    if (!freshSuggestions.length) return res.json({ data: [], new: true });
 
     const discarded = (await DiscardedUser.find({ source: req.user._id })).map(
       d => d.target.toString()
