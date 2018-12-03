@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
-import { Tag } from '../models';
+import { Tag, SuggestedUsers } from '../models';
 
 import app from '../index';
 import { beforeAllTests, createUserAndLogin } from './utils';
@@ -121,6 +121,25 @@ describe('## Suggested Users APIs', () => {
         expect(body.data[0].numOfConns).toBe(1);
         expect(body.new).toBe(false);
       });
+  });
+
+  it('should return a fresh list of suggested users without the previously discarded', async () => {
+    try {
+      // fake Suggested users have been deleted by TTL collection expiring
+      const deletedSuggested = await SuggestedUsers.deleteOne({
+        user: users[0]._id,
+      });
+      expect(deletedSuggested.n).toBe(1);
+      const res = await request(app)
+        .get('/api/suggested-users/')
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.OK);
+
+      expect(res.body.new).toBe(true);
+      expect(res.body.data).toHaveLength(0);
+    } catch (error) {
+      console.error(error);
+    }
   });
 });
 
