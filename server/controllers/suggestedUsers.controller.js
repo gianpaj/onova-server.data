@@ -20,27 +20,33 @@ declare class session$Request extends express$Request {
  * @property {*} req - express session
  * @property {*} req.params - express session parameters
  */
-async function list(req: session$Request, res: express$Response) {
-  // const { limit = 50, lastId } = req.query;
+async function list(
+  req: session$Request,
+  res: express$Response,
+  next: NextFunction
+) {
   // TODO: pagination
+  // const { limit = 50, lastId } = req.query;
 
-  // find the user's suggested users
+  try {
+    // an array
+    const { suggestions } = await SuggestedUsers.find({ user: req.user._id });
+    // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
+    if (!suggestions) return res.json({ data: [], new: false });
 
-  // an array
-  const { suggestions } = await SuggestedUsers.find({ user: req.user._id });
-  // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
-  if (suggestions) return res.json({ data: suggestions, new: false });
+    // else compute them and save them in the collection
+    // TODO: filter also those who have been discarded
+    const freshSuggestions = await getSuggestions(req.user._id);
 
-  // else compute them and save them in the collection
-  // TODO: filter also those who have been discarded
-  const freshSuggestions = await getSuggestions(req.user._id);
+    await SuggestedUsers.create({
+      user: req.user._id,
+      suggestions: freshSuggestions,
+    });
 
-  await SuggestedUsers.create({
-    user: req.user._id,
-    suggestions: freshSuggestions,
-  });
-
-  req.json({ data: suggestions, new: true });
+    req.json({ data: suggestions, new: true });
+  } catch (error) {
+    next(error);
+  }
 }
 
 /**

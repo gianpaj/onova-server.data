@@ -184,18 +184,16 @@ export function createManyComments(
   productUuid: string,
   jwtToken: string
 ) {
-  const c = {
+  const comment = {
     text: 'nice pair of socks',
   };
 
   const Promises = [];
   for (let i = 0; i < num; i++) {
-    Promises.push(createComment(c, productUuid, jwtToken));
+    Promises.push(createComment(comment, productUuid, jwtToken));
   }
 
-  return Promise.all(Promises)
-    .then(res => res)
-    .catch(e => e);
+  return Promise.all(Promises);
 }
 
 /**
