@@ -99,6 +99,25 @@ describe('## Suggested Users APIs', () => {
       });
   });
 
+  it('should save and return an empty list of suggested sellers', async () => {
+    await request(app)
+      .get('/api/suggested-users/')
+      .set('Authorization', users[3].token)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data).toHaveLength(0);
+        expect(body.new).toBe(true);
+      });
+    await request(app)
+      .get('/api/suggested-users/')
+      .set('Authorization', users[3].token)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data).toHaveLength(0);
+        expect(body.new).toBe(false);
+      });
+  });
+
   it('should return a list of suggested sellers', () => {
     return request(app)
       .get('/api/suggested-users/')
