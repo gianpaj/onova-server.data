@@ -107,9 +107,7 @@ async function getSuggestions(userId): Promise<any> {
     { following: 1, _id: 0 }
   )).map(f => f.following.toString());
 
-  for (let index = 0; index < newFriends.length; index++) {
-    const suggestion = newFriends[index];
-
+  for (const suggestion of newFriends) {
     const suggestedFollowerEntourage = (await Follow.find(
       { follower: suggestion },
       { following: 1, _id: 0 }
