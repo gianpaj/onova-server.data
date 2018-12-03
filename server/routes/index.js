@@ -11,6 +11,7 @@ import reportRoutes from './report.route';
 import searchRoutes from './search.route';
 import scheduleRoutes from './schedule.route';
 import shippingRoutes from './shipping.route';
+import suggestedUsersRoutes from './suggestedUsers.route';
 import userRoutes from './user.route';
 import photosRoutes from './photos.route';
 import reviewRoutes from './review.route';
@@ -47,6 +48,8 @@ router.use('/shipping', shippingRoutes);
 // AND
 // mount user notifications routes at /users/notifications
 router.use('/users', userRoutes);
+
+router.use('/suggested-users', suggestedUsersRoutes);
 
 // mount users reviews routes at /users/:userId/reviews
 router.use('/users', reviewRoutes);

@@ -14,7 +14,7 @@ const SuggestionSchema = new Schema({
     type: [
       {
         suggestion: Schema.Types.ObjectId,
-        numOfConnections: number,
+        numOfConnections: Number,
       },
     ],
     required: true,
