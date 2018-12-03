@@ -32,18 +32,20 @@ async function list(
     // an array
     const { suggestions } = await SuggestedUsers.find({ user: req.user._id });
     // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
-    if (!suggestions) return res.json({ data: [], new: false });
+    if (suggestions) return res.json({ data: suggestions, new: false });
 
     // else compute them and save them in the collection
     // TODO: filter also those who have been discarded
     const freshSuggestions = await getSuggestions(req.user._id);
+
+    if (!freshSuggestions.length) return res.json({ data: [], new: true });
 
     await SuggestedUsers.create({
       user: req.user._id,
       suggestions: freshSuggestions,
     });
 
-    req.json({ data: suggestions, new: true });
+    res.json({ data: freshSuggestions, new: true });
   } catch (error) {
     next(error);
   }
@@ -103,6 +105,7 @@ async function getSuggestions(userId): Promise<any> {
       },
     },
   ]);
+  if (!res.length) return [];
 
   const newFriends = res[0].newFriends.slice(0, LIMIT_SUGGESTIONS);
 

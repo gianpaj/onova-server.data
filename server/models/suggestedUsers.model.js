@@ -45,5 +45,5 @@ SuggestionSchema.set('toJSON', {
   },
 });
 
-SuggestionSchema.index({ user: 1 });
+SuggestionSchema.index({ user: 1 }, { unique: true });
 export default mongoose.model('Suggestion', SuggestionSchema);
