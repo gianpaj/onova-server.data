@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
-import { Product, Tag } from '../models';
+import { Tag, UserDoc } from '../models';
 
 import app from '../index';
 import {
@@ -25,64 +25,83 @@ afterAll(done => {
   done();
 });
 
-let user1 = {
-  username: 'firstperson',
-  emailAddress: 'gianpa+test@gmail.com',
-  password: 'expressos',
+/* TODO: flow - :: extends UserDoc */
+type User = {
+  _id: MongoId,
+  token: string,
 };
 
-let user2 = {
-  username: 'anotherperson',
-  emailAddress: 'gianpa+test2@gmail.com',
-  password: 'express2',
-};
+let users: Array<User> = [
+  {
+    username: 'firstperson',
+    emailAddress: 'gianpa+test@gmail.com',
+    password: 'expressos',
+  },
+  {
+    username: 'anotherperson',
+    emailAddress: 'gianpa+test2@gmail.com',
+    password: 'express2',
+  },
 
-// $FlowFixMe
-let user3: UserDoc = {
-  username: 'thirdperson',
-  emailAddress: 'gianpa+test3@gmail.com',
-  password: 'express3',
-};
-
-// $FlowFixMe
-let user4: UserDoc = {
-  username: 'forthperson',
-  emailAddress: 'gianpa+test4@gmail.com',
-  password: 'express4',
-};
+  {
+    username: 'thirdperson',
+    emailAddress: 'gianpa+test3@gmail.com',
+    password: 'express3',
+  },
+  {
+    username: 'forthperson',
+    emailAddress: 'gianpa+test4@gmail.com',
+    password: 'express4',
+  },
+];
 
 describe('## Suggested Users APIs', () => {
   beforeAll(beforeAllTests);
 
-  let jwtToken1, jwtToken2, jwtToken3;
+  // let users: Array<{ _id: MongoId, token: string }>;
 
-  // create 3 users/sellers + Tag and upload profile pic of a seller
-  // 1 user doesn't have the shippingAddress
+  // create 4 users and follow
   beforeAll(async () => {
-    const { user: resUser, jwtToken: token } = await createUserAndLogin(user1);
-    user1._id = resUser._id;
-    jwtToken1 = token;
-    const { user: resUser2, jwtToken: token2 } = await createUserAndLogin(
-      user2
-    );
-    user2._id = resUser2._id;
-    jwtToken2 = token2;
-    const { user: resUser3, jwtToken: token3 } = await createUserAndLogin(
-      user3
-    );
-    user3._id = resUser3._id;
-    jwtToken3 = token3;
-    const { user: resUser4, jwtToken: token4 } = await createUserAndLogin(
-      user4
-    );
+    const usersAndTokens = await Promise.all(users.map(createUserAndLogin));
+    users = usersAndTokens.map(user => ({
+      ...user.user,
+      token: user.jwtToken,
+    }));
+
+    await Promise.all([
+      followUser(users[0].token, users[1]._id),
+      followUser(users[0].token, users[2]._id),
+      followUser(users[0].token, users[3]._id),
+      followUser(users[1].token, users[2]._id),
+      followUser(users[1].token, users[3]._id),
+      followUser(users[2].token, users[3]._id),
+    ]);
+
+    /**
+     * | from  |            | target |
+     * | ----- | ---------- | ------ |
+     * | user0 | follows -> | user1  |
+     * | user0 | follows -> | user2  |
+     * | user0 | follows -> | user3  |
+     * | user1 | follows -> | user2  |
+     * | user1 | follows -> | user3  |
+     * | user3 | follows -> | user4  |
+     */
   });
 
   it('should return an empty list of suggested sellers', () => {
-    expect(true).toBe(true);
+    return request(app)
+      .get('/api/suggested-users/')
+      .set('Authorization', users[0].token)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data).toHaveLength(0);
+        expect(body.new).toBe(false);
+      });
   });
 });
 
-function followUser(whomToFollow, token): Promise<any> {
+function followUser(token, whomToFollow): Promise<any> {
   return request(app)
     .post(`/api/users/${whomToFollow}/follow`)
     .set('Authorization', token)
