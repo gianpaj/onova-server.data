@@ -9,12 +9,13 @@ const SuggestionSchema = new Schema({
     type: Date,
     default: Date.now,
     required: true,
+    expires: '24h', // TODO: expire at the specific time each day
   },
   suggestions: {
     type: [
       {
-        suggestion: Schema.Types.ObjectId,
-        numOfConnections: Number,
+        _id: Schema.Types.ObjectId,
+        numOfConns: Number,
       },
     ],
     required: true,
@@ -46,4 +47,4 @@ SuggestionSchema.set('toJSON', {
 });
 
 SuggestionSchema.index({ user: 1 }, { unique: true });
-export default mongoose.model('Suggestion', SuggestionSchema);
+export default mongoose.model('SuggestedUsers', SuggestionSchema);

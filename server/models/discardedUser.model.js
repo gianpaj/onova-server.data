@@ -5,18 +5,18 @@ import mongoose from 'mongoose';
 const { Schema } = mongoose;
 
 const DiscardedSchema = new Schema({
-  by: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
   createdAt: {
     type: Date,
     default: Date.now,
     required: true,
     expires: '168h', // 7 days
   },
-  discarded: {
+  source: {
+    type: Schema.Types.ObjectId,
+    ref: 'User',
+    required: true,
+  },
+  target: {
     type: Schema.Types.ObjectId,
     ref: 'User',
     required: true,
@@ -25,11 +25,11 @@ const DiscardedSchema = new Schema({
 
 export class DiscardedDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
-  by: MongoId;
   createdAt: Date;
-  discarded: MongoId;
+  source: MongoId;
+  target: MongoId;
 }
 
-DiscardedSchema.index({ by: 1, discarded: 1 }, { unique: true });
+DiscardedSchema.index({ source: 1, target: 1 }, { unique: true });
 
-export default mongoose.model('Discarded', DiscardedSchema);
+export default mongoose.model('DiscardedUser', DiscardedSchema);
