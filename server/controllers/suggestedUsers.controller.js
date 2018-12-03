@@ -4,7 +4,13 @@ import httpStatus from 'http-status';
 const debug = require('debug')('server-data:suggestedUsers');
 
 import APIError from '../helpers/APIError';
-import { Follow, User, UserDoc, SuggestedUsers } from '../models';
+import {
+  DiscardedUser,
+  Follow,
+  User,
+  UserDoc,
+  SuggestedUsers,
+} from '../models';
 
 const LIMIT_SUGGESTIONS = 100;
 
@@ -29,10 +35,10 @@ async function list(
   // const { limit = 50, lastId } = req.query;
 
   try {
-    // an array
-    const { suggestions } = await SuggestedUsers.find({ user: req.user._id });
+    const found = await SuggestedUsers.findOne({ user: req.user._id });
     // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
-    if (suggestions) return res.json({ data: suggestions, new: false });
+    console.log(found);
+    if (found) return res.json({ data: found.suggestions, new: false });
 
     // else compute them and save them in the collection
     // TODO: filter also those who have been discarded
@@ -45,7 +51,16 @@ async function list(
       suggestions: freshSuggestions,
     });
 
-    res.json({ data: freshSuggestions, new: true });
+    const discarded = (await DiscardedUser.find({ source: req.user._id })).map(
+      d => d.target
+    );
+
+    const filteredSuggestions = freshSuggestions.filter(
+      fresh => -1 === discarded.indexOf(fresh._id)
+    );
+
+
+    res.json({ data: filteredSuggestions, new: true });
   } catch (error) {
     next(error);
   }
@@ -125,10 +140,10 @@ async function getSuggestions(userId): Promise<any> {
     const intersection = myEntourage.filter(
       value => -1 !== suggestedFollowerEntourage.indexOf(value)
     );
-    final.push({ suggestion, numOfConnections: intersection.length });
+    final.push({ _id: suggestion, numOfConns: intersection.length });
   }
 
-  final.sort((a, b) => b.numOfConnections - a.numOfConnections);
+  final.sort((a, b) => b.numOfConns - a.numOfConns);
 
   return final;
 }

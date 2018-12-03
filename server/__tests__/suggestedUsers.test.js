@@ -106,8 +106,20 @@ describe('## Suggested Users APIs', () => {
       .expect(httpStatus.OK)
       .then(({ body }) => {
         expect(body.data).toHaveLength(2);
-        expect(body.data[0].numOfConnections).toBe(1);
+        expect(body.data[0].numOfConns).toBe(1);
         expect(body.new).toBe(true);
+      });
+  });
+
+  it('should return a cached list of suggested sellers', () => {
+    return request(app)
+      .get('/api/suggested-users/')
+      .set('Authorization', users[0].token)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data).toHaveLength(2);
+        expect(body.data[0].numOfConns).toBe(1);
+        expect(body.new).toBe(false);
       });
   });
 });
