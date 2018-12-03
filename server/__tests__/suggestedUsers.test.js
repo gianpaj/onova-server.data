@@ -4,15 +4,10 @@ import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
-import { Tag, UserDoc } from '../models';
+import { Tag } from '../models';
 
 import app from '../index';
-import {
-  beforeAllTests,
-  createComment,
-  createProduct,
-  createUserAndLogin,
-} from './utils';
+import { beforeAllTests, createUserAndLogin } from './utils';
 
 /**
  * root level hooks
@@ -33,25 +28,30 @@ type User = {
 
 let users: Array<User> = [
   {
-    username: 'firstperson',
+    username: 'user1',
     emailAddress: 'gianpa+test@gmail.com',
     password: 'expressos',
   },
   {
-    username: 'anotherperson',
+    username: 'user2',
     emailAddress: 'gianpa+test2@gmail.com',
     password: 'express2',
   },
 
   {
-    username: 'thirdperson',
+    username: 'user3',
     emailAddress: 'gianpa+test3@gmail.com',
     password: 'express3',
   },
   {
-    username: 'forthperson',
+    username: 'user4',
     emailAddress: 'gianpa+test4@gmail.com',
     password: 'express4',
+  },
+  {
+    username: 'user5',
+    emailAddress: 'gianpa+test5@gmail.com',
+    password: 'express5',
   },
 ];
 
@@ -70,10 +70,10 @@ describe('## Suggested Users APIs', () => {
 
     await Promise.all([
       followUser(users[0].token, users[1]._id),
-      followUser(users[0].token, users[2]._id),
       followUser(users[0].token, users[3]._id),
       followUser(users[1].token, users[2]._id),
       followUser(users[1].token, users[3]._id),
+      followUser(users[1].token, users[4]._id),
       followUser(users[2].token, users[3]._id),
     ]);
 
@@ -81,22 +81,33 @@ describe('## Suggested Users APIs', () => {
      * | from  |            | target |
      * | ----- | ---------- | ------ |
      * | user0 | follows -> | user1  |
-     * | user0 | follows -> | user2  |
      * | user0 | follows -> | user3  |
      * | user1 | follows -> | user2  |
      * | user1 | follows -> | user3  |
-     * | user3 | follows -> | user4  |
+     * | user2 | follows -> | user3  |
      */
   });
 
   it('should return an empty list of suggested sellers', () => {
     return request(app)
       .get('/api/suggested-users/')
-      .set('Authorization', users[0].token)
+      .set('Authorization', users[2].token)
       .expect(httpStatus.OK)
       .then(({ body }) => {
         expect(body.data).toHaveLength(0);
-        expect(body.new).toBe(false);
+        expect(body.new).toBe(true);
+      });
+  });
+
+  it('should return a list of suggested sellers', () => {
+    return request(app)
+      .get('/api/suggested-users/')
+      .set('Authorization', users[0].token)
+      .expect(httpStatus.OK)
+      .then(({ body }) => {
+        expect(body.data).toHaveLength(2);
+        expect(body.data[0].numOfConnections).toBe(1);
+        expect(body.new).toBe(true);
       });
   });
 });
