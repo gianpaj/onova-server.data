@@ -41,6 +41,8 @@ async function list(
     );
     // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
     if (found) {
+      if (!found.suggestions) return res.json({ data: [], new: false });
+
       // find if I am now following those suggested users
       const ids = found.suggestions.map(s => s._id._id);
       let myFollowings = await Follow.find({
