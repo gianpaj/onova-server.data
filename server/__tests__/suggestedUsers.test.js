@@ -3,8 +3,9 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
+import path from 'path';
 
-import { Tag, SuggestedUsers } from '../models';
+import { SuggestedUsers } from '../models';
 
 import app from '../index';
 import { beforeAllTests, createUserAndLogin } from './utils';
@@ -69,6 +70,11 @@ describe('## Suggested Users APIs', () => {
     }));
 
     await Promise.all([
+      request(app)
+        .put(`/api/users/${users[2]._id}`)
+        .set('Authorization', users[2].token)
+        .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+        .expect(httpStatus.OK),
       followUser(users[0].token, users[1]._id),
       followUser(users[0].token, users[3]._id),
       followUser(users[1].token, users[2]._id),
@@ -125,7 +131,13 @@ describe('## Suggested Users APIs', () => {
       .expect(httpStatus.OK)
       .then(({ body }) => {
         expect(body.data).toHaveLength(2);
-        expect(body.data[0].numOfConns).toBe(1);
+        const firstSuggestion = body.data[0];
+        expect(Object.keys(firstSuggestion._id).sort()).toEqual([
+          '_id',
+          'profilePic',
+          'username',
+        ]);
+        expect(firstSuggestion.numOfConns).toBe(1);
         expect(body.new).toBe(true);
       });
   });
