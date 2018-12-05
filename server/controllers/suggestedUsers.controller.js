@@ -43,15 +43,16 @@ async function list(
     if (found) {
       if (!found.suggestions) return res.json({ data: [], new: false });
 
+      let suggestions = found.suggestions.filter(s => s._id);
       // find if I am now following those suggested users
-      const ids = found.suggestions.map(s => s._id._id);
+      const ids = suggestions.map(s => s._id._id);
       let myFollowings = await Follow.find({
         follower: req.user._id.toString(),
         following: { $in: ids },
       });
       myFollowings = myFollowings.map(f => f.following.toString());
 
-      const suggestions = found.suggestions.map(s => {
+      suggestions = suggestions.map(s => {
         s = s.toJSON();
         s = {
           ...s,
