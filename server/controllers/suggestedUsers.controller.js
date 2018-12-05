@@ -40,7 +40,32 @@ async function list(
       }
     );
     // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
-    if (found) return res.json({ data: found.suggestions, new: false });
+    if (found) {
+      // find if I am now following those suggested users
+      const ids = found.suggestions.map(s => s._id._id);
+      let myFollowings = await Follow.find({
+        follower: req.user._id.toString(),
+        following: { $in: ids },
+      });
+      myFollowings = myFollowings.map(f => f.following.toString());
+
+      const suggestions = found.suggestions.map(s => {
+        s = s.toJSON();
+        s = {
+          ...s,
+          _id: {
+            ...s._id,
+            amIAFollower: false,
+          },
+        };
+        if (myFollowings.indexOf(s._id._id.toString()) > -1) {
+          s._id.amIAFollower = true;
+        }
+        return s;
+      });
+
+      return res.json({ data: suggestions, new: false });
+    }
 
     // else compute them and save them in the collection
     // TODO: filter also those who have been discarded
