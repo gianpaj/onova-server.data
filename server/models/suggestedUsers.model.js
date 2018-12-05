@@ -14,7 +14,11 @@ const SuggestionSchema = new Schema({
   suggestions: {
     type: [
       {
-        _id: Schema.Types.ObjectId,
+        _id: {
+          type: Schema.Types.ObjectId,
+          ref: 'User',
+          required: true,
+        },
         numOfConns: Number,
       },
     ],
@@ -40,7 +44,6 @@ SuggestionSchema.loadClass(SuggestionDoc);
 // Note that this doesn't effect `toObject`
 SuggestionSchema.set('toJSON', {
   transform: (doc, ret) => {
-    ret.price = ret.price.toString();
     delete ret.__v;
     return ret;
   },

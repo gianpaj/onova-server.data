@@ -1,9 +1,7 @@
 // @flow
 
-import httpStatus from 'http-status';
 const debug = require('debug')('server-data:suggestedUsers');
 
-import APIError from '../helpers/APIError';
 import {
   DiscardedUser,
   Follow,
@@ -35,7 +33,12 @@ async function list(
   // const { limit = 50, lastId } = req.query;
 
   try {
-    const found = await SuggestedUsers.findOne({ user: req.user._id });
+    const found = await SuggestedUsers.findOne({ user: req.user._id }).populate(
+      {
+        path: 'suggestions._id',
+        select: 'username profilePic',
+      }
+    );
     // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
     if (found) return res.json({ data: found.suggestions, new: false });
 
@@ -43,12 +46,13 @@ async function list(
     // TODO: filter also those who have been discarded
     const freshSuggestions = await getSuggestions(req.user._id);
 
-    await SuggestedUsers.create({
-      user: req.user._id,
-      suggestions: freshSuggestions,
-    });
-
-    if (!freshSuggestions.length) return res.json({ data: [], new: true });
+    if (!freshSuggestions.length) {
+      await SuggestedUsers.create({
+        user: req.user._id,
+        suggestions: [],
+      });
+      return res.json({ data: [], new: true });
+    }
 
     const discarded = (await DiscardedUser.find({ source: req.user._id })).map(
       d => d.target.toString()
@@ -61,12 +65,25 @@ async function list(
     const discard = freshSuggestions.map(sugg =>
       DiscardedUser.create({ source: req.user._id, target: sugg._id })
     );
-    Promise.all(discard)
+    await Promise.all(discard)
       .then(d => debug('discarded', d.length))
       .catch(() => debug('its ok'));
 
-    res.json({ data: filteredSuggestions, new: true });
+    await SuggestedUsers.create({
+      user: req.user._id,
+      suggestions: filteredSuggestions,
+    });
+
+    const populated = await SuggestedUsers.findOne({
+      user: req.user._id,
+    }).populate({
+      path: 'suggestions._id',
+      select: 'username profilePic',
+    });
+
+    res.json({ data: populated.suggestions, new: true });
   } catch (error) {
+    console.error(error);
     next(error);
   }
 }
