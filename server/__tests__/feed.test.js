@@ -310,19 +310,17 @@ describe('## Feed APIs', () => {
     });
 
     let lastId;
-    const currentDefaultLimit = 50;
+    const limit = 50; // current default
 
     it('should get feed without pagination', () => {
       return request(app)
-        .get('/api/feed/flat')
+        .get('/api/feed/flat/?limit=' + limit)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data).toHaveLength(currentDefaultLimit);
-          expect(data.map(p => p._id)).toEqual(
-            _ids.slice(0, currentDefaultLimit)
-          );
+          expect(data).toHaveLength(limit);
+          expect(data.map(p => p._id)).toEqual(_ids.slice(0, limit));
           lastId = data[data.length - 1]._id;
         });
     });
@@ -334,8 +332,7 @@ describe('## Feed APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0]._id).toBe(_ids.splice(currentDefaultLimit, 1)[0]);
-          expect(data[data.length - 1]._id).not.toBe(lastId);
+          expect(data.map(p => p._id)).toEqual(_ids.splice(limit, 5));
           expect(data).toHaveLength(5);
           lastId = data[data.length - 1]._id;
         });
@@ -348,8 +345,7 @@ describe('## Feed APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0]._id).not.toBe(lastId);
-          expect(data[data.length - 1]._id).not.toBe(lastId);
+          expect(data.map(p => p._id)).toEqual(_ids.splice(limit, 5));
           expect(data).toHaveLength(5);
         });
     });
