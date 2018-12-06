@@ -241,11 +241,21 @@ export async function createManyProducts(num: number, jwtToken: string) {
     price: '999',
   };
 
-  const items = [];
+  const res = [];
   for (let i = 0; i < num; i++) {
-    items.push(p);
+    res.push(await createProduct(p, jwtToken));
   }
-  return Promise.all(items.map(item => createProduct(item, jwtToken)));
+
+  return res.reverse();
+
+  // sequential
+
+  // parallel
+  // const items = [];
+  // for (let i = 0; i < num; i++) {
+  //   items.push(p);
+  // }
+  // return Promise.all(items.map(item => createProduct(item, jwtToken)));
 }
 
 export function beforeAllTests(done: () => void) {
