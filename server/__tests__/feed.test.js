@@ -108,7 +108,7 @@ describe('## Feed APIs', () => {
         userId = user._id;
         firstJwtToken = jwtToken;
       })
-      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]).then())
+      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
       .then(() =>
         createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
           anotherUserId = user._id.toString();
@@ -140,26 +140,18 @@ describe('## Feed APIs', () => {
   });
 
   // both accounts follow each other
-  beforeAll(done => {
-    let Promises = [];
-    Promises.push(
+  beforeAll(() =>
+    Promise.all([
       request(app)
         .post(`/api/users/${anotherUserId}/follow`)
         .set('Authorization', firstJwtToken)
-        .expect(httpStatus.CREATED)
-    );
-    Promises.push(
+        .expect(httpStatus.CREATED),
       request(app)
         .post(`/api/users/${userId}/follow`)
         .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.CREATED)
-    );
-    Promise.all(Promises)
-      .then(() => done())
-      .catch(e => {
-        throw e;
-      });
-  });
+        .expect(httpStatus.CREATED),
+    ])
+  );
 
   describe('# GET /api/feed/flat', () => {
     it('should get the first user`s feed + the other 2', () => {

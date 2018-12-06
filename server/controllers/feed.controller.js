@@ -86,46 +86,32 @@ function flat(
         DBqueryInclusive = { ...DBqueryInclusive, _id: { $lt: lastId } };
         DBqueryExclusive = { ...DBqueryExclusive, _id: { $lt: lastId } };
 
-        return Product.findById(lastId).then(async product => {
-          if (!product) {
-            throw new APIError('Product not found.', httpStatus.NOT_FOUND);
-          }
-          const prodIncl = await Product.find(DBqueryInclusive)
-            .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-            .populate({
-              path: 'seller',
-              select: userPopulateFields,
-            })
-            .limit(+limit);
-          const prodExcl = await Product.find(DBqueryExclusive)
-            .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-            .populate({
-              path: 'seller',
-              select: userPopulateFields,
-            })
-            .limit(+limit);
-          return res.json({
-            data: [...prodIncl, ...prodExcl].slice(0, +limit),
-          });
-        });
-      } else {
-        const prodIncl = await Product.find(DBqueryInclusive)
-          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-          .populate({
-            path: 'seller',
-            select: userPopulateFields,
-          })
-          .limit(+limit);
-        const prodExcl = await Product.find(DBqueryExclusive)
-          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-          .populate({
-            path: 'seller',
-            select: userPopulateFields,
-          })
-          .limit(+limit);
-
-        return res.json({ data: [...prodIncl, ...prodExcl].slice(0, +limit) });
+        const lastIdProd = await Product.findById(lastId);
+        if (!lastIdProd) {
+          throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+        }
       }
+
+      const products = await Promise.all([
+        Product.find(DBqueryInclusive)
+          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+          .populate({
+            path: 'seller',
+            select: userPopulateFields,
+          })
+          .limit(+limit),
+        Product.find(DBqueryExclusive)
+          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
+          .populate({
+            path: 'seller',
+            select: userPopulateFields,
+          })
+          .limit(+limit),
+      ]);
+
+      return res.json({
+        data: [].concat.apply([], products).slice(0, +limit),
+      });
     })
     .catch(e => next(e));
 }
