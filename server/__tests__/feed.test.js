@@ -101,6 +101,7 @@ let anotherJwtToken;
 describe('## Feed APIs', () => {
   beforeAll(beforeAllTests);
 
+  // TODO: refactor to async/await
   // create 2 users/sellers + 3 products (1 deleted)
   beforeAll(done => {
     createUserAndLogin(user)
@@ -189,22 +190,11 @@ describe('## Feed APIs', () => {
   });
 
   describe('# GET /api/feed/flat?categoryIds=', () => {
-    let categoryProductUUID;
-
+    let lastId,
+      _ids = [];
     beforeAll(async () => {
-      const p = {
-        categoryIds: [2],
-        typeIds: [1, 3],
-        tags: ['WINTER'],
-        description: 'nice jumper',
-        price: '1139',
-        photos: [
-          'https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg',
-        ],
-      };
-      const pp = await createProduct(p, firstJwtToken);
-      expect(pp.description).toBe(p.description);
-      categoryProductUUID = pp.uuid;
+      const allProducts = await createManyProducts(105, firstJwtToken);
+      _ids = allProducts.map(p => p._id);
     });
 
     it('should get feed by categoryIds', () => {
@@ -214,9 +204,20 @@ describe('## Feed APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0].uuid).toBe(categoryProductUUID);
-          expect(data[1].uuid).toBe(productUuid);
-          expect(data).toHaveLength(2);
+          expect(data).toHaveLength(50);
+          expect(data.map(p => p._id)).toEqual(_ids.slice(0, 50));
+          lastId = data[data.length - 1]._id;
+        });
+    });
+
+    it('should get feed by categoryIds with load more', () => {
+      return request(app)
+        .get(`/api/feed/flat?categoryIds=2&lastId=${lastId}&limit=5`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data[0]._id).toBe(_ids.splice(50, 1)[0]);
+          expect(body.data).toHaveLength(5);
         });
     });
   });
@@ -245,10 +246,9 @@ describe('## Feed APIs', () => {
         .get('/api/feed/flat?typeIds=5')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data[0].uuid).toBe(typeIdProductUUID);
-          expect(data).toHaveLength(1);
+        .then(({ body }) => {
+          expect(body.data[0].uuid).toBe(typeIdProductUUID);
+          expect(body.data).toHaveLength(1);
         });
     });
   });
@@ -260,7 +260,7 @@ describe('## Feed APIs', () => {
       const p = {
         categoryIds: [2],
         typeIds: [1, 4],
-        tags: ['warm'],
+        tags: ['cold'],
         description: 'nice socks',
         price: '1119',
         photos: [
@@ -274,13 +274,12 @@ describe('## Feed APIs', () => {
 
     it('should get feed of tag', () => {
       return request(app)
-        .get('/api/feed/flat?tag=warm')
+        .get('/api/feed/flat?tag=cold')
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.OK)
-        .then(res => {
-          const { data } = res.body;
-          expect(data[0].uuid).toBe(tagProductUUID);
-          expect(data).toHaveLength(1);
+        .then(({ body }) => {
+          expect(body.data[0].uuid).toBe(tagProductUUID);
+          expect(body.data).toHaveLength(1);
         });
     });
   });
@@ -299,16 +298,19 @@ describe('## Feed APIs', () => {
       });
     });
 
+    let _ids = [];
+
     beforeAll(async () => {
       try {
-        await createProduct(product, anotherJwtToken);
-        await createManyProducts(105, firstJwtToken);
+        const allProducts = await createManyProducts(105, firstJwtToken);
+        _ids = allProducts.map(p => p._id);
       } catch (err) {
         console.error(err);
       }
     });
 
     let lastId;
+    const currentDefaultLimit = 50;
 
     it('should get feed without pagination', () => {
       return request(app)
@@ -317,7 +319,10 @@ describe('## Feed APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data).toHaveLength(50);
+          expect(data).toHaveLength(currentDefaultLimit);
+          expect(data.map(p => p._id)).toEqual(
+            _ids.slice(0, currentDefaultLimit)
+          );
           lastId = data[data.length - 1]._id;
         });
     });
@@ -329,7 +334,7 @@ describe('## Feed APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           const { data } = res.body;
-          expect(data[0]._id).not.toBe(lastId);
+          expect(data[0]._id).toBe(_ids.splice(currentDefaultLimit, 1)[0]);
           expect(data[data.length - 1]._id).not.toBe(lastId);
           expect(data).toHaveLength(5);
           lastId = data[data.length - 1]._id;
@@ -354,9 +359,9 @@ describe('## Feed APIs', () => {
         .get(`/api/feed/flat?lastId=5ff999999147a8bd32ea35f6`)
         .set('Authorization', anotherJwtToken)
         .expect(httpStatus.NOT_FOUND)
-        .then(res => {
-          expect(res.body.message).toContain('Product not found');
-        });
+        .then(({ body }) =>
+          expect(body.message).toContain('Product not found')
+        );
     });
   });
 });
