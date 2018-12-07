@@ -234,7 +234,7 @@ function createTags(tags: Array<TagDoc>) {
 }
 
 /**
- * List a user's scheduled listing
+ * List a user's scheduled listing, i.e. drops
  *
  * GET /api/schedule
  *

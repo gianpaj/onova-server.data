@@ -42,7 +42,7 @@ function flat(
   })
     .limit(1000)
     .then(async (following: Array<FollowDoc>) => {
-      if (!following) return res.json({ data: [] });
+      if (!following.length) return res.json({ data: [] });
 
       const followingIDs = following.map(f => f.following);
 
