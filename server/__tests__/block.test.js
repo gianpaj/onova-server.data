@@ -10,6 +10,7 @@ import {
   createUserAndLogin,
   createProduct,
   createOrder,
+  followUser,
 } from './utils';
 import { UserDoc, ProductDoc } from '../models';
 
@@ -97,44 +98,24 @@ describe('## Block methods', () => {
       const p4 = await createProduct(product, users[1].jwtToken);
 
       // firstUser -- follows --> user 0
-      await request(app)
-        .post(`/api/users/${users[0]._id.toString()}/follow`)
-        .set('Authorization', firstUser.jwtToken)
-        .then(({ body }) => {
-          expect(body.data.follower).toBe(firstUser._id);
-          firstUser.following++;
-          users[0].followers++;
-        });
+      await followUser(firstUser.jwtToken, users[0]._id);
+      firstUser.following++;
+      users[0].followers++;
 
       // firstUser -- follows --> user 1
-      await request(app)
-        .post(`/api/users/${users[1]._id.toString()}/follow`)
-        .set('Authorization', firstUser.jwtToken)
-        .then(({ body }) => {
-          expect(body.data.follower).toBe(firstUser._id);
-          firstUser.following++;
-          users[1].followers++;
-        });
+      await followUser(firstUser.jwtToken, users[1]._id);
+      firstUser.following++;
+      users[1].followers++;
 
       // user 0 -- follows --> firstUser
-      await request(app)
-        .post(`/api/users/${firstUser._id.toString()}/follow`)
-        .set('Authorization', users[0].jwtToken)
-        .then(({ body }) => {
-          expect(body.data.follower).toBe(users[0]._id);
-          users[0].following++;
-          firstUser.followers++;
-        });
+      await followUser(users[0].jwtToken, firstUser._id);
+      users[0].following++;
+      firstUser.followers++;
 
       // user 0 -- follows --> user 1
-      await request(app)
-        .post(`/api/users/${users[1]._id.toString()}/follow`)
-        .set('Authorization', users[0].jwtToken)
-        .then(({ body }) => {
-          expect(body.data.follower).toBe(users[0]._id);
-          users[1].following++;
-          firstUser.followers++;
-        });
+      await followUser(users[0].jwtToken, users[1]._id);
+      users[1].following++;
+      firstUser.followers++;
 
       // firstUser -- orders --> product from user 0
       // $FlowFixMe

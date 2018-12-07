@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 
 import app from '../index';
 import { User } from '../models';
-import { beforeAllTests, createUserAndLogin } from './utils';
+import { beforeAllTests, createUserAndLogin, followUser } from './utils';
 
 /**
  * root level hooks
@@ -231,16 +231,7 @@ describe('## Follow APIs', () => {
 
   describe('# GET /api/users/:userId/followers', () => {
     // ThirdU -- follows --> User
-    beforeAll(async () => {
-      return request(app)
-        .post(`/api/users/${anotherUserId}/follow`)
-        .set('Authorization', thirdJwtToken)
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.follower).toBe(thirdUserId);
-          expect(body.data.following).toBe(anotherUserId);
-        });
-    });
+    beforeAll(() => followUser(thirdJwtToken, anotherUserId));
 
     it('should get all the followers of user and if amIAFollower', async () => {
       return request(app)
@@ -260,29 +251,16 @@ describe('## Follow APIs', () => {
     // AnotherUser -- follows --> ThirdUser
     // firstUser -- follows --> forthUser (and delete user from DB; not setting `accountStatus` as 'deleted')
     beforeAll(async () => {
-      await request(app)
-        .post(`/api/users/${forthUserId}/follow`)
-        .set('Authorization', firstJwtToken)
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.follower).toBe(userId);
-          expect(body.data.following).toBe(forthUserId);
-          firstUserFollowingCounter++;
-        });
+      await followUser(firstJwtToken, forthUserId);
+      firstUserFollowingCounter++;
       // wait until the push notification has been sent.
       // that's send asynchronously and /follow endpoint returns before the createNotification() returns
       setTimeout(() => {
         User.deleteOne({ _id: forthUserId });
         firstUserFollowingCounter--;
       }, 100);
-      return request(app)
-        .post(`/api/users/${thirdUserId}/follow`)
-        .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.follower).toBe(anotherUserId);
-          expect(body.data.following).toBe(thirdUserId);
-        });
+
+      return followUser(anotherJwtToken, thirdUserId);
     });
 
     it('should get a list of who the user is following and if amIAFollower', async () => {
@@ -300,17 +278,7 @@ describe('## Follow APIs', () => {
   });
 
   describe('# GET /api/users/:userId/follow', () => {
-    beforeAll(async () => {
-      return request(app)
-        .post(`/api/users/${anotherUserId}/follow`)
-        .set('Authorization', firstJwtToken)
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.follower).toBe(userId);
-          expect(body.data.following).toBe(anotherUserId);
-          expect(Object.keys(body.data).sort()).toMatchSnapshot();
-        });
-    });
+    beforeAll(async () => followUser(firstJwtToken, anotherUserId));
 
     it('should get that i am following a user', async () => {
       return request(app)
