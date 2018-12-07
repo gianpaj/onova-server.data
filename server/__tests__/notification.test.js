@@ -21,6 +21,7 @@ import {
   createProduct,
   createUserAndLogin,
   createOrder,
+  followUser,
 } from './utils';
 import { buyerPaidDeal } from '../helpers/shipping';
 
@@ -278,36 +279,25 @@ describe('## Notification APIs', () => {
 
   describe('# Follow and Notify', () => {
     // firstUser --follows--> anotherUser
-    beforeAll(done => {
-      return request(app)
-        .post(`/api/users/${anotherUserId}/follow`)
-        .set('Authorization', firstJwtToken)
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(userId);
-          expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
-          );
+    beforeAll(async done => {
+      await followUser(firstJwtToken, anotherUserId);
 
-          // Check a Follow push notification has been scheduled
-          setTimeout(() => {
-            agenda.jobs({ name: config.JOBNAMES.PUSH_FOLLOW }, (err, jobs) => {
-              if (err) return done(err);
-              expect(jobs).toHaveLength(1);
-              const { data } = jobs.map(j => j.attrs)[0];
-              expect(data.senderName).toBe(user.username);
-              expect(data.targetUser.toString()).toBe(anotherUserId);
-              expect(data.triggeredBy.toString()).toBe(userId);
-              expect(data.triggeredType).toBe('User');
-              expect(typeof data.random).toBe('string');
-              done();
-            });
-          }, 10);
-
-          numberOfNotifForAnotherUser++;
+      // Check a Follow push notification has been scheduled
+      setTimeout(() => {
+        agenda.jobs({ name: config.JOBNAMES.PUSH_FOLLOW }, (err, jobs) => {
+          if (err) return done(err);
+          expect(jobs).toHaveLength(1);
+          const { data } = jobs.map(j => j.attrs)[0];
+          expect(data.senderName).toBe(user.username);
+          expect(data.targetUser.toString()).toBe(anotherUserId);
+          expect(data.triggeredBy.toString()).toBe(userId);
+          expect(data.triggeredType).toBe('User');
+          expect(typeof data.random).toBe('string');
+          done();
         });
+      }, 10);
+
+      numberOfNotifForAnotherUser++;
     });
 
     it('should create a notification for the person being followed', async () => {

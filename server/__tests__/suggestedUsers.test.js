@@ -8,7 +8,7 @@ import path from 'path';
 import { SuggestedUsers } from '../models';
 
 import app from '../index';
-import { beforeAllTests, createUserAndLogin } from './utils';
+import { beforeAllTests, createUserAndLogin, followUser } from './utils';
 
 /**
  * root level hooks
@@ -38,7 +38,6 @@ let users: Array<User> = [
     emailAddress: 'gianpa+test2@gmail.com',
     password: 'express2',
   },
-
   {
     username: 'user3',
     emailAddress: 'gianpa+test3@gmail.com',
@@ -173,10 +172,3 @@ describe('## Suggested Users APIs', () => {
     }
   });
 });
-
-function followUser(token, whomToFollow): Promise<any> {
-  return request(app)
-    .post(`/api/users/${whomToFollow}/follow`)
-    .set('Authorization', token)
-    .expect(httpStatus.CREATED);
-}
