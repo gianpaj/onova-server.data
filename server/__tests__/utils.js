@@ -316,3 +316,10 @@ export function closeDBConnection() {
     return resolve();
   });
 }
+
+export function followUser(token: string, target: string): Promise<any> {
+  return request(app)
+    .post(`/api/users/${target}/follow`)
+    .set('Authorization', token)
+    .expect(httpStatus.CREATED);
+}

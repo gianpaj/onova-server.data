@@ -7,11 +7,12 @@ import httpStatus from 'http-status';
 import app from '../index';
 import { Tag, Product } from '../models';
 import {
+  beforeAllTests,
+  createManyProducts,
   createProduct,
   createUserAndLogin,
+  followUser,
   productFields,
-  createManyProducts,
-  beforeAllTests,
 } from './utils';
 
 /**
@@ -121,42 +122,12 @@ describe('## Search APIs', () => {
   });
 
   // both accounts follow each other
-  beforeAll(done => {
-    let Promises = [];
-    Promises.push(
-      request(app)
-        .post(`/api/users/${anotherUserId}/follow`)
-        .set('Authorization', firstJwtToken)
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(userId);
-          expect(data.following).toBe(anotherUserId);
-          expect(Object.keys(data).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
-          );
-        })
-    );
-    Promises.push(
-      request(app)
-        .post(`/api/users/${userId}/follow`)
-        .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.CREATED)
-        .then(res => {
-          const { data } = res.body;
-          expect(data.follower).toBe(anotherUserId);
-          expect(data.following).toBe(userId);
-          expect(Object.keys(data).sort()).toEqual(
-            ['follower', 'following', 'dateCreated'].sort()
-          );
-        })
-    );
-    Promise.all(Promises)
-      .then(() => done())
-      .catch(e => {
-        throw e;
-      });
-  });
+  beforeAll(() =>
+    Promise.all([
+      followUser(firstJwtToken, anotherUserId),
+      followUser(anotherJwtToken, userId),
+    ])
+  );
 
   describe('# GET /api/search', () => {
     it('should not allow me to search without authentication', async () => {

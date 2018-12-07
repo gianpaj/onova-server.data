@@ -6,13 +6,13 @@ import httpStatus from 'http-status';
 import app from '../index';
 import { Order, Product, Review } from '../models';
 import {
-  createUserAndLogin,
-  createProduct,
-  createOrder,
-  orderCompletedFieldsWithReview,
-  orderFields,
-  productFields,
   beforeAllTests,
+  createOrder,
+  createProduct,
+  createUserAndLogin,
+  followUser,
+  orderCompletedFieldsWithReview,
+  productFields,
 } from './utils';
 
 // GET & PUT /api/users/<id>/reviews should only return these fields
@@ -253,35 +253,12 @@ describe('## Order APIs', () => {
     });
 
     // user1 <-> user2 follow each other
-    beforeAll(async () => {
-      try {
-        await request(app)
-          .post(`/api/users/${user2._id}/follow`)
-          .set('Authorization', jwtToken1)
-          .expect(httpStatus.CREATED)
-          .then(({ body }) => {
-            expect(body.data.follower).toBe(user1._id);
-            expect(body.data.following).toBe(user2._id);
-            expect(Object.keys(body.data).sort()).toEqual(
-              ['follower', 'following', 'dateCreated'].sort()
-            );
-          });
-        await request(app)
-          .post(`/api/users/${user1._id}/follow`)
-          .set('Authorization', jwtToken2)
-          .expect(httpStatus.CREATED)
-          .then(({ body }) => {
-            expect(body.data.follower).toBe(user2._id);
-            expect(body.data.following).toBe(user1._id);
-            expect(Object.keys(body.data).sort()).toEqual(
-              ['follower', 'following', 'dateCreated'].sort()
-            );
-          });
-      } catch (e) {
-        console.error(e);
-        throw new Error(e);
-      }
-    });
+    beforeAll(() =>
+      Promise.all([
+        followUser(jwtToken1, user2._id),
+        followUser(jwtToken2, user1._id),
+      ])
+    );
 
     // user1 reviews user2 +5 [orderOne]
     it('should create a review by the buyer', () => {
@@ -533,7 +510,8 @@ describe('## Order APIs', () => {
         createProduct(productShorts, jwtToken2).then(p => {
           productShortsUser2Uuid2 = p.uuid;
         }),
-      ]));
+      ])
+    );
 
     /**
      * | from           | action     | target      | order     |
