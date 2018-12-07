@@ -17,4 +17,9 @@ router
   // GET /api/feed/flat - simple time-based feed
   .get(validate(paramValidation.getFlatFeed), requireAuth, feedCtrl.flat);
 
+router
+  .route('/drops')
+  // GET /api/feed/drops
+  .get(requireAuth, dropCtrl.myFeed);
+
 export default router;
