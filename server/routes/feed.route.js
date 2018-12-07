@@ -5,6 +5,7 @@ import passport from 'passport';
 
 import paramValidation from '../config/validation/feed.validation';
 import feedCtrl from '../controllers/feed.controller';
+import dropCtrl from '../controllers/drop.controller';
 
 // loads Authenticated user document in `req.user`
 const requireAuth = passport.authenticate('jwt', { session: false });
