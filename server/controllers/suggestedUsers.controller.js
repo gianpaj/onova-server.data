@@ -41,7 +41,7 @@ async function list(
     );
     // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
     if (found) {
-      if (!found.suggestions) return res.json({ data: [], new: false });
+      if (!found.suggestions.length) return res.json({ data: [], new: false });
 
       let suggestions = found.suggestions.filter(s => s._id);
       // find if I am now following those suggested users
