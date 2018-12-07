@@ -38,38 +38,31 @@ export type NotifPayload = {
  * @property {MongoId} req.query.lastId
  * @property {number} req.query.limit Limit number of notifications to be returned
  */
-function get(
+async function get(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
-  let DBquery = { targetUser: req.user._id };
   const { limit = 50, lastId } = req.query;
+  let DBquery = { targetUser: req.user._id };
 
-  // for pagination - results are excluding the lastId`
-  if (lastId) {
-    DBquery = { ...DBquery, _id: { $lt: lastId } };
+  try {
+    // for pagination - results are excluding the lastId`
+    if (lastId) {
+      DBquery = { ...DBquery, _id: { $lt: lastId } };
 
-    Notification.findById(lastId)
-      .then(notif => {
-        if (!notif) {
-          throw new APIError('Notification not found.', httpStatus.NOT_FOUND);
-        }
-        Notification.find(DBquery)
-          .populate('triggeredBy sourceUser')
-          .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-          .limit(+limit)
-          .then(data => res.json({ data }))
-          .catch(e => next(e));
-      })
-      .catch(e => next(e));
-  } else {
-    Notification.find(DBquery)
+      const notif = await Notification.findById(lastId);
+      if (!notif) {
+        throw new APIError('Notification not found.', httpStatus.NOT_FOUND);
+      }
+    }
+    const data = await Notification.find(DBquery)
       .populate('triggeredBy sourceUser')
       .sort({ _id: -1 }) // faster than createdAt: -1 - same ordering
-      .limit(+limit)
-      .then(data => res.json({ data }))
-      .catch(e => next(e));
+      .limit(+limit);
+    res.json({ data });
+  } catch (error) {
+    next(error);
   }
 }
 
