@@ -11,6 +11,7 @@ import {
   createProduct,
   createUserAndLogin,
   createManyProducts,
+  followUser,
 } from './utils';
 
 /**
@@ -143,14 +144,8 @@ describe('## Feed APIs', () => {
   // both accounts follow each other
   beforeAll(() =>
     Promise.all([
-      request(app)
-        .post(`/api/users/${anotherUserId}/follow`)
-        .set('Authorization', firstJwtToken)
-        .expect(httpStatus.CREATED),
-      request(app)
-        .post(`/api/users/${userId}/follow`)
-        .set('Authorization', anotherJwtToken)
-        .expect(httpStatus.CREATED),
+      followUser(firstJwtToken, anotherUserId),
+      followUser(anotherJwtToken, userId),
     ])
   );
 

@@ -86,14 +86,6 @@ Array [
 ]
 `;
 
-exports[`## Follow APIs # GET /api/users/:userId/following should get a list of who the user is following and if amIAFollower 2`] = `
-Array [
-  "dateCreated",
-  "follower",
-  "following",
-]
-`;
-
 exports[`## Follow APIs # POST /api/users/:userId/follow should follow another user 1`] = `
 Array [
   "dateCreated",
