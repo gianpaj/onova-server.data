@@ -38,25 +38,6 @@ declare class session$Request extends express$Request {
   };
 }
 
-/**
- * Load a product and append to req.
- */
-function load(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction,
-  uuid: string
-) {
-  // use static method from ProductSchema
-  // flow-disable-next-line
-  Product.get(uuid)
-    .then((product: ProductDoc) => {
-      req.product = product;
-      return next();
-    })
-    .catch(e => next(e));
-}
-
 const { minPrice } = config.settings;
 
 /**
@@ -321,7 +302,6 @@ async function list(
 }
 
 export default {
-  load,
   list,
   create,
 };
