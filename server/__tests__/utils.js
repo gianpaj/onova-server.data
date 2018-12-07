@@ -274,7 +274,7 @@ export function beforeAllTests(done: () => void) {
     Verification.collection,
   ];
 
-  var todo = collections.length;
+  let todo = collections.length;
   if (!todo) return done();
 
   collections.forEach(collection => {
