@@ -10,7 +10,7 @@ import { NP } from '../helpers/shipping';
 const { Schema } = mongoose;
 
 /** @namespace */
-var OrderSchema = new Schema(
+const OrderSchema = new Schema(
   {
     archivedByBuyer: Boolean,
     archivedBySeller: Boolean,
