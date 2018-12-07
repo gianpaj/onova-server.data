@@ -38,8 +38,24 @@ if (config.env === 'test') {
       if (err) return console.error(err);
       debug('jobs removed', numRemoved);
       agenda.start();
+      ensureAgendaIndexes();
     });
   });
+} else {
+  agenda.on('ready', () => {
+    agenda.start();
+    ensureAgendaIndexes();
+  });
+}
+
+function ensureAgendaIndexes() {
+  // for profile drops feed
+  // and
+  // for my feed of drops
+  agenda._collection.createIndex(
+    { name: 1, 'data.product.seller': 1 },
+    { background: true }
+  );
 }
 
 /**
