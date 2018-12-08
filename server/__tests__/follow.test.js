@@ -245,6 +245,16 @@ describe('## Follow APIs', () => {
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
         });
     });
+
+    it('should NOT get invalid limit', async () => {
+      return request(app)
+        .get(`/api/users/${userId}/followers?limit=1000`)
+        .set('Authorization', thirdJwtToken)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe('"limit" must be less than or equal to 50')
+        );
+    });
   });
 
   describe('# GET /api/users/:userId/following', () => {

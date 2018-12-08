@@ -244,7 +244,6 @@ function unfollow(
  * @property {*} req.params - Express params parameters
  * @property {string} req.params.userId
  * @property {*} req.query - Express query parameters
- * @property {number} req.query.skip Number of users to be skipped.
  * @property {number} req.query.limit Limit number of users to be returned.
  */
 async function listFollowers(
@@ -252,14 +251,14 @@ async function listFollowers(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, skip = 0 } = req.query;
+  const { limit = 50 } = req.query;
 
   const DBquery = { following: req.params.userId, status: { $ne: -1 } };
 
   // using static method from FollowSchema
   // flow-disable-next-line
   try {
-    let followers = await Follow.list({ DBquery, limit, skip });
+    let followers = await Follow.list({ DBquery, limit });
     if (followers) {
       // filter followers that not longer exist (populate returns null)
       followers = followers.filter(f => f.follower !== null);
@@ -304,7 +303,6 @@ async function listFollowers(
  * @property {*} req.params - Express params parameters
  * @property {string} req.params.userId
  * @property {*} req.query - Express query parameters
- * @property {number} req.query.skip Number of users to be skipped.
  * @property {number} req.query.limit Limit number of users to be returned.
  */
 async function listFollowing(
@@ -312,14 +310,14 @@ async function listFollowing(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50, skip = 0 } = req.query;
+  const { limit = 50 } = req.query;
 
   const DBquery = { follower: req.params.userId, status: { $ne: -1 } };
 
   // use static method from FollowSchema
   // flow-disable-next-line
   try {
-    let followings = await Follow.list({ DBquery, limit, skip });
+    let followings = await Follow.list({ DBquery, limit });
     if (followings) {
       // filter followers that not longer exist (populate returns null)
       followings = followings.filter(f => f.following !== null);

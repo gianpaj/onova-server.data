@@ -50,10 +50,9 @@ FollowSchema.statics = {
    *
    * @param {Object} query Express query parameters
    * @param {Object} DBquery DB Query parameters (to find followers/followings)
-   * @param {number} query.skip Number of follow docs to be skipped
    * @param {number} query.limit Limit number of follow docs to be returned
    */
-  list({ DBquery, skip = 0, limit = 50 }): Promise<FollowDoc[] | APIError> {
+  list({ DBquery, limit = 50 }): Promise<Array<FollowDoc> | APIError> {
     const queryingForFollowing = DBquery.hasOwnProperty('following');
 
     const populateField = queryingForFollowing ? 'follower' : 'following';
@@ -66,18 +65,12 @@ FollowSchema.statics = {
 
     return this.find(DBquery)
       .sort({ createdAt: -1 })
-      .skip(+skip)
       .limit(+limit)
       .populate({
         path: populateField,
         select: 'username profilePic',
       })
-      .then((follows: Array<FollowDoc>) => {
-        if (!follows) {
-          return Promise.reject();
-        }
-        return follows;
-      })
+      .then((follows: Array<FollowDoc>) => follows)
       .catch(() => {
         const err = new APIError('Invalid follows', httpStatus.BAD_REQUEST);
         return Promise.reject(err);
