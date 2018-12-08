@@ -32,13 +32,13 @@ async function list(
   // TODO: pagination
   // const { limit = 50, lastId } = req.query;
 
+  const { _id: myUserId } = req.user;
+
   try {
-    const found = await SuggestedUsers.findOne({ user: req.user._id }).populate(
-      {
-        path: 'suggestions._id',
-        select: 'username profilePic',
-      }
-    );
+    const found = await SuggestedUsers.findOne({ user: myUserId }).populate({
+      path: 'suggestions._id',
+      select: 'username profilePic',
+    });
     // if suggested users are "fresh" (already stored in DB; generated in the last 24 hours)
     if (found) {
       if (!found.suggestions.length) return res.json({ data: [], new: false });
@@ -47,7 +47,7 @@ async function list(
       // find if I am now following those suggested users
       const ids = suggestions.map(s => s._id._id);
       let myFollowings = await Follow.find({
-        follower: req.user._id.toString(),
+        follower: myUserId.toString(),
         following: { $in: ids },
       });
       myFollowings = myFollowings.map(f => f.following.toString());
@@ -72,18 +72,18 @@ async function list(
 
     // else compute them and save them in the collection
     // TODO: filter also those who have been discarded
-    const freshSuggestions = await getSuggestions(req.user._id);
+    const freshSuggestions = await getSuggestions(myUserId);
 
     if (!freshSuggestions.length) {
       await SuggestedUsers.create({
-        user: req.user._id,
+        user: myUserId,
         suggestions: [],
       });
       return res.json({ data: [], new: true });
     }
 
-    const discarded = (await DiscardedUser.find({ source: req.user._id })).map(
-      d => d.target.toString()
+    const discarded = (await DiscardedUser.find({ source: myUserId })).map(d =>
+      d.target.toString()
     );
 
     const filteredSuggestions = freshSuggestions.filter(
@@ -91,19 +91,19 @@ async function list(
     );
 
     const discard = freshSuggestions.map(sugg =>
-      DiscardedUser.create({ source: req.user._id, target: sugg._id })
+      DiscardedUser.create({ source: myUserId, target: sugg._id })
     );
     await Promise.all(discard)
       .then(d => debug('discarded', d.length))
       .catch(() => debug('its ok'));
 
     await SuggestedUsers.create({
-      user: req.user._id,
+      user: myUserId,
       suggestions: filteredSuggestions,
     });
 
     const populated = await SuggestedUsers.findOne({
-      user: req.user._id,
+      user: myUserId,
     }).populate({
       path: 'suggestions._id',
       select: 'username profilePic',
