@@ -54,7 +54,6 @@ BlockSchema.set('toJSON', {
   },
 });
 
-BlockSchema.index({ sourceUser: 1, createdAt: -1 });
 BlockSchema.index({ targetUser: 1, createdAt: -1 });
 BlockSchema.index({ sourceUser: 1, targetUser: 1 }, { unique: true });
 
