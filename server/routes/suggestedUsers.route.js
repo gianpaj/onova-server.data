@@ -1,9 +1,7 @@
 // @flow
 import express from 'express';
-import validate from 'express-validation';
 import passport from 'passport';
 
-import paramValidation from '../config/validation/comment.validation';
 import suggestedUsersCtrl from '../controllers/suggestedUsers.controller';
 
 // loads Authenticated user document in `req.user`
