@@ -163,5 +163,5 @@ export default {
 
     minPrice: 150,
   },
-  DEFAULT_FOLLOW: false,
+  DEFAULT_FOLLOW: true,
 };
