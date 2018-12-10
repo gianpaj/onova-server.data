@@ -6,7 +6,7 @@ const NovaPoshta_URL = 'https://api.novaposhta.ua/v2.0/json';
 export const NP = {
   // 1
   generated: 'np-generated',
-  // 6 or 101
+  // 4, 6 or 101
   shipped: 'np-shipped',
   // 7 or 8
   delivered: 'np-delivered',
@@ -64,6 +64,7 @@ export default class Shipping {
       case '1':
         return NP.generated;
         break;
+      case '4':
       case '6':
         return NP.shipped;
         break;
