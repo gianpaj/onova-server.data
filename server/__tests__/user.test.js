@@ -808,6 +808,19 @@ describe('## User APIs', () => {
         });
     });
 
+    it('should NOT update an user`s upper case email (existing)', () => {
+      return request(app)
+        .put(`/api/users/${forthUserId}`)
+        .set('Authorization', forthJwtToken)
+        .send({ ...forthUser, emailAddress: 'Gianpa+test2@gmail.com' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            'An account with the same email address exists.'
+          );
+        });
+    });
+
     it("should NOT update an user's username to an existing one", () => {
       return request(app)
         .put(`/api/users/${forthUserId}`)
