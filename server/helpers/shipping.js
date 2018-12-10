@@ -23,12 +23,10 @@ export default class Shipping {
     return new Promise((resolve, reject) => {
       axios
         .post(`${NovaPoshta_URL}/documentsTracking/`, {
-          json: {
-            modelName: 'TrackingDocument',
-            calledMethod: 'getStatusDocuments',
-            methodProperties: {
-              Documents: [{ DocumentNumber: trackingNumber, Phone: '' }],
-            },
+          modelName: 'TrackingDocument',
+          calledMethod: 'getStatusDocuments',
+          methodProperties: {
+            Documents: [{ DocumentNumber: trackingNumber, Phone: '' }],
           },
         })
         .then(({ data }) => {
