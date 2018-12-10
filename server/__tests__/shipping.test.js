@@ -16,7 +16,7 @@ import {
 
 const mock = new MockAdapter(axios);
 
-const kiev = '8d5a980d-391c-11dd-90d9-001a92567626';
+const kyiv = '8d5a980d-391c-11dd-90d9-001a92567626';
 
 const photos = {
   photos: [
@@ -70,7 +70,7 @@ describe('## Shipping', () => {
   describe('# GET /api/shipping/departments/${city}', () => {
     it('should get the list of departments', () => {
       return request(app)
-        .get(`/api/shipping/departments/${kiev}`)
+        .get(`/api/shipping/departments/${kyiv}`)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();

@@ -110,8 +110,15 @@ describe('## Shipping Runner', () => {
           .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
           .reply(200, novaPoshta.generated);
 
+        const waitFor = 15 * 1000; // seconds
+        const interval = Math.floor(waitFor / 100);
+        let totalTime = interval;
+
         // test system message has been scheduled
-        setTimeout(async () => {
+        // Check every 150ms for up to 15 seconds
+        const timer = setInterval(async () => {
+          totalTime += interval;
+
           const {
             body: { data: orderFound1 },
           } = await request(app)
@@ -119,20 +126,27 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          expect(orderFound1.shippingStatus).toBe(NP.generated);
-          expect(orderFound1.status).toBe('confirmed');
+          if (orderFound1.shippingStatus == NP.generated) {
+            expect(orderFound1.shippingStatus).toBe(NP.generated);
+            expect(orderFound1.status).toBe('confirmed');
 
-          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-            if (err) return done(err);
-            expect(jobs).toHaveLength(1);
-            const data = jobs.map(job => job.attrs.data);
-            // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
-            expect(
-              data[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
-            ).toBeTruthy();
-            done();
-          });
-        }, 6000);
+            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+              if (err) return done(err);
+              expect(jobs).toHaveLength(1);
+              const data = jobs.map(job => job.attrs.data);
+              // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
+              expect(
+                data[0].message.startsWith(i18n.orderConfirmed.slice(0, 10))
+              ).toBeTruthy();
+              done();
+            });
+          }
+
+          if (totalTime >= waitFor) {
+            clearInterval(timer);
+            throw new Error('timeout');
+          }
+        }, interval);
       } catch (error) {
         console.error(error);
       }
@@ -149,8 +163,15 @@ describe('## Shipping Runner', () => {
           .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
           .reply(200, novaPoshta.shipped);
 
+        const waitFor = 15 * 1000; // seconds
+        const interval = Math.floor(waitFor / 100);
+        let totalTime = interval;
+
         // test system message has been scheduled
-        setTimeout(async () => {
+        // Check every 150ms for up to 15 seconds
+        const timer = setInterval(async () => {
+          totalTime += interval;
+
           const {
             body: { data: orderFound1 },
           } = await request(app)
@@ -158,29 +179,36 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          expect(orderFound1.shippingStatus).toBe(NP.shipped);
-          expect(orderFound1.status).toBe('shipped');
-          expect(typeof orderFound1.dateShipped).toBe('string');
+          if (orderFound1.shippingStatus == NP.shipped) {
+            expect(orderFound1.shippingStatus).toBe(NP.shipped);
+            expect(orderFound1.status).toBe('shipped');
+            expect(typeof orderFound1.dateShipped).toBe('string');
 
-          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-            if (err) return done(err);
-            const data = jobs.map(job => job.attrs.data);
-            expect(data).toHaveLength(2);
-            // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
-            data.map(data => {
-              // expect(data.shippingStatus).toBe(NP.shipped);
-              if (data.message.endsWith(i18n.orderShipped.slice(-10))) {
-                done();
-              }
+            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+              if (err) return done(err);
+              const data = jobs.map(job => job.attrs.data);
+              expect(data).toHaveLength(2);
+              // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
+              data.map(data => {
+                // expect(data.shippingStatus).toBe(NP.shipped);
+                if (data.message.endsWith(i18n.orderShipped.slice(-10))) {
+                  done();
+                }
+              });
             });
-          });
-        }, 6000);
+          }
+
+          if (totalTime >= waitFor) {
+            clearInterval(timer);
+            throw new Error('timeout');
+          }
+        }, interval);
       } catch (error) {
         console.error(error);
       }
     });
 
-    it('should have checked an order has been delivered', async done => {
+    it.only('should have checked an order has been delivered', async done => {
       try {
         const dealID = '1B27M6E';
         await payOrder(o1.id, user2JwtToken, dealID);
@@ -191,8 +219,15 @@ describe('## Shipping Runner', () => {
           .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
           .reply(200, novaPoshta.delivered);
 
+        const waitFor = 15 * 1000; // seconds
+        const interval = Math.floor(waitFor / 100);
+        let totalTime = interval;
+
         // test system message has been scheduled
-        setTimeout(async () => {
+        // Check every 150ms for up to 15 seconds
+        const timer = setInterval(async () => {
+          totalTime += interval;
+
           const {
             body: { data: orderFound },
           } = await request(app)
@@ -200,29 +235,35 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          expect(orderFound.shippingStatus).toBe(NP.delivered);
-          expect(orderFound.dateDelivered).toBe(
-            new Date(
-              novaPoshta.delivered.data[0].DateFirstDayStorage
-            ).toISOString()
-          );
-          expect(orderFound.status).toBe('delivered');
+          if (orderFound.shippingStatus == NP.delivered) {
+            expect(orderFound.shippingStatus).toBe(NP.delivered);
+            expect(orderFound.dateDelivered).toBe(
+              new Date(
+                novaPoshta.delivered.data[0].DateFirstDayStorage
+              ).toISOString()
+            );
+            expect(orderFound.status).toBe('delivered');
 
-          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-            if (err) return done(err);
-            const data = jobs.map(job => job.attrs.data);
-            expect(data).toHaveLength(2);
-            // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
-            data.map(data => {
-              // expect(data.shippingStatus).toBe(NP.shipped);
-              if (data.message.endsWith(i18n.orderDelivered.slice(-10))) {
-                done();
-              }
+            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+              if (err) return done(err);
+              const data = jobs.map(job => job.attrs.data);
+              expect(data).toHaveLength(2);
+              // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
+              data.map(data => {
+                // expect(data.shippingStatus).toBe(NP.shipped);
+                if (data.message.endsWith(i18n.orderDelivered.slice(-10))) {
+                  done();
+                }
+              });
             });
-          });
-        }, 4000);
+          }
+          if (totalTime >= waitFor) {
+            clearInterval(timer);
+            throw new Error('timeout');
+          }
+        }, interval);
       } catch (error) {
-        console.error(error);
+        done(error);
       }
     });
 
@@ -237,8 +278,15 @@ describe('## Shipping Runner', () => {
           .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
           .reply(200, novaPoshta.collected);
 
+        const waitFor = 15 * 1000; // seconds
+        const interval = Math.floor(waitFor / 100);
+        let totalTime = interval;
+
         // test system message has been scheduled
-        setTimeout(async () => {
+        // Check every 150ms for up to 15 seconds
+        const timer = setInterval(async () => {
+          totalTime += interval;
+
           const {
             body: { data: orderFound },
           } = await request(app)
@@ -246,23 +294,30 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          expect(orderFound.shippingStatus).toBe(NP.collected);
-          expect(orderFound.status).toBe('completed');
-          expect(typeof orderFound.dateCompleted).toBe('string');
+          if (orderFound.shippingStatus == NP.collected) {
+            expect(orderFound.shippingStatus).toBe(NP.collected);
+            expect(orderFound.status).toBe('completed');
+            expect(typeof orderFound.dateCompleted).toBe('string');
 
-          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-            if (err) return done(err);
-            const data = jobs.map(job => job.attrs.data);
-            expect(data).toHaveLength(2);
-            // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
-            data.map(data => {
-              // expect(data.shippingStatus).toBe(NP.shipped);
-              if (data.message.endsWith(i18n.orderCompleted.slice(-10))) {
-                done();
-              }
+            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+              if (err) return done(err);
+              const data = jobs.map(job => job.attrs.data);
+              expect(data).toHaveLength(2);
+              // const job = jobs.find(job => job.attrs.data.order._id == o1.id);
+              data.map(data => {
+                // expect(data.shippingStatus).toBe(NP.shipped);
+                if (data.message.endsWith(i18n.orderCompleted.slice(-10))) {
+                  done();
+                }
+              });
             });
-          });
-        }, 6000);
+          }
+
+          if (totalTime >= waitFor) {
+            clearInterval(timer);
+            throw new Error('timeout');
+          }
+        }, interval);
       } catch (error) {
         console.error(error);
       }
@@ -279,8 +334,15 @@ describe('## Shipping Runner', () => {
           .onPost('https://api.novaposhta.ua/v2.0/json/documentsTracking/')
           .reply(200, novaPoshta.refused);
 
+        const waitFor = 15 * 1000; // seconds
+        const interval = Math.floor(waitFor / 100);
+        let totalTime = interval;
+
         // test system message has been scheduled
-        setTimeout(async () => {
+        // Check every 150ms for up to 15 seconds
+        const timer = setInterval(async () => {
+          totalTime += interval;
+
           const {
             body: { data: orderFound },
           } = await request(app)
@@ -288,21 +350,28 @@ describe('## Shipping Runner', () => {
             .set('Authorization', user2JwtToken)
             .expect(httpStatus.OK);
 
-          expect(orderFound.shippingStatus).toBe(NP.refused);
-          expect(orderFound.status).toBe('failed_by_buyer');
-          expect(typeof orderFound.dateFailed).toBe('string');
+          if (orderFound.shippingStatus == NP.refused) {
+            expect(orderFound.shippingStatus).toBe(NP.refused);
+            expect(orderFound.status).toBe('failed_by_buyer');
+            expect(typeof orderFound.dateFailed).toBe('string');
 
-          agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-            if (err) return done(err);
-            const data = jobs.map(job => job.attrs.data);
-            expect(data).toHaveLength(2);
-            data.map(data => {
-              if (data.message.endsWith(i18n.refusedItem.slice(-10))) {
-                done();
-              }
+            agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+              if (err) return done(err);
+              const data = jobs.map(job => job.attrs.data);
+              expect(data).toHaveLength(2);
+              data.map(data => {
+                if (data.message.endsWith(i18n.refusedItem.slice(-10))) {
+                  done();
+                }
+              });
             });
-          });
-        }, 6000);
+          }
+
+          if (totalTime >= waitFor) {
+            clearInterval(timer);
+            throw new Error('timeout');
+          }
+        }, interval);
       } catch (error) {
         console.error(error);
       }
