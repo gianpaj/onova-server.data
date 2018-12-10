@@ -8,8 +8,8 @@ import config from '../config/config';
 
 import { agenda } from '../config/express';
 
-const checkShippingStatusEveryHours = parseInt(
-  config.settings.checkShippingStatusEvery.slice(' ')[0]
+const checkShippingStatusEveryXMinutes = parseInt(
+  config.settings.checkShippingStatusEvery.split(' ')[0]
 );
 
 const debug = require('debug')('server-data:escrow');
@@ -92,7 +92,7 @@ export default class ShippingRunner {
         Date.now() -
           (config.env === 'test'
             ? 1 * 1000
-            : checkShippingStatusEveryHours * 60 * 60 * 1000)
+            : checkShippingStatusEveryXMinutes * 60 * 1000)
       );
 
       const orders: Array<OrderDoc> = await Order.find({
