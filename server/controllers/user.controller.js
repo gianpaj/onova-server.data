@@ -86,7 +86,7 @@ async function get(req: session$Request, res: express$Response) {
     ...doc,
     followersCount: followers.filter(f => f.follower !== null).length,
     followingCount: following.filter(f => f.following !== null).length,
-    ordersAndReviewsCount: ordersAndReviewsCount,
+    ordersAndReviewsCount,
   };
   return res.json(doc);
 }
@@ -120,13 +120,15 @@ async function getPersonal(req: session$Request, res: express$Response) {
     ],
   });
 
+  const { createdAt, mobileNumber, paymentInfo, shippingAddress } = req.user;
+
   return res.json({
     ...doc,
-    createdAt: req.user.createdAt,
-    mobileNumber: req.user.mobileNumber,
+    createdAt,
+    mobileNumber,
     ordersAndReviewsCount,
-    paymentInfo: req.user.paymentInfo,
-    shippingAddress: req.user.shippingAddress,
+    paymentInfo,
+    shippingAddress,
   });
 }
 
@@ -139,8 +141,9 @@ async function getPersonal(req: session$Request, res: express$Response) {
  * @property {*} req.body - Express body parameters
  * @property {string} req.body.username
  * @property {string} req.body.emailAddress
- * @property {string} req.body.password (salted and hashed)
  * @property {string=} req.body.mobileNumber
+ * @property {string} req.body.password (it's salted and hashed)
+ * @property {string=} req.body.platform
  * @property {string=} req.body.pushToken
  */
 async function create(
@@ -148,11 +151,13 @@ async function create(
   res: express$Response,
   next: express$NextFunction
 ) {
+  const { body } = req;
+
   User.findOne({
     $or: [
       // mongoose changes the email to lowercase
-      { emailAddress: req.body.emailAddress.toLowerCase() },
-      { username: req.body.username },
+      { emailAddress: body.emailAddress.toLowerCase() },
+      { username: body.username },
     ],
   })
     .then((existingUser: UserDoc) => {
@@ -164,68 +169,58 @@ async function create(
         throw APIerr;
       }
 
-      const doc: Object = {
-        username: req.body.username,
-        emailAddress: req.body.emailAddress,
-        // displayName:  req.body.displayName,
-        password: req.body.password,
-        // accountStatus: 'notverified' (default)
-      };
+      const user = new User({
+        username: body.username,
+        emailAddress: body.emailAddress,
+        password: body.password,
+      });
 
-      const { body } = req;
-
-      if (body.mobileNumber) doc.mobileNumber = body.mobileNumber;
-      if (body.platform) doc.platform = body.platform;
-      if (body.pushToken) doc.pushToken = body.pushToken;
-
-      const user = new User(doc);
+      if (body.mobileNumber) user.mobileNumber = body.mobileNumber;
+      if (body.platform) user.platform = body.platform;
+      if (body.pushToken) user.pushToken = body.pushToken;
 
       if (body.emailAddress.startsWith('onovaapp')) {
         user.accountStatus = 'verified';
       }
 
-      return user.save().then(async (savedUser: UserDoc) => {
-        // if we should Auto Follow certain users by default
-        if (config.DEFAULT_FOLLOW) {
-          followDefaultUsers(savedUser)
-            .then(num => {
-              if (typeof num == 'number')
-                debug(`followed ${num} default users`);
-            })
-            .catch(e => console.error(e));
-        }
+      return user.save();
+    })
+    .then(async (savedUser: UserDoc) => {
+      // if we should Auto Follow certain users by default
+      if (config.DEFAULT_FOLLOW) {
+        followDefaultUsers(savedUser)
+          .then(num => {
+            if (typeof num == 'number') debug(`followed ${num} default users`);
+          })
+          .catch(e => console.error(e));
+      }
 
-        if (config.env == 'production') {
-          try {
-            await ckInst.createUser({
-              id: savedUser._id,
-              name: savedUser.username,
-            });
-            console.log('chatkit user created');
-          } catch (err) {
-            console.error(err);
-          }
-        } else {
-          debug('skipping pusher createUser()');
-        }
-
-        if (body.emailAddress.startsWith('onovaapp')) {
-          const payload = _prepareUserJson(savedUser);
-          return res.status(httpStatus.CREATED).json({
-            data: payload,
-            token: `JWT ${authCtrl.generateToken(payload)}`,
+      if (config.env !== 'production') {
+        debug('skipping pusher createUser()');
+      } else {
+        try {
+          await ckInst.createUser({
+            id: savedUser._id,
+            name: savedUser.username,
           });
+          console.log('chatkit user created');
+        } catch (err) {
+          console.error(err);
+          throw err;
         }
+      }
 
-        return mailCtrl
-          .sendVerificationEmail(savedUser.emailAddress, savedUser)
-          .then(() => {
-            const payload = _prepareUserJson(savedUser);
-            return res.status(httpStatus.CREATED).json({
-              data: payload,
-              token: `JWT ${authCtrl.generateToken(payload)}`,
-            });
-          });
+      // do not send verification email
+      if (body.emailAddress.startsWith('onovaapp')) return savedUser;
+
+      await mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
+      return savedUser;
+    })
+    .then(savedUser => {
+      const payload = _prepareUserJson(savedUser);
+      return res.status(httpStatus.CREATED).json({
+        data: payload,
+        token: `JWT ${authCtrl.generateToken(payload)}`,
       });
     })
     .catch(e => next(e));
@@ -316,17 +311,14 @@ function update(
   let Promises = [];
 
   // updating email address
-  if (body.emailAddress && user.emailAddress !== body.emailAddress) {
-    user.emailAddress = body.emailAddress.toLowerCase();
-    Promises.push(
-      new Promise((resolve, reject) => {
-        User.findOne(
-          // mongoose changes the email to lowercase
-          { emailAddress: body.emailAddress.toLowerCase() },
-          (err, existingUser) => {
-            if (err) {
-              return reject(err);
-            }
+  if (body.emailAddress) {
+    const emailAddress = body.emailAddress.toLowerCase();
+    if (user.emailAddress !== emailAddress) {
+      // mongoose changes the email to lowercase
+      user.emailAddress = emailAddress;
+      Promises.push(
+        new Promise((resolve, reject) =>
+          User.findOne({ emailAddress }).then(existingUser => {
             if (existingUser) {
               const APIerr = new APIError(
                 'An account with the same email address exists.',
@@ -339,10 +331,10 @@ function update(
             debug(`account ${user._id} is awaiting for email verification`);
             // save user with new email address only if there is no duplicate key error
             resolve();
-          }
-        );
-      })
-    );
+          })
+        )
+      );
+    }
   }
 
   // updating username
@@ -350,10 +342,7 @@ function update(
     user.username = body.username;
     Promises.push(
       new Promise((resolve, reject) => {
-        User.findOne({ username: body.username }, (err, existingUser) => {
-          if (err) {
-            return reject(err);
-          }
+        User.findOne({ username: body.username }).then(existingUser => {
           if (existingUser) {
             const APIerr = new APIError(
               'An account with the same username exists.',
@@ -372,31 +361,29 @@ function update(
       new Promise((resolve, reject) => {
         photos
           .uploadProfilePic(req.user, req.file)
-          .then(cloudStoragePublicUrl => {
-            return User.findByIdAndUpdate(req.user._id, {
+          .then(cloudStoragePublicUrl =>
+            User.findByIdAndUpdate(req.user._id, {
               $set: { profilePic: cloudStoragePublicUrl },
             })
-              .exec()
-              .then(async doc => {
-                if (doc) {
-                  debug('profilePic updated for user:', doc._id);
-                  if (config.env === 'production') {
-                    try {
-                      await ckInst.updateUser({
-                        id: doc._id,
-                        avatarURL: cloudStoragePublicUrl,
-                      });
-                      console.log('chatkit user updated');
-                    } catch (err) {
-                      console.error(err);
-                      return reject(err);
-                    }
-                  }
-                  resolve(doc);
-                } else {
-                  reject('no error found');
+          )
+          .then(async doc => {
+            if (doc) {
+              debug('profilePic updated for user:', doc._id);
+              if (config.env === 'production') {
+                try {
+                  await ckInst.updateUser({
+                    id: doc._id,
+                    avatarURL: cloudStoragePublicUrl,
+                  });
+                  console.log('chatkit user updated');
+                } catch (err) {
+                  console.error(err);
+                  return reject(err);
                 }
-              });
+              }
+              return resolve(doc);
+            }
+            reject('error updating profilePic');
           })
           .catch(err => {
             debug('Error saving user profilePic', err);
@@ -410,9 +397,7 @@ function update(
     .then(() => user.save())
     .then(savedUser => res.json(savedUser))
     .then(() => debug(`Username: ${user.username} saved.`))
-    .catch(error => {
-      return next(error);
-    });
+    .catch(error => next(error));
 }
 
 function escapeRegex(text) {
@@ -490,10 +475,8 @@ function remove(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const user = req.user;
-
   User.findOneAndUpdate(
-    { _id: user._id },
+    { _id: req.user._id },
     { accountStatus: 'deleted', deletedAt: new Date() },
     { new: true }
   )
