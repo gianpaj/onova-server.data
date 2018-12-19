@@ -155,7 +155,7 @@ describe('## Drops feed APIs', () => {
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
     });
 
-    it(`should NOT crete a drop if seller doesn't have a shipping address`, () => {
+    it(`should NOT create a drop if seller doesn't have a shipping address`, () => {
       return request(app)
         .post('/api/v2/drop')
         .set('Authorization', users[2].token)
@@ -167,6 +167,21 @@ describe('## Drops feed APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('Please enter your shipping address')
+        );
+    });
+
+    it(`should NOT create a drop if seller doesn't have a payment info`, () => {
+      return request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[3].token)
+        .send({
+          products: [product],
+          dropId: new BSON.ObjectId(),
+          date: new Date(),
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Please enter your payment info')
         );
     });
   });
