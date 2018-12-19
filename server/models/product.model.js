@@ -93,7 +93,7 @@ export const ProductSchema = new Schema(
       type: String,
       required: true,
       default: 'forsale',
-      enum: ['forsale', 'reserved', 'sold', 'banned', 'deleted'],
+      enum: ['forsale', 'reserved', 'sold', 'banned', 'deleted', 'ready'],
     },
     tags: {
       type: [String],
