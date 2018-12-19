@@ -469,6 +469,59 @@ describe('## Drops feed APIs', () => {
         }
       }, interval);
     });
+
+    it('should drop items in order', async done => {
+      await request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[1].token)
+        .send({
+          date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
+          products: [
+            { ...product, description: 'firstfirst' },
+            { ...product, description: 'secondsecond' },
+          ],
+        })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const d = body.data;
+          expect(d.posted).toBe(false);
+          expect(d.products).toHaveLength(2);
+          expect(d.seller).toHaveLength(24); // Object Id
+          expect(!isNaN(Date.parse(d.createdAt))).toBe(true);
+          expect(!isNaN(Date.parse(d.updatedAt))).toBe(true);
+          expect(shortid.isValid(d.uuid)).toBe(true);
+        });
+
+      // if (!schedulerIsRunning) return done();
+
+      const waitFor = 15 * 1000; // seconds
+      const interval = Math.floor(waitFor / 100);
+      let totalTime = interval;
+
+      // Check every 150ms for up to 15 seconds
+      const timer = setInterval(async () => {
+        totalTime += interval;
+
+        const { body } = await request(app)
+          .get('/api/products/')
+          .expect(httpStatus.OK);
+
+        if (body.data.length) {
+          expect(body.data).toHaveLength(2);
+          expect(body.data.map(p => p.description)).toEqual([
+            'firstfirst',
+            'secondsecond',
+          ]);
+          done();
+          clearInterval(timer);
+          return;
+        }
+        if (totalTime >= waitFor) {
+          clearInterval(timer);
+          throw new Error('timeout');
+        }
+      }, interval);
+    });
   });
 
   // describe('# GET /feed/drops', () => {
