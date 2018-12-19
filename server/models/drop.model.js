@@ -7,7 +7,6 @@ import shortid from 'shortid';
 
 import APIError from '../helpers/APIError';
 import { userPopulateFields } from './user.model';
-import { ProductSchema } from './product.model';
 import { ProductDoc } from '.';
 
 const { Schema } = mongoose;
@@ -20,8 +19,14 @@ const DropSchema = new Schema(
     // subscribers: {
     //   type: [UserSchema],
     // },
+    posted: {
+      type: Boolean,
+      required: true,
+      default: false,
+    },
     products: {
-      type: [ProductSchema],
+      type: [Schema.Types.ObjectId],
+      ref: 'Product',
       required: true,
     },
     scheduledAt: {
@@ -37,11 +42,6 @@ const DropSchema = new Schema(
       type: String,
       unique: true, // Unique index
     },
-    posted: {
-      type: Boolean,
-      required: true,
-      default: false,
-    },
   },
   {
     // assigns 'createdAt' and 'updatedAt' fields
@@ -52,7 +52,8 @@ const DropSchema = new Schema(
 export class DropDoc /*:: extends Mongoose$Document */ {
   _id: MongoId;
   createdAt: Date;
-  description: string;
+  description: ?string;
+  posted: Boolean;
   products: Array<ProductDoc>;
   scheduledAt: Date;
   seller: MongoId;

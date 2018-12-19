@@ -1,13 +1,24 @@
 // @flow
 
 import httpStatus from 'http-status';
-import { differenceInCalendarDays } from 'date-fns';
+import shortid from 'shortid';
+import { differenceInCalendarDays, differenceInSeconds } from 'date-fns';
 
 import { agenda } from '../config/express';
 import config from '../config/config';
 
+import photoHelper from '../helpers/photos';
 import APIError from '../helpers/APIError';
-import { Follow, FollowDoc, User, UserDoc, ProductDoc } from '../models';
+import {
+  Drop,
+  DropDoc,
+  Follow,
+  FollowDoc,
+  User,
+  UserDoc,
+  Product,
+  ProductDoc,
+} from '../models';
 
 const { minPrice } = config.settings;
 
@@ -156,33 +167,82 @@ async function create(
     validateProducts(body.products);
 
     const seller = await User.findById(req.user._id);
-    if (!seller) {
-      throw new APIError('Seller not found', httpStatus.BAD_REQUEST);
-    }
-    if (seller.accountStatus !== 'verified') {
-      throw new APIError(
-        'Please verify your account before creating a drop',
-        httpStatus.BAD_REQUEST
+
+    validateSeller(seller);
+
+    // if the date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
+    const posted = Math.abs(differenceInSeconds(new Date(), body.date)) <= 30;
+
+    const date = new Date();
+    const products = body.products.map(async prod => {
+      const product = new Product({
+        categoryIds: prod.categoryIds,
+        // currency: prod.currency,
+        description: prod.description,
+        dropId: prod.dropId,
+        price: parseFloat(prod.price).toFixed(2),
+        // status: prod.status, // 'forsale' by default
+        tags: prod.tags,
+        typeIds: prod.typeIds,
+        uuid: shortid.generate(), // needed here for photos' filenames
+        // createdAt: new Date(body.date),
+        seller: req.user._id,
+        status: posted ? 'forsale' : 'ready',
+      });
+
+      let promises = [];
+
+      for (let i = 0; i < prod.photos.length; i++) {
+        const photo = prod.photos[i];
+        const thumb = photo.replace('.jpg', '-thumb.jpg');
+        const thumb2x = photo.replace('.jpg', '-thumb@2x.jpg');
+        promises.push(
+          photoHelper.copyPhoto(thumb, product.uuid, i, date, '-thumb')
+        );
+        promises.push(
+          photoHelper.copyPhoto(thumb2x, product.uuid, i, date, '-thumb@2x')
+        );
+      }
+
+      prod.photos.map((p, i) =>
+        promises.push(photoHelper.copyPhoto(p, product.uuid, i, date))
       );
-    }
-    if (
-      !seller.shippingAddress.departmentNovaposhta ||
-      !seller.shippingAddress.city
-    ) {
-      throw new APIError(
-        'Please enter your shipping address info before creating a drop',
-        httpStatus.BAD_REQUEST
-      );
-    }
-    if (!seller.paymentInfo.method || !seller.paymentInfo.card_token) {
-      throw new APIError(
-        'Please enter your payment info before creating a drop',
-        httpStatus.BAD_REQUEST
+
+      try {
+        const photos = await Promise.all(promises);
+        product.photoURIs = photos.filter(photo => !photo.includes('thumb'));
+      } catch (err) {
+        console.error(err);
+        throw new APIError('Error copying photos', 500);
+      }
+
+      return Product.create(product);
+    });
+
+    const savedProducts = await Promise.all(products);
+
+    const savedDrop = await Drop.create({
+      dropId: body.dropId,
+      products: savedProducts.map(p => p._id),
+      scheduledAt: body.date,
+      seller: req.user._id,
+      posted,
+    });
+
+    if (!posted) {
+      // schedule a single job that it's only job is to set the products as 'forsale', from 'ready'
+      // and to set the Drop as
+      await agenda.schedule(
+        body.date,
+        config.JOBNAMES.SCHEDULE,
+        savedDrop,
+        err => {
+          if (err) throw new APIError(`Error scheduling a drop: ${err}`);
+        }
       );
     }
 
-    console.log(body);
-    return res.status(httpStatus.CREATED).json({ data: {} });
+    return res.status(httpStatus.CREATED).json({ data: savedDrop });
   } catch (error) {
     if (!(error instanceof APIError)) console.error(error);
     next(error);
@@ -207,6 +267,33 @@ function validateProducts(products: Array<ProductDoc>) {
     }
     // throw new APIError('asdf', httpStatus.BAD_REQUEST);
   });
+}
+
+function validateSeller(seller) {
+  if (!seller) {
+    throw new APIError('Seller not found', httpStatus.BAD_REQUEST);
+  }
+  if (seller.accountStatus !== 'verified') {
+    throw new APIError(
+      'Please verify your account before creating a drop',
+      httpStatus.BAD_REQUEST
+    );
+  }
+  if (
+    !seller.shippingAddress.departmentNovaposhta ||
+    !seller.shippingAddress.city
+  ) {
+    throw new APIError(
+      'Please enter your shipping address info before creating a drop',
+      httpStatus.BAD_REQUEST
+    );
+  }
+  if (!seller.paymentInfo.method || !seller.paymentInfo.card_token) {
+    throw new APIError(
+      'Please enter your payment info before creating a drop',
+      httpStatus.BAD_REQUEST
+    );
+  }
 }
 
 export default {
