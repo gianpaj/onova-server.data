@@ -58,6 +58,14 @@ let users: Array<UserTestDoc> = [
   },
 ];
 
+const nonActiveUser = {
+  username: 'thirdperson',
+  emailAddress: 'gianpa+nonactive@gmail.com',
+  password: 'expressos',
+};
+
+let nonActiveUserJwtToken;
+
 const product = {
   categoryIds: [1, 2, 3],
   typeIds: [1, 2, 3],
@@ -86,6 +94,17 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[2].token)
         .send({ shippingAddress: {} })
         .expect(httpStatus.OK),
+      request(app)
+        .post('/api/users')
+        .send(nonActiveUser)
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          expect(body.data.username).toBe(nonActiveUser.username);
+          expect(body.data.emailAddress).toBe(nonActiveUser.emailAddress);
+          expect(body.data.accountStatus).toBe('notverified');
+          expect(typeof body.token).toBe('string');
+          nonActiveUserJwtToken = body.token;
+        }),
       User.updateOne({ _id: users[3]._id }, { $unset: { paymentInfo: '' } }),
     ]);
 
@@ -154,6 +173,23 @@ describe('## Drops feed APIs', () => {
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
+    });
+
+    it(`should NOT create a drop if seller is not verified`, () => {
+      return request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', nonActiveUserJwtToken)
+        .send({
+          date: new Date(),
+          dropId: new BSON.ObjectId(),
+          products: [product],
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(res => {
+          expect(res.body.message).toBe(
+            'Please verify your account before creating a drop'
+          );
+        });
     });
 
     it(`should NOT create a drop if seller doesn't have a shipping address`, () => {
