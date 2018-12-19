@@ -60,7 +60,7 @@ Array [
 ]
 `;
 
-exports[`## Drops feed APIs # POST /api/v2/drop should make a drop with one product 1`] = `
+exports[`## Drops feed APIs # POST /api/v2/drop should create a drop immediately with one product 1`] = `
 Array [
   "_id",
   "createdAt",
