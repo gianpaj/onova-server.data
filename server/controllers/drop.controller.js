@@ -149,11 +149,11 @@ async function create(
   const { body } = req;
 
   try {
-    validateProducts(body.products);
-
     if (differenceInCalendarDays(body.date, Date.now()) > 90) {
       throw new APIError('Cannot create a drop 90 days from today', 400);
     }
+
+    validateProducts(body.products);
 
     const seller = await User.findById(req.user._id);
     if (!seller) {
