@@ -5,7 +5,6 @@ import request from 'supertest';
 import shortid from 'shortid';
 import path from 'path';
 import httpStatus from 'http-status';
-import BSON from 'bson';
 import addDays from 'date-fns/add_days';
 
 import { User } from '../models';
@@ -150,7 +149,6 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[1].token)
         .send({
           date: new Date(),
-          dropId: new BSON.ObjectId(),
           products: [
             { ...product, price: (config.settings.minPrice - 10).toString() },
           ],
@@ -169,7 +167,6 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[1].token)
         .send({
           date: new Date(),
-          dropId: new BSON.ObjectId(),
           products: [{ ...product, photos: ['http://asdfasd'] }],
         })
         .expect(httpStatus.BAD_REQUEST)
@@ -182,7 +179,6 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', nonActiveUserJwtToken)
         .send({
           date: new Date(),
-          dropId: new BSON.ObjectId(),
           products: [product],
         })
         .expect(httpStatus.BAD_REQUEST)
@@ -199,7 +195,6 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[2].token)
         .send({
           date: new Date(),
-          dropId: new BSON.ObjectId(),
           products: [product],
         })
         .expect(httpStatus.BAD_REQUEST)
@@ -215,7 +210,6 @@ describe('## Drops feed APIs', () => {
         .send({
           products: [product],
           date: new Date(),
-          dropId: new BSON.ObjectId(),
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -229,7 +223,6 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[0].token)
         .send({
           date: new Date(+new Date() - 23 * 60 * 60 * 1000),
-          dropId: new BSON.ObjectId(),
           products: [product],
         })
         .expect(httpStatus.BAD_REQUEST)
@@ -244,7 +237,6 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[0].token)
         .send({
           date: addDays(new Date(Date.now()), 91),
-          dropId: new BSON.ObjectId(),
           products: [product],
         })
         .expect(httpStatus.BAD_REQUEST)
@@ -259,7 +251,6 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[1].token)
         .send({
           date: new Date(),
-          dropId: new BSON.ObjectId(),
           products: [product],
         })
         .expect(httpStatus.CREATED)

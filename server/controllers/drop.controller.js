@@ -141,7 +141,6 @@ async function myFeed(
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
  * @property {string} req.body.description
- * @property {MongoId} req.body.dropId
  * @property {string} req.body.date
  * @property {number=} req.body.latitude
  * @property {number=} req.body.longitude
@@ -173,13 +172,19 @@ async function create(
     // if the date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
     const posted = Math.abs(differenceInSeconds(new Date(), body.date)) <= 30;
 
+    const drop = new Drop({
+      scheduledAt: body.date,
+      seller: req.user._id,
+      posted,
+    });
+
     const date = new Date();
     const products = body.products.map(async prod => {
       const product = new Product({
         categoryIds: prod.categoryIds,
         // currency: prod.currency,
         description: prod.description,
-        dropId: prod.dropId,
+        dropId: drop._id,
         price: parseFloat(prod.price).toFixed(2),
         // status: prod.status, // 'forsale' by default
         tags: prod.tags,
@@ -221,13 +226,9 @@ async function create(
 
     const savedProducts = await Promise.all(products);
 
-    const savedDrop = await Drop.create({
-      dropId: body.dropId,
-      products: savedProducts.map(p => p._id),
-      scheduledAt: body.date,
-      seller: req.user._id,
-      posted,
-    });
+    drop.products = savedProducts.map(p => p._id);
+
+    await drop.save();
 
     if (!posted) {
       // schedule a single job that it's only job is to set the products as 'forsale', from 'ready'
@@ -242,7 +243,7 @@ async function create(
       );
     }
 
-    return res.status(httpStatus.CREATED).json({ data: savedDrop });
+    return res.status(httpStatus.CREATED).json({ data: drop });
   } catch (error) {
     if (!(error instanceof APIError)) console.error(error);
     next(error);

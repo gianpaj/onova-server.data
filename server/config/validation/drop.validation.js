@@ -31,7 +31,6 @@ export default {
       // currency: Joi.string().valid('UAH'), // 'UAH' by default
       date: Joi.date().min(new Date(new Date().setHours(0, 0, 0, 0))),
       // description: validation.description.required(),
-      dropId: validation.objectId.required(),
       latitude: Joi.number()
         .min(-90)
         .max(90),
