@@ -13,7 +13,7 @@ const router = express.Router();
 router
   .route('/')
 
-  // POST /api/drop - create adrop
+  // POST /api/drop - create a drop
   .post(validate(paramValidation.createDrop), requireAuth, dropCtrl.create);
 
 export default router;

@@ -7,6 +7,7 @@ import { MongoClient } from 'mongodb';
 import {
   Block,
   DiscardedUser,
+  Drop,
   CommentDoc,
   DefaultFollow,
   Follow,
@@ -262,6 +263,7 @@ export async function createManyProducts(num: number, jwtToken: string) {
 export function beforeAllTests(done: () => void) {
   const collections = [
     Block.collection,
+    Drop.collection,
     DiscardedUser.collection,
     Follow.collection,
     Notification.collection,

@@ -2,6 +2,7 @@
 
 import mongoose from 'mongoose';
 import request from 'supertest';
+import shortid from 'shortid';
 import path from 'path';
 import httpStatus from 'http-status';
 import BSON from 'bson';
@@ -250,6 +251,28 @@ describe('## Drops feed APIs', () => {
         .then(({ body }) =>
           expect(body.message).toContain('Cannot create a drop 90 days')
         );
+    });
+
+    it('should make a drop with one product', () => {
+      return request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[1].token)
+        .send({
+          date: new Date(),
+          dropId: new BSON.ObjectId(),
+          products: [product],
+        })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const d = body.data;
+          expect(Object.keys(d).sort()).toMatchSnapshot();
+          expect(d.posted).toBe(true);
+          expect(d.products).toHaveLength(1);
+          expect(d.seller).toHaveLength(24); // Object Id
+          expect(!isNaN(Date.parse(d.createdAt))).toBe(true);
+          expect(!isNaN(Date.parse(d.updatedAt))).toBe(true);
+          expect(shortid.isValid(d.uuid)).toBe(true);
+        });
     });
   });
 });

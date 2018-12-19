@@ -59,3 +59,16 @@ Array [
   "username",
 ]
 `;
+
+exports[`## Drops feed APIs # POST /api/v2/drop should make a drop with one product 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "updatedAt",
+  "uuid",
+]
+`;
