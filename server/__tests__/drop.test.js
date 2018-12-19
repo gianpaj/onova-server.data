@@ -7,7 +7,7 @@ import path from 'path';
 import httpStatus from 'http-status';
 import addDays from 'date-fns/add_days';
 
-import { User } from '../models';
+import { User, Drop, Product, Notification } from '../models';
 
 import config from '../config/config';
 import app from '../index';
@@ -15,8 +15,10 @@ import {
   beforeAllTests,
   clearJobs,
   createUserAndLogin,
+  findJobs,
   followUser,
 } from './utils';
+import { i18n } from '../controllers/drop.controller';
 
 /**
  * root level hooks
@@ -143,6 +145,10 @@ describe('## Drops feed APIs', () => {
         });
     });
 
+    beforeEach(() =>
+      Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()])
+    );
+
     it('should NOT make a drop with a item price to low', () => {
       return request(app)
         .post('/api/v2/drop')
@@ -245,8 +251,8 @@ describe('## Drops feed APIs', () => {
         );
     });
 
-    it('should create a drop immediately with one product', () => {
-      return request(app)
+    it('should create a drop immediately with one product', async () => {
+      await request(app)
         .post('/api/v2/drop')
         .set('Authorization', users[1].token)
         .send({
@@ -263,19 +269,146 @@ describe('## Drops feed APIs', () => {
           expect(!isNaN(Date.parse(d.createdAt))).toBe(true);
           expect(!isNaN(Date.parse(d.updatedAt))).toBe(true);
           expect(shortid.isValid(d.uuid)).toBe(true);
-        })
-        .then(() =>
-          // check that the drop items have been posted
-          request(app)
-            .get('/api/products/')
-            .expect(httpStatus.OK)
-            .then(({ body }) => {
-              console.log(body);
-              expect(Array.isArray(body.data));
-              expect(body.data).toHaveLength(1);
-              expect(body.data[0].status).toBe('forsale');
-            })
-        );
+        });
+      // check that the drop items have been posted
+      return request(app)
+        .get('/api/products/')
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(Array.isArray(body.data));
+          expect(body.data).toHaveLength(1);
+          expect(body.data[0].status).toBe('forsale');
+        });
     });
+
+    it('should schedule a drop with one product', async done => {
+      const drop = await request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[1].token)
+        .send({
+          date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
+          products: [product],
+        })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const d = body.data;
+          expect(Object.keys(d).sort()).toMatchSnapshot();
+          expect(d.posted).toBe(false);
+          expect(d.products).toHaveLength(1);
+          expect(d.seller).toHaveLength(24); // Object Id
+          expect(!isNaN(Date.parse(d.createdAt))).toBe(true);
+          expect(!isNaN(Date.parse(d.updatedAt))).toBe(true);
+          expect(shortid.isValid(d.uuid)).toBe(true);
+          return d;
+        });
+      // check that the drop item is not listed
+      await request(app)
+        .get('/api/products/')
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(Array.isArray(body.data));
+          expect(body.data).toHaveLength(0);
+        });
+
+      const waitFor = 15 * 1000; // seconds
+      const interval = Math.floor(waitFor / 100);
+      let totalTime = interval;
+
+      // Check every 150ms for up to 15 seconds
+      const timer = setInterval(async () => {
+        totalTime += interval;
+
+        // check the job has been scheduled
+        const jobs = await findJobs(config.JOBNAMES.SCHEDULE, {
+          'data.uuid': drop.uuid,
+        });
+
+        if (jobs.length) {
+          expect(jobs).toHaveLength(1);
+          done();
+          clearInterval(timer);
+          return;
+        }
+
+        if (totalTime >= waitFor) {
+          clearInterval(timer);
+          throw new Error('timeout');
+        }
+      }, interval);
+    });
+
+    it('should post a drop with one product', async done => {
+      const drop = await request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[1].token)
+        .send({
+          date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
+          products: [product],
+        })
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => {
+          const d = body.data;
+          expect(Object.keys(d).sort()).toMatchSnapshot();
+          expect(d.posted).toBe(false);
+          expect(d.products).toHaveLength(1);
+          expect(d.seller).toHaveLength(24); // Object Id
+          expect(!isNaN(Date.parse(d.createdAt))).toBe(true);
+          expect(!isNaN(Date.parse(d.updatedAt))).toBe(true);
+          expect(shortid.isValid(d.uuid)).toBe(true);
+          return d;
+        });
+      // check that the drop item is not listed
+      await request(app)
+        .get('/api/products/')
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(Array.isArray(body.data));
+          expect(body.data).toHaveLength(0);
+        });
+
+      const waitFor = 15 * 1000; // 15 seconds
+      const interval = Math.floor(waitFor / 100);
+      let totalTime = interval;
+
+      // Check every 150ms for up to 15 seconds
+      const timer = setInterval(async () => {
+        totalTime += interval;
+
+        // check the job has run
+        const { body } = await request(app)
+          .get('/api/products/')
+          .expect(httpStatus.OK);
+
+        const notif = await Notification.findOne({
+          notifI18n: i18n.listedDrop,
+        });
+
+        if (body.data.length && notif) {
+          expect(body.data).toHaveLength(1);
+          expect(body.data[0].dropId).toEqual(drop._id);
+
+          // Check:
+          // - a Notification has been created to the seller
+          // - a Push notification has been scheduled to the seller
+          const jobs = await findJobs(config.JOBNAMES.PUSH_DROP_LISTED);
+          expect(jobs).toHaveLength(1);
+          expect(jobs[0].message).toBe(i18n.listedDrop);
+
+          done();
+          clearInterval(timer);
+          return;
+        }
+        if (totalTime >= waitFor) {
+          clearInterval(timer);
+          throw new Error('timeout');
+        }
+      }, interval);
+    });
+
+    // it('should notify the seller once for a number of items in one Drop', async done => {});
   });
+
+  // describe('# GET /feed/drops', () => {
+
+  // });
 });

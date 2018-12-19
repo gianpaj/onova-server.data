@@ -72,3 +72,29 @@ Array [
   "uuid",
 ]
 `;
+
+exports[`## Drops feed APIs # POST /api/v2/drop should post a drop with one product 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "updatedAt",
+  "uuid",
+]
+`;
+
+exports[`## Drops feed APIs # POST /api/v2/drop should schedule a drop with one product 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "updatedAt",
+  "uuid",
+]
+`;

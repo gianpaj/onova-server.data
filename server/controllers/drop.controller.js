@@ -22,6 +22,11 @@ import {
 
 const { minPrice } = config.settings;
 
+export const i18n = {
+  // listedDrop: 'Your drop has been posted',
+  listedDrop: 'Ваш Дроп виставлено на продаж',
+};
+
 declare class session$Request extends express$Request {
   user: UserDoc;
 }
@@ -170,7 +175,10 @@ async function create(
     validateSeller(seller);
 
     // if the date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
-    const posted = Math.abs(differenceInSeconds(new Date(), body.date)) <= 30;
+    // but for testing only is not further thatn 3 seconds in the future
+    const secondsDiff = config.env === 'test' ? 2 : 30;
+    const posted =
+      Math.abs(differenceInSeconds(new Date(), body.date)) <= secondsDiff;
 
     const drop = new Drop({
       scheduledAt: body.date,
@@ -233,14 +241,9 @@ async function create(
     if (!posted) {
       // schedule a single job that it's only job is to set the products as 'forsale', from 'ready'
       // and to set the Drop as
-      await agenda.schedule(
-        body.date,
-        config.JOBNAMES.SCHEDULE,
-        savedDrop,
-        err => {
-          if (err) throw new APIError(`Error scheduling a drop: ${err}`);
-        }
-      );
+      await agenda.schedule(body.date, config.JOBNAMES.SCHEDULE, drop, err => {
+        if (err) throw new APIError(`Error scheduling a drop: ${err}`);
+      });
     }
 
     return res.status(httpStatus.CREATED).json({ data: drop });
