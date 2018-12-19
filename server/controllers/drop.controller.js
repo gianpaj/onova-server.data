@@ -6,7 +6,7 @@ import { agenda } from '../config/express';
 import config from '../config/config';
 
 import APIError from '../helpers/APIError';
-import { Follow, FollowDoc, UserDoc, ProductDoc } from '../models';
+import { Follow, FollowDoc, User, UserDoc, ProductDoc } from '../models';
 
 const { minPrice } = config.settings;
 
@@ -149,6 +149,32 @@ async function create(
 
   try {
     validateProducts(body.products);
+
+    const seller = await User.findById(req.user._id);
+    if (!seller) {
+      throw new APIError('Seller not found', httpStatus.BAD_REQUEST);
+    }
+    if (seller.accountStatus !== 'verified') {
+      throw new APIError(
+        'Please verify your account before creating a drop',
+        httpStatus.BAD_REQUEST
+      );
+    }
+    if (
+      !seller.shippingAddress.departmentNovaposhta ||
+      !seller.shippingAddress.city
+    ) {
+      throw new APIError(
+        'Please enter your shipping address info before creating a drop',
+        httpStatus.BAD_REQUEST
+      );
+    }
+    if (!seller.paymentInfo.method || !seller.paymentInfo.card_token) {
+      throw new APIError(
+        'Please enter your payment info before creating a drop',
+        httpStatus.BAD_REQUEST
+      );
+    }
 
     console.log(body);
     return res.status(httpStatus.CREATED).json({ data: {} });
