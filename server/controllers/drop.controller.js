@@ -187,7 +187,7 @@ async function create(
     });
 
     const date = new Date();
-    const products = body.products.map(async prod => {
+    const productPromises = body.products.reverse().map(async prod => {
       const product = new Product({
         categoryIds: prod.categoryIds,
         // currency: prod.currency,
@@ -232,7 +232,13 @@ async function create(
       return Product.create(product);
     });
 
-    const savedProducts = await Promise.all(products);
+    // const savedProducts = await Promise.all(products);
+
+    // guarantee order - notice `reverse()` in the map
+    const savedProducts = [];
+    for (let i = 0; i < productPromises.length; i++) {
+      savedProducts.push(await productPromises[i]);
+    }
 
     drop.products = savedProducts.map(p => p._id);
 
