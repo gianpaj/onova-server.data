@@ -245,7 +245,7 @@ describe('## Drops feed APIs', () => {
         );
     });
 
-    it('should make a drop with one product', () => {
+    it('should create a drop immediately with one product', () => {
       return request(app)
         .post('/api/v2/drop')
         .set('Authorization', users[1].token)
@@ -263,7 +263,19 @@ describe('## Drops feed APIs', () => {
           expect(!isNaN(Date.parse(d.createdAt))).toBe(true);
           expect(!isNaN(Date.parse(d.updatedAt))).toBe(true);
           expect(shortid.isValid(d.uuid)).toBe(true);
-        });
+        })
+        .then(() =>
+          // check that the drop items have been posted
+          request(app)
+            .get('/api/products/')
+            .expect(httpStatus.OK)
+            .then(({ body }) => {
+              console.log(body);
+              expect(Array.isArray(body.data));
+              expect(body.data).toHaveLength(1);
+              expect(body.data[0].status).toBe('forsale');
+            })
+        );
     });
   });
 });
