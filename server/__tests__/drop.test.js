@@ -128,11 +128,11 @@ describe('## Drops feed APIs', () => {
         .post('/api/v2/drop')
         .set('Authorization', users[1].token)
         .send({
+          date: new Date(),
+          dropId: new BSON.ObjectId(),
           products: [
             { ...product, price: (config.settings.minPrice - 10).toString() },
           ],
-          dropId: new BSON.ObjectId(),
-          date: new Date(),
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -147,9 +147,9 @@ describe('## Drops feed APIs', () => {
         .post('/api/v2/drop')
         .set('Authorization', users[1].token)
         .send({
-          products: [{ ...product, photos: ['http://asdfasd'] }],
-          dropId: new BSON.ObjectId(),
           date: new Date(),
+          dropId: new BSON.ObjectId(),
+          products: [{ ...product, photos: ['http://asdfasd'] }],
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
@@ -160,9 +160,9 @@ describe('## Drops feed APIs', () => {
         .post('/api/v2/drop')
         .set('Authorization', users[2].token)
         .send({
-          products: [product],
-          dropId: new BSON.ObjectId(),
           date: new Date(),
+          dropId: new BSON.ObjectId(),
+          products: [product],
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -176,12 +176,27 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[3].token)
         .send({
           products: [product],
-          dropId: new BSON.ObjectId(),
           date: new Date(),
+          dropId: new BSON.ObjectId(),
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('Please enter your payment info')
+        );
+    });
+
+    it('should NOT create a drop in the past (previous day)', () => {
+      return request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[0].token)
+        .send({
+          date: new Date(+new Date() - 23 * 60 * 60 * 1000),
+          dropId: new BSON.ObjectId(),
+          products: [product],
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('must be larger than or equal')
         );
     });
   });
