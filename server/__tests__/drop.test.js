@@ -5,6 +5,7 @@ import request from 'supertest';
 import path from 'path';
 import httpStatus from 'http-status';
 import BSON from 'bson';
+import addDays from 'date-fns/add_days';
 
 import { User } from '../models';
 
@@ -197,6 +198,21 @@ describe('## Drops feed APIs', () => {
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toContain('must be larger than or equal')
+        );
+    });
+
+    it('should NOT create a drop an item after 3 months from today', () => {
+      return request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[0].token)
+        .send({
+          date: addDays(new Date(Date.now()), 91),
+          dropId: new BSON.ObjectId(),
+          products: [product],
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Cannot create a drop 90 days')
         );
     });
   });

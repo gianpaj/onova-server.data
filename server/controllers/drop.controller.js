@@ -1,6 +1,7 @@
 // @flow
 
 import httpStatus from 'http-status';
+import { differenceInCalendarDays } from 'date-fns';
 
 import { agenda } from '../config/express';
 import config from '../config/config';
@@ -149,6 +150,10 @@ async function create(
 
   try {
     validateProducts(body.products);
+
+    if (differenceInCalendarDays(body.date, Date.now()) > 90) {
+      throw new APIError('Cannot create a drop 90 days from today', 400);
+    }
 
     const seller = await User.findById(req.user._id);
     if (!seller) {
