@@ -6,7 +6,9 @@ import { agenda } from '../config/express';
 import config from '../config/config';
 
 import APIError from '../helpers/APIError';
-import { Follow, FollowDoc, UserDoc } from '../models';
+import { Follow, FollowDoc, UserDoc, ProductDoc } from '../models';
+
+const { minPrice } = config.settings;
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -119,7 +121,65 @@ async function myFeed(
   }
 }
 
+/**
+ * Create a drop a new listing with a specific dropId
+ *
+ * POST /api/v2/drop
+ *
+ * @property {*} req - Express request
+ * @property {*} req.body - Express body parameters
+ * @property {string} req.body.description
+ * @property {MongoId} req.body.dropId
+ * @property {string} req.body.date
+ * @property {number=} req.body.latitude
+ * @property {number=} req.body.longitude
+ * @property {Array<Object>} req.body.products
+ * @property {Array<number>} req.body.products.categoryIds
+ * @property {Array<string>=} req.body.products.photos
+ * @property {string} req.body.products.price
+ * @property {Array<string>=} req.body.products.tags
+ * @property {Array<number>} req.body.products.typeIds
+ */
+async function create(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { body } = req;
+
+  try {
+    validateProducts(body.products);
+
+    console.log(body);
+    return res.status(httpStatus.CREATED).json({ data: {} });
+  } catch (error) {
+    if (!(error instanceof APIError)) console.error(error);
+    next(error);
+  }
+}
+
+function validateProducts(products: Array<ProductDoc>) {
+  products.forEach(product => {
+    if (parseFloat(product.price) < minPrice) {
+      throw new APIError(
+        `Invalid product price. The minimum price is ${minPrice} UAH`,
+        httpStatus.BAD_REQUEST
+      );
+    }
+
+    const correctPhotos = product.photos.filter(p =>
+      p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
+    );
+
+    if (correctPhotos.length < 1) {
+      throw new APIError('Invalid photos', httpStatus.BAD_REQUEST);
+    }
+    // throw new APIError('asdf', httpStatus.BAD_REQUEST);
+  });
+}
+
 export default {
+  create,
   myFeed,
   // myFriendsFeed
   // subscribe,
