@@ -6,6 +6,8 @@ import path from 'path';
 import httpStatus from 'http-status';
 import BSON from 'bson';
 
+import { User } from '../models';
+
 import config from '../config/config';
 import app from '../index';
 import {
@@ -27,12 +29,12 @@ afterAll(done => {
 });
 
 /* TODO: flow - :: extends UserDoc */
-type User = {
+type UserTestDoc = {
   _id: MongoId,
   token: string,
 };
 
-let users: Array<User> = [
+let users: Array<UserTestDoc> = [
   {
     username: 'user0',
     emailAddress: 'gianpa+test0@gmail.com',
@@ -42,6 +44,16 @@ let users: Array<User> = [
     username: 'user1',
     emailAddress: 'gianpa+test1@gmail.com',
     password: 'express1',
+  },
+  {
+    username: 'user2',
+    emailAddress: 'gianpa+test2@gmail.com',
+    password: 'express2',
+  },
+  {
+    username: 'user3',
+    emailAddress: 'gianpa+test3@gmail.com',
+    password: 'express3',
   },
 ];
 
@@ -59,13 +71,22 @@ describe('## Drops feed APIs', () => {
 
   // create 2 users and follow each other
   beforeAll(async () => {
+    await clearJobs();
+
     const usersAndTokens = await Promise.all(users.map(createUserAndLogin));
     users = usersAndTokens.map(user => ({
       ...user.user,
       token: user.jwtToken,
     }));
 
-    await clearJobs();
+    await Promise.all([
+      request(app)
+        .put(`/api/users/${users[2]._id}`)
+        .set('Authorization', users[2].token)
+        .send({ shippingAddress: {} })
+        .expect(httpStatus.OK),
+      User.updateOne({ _id: users[3]._id }, { $unset: { paymentInfo: '' } }),
+    ]);
 
     /**
      * | from  |            | target |
@@ -103,7 +124,6 @@ describe('## Drops feed APIs', () => {
     });
 
     it('should NOT make a drop with a item price to low', () => {
-      const dropId = new BSON.ObjectId();
       return request(app)
         .post('/api/v2/drop')
         .set('Authorization', users[1].token)
@@ -111,7 +131,7 @@ describe('## Drops feed APIs', () => {
           products: [
             { ...product, price: (config.settings.minPrice - 10).toString() },
           ],
-          dropId,
+          dropId: new BSON.ObjectId(),
           date: new Date(),
         })
         .expect(httpStatus.BAD_REQUEST)
@@ -123,17 +143,31 @@ describe('## Drops feed APIs', () => {
     });
 
     it('should NOT create a drop with invalid item images', () => {
-      const dropId = new BSON.ObjectId();
       return request(app)
         .post('/api/v2/drop')
         .set('Authorization', users[1].token)
         .send({
           products: [{ ...product, photos: ['http://asdfasd'] }],
-          dropId,
+          dropId: new BSON.ObjectId(),
           date: new Date(),
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
+    });
+
+    it(`should NOT crete a drop if seller doesn't have a shipping address`, () => {
+      return request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[2].token)
+        .send({
+          products: [product],
+          dropId: new BSON.ObjectId(),
+          date: new Date(),
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Please enter your shipping address')
+        );
     });
   });
 });
