@@ -121,5 +121,19 @@ describe('## Drops feed APIs', () => {
           )
         );
     });
+
+    it('should NOT create a drop with invalid item images', () => {
+      const dropId = new BSON.ObjectId();
+      return request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[1].token)
+        .send({
+          products: [{ ...product, photos: ['http://asdfasd'] }],
+          dropId,
+          date: new Date(),
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toContain('Invalid photos'));
+    });
   });
 });
