@@ -320,8 +320,8 @@ async function listFollowing(
   // flow-disable-next-line
   try {
     let followings = await Follow.list({ DBquery, limit, skip });
-    if (followings) {
-      // filter followers that not longer exist (populate returns null)
+    if (followings.length) {
+      // filter followers that no longer exist (populate returns null)
       followings = followings.filter(f => f.following !== null);
       // TODO: filter followings that are deleted
       // get the list ids of the queried User is following
@@ -334,7 +334,7 @@ async function listFollowing(
       myFollowings = myFollowings.map(f => f.following.toString());
       followings = followings.map((f: FollowDoc) => {
         f = f.toJSON();
-        let doc = {
+        const doc = {
           ...f.following,
           dateCreated: f.dateCreated,
           amIAFollower: false,
