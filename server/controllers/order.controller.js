@@ -822,7 +822,13 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
 export function rejectPayment(order: OrderDoc): Promise<any> {
   return Promise.all([
     Order.updateOne({ _id: order.id }, { transactionStatus: 'ua-reversed' }),
-    axios.post(`/deals/${order.transactionId}/rejections`, null, axiosConfig),
+    axios.post(
+      `/deals/${order.transactionId}/rejections`,
+      {
+        reasonBy: 'SELLER',
+      },
+      axiosConfig
+    ),
   ]);
 }
 
