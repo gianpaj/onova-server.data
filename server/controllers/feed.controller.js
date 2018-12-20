@@ -46,12 +46,12 @@ function flat(
 
       const followingIDs = following.map(f => f.following);
 
-      let blockedIDs = [];
-      const blocked = await Follow.find({
+      let blockedByIDs = [];
+      const blockedBy = await Follow.find({
         follower: req.user._id,
         status: -1,
       });
-      if (blocked) blockedIDs = blocked.map(f => f.following);
+      if (blockedBy) blockedByIDs = blockedBy.map(f => f.following);
 
       let DBqueryInclusive = {
         status: 'forsale',
@@ -59,7 +59,7 @@ function flat(
       };
       let DBqueryExclusive = {
         status: 'forsale',
-        seller: { $nin: [...followingIDs, ...blockedIDs] },
+        seller: { $nin: [...followingIDs, ...blockedByIDs] },
       };
 
       if (typeIds) {
