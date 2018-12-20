@@ -6,8 +6,7 @@ import httpStatus from 'http-status';
 import shortid from 'shortid';
 
 import APIError from '../helpers/APIError';
-import { userPopulateFields } from './user.model';
-import { ProductDoc } from '.';
+import { ProductDoc, userPopulateFields } from '.';
 
 const { Schema } = mongoose;
 
@@ -16,19 +15,13 @@ const DropSchema = new Schema(
     description: {
       type: String,
     },
-    // subscribers: {
-    //   type: [UserSchema],
-    // },
+    // subscribers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     posted: {
       type: Boolean,
       required: true,
       default: false,
     },
-    products: {
-      type: [Schema.Types.ObjectId],
-      ref: 'Product',
-      required: true,
-    },
+    products: [{ type: Schema.Types.ObjectId, ref: 'Product' }],
     scheduledAt: {
       type: Date,
       required: true,
@@ -82,18 +75,27 @@ DropSchema.statics = {
     sort = { createdAt: -1 },
     limit = 50,
   }): Promise<DropDoc[] | APIError> {
-    // TODO: populate products
     return this.find(query)
       .populate({
         path: 'seller',
         select: userPopulateFields,
       })
+      .populate({
+        path: 'products',
+        select: 'photoURIs',
+        // TODO: only return the first image
+        // options: {
+        //   slice: {
+        //     photoURIs: 1,
+        //   },
+        // },
+      })
       .sort(sort)
       .limit(+limit)
       .then((drops: DropDoc[]) => drops)
-      .catch(() => {
-        const err = new APIError('Invalid drops', httpStatus.BAD_REQUEST);
-        return Promise.reject(err);
+      .catch(error => {
+        console.log(error);
+        throw new APIError('Invalid drops', httpStatus.BAD_REQUEST);
       });
   },
 };

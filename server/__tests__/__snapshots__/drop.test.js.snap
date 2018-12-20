@@ -60,6 +60,28 @@ Array [
 ]
 `;
 
+exports[`## Drops feed APIs # GET /feed/drops should get user's 0 drop feed 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "updatedAt",
+  "uuid",
+]
+`;
+
+exports[`## Drops feed APIs # GET /feed/drops should get user's 0 drop feed 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "shippingAddress",
+  "username",
+]
+`;
+
 exports[`## Drops feed APIs # POST /api/v2/drop should create a drop immediately with one product 1`] = `
 Array [
   "_id",

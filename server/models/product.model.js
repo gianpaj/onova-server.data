@@ -229,7 +229,7 @@ ProductSchema.pre('save', function(next) {
 // Note that this doesn't effect `toObject`
 ProductSchema.set('toJSON', {
   transform: (doc, ret) => {
-    ret.price = ret.price.toString();
+    if (ret.price) ret.price = ret.price.toString();
     delete ret.__v;
     delete ret.location;
     return ret;

@@ -72,15 +72,15 @@ async function myFeed(
     // if (lastId) {
     //   DBquery = { ...DBquery, _id: { $lt: lastId } };
 
-    //   const lastIdProd = await Product.findById(lastId);
-    //   if (!lastIdProd) {
-    //     throw new APIError('Product not found.', httpStatus.NOT_FOUND);
+    //   const lastDropId = await Drop.findById(lastId);
+    //   if (!lastDropId) {
+    //     throw new APIError('Drop not found.', httpStatus.NOT_FOUND);
     //   }
     // }
 
-    const DBquery = { seller: { $in: followingIDs }, posted: false };
+    const query = { seller: { $in: followingIDs }, posted: false };
 
-    const drops = await Drop.list({ DBquery, limit });
+    const drops = await Drop.list({ query, limit });
 
     return res.json({ data: drops });
   } catch (error) {
@@ -136,7 +136,7 @@ async function create(
       posted,
     });
 
-    const date = new Date();
+    const date = Date.now();
     const productPromises = body.products.reverse().map(async prod => {
       const product = new Product({
         categoryIds: prod.categoryIds,
