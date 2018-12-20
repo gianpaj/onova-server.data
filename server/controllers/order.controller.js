@@ -189,7 +189,7 @@ function create(
         order.priceOfItem = product.price;
         order.onovaFee = onovaFee;
         order.transactionFee = transactionFee;
-        order.save();
+        await order.save();
 
         await addProductToCheckout(product);
         throw { message: 'Duplicate order', order };
@@ -506,7 +506,7 @@ async function pay(
     // TODO: check transaction hasn't already started
     order.transactionStatus = 'ua-pending';
     order.shippingFee = shippingFee;
-    order.save();
+    await order.save();
 
     res.status(httpStatus.CREATED).json({ data: { order, payment } });
   } catch (err) {
@@ -597,7 +597,7 @@ function createPaymentUAPAY(
       );
 
       order.transactionId = deal.id;
-      order.save();
+      await order.save();
 
       // Step 3 - Start payment
       await axios.post(
@@ -715,7 +715,7 @@ async function paymentStatus(
 
     // if (data.productPayment.type === 'P2P_ONOVA')
 
-    order.save();
+    await order.save();
     res.json({
       data: {
         rawStatus: data.productPayment.statusCode,
