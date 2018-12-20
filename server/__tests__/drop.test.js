@@ -74,7 +74,9 @@ const product = {
   tags: ['winter', 'spring2007'], // optional
   description: 'nice boots',
   price: '1100.99',
-  photos: ['http://storage.googleapis.com/1527232263107'],
+  photos: [
+    'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733068.jpg',
+  ],
 };
 
 describe('## Drops feed APIs', () => {
@@ -123,20 +125,6 @@ describe('## Drops feed APIs', () => {
   });
 
   describe('# POST /api/v2/drop', () => {
-    beforeAll(() => {
-      return request(app)
-        .post('/api/photos/upload')
-        .set('Authorization', users[1].token)
-        .attach('photo', path.join(__dirname, 'images/boots-larger.jpeg'))
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data).toContain(
-            'https://storage.googleapis.com/temp-uploads.onova.co/'
-          );
-          product.photos = [body.data];
-        });
-    });
-
     beforeEach(() =>
       Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()])
     );
