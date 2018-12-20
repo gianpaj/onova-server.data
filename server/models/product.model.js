@@ -7,7 +7,7 @@ import shortid from 'shortid';
 // import stream from 'getstream-node';
 
 import APIError from '../helpers/APIError';
-import { userPopulateFields } from './user.model';
+import { userPopulateFields } from './';
 
 const { Schema } = mongoose;
 // const FeedManager = stream.FeedManager;
