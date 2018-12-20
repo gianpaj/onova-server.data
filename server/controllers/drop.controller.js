@@ -39,14 +39,14 @@ declare class session$Request extends express$Request {
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
 //  * @property {MongoId} req.query.lastId
-//  * @property {number} req.query.limit Limit number of drops to be returned.
+ * @property {number} req.query.limit Limit number of drops to be returned.
  */
 async function myFeed(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
-  // const { limit = 50 } = req.query;
+  const { limit = 50 } = req.query;
 
   try {
     const following: Array<FollowDoc> = await Follow.find({
@@ -58,7 +58,6 @@ async function myFeed(
     // console.log(following);
     let followingIDs = following.map(f => f.following);
 
-    // filter the us
     let blockedByIDs = [];
     const blockedBy = await Follow.find({
       following: req.user._id,
@@ -79,60 +78,11 @@ async function myFeed(
     //   }
     // }
 
-    const now = new Date();
+    const DBquery = { seller: { $in: followingIDs }, posted: false };
 
-    agenda.jobs(
-      {
-        name: config.JOBNAMES.SCHEDULE,
-        'data.product.seller': { $in: followingIDs },
-        $or: [
-          // scheduled
-          {
-            nextRunAt: { $gte: now },
-          },
-          // queued
-          {
-            nextRunAt: { $lte: now },
-            $expr: {
-              $gte: ['$nextRunAt', '$lastFinishedAt'],
-            },
-          },
-        ],
-      },
-      (err, jobs: Array<any>) => {
-        if (err) {
-          const e = new APIError(
-            'Error getting scheduled listing',
-            httpStatus.SERVICE_UNAVAILABLE
-          );
-          return next(e);
-        }
+    const drops = await Drop.list({ DBquery, limit });
 
-        if (!jobs.length) return res.json({ data: [] });
-
-        const scheduled = jobs.map(job => ({
-          lastFinishedAt: job.attrs.lastFinishedAt
-            ? job.attrs.lastFinishedAt
-            : null,
-          nextRunAt: job.attrs.nextRunAt,
-          ...job.attrs.data.product,
-        }));
-
-        // group jobs by dropId
-        // inspired by https://stackoverflow.com/a/47385953/728287
-        const result = scheduled.reduce(
-          (accumulator, currentValue) => ({
-            ...accumulator,
-            [currentValue.dropId]: (
-              accumulator[currentValue.dropId] || []
-            ).concat(currentValue),
-          }),
-          {}
-        );
-
-        return res.json({ data: result });
-      }
-    );
+    return res.json({ data: drops });
   } catch (error) {
     next(error);
   }
@@ -180,7 +130,7 @@ async function create(
     const posted =
       Math.abs(differenceInSeconds(new Date(), body.date)) <= secondsDiff;
 
-    const drop = new Drop({
+    const drop: DropDoc = new Drop({
       scheduledAt: body.date,
       seller: req.user._id,
       posted,

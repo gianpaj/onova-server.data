@@ -80,7 +80,7 @@ const product = {
 describe('## Drops feed APIs', () => {
   beforeAll(beforeAllTests);
 
-  // create 2 users and follow each other
+  // create 4 users + a non-active user
   beforeAll(async () => {
     await clearJobs();
 
@@ -120,14 +120,6 @@ describe('## Drops feed APIs', () => {
       followUser(users[0].token, users[1]._id),
       followUser(users[1].token, users[0]._id),
     ]);
-  });
-
-  it("should get an empty list if my followers haven't posted anything", () => {
-    return request(app)
-      .get('/api/feed/drops')
-      .set('Authorization', users[0].token)
-      .expect(httpStatus.OK)
-      .then(({ body }) => expect(body.data).toHaveLength(0));
   });
 
   describe('# POST /api/v2/drop', () => {
@@ -524,7 +516,37 @@ describe('## Drops feed APIs', () => {
     });
   });
 
-  // describe('# GET /feed/drops', () => {
+  describe('# GET /feed/drops', () => {
+    beforeEach(async () => {
+      await Promise.all([
+        Drop.deleteMany({}),
+        Product.deleteMany({}),
+        clearJobs(),
+      ]);
+      await request(app)
+        .post('/api/v2/drop')
+        .set('Authorization', users[1].token)
+        .send({
+          date: new Date(),
+          products: [product],
+        })
+        .expect(httpStatus.CREATED);
+    });
 
-  // });
+    it('should get my feed of drops without auth', () => {
+      return request(app)
+        .get('/api/feed/drops')
+        .expect(httpStatus.UNAUTHORIZED);
+    });
+
+    it("should get an empty list if my followers haven't posted anything", () => {
+      return request(app)
+        .get('/api/feed/drops')
+        .set('Authorization', users[2].token)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data).toHaveLength(0));
+    });
+  });
+
+  // describe('# GET /api/feed/drops?lastId=', () => {});
 });
