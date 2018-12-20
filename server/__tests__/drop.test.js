@@ -76,6 +76,7 @@ const product = {
   price: '1100.99',
   photos: [
     'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733068.jpg',
+    'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733069.jpg',
   ],
 };
 
@@ -511,14 +512,24 @@ describe('## Drops feed APIs', () => {
         Product.deleteMany({}),
         clearJobs(),
       ]);
-      await request(app)
-        .post('/api/v2/drop')
-        .set('Authorization', users[1].token)
-        .send({
-          date: new Date(),
-          products: [product],
-        })
-        .expect(httpStatus.CREATED);
+      await Promise.all([
+        request(app)
+          .post('/api/v2/drop')
+          .set('Authorization', users[1].token)
+          .send({
+            date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+            products: [product],
+          })
+          .expect(httpStatus.CREATED),
+        request(app)
+          .post('/api/v2/drop')
+          .set('Authorization', users[0].token)
+          .send({
+            date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
+            products: [product],
+          })
+          .expect(httpStatus.CREATED),
+      ]);
     });
 
     it('should get my feed of drops without auth', () => {
@@ -533,6 +544,27 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[2].token)
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data).toHaveLength(0));
+    });
+
+    it("should get user's 0 drop feed", () => {
+      return request(app)
+        .get('/api/feed/drops')
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          // console.log(JSON.stringify(body, null, 2));
+          expect(body.data).toHaveLength(1);
+          const drop = body.data[0];
+          expect(Object.keys(drop).sort()).toMatchSnapshot();
+          expect(Object.keys(drop.seller).sort()).toMatchSnapshot();
+          expect(shortid.isValid(drop.uuid)).toBe(true);
+          expect(drop.posted).toBe(false);
+          expect(drop.products).toHaveLength(1);
+          expect(Object.keys(drop.products[0]).sort()).toEqual([
+            '_id',
+            'photoURIs',
+          ]);
+        });
     });
   });
 
