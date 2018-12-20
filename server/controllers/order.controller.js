@@ -611,8 +611,8 @@ function createPaymentUAPAY(
         },
         axiosConfig
       );
+      //TODO: confirm /payments returns waitingFor: 'PAY_PROCESSING'
 
-      // wait few secs?
       // Step 4 - Get deal info to send form details to client
       let retryNum = 0;
       let newDeal;
@@ -622,11 +622,11 @@ function createPaymentUAPAY(
           data: { data },
         } = await axios.get(`/deals/${deal.id}`, axiosConfig);
         newDeal = data;
-        // console.log(newDeal.productPayment.waitingFor);
+        // console.log(deal.id, newDeal.productPayment.waitingFor);
         await sleep(500);
       } while (
         newDeal.productPayment.waitingFor !== 'CONFIRMATION' &&
-        retryNum < 15
+        retryNum < (config.env === 'test' ? 1 : 15)
       );
 
       const { productPayment: paym } = newDeal;
