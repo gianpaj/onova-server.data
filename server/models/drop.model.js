@@ -73,6 +73,7 @@ DropSchema.statics = {
    * List drops, by default in descending order of 'createdAt' timestamp.
    *
    * @param {Object} query Query params
+   * @param {Object} query.query DB query
    * @param {Object} query.sort
    * @param {number} query.limit Limit number of drops to be returned.
    */
