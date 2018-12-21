@@ -139,6 +139,8 @@ describe('## Drops feed APIs', () => {
           products: [
             { ...product, price: (config.settings.minPrice - 10).toString() },
           ],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -155,6 +157,8 @@ describe('## Drops feed APIs', () => {
         .send({
           date: new Date(),
           products: [{ ...product, photos: ['http://asdfasd'] }],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid photos'));
@@ -167,6 +171,8 @@ describe('## Drops feed APIs', () => {
         .send({
           date: new Date(),
           products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(res => {
@@ -183,6 +189,8 @@ describe('## Drops feed APIs', () => {
         .send({
           date: new Date(),
           products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -196,6 +204,8 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[3].token)
         .send({
           products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
           date: new Date(),
         })
         .expect(httpStatus.BAD_REQUEST)
@@ -211,6 +221,8 @@ describe('## Drops feed APIs', () => {
         .send({
           date: new Date(+new Date() - 23 * 60 * 60 * 1000),
           products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -225,6 +237,24 @@ describe('## Drops feed APIs', () => {
         .send({
           date: addDays(new Date(Date.now()), 91),
           products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toContain('Cannot create a drop 90 days')
+        );
+    });
+
+    it('should NOT create a drop without coordinates', () => {
+      return request(app)
+        .post('/api/v2/drops')
+        .set('Authorization', users[0].token)
+        .send({
+          date: addDays(new Date(Date.now()), 91),
+          products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
@@ -239,11 +269,13 @@ describe('## Drops feed APIs', () => {
         .send({
           date: new Date(),
           products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
           const d = body.data;
-          expect(Object.keys(d).sort()).toMatchSnapshot();
+          expect(Object.keys(d).sort()).toMatchSnapshot('drop');
           expect(d.posted).toBe(true);
           expect(d.products).toHaveLength(1);
           expect(d.seller).toHaveLength(24); // Object Id
@@ -258,7 +290,10 @@ describe('## Drops feed APIs', () => {
         .then(({ body }) => {
           expect(Array.isArray(body.data));
           expect(body.data).toHaveLength(1);
-          expect(body.data[0].status).toBe('forsale');
+          const p = body.data[0];
+          expect(p.status).toBe('forsale');
+          expect(p.locality).toBe('Lviv');
+          expect(Object.keys(p).sort()).toMatchSnapshot('product');
         });
     });
 
@@ -269,6 +304,8 @@ describe('## Drops feed APIs', () => {
         .send({
           date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
           products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -324,6 +361,8 @@ describe('## Drops feed APIs', () => {
         .send({
           date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
           products: [product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -391,6 +430,8 @@ describe('## Drops feed APIs', () => {
         .send({
           date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
           products: [product, product],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -461,6 +502,8 @@ describe('## Drops feed APIs', () => {
             { ...product, description: 'firstfirst' },
             { ...product, description: 'secondsecond' },
           ],
+          longitude: 23.9573617,
+          latitude: 49.8134431,
         })
         .expect(httpStatus.CREATED)
         .then(({ body }) => {
@@ -505,7 +548,32 @@ describe('## Drops feed APIs', () => {
     });
   });
 
-  describe('# GET /feed/drops', () => {
+  describe('# GET /api/v2/drops', () => {
+    beforeAll(() => Drop.deleteMany({}));
+    beforeAll(() => Promise.all([createManyDrops(2, users[0].token)]));
+
+    it('should get user 0 scheduled drops', () => {
+      return request(app)
+        .get(`/api/v2/drops/?username=${users[0].username}`)
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(2);
+        });
+    });
+
+    it("should get NOT non-existant user's drops", () => {
+      return request(app)
+        .get('/api/v2/drops/?username=IDONTEXIST')
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.NOT_FOUND)
+        .then(({ body }) => {
+          expect(body.message).toBe('User not found');
+        });
+    });
+  });
+
+  describe('# GET /api/feed/drops', () => {
     beforeEach(async () => {
       await Promise.all([
         Drop.deleteMany({}),
@@ -513,22 +581,8 @@ describe('## Drops feed APIs', () => {
         clearJobs(),
       ]);
       await Promise.all([
-        request(app)
-          .post('/api/v2/drops')
-          .set('Authorization', users[1].token)
-          .send({
-            date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
-            products: [product],
-          })
-          .expect(httpStatus.CREATED),
-        request(app)
-          .post('/api/v2/drops')
-          .set('Authorization', users[0].token)
-          .send({
-            date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
-            products: [product],
-          })
-          .expect(httpStatus.CREATED),
+        createManyDrops(1, users[0].token),
+        createManyDrops(1, users[1].token),
       ]);
     });
 
@@ -625,48 +679,6 @@ describe('## Drops feed APIs', () => {
         .then(({ body }) => expect(body.message).toBe('Drop not found.'));
     });
   });
-
-  describe.only('# GET /api/v2/drops', () => {
-    beforeAll(() => Drop.deleteMany({}));
-    beforeAll(() =>
-      Promise.all([
-        createDrop(
-          {
-            date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
-            products: [product],
-          },
-          users[0].token
-        ),
-        createDrop(
-          {
-            date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
-            products: [product],
-          },
-          users[0].token
-        ),
-      ])
-    );
-
-    it('should get user 0 scheduled drops', () => {
-      return request(app)
-        .get(`/api/v2/drops/?username=${users[0].username}`)
-        .set('Authorization', users[0].token)
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body.data).toHaveLength(2);
-        });
-    });
-
-    it("should get NOT non-existant user's drops", () => {
-      return request(app)
-        .get('/api/v2/drops/?username=IDONTEXIST')
-        .set('Authorization', users[0].token)
-        .expect(httpStatus.NOT_FOUND)
-        .then(({ body }) => {
-          expect(body.message).toBe('User not found');
-        });
-    });
-  });
 });
 
 /**
@@ -688,6 +700,8 @@ async function createManyDrops(num: number, jwtToken: string) {
   const d = {
     date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
     products: [product],
+    longitude: 23.9573617,
+    latitude: 49.8134431,
   };
 
   const res = [];

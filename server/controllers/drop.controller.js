@@ -3,6 +3,10 @@
 import httpStatus from 'http-status';
 import shortid from 'shortid';
 import { differenceInCalendarDays, differenceInSeconds } from 'date-fns';
+import path from 'path';
+const geocoder = require('offline-geocoder')({
+  database: path.join(__dirname, '../../db.sqlite'),
+});
 
 import { agenda } from '../config/express';
 import config from '../config/config';
@@ -163,6 +167,14 @@ async function create(
 
     validateSeller(seller);
 
+    const location = {
+      type: 'Point',
+      coordinates: [body.longitude, body.latitude],
+    };
+
+    const geodata = await geocoder.reverse(body.latitude, body.longitude);
+    const locality = geodata.admin1.name;
+
     // if the date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
     // but for testing only is not further thatn 3 seconds in the future
     const secondsDiff = config.env === 'test' ? 2 : 30;
@@ -182,6 +194,8 @@ async function create(
         // currency: prod.currency,
         description: prod.description,
         dropId: drop._id,
+        locality,
+        location,
         price: parseFloat(prod.price).toFixed(2),
         // status: prod.status, // 'forsale' by default
         tags: prod.tags,

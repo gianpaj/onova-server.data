@@ -60,7 +60,7 @@ Array [
 ]
 `;
 
-exports[`## Drops feed APIs # GET /feed/drops should get user's 0 drop feed 1`] = `
+exports[`## Drops feed APIs # GET /api/feed/drops should get user's 0 drop feed 1`] = `
 Array [
   "_id",
   "createdAt",
@@ -73,7 +73,7 @@ Array [
 ]
 `;
 
-exports[`## Drops feed APIs # GET /feed/drops should get user's 0 drop feed 2`] = `
+exports[`## Drops feed APIs # GET /api/feed/drops should get user's 0 drop feed 2`] = `
 Array [
   "_id",
   "accountStatus",
@@ -82,7 +82,7 @@ Array [
 ]
 `;
 
-exports[`## Drops feed APIs # POST /api/v2/drops should create a drop immediately with one product 1`] = `
+exports[`## Drops feed APIs # POST /api/v2/drops should create a drop immediately with one product: drop 1`] = `
 Array [
   "_id",
   "createdAt",
@@ -92,5 +92,27 @@ Array [
   "seller",
   "updatedAt",
   "uuid",
+]
+`;
+
+exports[`## Drops feed APIs # POST /api/v2/drops should create a drop immediately with one product: product 1`] = `
+Array [
+  "_id",
+  "categoryIds",
+  "createdAt",
+  "currency",
+  "description",
+  "dropId",
+  "likes",
+  "locality",
+  "photoURIs",
+  "price",
+  "seller",
+  "status",
+  "tags",
+  "typeIds",
+  "updatedAt",
+  "uuid",
+  "weight",
 ]
 `;
