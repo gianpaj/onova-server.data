@@ -625,6 +625,48 @@ describe('## Drops feed APIs', () => {
         .then(({ body }) => expect(body.message).toBe('Drop not found.'));
     });
   });
+
+  describe.only('# GET /api/v2/drops', () => {
+    beforeAll(() => Drop.deleteMany({}));
+    beforeAll(() =>
+      Promise.all([
+        createDrop(
+          {
+            date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
+            products: [product],
+          },
+          users[0].token
+        ),
+        createDrop(
+          {
+            date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
+            products: [product],
+          },
+          users[0].token
+        ),
+      ])
+    );
+
+    it('should get user 0 scheduled drops', () => {
+      return request(app)
+        .get(`/api/v2/drops/?username=${users[0].username}`)
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(2);
+        });
+    });
+
+    it("should get NOT non-existant user's drops", () => {
+      return request(app)
+        .get('/api/v2/drops/?username=IDONTEXIST')
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.NOT_FOUND)
+        .then(({ body }) => {
+          expect(body.message).toBe('User not found');
+        });
+    });
+  });
 });
 
 /**

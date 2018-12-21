@@ -12,6 +12,8 @@ const router = express.Router();
 
 router
   .route('/')
+  // GET /api/v2/drops - get a user's drops
+  .get(validate(paramValidation.getDrops), requireAuth, dropCtrl.get)
 
   // POST /api/v2/drops - create a drop
   .post(validate(paramValidation.createDrop), requireAuth, dropCtrl.create);

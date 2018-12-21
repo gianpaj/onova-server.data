@@ -32,6 +32,45 @@ declare class session$Request extends express$Request {
 }
 
 /**
+ * List a user's drops
+ *
+ * GET /api/v2/drop
+ *
+ * @property {*} req - Express request
+ * @property {*} req.query
+ * @property {string} req.query.username
+ */
+async function get(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  try {
+    const user = await User.findOne({ username: req.query.username });
+    if (!user) {
+      const e = new APIError('User not found', httpStatus.NOT_FOUND);
+      return next(e);
+    }
+
+    const query = { seller: user._id, posted: false };
+
+    const drops = await Drop.list({ query });
+
+    return res.json({ data: drops });
+  } catch (error) {
+    if (!(error instanceof APIError)) {
+      console.error(error);
+      const e = new APIError(
+        'Error getting scheduled listing',
+        httpStatus.SERVICE_UNAVAILABLE
+      );
+      return next(e);
+    }
+    next(error);
+  }
+}
+
+/**
  * Get list of scheduled drops of the people who i am following
  *
  * GET /api/feed/drops
@@ -91,7 +130,7 @@ async function myFeed(
 /**
  * Create a drop a new listing with a specific dropId
  *
- * POST /api/v2/drop
+ * POST /api/v2/drops
  *
  * @property {*} req - Express request
  * @property {*} req.body - Express body parameters
@@ -258,6 +297,7 @@ function validateSeller(seller) {
 
 export default {
   create,
+  get,
   myFeed,
   // myFriendsFeed
   // subscribe,
