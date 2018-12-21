@@ -7,7 +7,7 @@ import path from 'path';
 import httpStatus from 'http-status';
 import addDays from 'date-fns/add_days';
 
-import { User, Drop, Product, Notification } from '../models';
+import { User, Drop, Product, Notification, DropDoc } from '../models';
 
 import config from '../config/config';
 import app from '../index';
@@ -568,5 +568,102 @@ describe('## Drops feed APIs', () => {
     });
   });
 
-  // describe('# GET /api/feed/drops?lastId=', () => {});
+  describe('# GET /api/feed/drops?lastId=', () => {
+    let _ids = [];
+    beforeAll(async () => {
+      try {
+        const allDrops = await createManyDrops(105, users[0].token);
+        _ids = allDrops.map(p => p._id);
+      } catch (err) {
+        console.error(err);
+      }
+    });
+
+    let lastId;
+    const limit = 50; // current default
+
+    it("should get the Drop's feed with limit", () => {
+      return request(app)
+        .get(`/api/feed/drops/?limit=${limit}`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(limit);
+          expect(body.data.map(p => p._id)).toEqual(_ids.slice(0, limit));
+          lastId = body.data[body.data.length - 1]._id;
+        });
+    });
+
+    it('should load more load more', () => {
+      return request(app)
+        .get(`/api/feed/drops/?lastId=${lastId}&limit=5`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(5);
+          expect(body.data.map(p => p._id)).toEqual(_ids.splice(limit, 5));
+          lastId = body.data[body.data.length - 1]._id;
+        });
+    });
+
+    it('should load more again', () => {
+      return request(app)
+        .get(`/api/feed/drops/?lastId=${lastId}&limit=5`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(5);
+          expect(body.data.map(p => p._id)).toEqual(_ids.splice(limit, 5));
+          lastId = body.data[body.data.length - 1]._id;
+        });
+    });
+    it('should not load more with a missing lastId', () => {
+      return request(app)
+        .get(`/api/feed/drops?lastId=5ff999999147a8bd32ea35f6`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.NOT_FOUND)
+        .then(({ body }) => expect(body.message).toBe('Drop not found.'));
+    });
+  });
 });
+
+/**
+ * Create many drops in the future (not immediately posted)
+ */
+async function createManyDrops(num: number, jwtToken: string) {
+  const product = {
+    categoryIds: [1, 2, 3],
+    typeIds: [1, 2, 3],
+    tags: ['winter', 'spring2007'], // optional
+    description: 'nice boots',
+    price: '1100.99',
+    photos: [
+      'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733068.jpg',
+      'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733069.jpg',
+    ],
+  };
+
+  const d = {
+    date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
+    products: [product],
+  };
+
+  const res = [];
+  for (let i = 0; i < num; i++) {
+    res.push(await createDrop(d, jwtToken));
+  }
+
+  return res.reverse();
+}
+
+function createDrop(drop: DropDoc, jwtToken: string) {
+  return request(app)
+    .post('/api/v2/drop')
+    .set('Authorization', jwtToken)
+    .send(drop)
+    .expect(httpStatus.CREATED)
+    .then(res => {
+      if (!res.body.data) console.error(res.body);
+      return res.body.data;
+    });
+}
