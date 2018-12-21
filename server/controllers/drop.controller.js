@@ -38,7 +38,7 @@ declare class session$Request extends express$Request {
  *
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
-//  * @property {MongoId} req.query.lastId
+ * @property {MongoId} req.query.lastId
  * @property {number} req.query.limit Limit number of drops to be returned.
  */
 async function myFeed(
@@ -46,7 +46,7 @@ async function myFeed(
   res: express$Response,
   next: express$NextFunction
 ) {
-  const { limit = 50 } = req.query;
+  const { limit = 50, lastId } = req.query;
 
   try {
     const following: Array<FollowDoc> = await Follow.find({
@@ -68,17 +68,17 @@ async function myFeed(
       followingIDs = followingIDs.filter(id => -1 === blockedByIDs.indexOf(id));
     }
 
+    let query = { seller: { $in: followingIDs }, posted: false };
+
     // for pagination - results are excluding the lastId
-    // if (lastId) {
-    //   DBquery = { ...DBquery, _id: { $lt: lastId } };
+    if (lastId) {
+      query = { ...query, _id: { $lt: lastId } };
 
-    //   const lastDropId = await Drop.findById(lastId);
-    //   if (!lastDropId) {
-    //     throw new APIError('Drop not found.', httpStatus.NOT_FOUND);
-    //   }
-    // }
-
-    const query = { seller: { $in: followingIDs }, posted: false };
+      const lastDropId = await Drop.findById(lastId);
+      if (!lastDropId) {
+        throw new APIError('Drop not found.', httpStatus.NOT_FOUND);
+      }
+    }
 
     const drops = await Drop.list({ query, limit });
 

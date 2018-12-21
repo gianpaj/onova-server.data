@@ -72,7 +72,7 @@ DropSchema.statics = {
    */
   list({
     query = {},
-    sort = { createdAt: -1 },
+    sort = { _id: -1 }, // faster than createdAt: -1 , same ordering
     limit = 50,
   }): Promise<DropDoc[] | APIError> {
     return this.find(query)
