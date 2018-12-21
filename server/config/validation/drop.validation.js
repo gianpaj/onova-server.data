@@ -13,6 +13,17 @@ validate.options({
 });
 
 export default {
+  // GET /api/v2/drops
+  getDrops: {
+    query: Joi.object({
+      limit: Joi.number()
+        .min(1)
+        .max(100),
+      username: validation.username.min(3).required(),
+      // lastId: validation.objectId,
+    }),
+  },
+
   // POST /api/v2/drops
   createDrop: {
     body: {
