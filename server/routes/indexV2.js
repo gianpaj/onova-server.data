@@ -4,6 +4,6 @@ import dropRoutes from './drop.route';
 
 const router = express.Router();
 
-router.use('/drop', dropRoutes);
+router.use('/drops', dropRoutes);
 
 export default router;

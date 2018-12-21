@@ -125,14 +125,14 @@ describe('## Drops feed APIs', () => {
     ]);
   });
 
-  describe('# POST /api/v2/drop', () => {
+  describe('# POST /api/v2/drops', () => {
     beforeEach(() =>
       Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()])
     );
 
     it('should NOT make a drop with a item price to low', () => {
       return request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[1].token)
         .send({
           date: new Date(),
@@ -150,7 +150,7 @@ describe('## Drops feed APIs', () => {
 
     it('should NOT create a drop with invalid item images', () => {
       return request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[1].token)
         .send({
           date: new Date(),
@@ -162,7 +162,7 @@ describe('## Drops feed APIs', () => {
 
     it(`should NOT create a drop if seller is not verified`, () => {
       return request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', nonActiveUserJwtToken)
         .send({
           date: new Date(),
@@ -178,7 +178,7 @@ describe('## Drops feed APIs', () => {
 
     it(`should NOT create a drop if seller doesn't have a shipping address`, () => {
       return request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[2].token)
         .send({
           date: new Date(),
@@ -192,7 +192,7 @@ describe('## Drops feed APIs', () => {
 
     it(`should NOT create a drop if seller doesn't have a payment info`, () => {
       return request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[3].token)
         .send({
           products: [product],
@@ -206,7 +206,7 @@ describe('## Drops feed APIs', () => {
 
     it('should NOT create a drop in the past (previous day)', () => {
       return request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[0].token)
         .send({
           date: new Date(+new Date() - 23 * 60 * 60 * 1000),
@@ -220,7 +220,7 @@ describe('## Drops feed APIs', () => {
 
     it('should NOT create a drop an item after 3 months from today', () => {
       return request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[0].token)
         .send({
           date: addDays(new Date(Date.now()), 91),
@@ -234,7 +234,7 @@ describe('## Drops feed APIs', () => {
 
     it('should create a drop immediately with one product', async () => {
       await request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[1].token)
         .send({
           date: new Date(),
@@ -264,7 +264,7 @@ describe('## Drops feed APIs', () => {
 
     it('should schedule a drop with one product', async done => {
       const drop = await request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[1].token)
         .send({
           date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now,
@@ -319,7 +319,7 @@ describe('## Drops feed APIs', () => {
 
     it('should post a drop with one product', async done => {
       const drop = await request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[1].token)
         .send({
           date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
@@ -386,7 +386,7 @@ describe('## Drops feed APIs', () => {
 
     it('should notify the seller (once) for a number of items in one Drop', async done => {
       const drop = await request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[1].token)
         .send({
           date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
@@ -453,7 +453,7 @@ describe('## Drops feed APIs', () => {
 
     it('should drop items in order', async done => {
       await request(app)
-        .post('/api/v2/drop')
+        .post('/api/v2/drops')
         .set('Authorization', users[1].token)
         .send({
           date: new Date(Date.now() + 4 * 1000), // 4 seconds from now,
@@ -514,7 +514,7 @@ describe('## Drops feed APIs', () => {
       ]);
       await Promise.all([
         request(app)
-          .post('/api/v2/drop')
+          .post('/api/v2/drops')
           .set('Authorization', users[1].token)
           .send({
             date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
@@ -522,7 +522,7 @@ describe('## Drops feed APIs', () => {
           })
           .expect(httpStatus.CREATED),
         request(app)
-          .post('/api/v2/drop')
+          .post('/api/v2/drops')
           .set('Authorization', users[0].token)
           .send({
             date: new Date(Date.now() + 10 * 60 * 1000), // 10 minutes from now
@@ -658,7 +658,7 @@ async function createManyDrops(num: number, jwtToken: string) {
 
 function createDrop(drop: DropDoc, jwtToken: string) {
   return request(app)
-    .post('/api/v2/drop')
+    .post('/api/v2/drops')
     .set('Authorization', jwtToken)
     .send(drop)
     .expect(httpStatus.CREATED)

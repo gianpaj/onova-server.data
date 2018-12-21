@@ -13,7 +13,7 @@ validate.options({
 });
 
 export default {
-  // POST /api/v2/drop
+  // POST /api/v2/drops
   createDrop: {
     body: {
       products: Joi.array()
