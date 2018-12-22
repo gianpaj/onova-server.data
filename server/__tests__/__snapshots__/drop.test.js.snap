@@ -1,0 +1,118 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[` 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[` 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[` 3`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[` 4`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "username",
+]
+`;
+
+exports[`## Drops feed APIs # GET /api/feed/drops should get user's 0 drop feed 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "updatedAt",
+  "uuid",
+]
+`;
+
+exports[`## Drops feed APIs # GET /api/feed/drops should get user's 0 drop feed 2`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "shippingAddress",
+  "username",
+]
+`;
+
+exports[`## Drops feed APIs # POST /api/v2/drops should create a drop immediately with one product: drop 1`] = `
+Array [
+  "_id",
+  "createdAt",
+  "posted",
+  "products",
+  "scheduledAt",
+  "seller",
+  "updatedAt",
+  "uuid",
+]
+`;
+
+exports[`## Drops feed APIs # POST /api/v2/drops should create a drop immediately with one product: product 1`] = `
+Array [
+  "_id",
+  "categoryIds",
+  "createdAt",
+  "currency",
+  "description",
+  "dropId",
+  "likes",
+  "locality",
+  "photoURIs",
+  "price",
+  "seller",
+  "status",
+  "tags",
+  "typeIds",
+  "updatedAt",
+  "uuid",
+  "weight",
+]
+`;
