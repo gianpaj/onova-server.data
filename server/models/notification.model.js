@@ -4,7 +4,7 @@ import mongoose from 'mongoose';
 
 const { Schema } = mongoose;
 
-var NotificationSchema = new Schema({
+const NotificationSchema = new Schema({
   data: {
     type: Schema.Types.Mixed,
   },

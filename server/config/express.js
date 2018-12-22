@@ -19,6 +19,7 @@ require('winston-daily-rotate-file');
 
 import winstonInstance from './winston';
 import routes from '../routes';
+import routesV2 from '../routes/indexV2';
 import config from './config';
 import APIError from '../helpers/APIError';
 import EscrowRunner from '../runners/escrow.runner';
@@ -140,6 +141,7 @@ if (config.env === 'production') {
 
 // mount all routes on /api path
 app.use('/api', routes);
+app.use('/api/v2', routesV2);
 
 // if error is not an instanceOf APIError, convert it.
 app.use((err: any, req: $Request, res: $Response, next: NextFunction) => {
