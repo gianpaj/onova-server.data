@@ -586,7 +586,7 @@ describe('## Drops feed APIs', () => {
       ]);
     });
 
-    it('should get my feed of drops without auth', () => {
+    it('should NOT get my feed of drops without auth', () => {
       return request(app)
         .get('/api/feed/drops')
         .expect(httpStatus.UNAUTHORIZED);
