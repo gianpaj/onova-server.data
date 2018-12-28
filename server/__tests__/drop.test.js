@@ -3,7 +3,6 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import shortid from 'shortid';
-import path from 'path';
 import httpStatus from 'http-status';
 import addDays from 'date-fns/add_days';
 
@@ -68,6 +67,14 @@ const nonActiveUser = {
 
 let nonActiveUserJwtToken;
 
+const admin = {
+  username: 'gianpaj',
+  emailAddress: 'gianpa@gmail.com',
+  password: 'expressos',
+};
+
+let adminJwtToken;
+
 const product = {
   categoryIds: [1, 2, 3],
   typeIds: [1, 2, 3],
@@ -103,13 +110,12 @@ describe('## Drops feed APIs', () => {
         .post('/api/users')
         .send(nonActiveUser)
         .expect(httpStatus.CREATED)
-        .then(({ body }) => {
-          expect(body.data.username).toBe(nonActiveUser.username);
-          expect(body.data.emailAddress).toBe(nonActiveUser.emailAddress);
-          expect(body.data.accountStatus).toBe('notverified');
-          expect(typeof body.token).toBe('string');
-          nonActiveUserJwtToken = body.token;
-        }),
+        .then(({ body }) => (nonActiveUserJwtToken = body.token)),
+      request(app)
+        .post('/api/users')
+        .send(admin)
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => (adminJwtToken = body.token)),
       User.updateOne({ _id: users[3]._id }, { $unset: { paymentInfo: '' } }),
     ]);
 
@@ -125,7 +131,7 @@ describe('## Drops feed APIs', () => {
     ]);
   });
 
-  describe.only('# GET /api/v2/drops/:uuid', () => {
+  describe('# GET /api/v2/drops/:uuid', () => {
     let drops;
     beforeAll(async () => {
       await Drop.deleteMany({});
@@ -156,6 +162,38 @@ describe('## Drops feed APIs', () => {
         .then(({ body }) => {
           expect(body.message).toBe('Drop not found');
         });
+    });
+  });
+
+  describe('# GET /api/v2/drops/:uuid', () => {
+    let drops;
+    beforeAll(async () => {
+      await Drop.deleteMany({});
+      drops = await createManyDrops(1, users[0].token);
+    });
+
+    it('should NOT delete an invalid drop', () => {
+      return request(app)
+        .delete('/api/v2/drops/SkXbwQxyQ')
+        .set('Authorization', adminJwtToken)
+        .expect(httpStatus.NOT_FOUND)
+        .then(({ body }) => expect(body).toBe(''));
+    });
+
+    it('should NOT delete one drop (if not an admin)', () => {
+      return request(app)
+        .delete(`/api/v2/drops/${drops[0].uuid}`)
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.UNAUTHORIZED)
+        .then(({ body }) => expect(body).toMatchObject({}));
+    });
+
+    it('should delete one drop (admin only)', () => {
+      return request(app)
+        .delete(`/api/v2/drops/${drops[0].uuid}`)
+        .set('Authorization', adminJwtToken)
+        .expect(httpStatus.NO_CONTENT)
+        .then(({ body }) => expect(body).toMatchObject({}));
     });
   });
 

@@ -68,6 +68,7 @@ Array [
   "products",
   "scheduledAt",
   "seller",
+  "status",
   "updatedAt",
   "uuid",
 ]
@@ -90,6 +91,7 @@ Array [
   "products",
   "scheduledAt",
   "seller",
+  "status",
   "updatedAt",
   "uuid",
 ]
@@ -112,6 +114,7 @@ Array [
   "products",
   "scheduledAt",
   "seller",
+  "status",
   "updatedAt",
   "uuid",
 ]

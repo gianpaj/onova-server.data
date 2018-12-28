@@ -73,6 +73,45 @@ async function get(
 }
 
 /**
+ * Delete a drop (only admins can)
+ *
+ * DELETE /api/v2/drop/:uuid
+ *
+ * @property {*} req - Express request
+ * @property {*} req.params - express session parameters
+ * @property {shortid} req.params.uuid
+ */
+async function remove(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  try {
+    const { uuid } = req.params;
+
+    const doc = await Drop.findOneAndUpdate(
+      { uuid, status: 'valid' },
+      { status: 'deleted' }
+    );
+
+    if (!doc) {
+      return res.status(httpStatus.NOT_FOUND).json();
+    }
+    return res.status(httpStatus.NO_CONTENT).json();
+  } catch (error) {
+    if (!(error instanceof APIError)) {
+      console.error(error);
+      const e = new APIError(
+        'Error deleting a drop',
+        httpStatus.SERVICE_UNAVAILABLE
+      );
+      return next(e);
+    }
+    next(error);
+  }
+}
+
+/**
  * List a user's drops
  *
  * GET /api/v2/drop
@@ -348,6 +387,7 @@ function validateSeller(seller) {
 
 export default {
   create,
+  remove,
   list,
   get,
   myFeed,

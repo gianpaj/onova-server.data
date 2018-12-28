@@ -28,7 +28,7 @@ export default {
   },
 
   // POST /api/v2/drops
-  createDrop: {
+  create: {
     body: {
       products: Joi.array()
         .items(
@@ -55,4 +55,7 @@ export default {
         .required(),
     },
   },
+
+  // DELETE /api/v2/drops/:uuid
+  delete: {},
 };
