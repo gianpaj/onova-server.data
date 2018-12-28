@@ -125,6 +125,40 @@ describe('## Drops feed APIs', () => {
     ]);
   });
 
+  describe.only('# GET /api/v2/drops/:uuid', () => {
+    let drops;
+    beforeAll(async () => {
+      await Drop.deleteMany({});
+      drops = await createManyDrops(2, users[0].token);
+    });
+
+    it('should get one drop', () => {
+      return request(app)
+        .get(`/api/v2/drops/${drops[0].uuid}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(Object.keys(body.data).sort()).toMatchSnapshot();
+          expect(Object.keys(body.data.seller).sort()).toMatchSnapshot();
+          expect(shortid.isValid(body.data.uuid)).toBe(true);
+          expect(body.data.posted).toBe(false);
+          expect(body.data.products).toHaveLength(1);
+          expect(Object.keys(body.data.products[0]).sort()).toEqual([
+            '_id',
+            'photoURIs',
+          ]);
+        });
+    });
+
+    it('should get NOT non-existant drop', () => {
+      return request(app)
+        .get('/api/v2/drops/IDONTEXIST')
+        .expect(httpStatus.NOT_FOUND)
+        .then(({ body }) => {
+          expect(body.message).toBe('Drop not found');
+        });
+    });
+  });
+
   describe('# POST /api/v2/drops', () => {
     beforeEach(() =>
       Promise.all([Drop.deleteMany({}), Product.deleteMany({}), clearJobs()])
@@ -548,7 +582,7 @@ describe('## Drops feed APIs', () => {
     });
   });
 
-  describe('# GET /api/v2/drops', () => {
+  describe('# GET /api/v2/drops?username', () => {
     beforeAll(() => Drop.deleteMany({}));
     beforeAll(() => Promise.all([createManyDrops(2, users[0].token)]));
 
