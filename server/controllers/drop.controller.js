@@ -36,6 +36,43 @@ declare class session$Request extends express$Request {
 }
 
 /**
+ * Get single drop
+ *
+ * GET /api/v2/drop/:uuid
+ *
+ * @property {*} req - Express request
+ * @property {*} req.params - express session parameters
+ * @property {shortid} req.params.uuid
+ */
+async function get(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  try {
+    const query = { uuid: req.params.uuid, posted: false };
+
+    const drop = await Drop.list({ query });
+
+    if (!drop.length) {
+      throw new APIError('Drop not found', httpStatus.NOT_FOUND);
+    }
+
+    return res.json({ data: drop[0] });
+  } catch (error) {
+    if (!(error instanceof APIError)) {
+      console.error(error);
+      const e = new APIError(
+        'Error getting single drop',
+        httpStatus.SERVICE_UNAVAILABLE
+      );
+      return next(e);
+    }
+    next(error);
+  }
+}
+
+/**
  * List a user's drops
  *
  * GET /api/v2/drop
@@ -44,7 +81,7 @@ declare class session$Request extends express$Request {
  * @property {*} req.query
  * @property {string} req.query.username
  */
-async function get(
+async function list(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
@@ -311,6 +348,7 @@ function validateSeller(seller) {
 
 export default {
   create,
+  list,
   get,
   myFeed,
   // myFriendsFeed

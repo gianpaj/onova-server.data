@@ -13,7 +13,10 @@ validate.options({
 });
 
 export default {
-  // GET /api/v2/drops
+  // GET /api/v2/drops/:uuid
+  getDrop: {},
+
+  // GET /api/v2/drops?limit=&username=
   getDrops: {
     query: Joi.object({
       limit: Joi.number()

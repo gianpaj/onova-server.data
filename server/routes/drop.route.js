@@ -11,9 +11,14 @@ const requireAuth = passport.authenticate('jwt', { session: false });
 const router = express.Router();
 
 router
+  .route('/:uuid')
+  // GET /api/v2/drops/:uuid - get single drop
+  .get(validate(paramValidation.getDrop), dropCtrl.get);
+
+router
   .route('/')
   // GET /api/v2/drops - get a user's drops
-  .get(validate(paramValidation.getDrops), dropCtrl.get)
+  .get(validate(paramValidation.getDrops), dropCtrl.list)
 
   // POST /api/v2/drops - create a drop
   .post(validate(paramValidation.createDrop), requireAuth, dropCtrl.create);
