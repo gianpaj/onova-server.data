@@ -35,6 +35,12 @@ const DropSchema = new Schema(
       type: String,
       unique: true, // Unique index
     },
+    status: {
+      type: String,
+      required: true,
+      default: 'valid',
+      enum: ['valid', 'sold', 'banned', 'deleted'],
+    },
   },
   {
     // assigns 'createdAt' and 'updatedAt' fields
@@ -75,7 +81,7 @@ DropSchema.statics = {
     sort = { _id: -1 }, // faster than createdAt: -1 , same ordering
     limit = 50,
   }): Promise<DropDoc[] | APIError> {
-    return this.find(query)
+    return this.find({ ...query, status: 'valid' })
       .populate({
         path: 'seller',
         select: userPopulateFields,
