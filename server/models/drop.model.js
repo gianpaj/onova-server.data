@@ -76,6 +76,47 @@ DropSchema.statics = {
    * @param {Object} query.sort
    * @param {number} query.limit Limit number of drops to be returned.
    */
+  get({
+    query = {},
+    sort = { _id: -1 }, // faster than createdAt: -1 , same ordering
+    limit = 50,
+  }): Promise<DropDoc | APIError> {
+    return this.findOne({ ...query, status: 'valid' })
+      .populate({
+        path: 'seller',
+        select: 'username profilePic',
+      })
+      .populate({
+        path: 'products',
+        select: 'photoURIs',
+        // TODO: only return the first image
+        // options: {
+        //   slice: {
+        //     photoURIs: 1,
+        //   },
+        // },
+      })
+      .populate({
+        path: 'subscribers',
+        select: 'username profilePic',
+      })
+      .sort(sort)
+      .limit(+limit)
+      .then((drop: DropDoc) => drop)
+      .catch(error => {
+        console.log(error);
+        throw new APIError('Invalid drop', httpStatus.BAD_REQUEST);
+      });
+  },
+
+  /**
+   * List drops, by default in descending order of 'createdAt' timestamp.
+   *
+   * @param {Object} query Query params
+   * @param {Object} query.query DB query
+   * @param {Object} query.sort
+   * @param {number} query.limit Limit number of drops to be returned.
+   */
   list({
     query = {},
     sort = { _id: -1 }, // faster than createdAt: -1 , same ordering
@@ -84,7 +125,7 @@ DropSchema.statics = {
     return this.find({ ...query, status: 'valid' })
       .populate({
         path: 'seller',
-        select: userPopulateFields,
+        select: 'username profilePic',
       })
       .populate({
         path: 'products',

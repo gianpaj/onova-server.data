@@ -36,6 +36,25 @@ declare class session$Request extends express$Request {
 }
 
 /**
+ * Load a drop and append to req.
+ */
+function load(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction,
+  uuid: string
+) {
+  // use static method from DropSchema
+  // flow-disable-next-line
+  Drop.get(uuid)
+    .then((drop: DropDoc) => {
+      req.drop = drop;
+      return next();
+    })
+    .catch(e => next(e));
+}
+
+/**
  * Get single drop
  *
  * GET /api/v2/drop/:uuid
@@ -49,27 +68,7 @@ async function get(
   res: express$Response,
   next: express$NextFunction
 ) {
-  try {
-    const query = { uuid: req.params.uuid, posted: false };
-
-    const drop = await Drop.list({ query });
-
-    if (!drop.length) {
-      throw new APIError('Drop not found', httpStatus.NOT_FOUND);
-    }
-
-    return res.json({ data: drop[0] });
-  } catch (error) {
-    if (!(error instanceof APIError)) {
-      console.error(error);
-      const e = new APIError(
-        'Error getting single drop',
-        httpStatus.SERVICE_UNAVAILABLE
-      );
-      return next(e);
-    }
-    next(error);
-  }
+  return res.json({ data: req.drop });
 }
 
 /**
@@ -338,6 +337,31 @@ async function create(
   }
 }
 
+/**
+ * Subscribe to a Drop
+ *
+ * POST /api/v2/drops/:dropId/subscribe
+ *
+ * @property {*} req Express request
+ * @property {*} req.params Express params parameters
+ * @property {string} req.params.userId The target user to be followed
+ */
+async function subscribe(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const dropId = req.params.userId;
+
+  try {
+    if (req.user._id.toString() === dropId.toString()) {
+      throw new APIError('Cannot follow your own drop', httpStatus.BAD_REQUEST);
+    }
+  } catch (error) {
+    next(e);
+  }
+}
+
 function validateProducts(products: Array<ProductDoc>) {
   products.forEach(product => {
     if (parseFloat(product.price) < minPrice) {
@@ -386,12 +410,13 @@ function validateSeller(seller) {
 }
 
 export default {
+  load,
   create,
   remove,
   list,
   get,
   myFeed,
   // myFriendsFeed
-  // subscribe,
+  subscribe,
   // unsubscribe,
 };

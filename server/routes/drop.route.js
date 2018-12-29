@@ -43,4 +43,7 @@ router
   // POST /api/v2/drops - create a drop
   .post(validate(paramValidation.create), requireAuth, dropCtrl.create);
 
+// Load a drop when API with uuid route parameter is hit
+router.param('uuid', dropCtrl.load);
+
 export default router;
