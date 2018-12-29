@@ -54,8 +54,7 @@ function get(
   })
     .then(followDoc => {
       if (!followDoc) {
-        const APIerr = new APIError('Not following', httpStatus.NOT_FOUND);
-        return next(APIerr);
+        throw new APIError('Not following', httpStatus.NOT_FOUND);
       }
       return res.json({ data: followDoc });
     })
@@ -204,34 +203,24 @@ function unfollow(
   User.findById(targetUserId)
     .then((targetUser: UserDoc) => {
       if (!targetUser) {
-        const APIerr = new APIError(
-          'Error unfollowing a user',
-          httpStatus.BAD_REQUEST
-        );
-        throw APIerr;
+        throw new APIError('Error unfollowing a user', httpStatus.BAD_REQUEST);
       }
       return targetUser;
     })
-    .then(targetUser => {
-      return Follow.findOne({
+    .then(targetUser =>
+      Follow.findOne({
         follower: req.user._id,
         following: targetUser._id,
         status: { $ne: -1 },
-      });
-    })
+      })
+    )
     .then((followDoc: FollowDoc) => {
       if (!followDoc) {
-        const APIerr = new APIError(
-          'Error unfollowing a user',
-          httpStatus.BAD_REQUEST
-        );
-        throw APIerr;
+        throw new APIError('Error unfollowing a user', httpStatus.BAD_REQUEST);
       }
       return followDoc.remove();
     })
-    .then(deletedDoc => {
-      return res.json({ data: deletedDoc });
-    })
+    .then(deletedDoc => res.json({ data: deletedDoc }))
     .catch(e => next(e));
 }
 
