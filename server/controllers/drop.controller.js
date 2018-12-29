@@ -49,6 +49,9 @@ function load(
   // flow-disable-next-line
   Drop.get(uuid)
     .then((drop: DropDoc) => {
+      if (!drop) {
+        throw new APIError('Drop not found', httpStatus.NOT_FOUND);
+      }
       req.drop = drop;
       return next();
     })
