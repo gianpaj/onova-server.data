@@ -686,11 +686,34 @@ describe('## Drops feed APIs', () => {
           expect(shortid.isValid(drop.uuid)).toBe(true);
           expect(drop.posted).toBe(false);
           expect(drop.products).toHaveLength(1);
+          expect(drop.subscribers).toHaveLength(0);
           expect(Object.keys(drop.products[0]).sort()).toEqual([
             '_id',
             'photoURIs',
           ]);
         });
+    });
+  });
+
+  describe.only('# POST /api/v2/drops/:uuid/subscribe', () => {
+    let drops;
+    beforeEach(async () => {
+      await Promise.all([
+        Drop.deleteMany({}),
+        Product.deleteMany({}),
+        clearJobs(),
+      ]);
+      drops = await createManyDrops(1, users[0].token);
+    });
+
+    it('should NOT subscribe to my own drop', () => {
+      return request(app)
+        .post(`/api/v2/drops/${drops[0].uuid}/subscribe`)
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe('Cannot subscribe your own drop"')
+        );
     });
   });
 

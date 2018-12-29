@@ -3,6 +3,7 @@
 import express from 'express';
 import validate from 'express-validation';
 import passport from 'passport';
+import httpStatus from 'http-status';
 
 import paramValidation from '../config/validation/drop.validation';
 import dropCtrl from '../controllers/drop.controller';
@@ -16,8 +17,7 @@ const router = express.Router();
  */
 function isAdmin(req, res, next) {
   if (!['alex', 'onova', 'gianpaj'].includes(req.user.username)) {
-    const err = new APIError('Unauthorized', 401);
-    return next(err);
+    return next(new APIError('Unauthorized', httpStatus.UNAUTHORIZED));
   }
   next();
 }
@@ -25,15 +25,21 @@ function isAdmin(req, res, next) {
 router
   .route('/:uuid')
   // GET /api/v2/drops/:uuid - get single drop
-  .get(validate(paramValidation.getDrop), dropCtrl.get)
+  .get(validate(paramValidation.uuid), dropCtrl.get)
 
   // DELETE /api/v2/drops/:uuid - delete a drop (only Admins)
   .delete(
-    validate(paramValidation.delete),
+    validate(paramValidation.uuid),
     requireAuth,
     isAdmin,
     dropCtrl.remove
   );
+
+router
+  .route('/:uuid/subscribe')
+
+  // GET /api/v2/drops/:uuid/subscribe - Subscribe to a drop
+  .post(validate(paramValidation.uuid), requireAuth, dropCtrl.subscribe);
 
 router
   .route('/')

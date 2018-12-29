@@ -6,7 +6,7 @@ import httpStatus from 'http-status';
 import shortid from 'shortid';
 
 import APIError from '../helpers/APIError';
-import { ProductDoc, userPopulateFields } from '.';
+import { ProductDoc, UserDoc } from '.';
 
 const { Schema } = mongoose;
 
@@ -15,7 +15,7 @@ const DropSchema = new Schema(
     description: {
       type: String,
     },
-    // subscribers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
+    subscribers: [{ type: Schema.Types.ObjectId, ref: 'User' }],
     posted: {
       type: Boolean,
       required: true,
@@ -53,9 +53,11 @@ export class DropDoc /*:: extends Mongoose$Document */ {
   createdAt: Date;
   description: ?string;
   posted: Boolean;
+  amISubscribed: Boolean;
   products: Array<ProductDoc>;
   scheduledAt: Date;
   seller: MongoId;
+  subscribers: Array<UserDoc>;
   updatedAt: Date;
   uuid: string;
 }
@@ -136,6 +138,10 @@ DropSchema.statics = {
         //     photoURIs: 1,
         //   },
         // },
+      })
+      .populate({
+        path: 'subscribers',
+        select: 'username profilePic',
       })
       .sort(sort)
       .limit(+limit)
