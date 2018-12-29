@@ -42,6 +42,12 @@ router
   .post(validate(paramValidation.uuid), requireAuth, dropCtrl.subscribe);
 
 router
+  .route('/:uuid/unsubscribe')
+
+  // GET /api/v2/drops/:uuid/unsubscribe - Unsubscribe to a drop
+  .post(validate(paramValidation.uuid), requireAuth, dropCtrl.unsubscribe);
+
+router
   .route('/')
   // GET /api/v2/drops - get a user's drops
   .get(validate(paramValidation.getDrops), dropCtrl.list)
