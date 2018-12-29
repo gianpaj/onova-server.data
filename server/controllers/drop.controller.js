@@ -33,6 +33,7 @@ export const i18n = {
 
 declare class session$Request extends express$Request {
   user: UserDoc;
+  drop: DropDoc;
 }
 
 /**
@@ -344,21 +345,40 @@ async function create(
  *
  * @property {*} req Express request
  * @property {*} req.params Express params parameters
- * @property {string} req.params.userId The target user to be followed
+ * @property {string} req.params.dropId The target drop to subscribe to
  */
 async function subscribe(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
-  const dropId = req.params.userId;
+  const { drop } = req;
+
+  const myUserId = req.user._id.toString();
 
   try {
-    if (req.user._id.toString() === dropId.toString()) {
-      throw new APIError('Cannot follow your own drop', httpStatus.BAD_REQUEST);
+    if (myUserId === drop.seller._id.toString()) {
+      throw new APIError(
+        'Cannot subscribe your own drop',
+        httpStatus.BAD_REQUEST
+      );
     }
+
+    const subscribers = drop.subscribers.map(subscriber =>
+      subscriber._id.toString()
+    );
+
+    if (subscribers.indexOf(myUserId) > -1) {
+      throw new APIError("You're already subscribed", httpStatus.BAD_REQUEST);
+    }
+
+    drop.subscribers.push(req.user);
+
+    await drop.save();
+
+    res.status(httpStatus.CREATED).json({ data: drop });
   } catch (error) {
-    next(e);
+    next(error);
   }
 }
 

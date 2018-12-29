@@ -14,7 +14,12 @@ validate.options({
 
 export default {
   // GET /api/v2/drops/:uuid
-  getDrop: {},
+  // DELETE /api/v2/drops/:uuid
+  uuid: {
+    params: {
+      uuid: validation.uuid.required(),
+    },
+  },
 
   // GET /api/v2/drops?limit=&username=
   getDrops: {
@@ -55,7 +60,4 @@ export default {
         .required(),
     },
   },
-
-  // DELETE /api/v2/drops/:uuid
-  delete: {},
 };
