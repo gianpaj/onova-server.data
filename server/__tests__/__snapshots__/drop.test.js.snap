@@ -69,6 +69,7 @@ Array [
   "scheduledAt",
   "seller",
   "status",
+  "subscribers",
   "updatedAt",
   "uuid",
 ]
@@ -77,8 +78,6 @@ Array [
 exports[`## Drops feed APIs # GET /api/feed/drops should get user's 0 drop feed 2`] = `
 Array [
   "_id",
-  "accountStatus",
-  "shippingAddress",
   "username",
 ]
 `;
@@ -92,6 +91,7 @@ Array [
   "scheduledAt",
   "seller",
   "status",
+  "subscribers",
   "updatedAt",
   "uuid",
 ]
@@ -100,8 +100,6 @@ Array [
 exports[`## Drops feed APIs # GET /api/v2/drops/:uuid should get one drop 2`] = `
 Array [
   "_id",
-  "accountStatus",
-  "shippingAddress",
   "username",
 ]
 `;
@@ -115,6 +113,7 @@ Array [
   "scheduledAt",
   "seller",
   "status",
+  "subscribers",
   "updatedAt",
   "uuid",
 ]
