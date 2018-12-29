@@ -63,6 +63,7 @@ Array [
 exports[`## Drops feed APIs # GET /api/feed/drops should get user's 0 drop feed 1`] = `
 Array [
   "_id",
+  "amISubscribed",
   "createdAt",
   "posted",
   "products",

@@ -685,6 +685,7 @@ describe('## Drops feed APIs', () => {
           expect(Object.keys(drop.seller).sort()).toMatchSnapshot();
           expect(shortid.isValid(drop.uuid)).toBe(true);
           expect(drop.posted).toBe(false);
+          expect(drop.amISubscribed).toBe(false);
           expect(drop.products).toHaveLength(1);
           expect(drop.subscribers).toHaveLength(0);
           expect(Object.keys(drop.products[0]).sort()).toEqual([
@@ -716,12 +717,21 @@ describe('## Drops feed APIs', () => {
         );
     });
 
-    it('should subscribe to a drop', () => {
-      return request(app)
+    it('should subscribe to a drop', async () => {
+      await request(app)
         .post(`/api/v2/drops/${drops[0].uuid}/subscribe`)
         .set('Authorization', users[1].token)
         .expect(httpStatus.CREATED)
         .then(({ body }) => expect(body.data.subscribers).toHaveLength(1));
+
+      return request(app)
+        .get('/api/feed/drops')
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data).toHaveLength(1);
+          expect(body.data[0].amISubscribed).toBe(true);
+        });
     });
 
     it('should NOT subscribe to the same drop twice', () => {

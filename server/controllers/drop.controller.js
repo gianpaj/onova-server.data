@@ -203,7 +203,21 @@ async function myFeed(
       }
     }
 
-    const drops = await Drop.list({ query, limit });
+    let drops = await Drop.list({ query, limit });
+
+    const myUserId = req.user._id.toString();
+
+    // add the amISubscribed field
+    drops = drops.map(drop => {
+      const subscribers = drop.subscribers.map(subscriber =>
+        subscriber._id.toString()
+      );
+      let amISubscribed = false;
+      if (subscribers.indexOf(myUserId.toString()) > -1) {
+        amISubscribed = true;
+      }
+      return { ...drop.toJSON(), amISubscribed };
+    });
 
     return res.json({ data: drops });
   } catch (error) {
