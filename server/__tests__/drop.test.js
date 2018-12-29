@@ -695,9 +695,9 @@ describe('## Drops feed APIs', () => {
     });
   });
 
-  describe.only('# POST /api/v2/drops/:uuid/subscribe', () => {
+  describe('# POST /api/v2/drops/:uuid/subscribe', () => {
     let drops;
-    beforeEach(async () => {
+    beforeAll(async () => {
       await Promise.all([
         Drop.deleteMany({}),
         Product.deleteMany({}),
@@ -712,7 +712,25 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[0].token)
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
-          expect(body.message).toBe('Cannot subscribe your own drop"')
+          expect(body.message).toBe('Cannot subscribe your own drop')
+        );
+    });
+
+    it('should subscribe to a drop', () => {
+      return request(app)
+        .post(`/api/v2/drops/${drops[0].uuid}/subscribe`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => expect(body.data.subscribers).toHaveLength(1));
+    });
+
+    it('should NOT subscribe to the same drop twice', () => {
+      return request(app)
+        .post(`/api/v2/drops/${drops[0].uuid}/subscribe`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe("You're already subscribed")
         );
     });
   });
