@@ -73,17 +73,10 @@ DropSchema.statics = {
   /**
    * List drops, by default in descending order of 'createdAt' timestamp.
    *
-   * @param {Object} query Query params
-   * @param {Object} query.query DB query
-   * @param {Object} query.sort
-   * @param {number} query.limit Limit number of drops to be returned.
+   * @param {string} uuid
    */
-  get({
-    query = {},
-    sort = { _id: -1 }, // faster than createdAt: -1 , same ordering
-    limit = 50,
-  }): Promise<DropDoc | APIError> {
-    return this.findOne({ ...query, status: 'valid' })
+  get(uuid): Promise<DropDoc | APIError> {
+    return this.findOne({ uuid, status: 'valid' })
       .populate({
         path: 'seller',
         select: 'username profilePic',
@@ -102,8 +95,6 @@ DropSchema.statics = {
         path: 'subscribers',
         select: 'username profilePic',
       })
-      .sort(sort)
-      .limit(+limit)
       .then((drop: DropDoc) => drop)
       .catch(error => {
         console.log(error);

@@ -56,7 +56,7 @@ function load(
 }
 
 /**
- * Get single drop
+ * Get a single drop
  *
  * GET /api/v2/drop/:uuid
  *
@@ -64,11 +64,15 @@ function load(
  * @property {*} req.params - express session parameters
  * @property {shortid} req.params.uuid
  */
-async function get(
+function get(
   req: session$Request,
   res: express$Response,
   next: express$NextFunction
 ) {
+  if (!req.drop) {
+    const error = new APIError('Drop not found', httpStatus.NOT_FOUND);
+    return next(error);
+  }
   return res.json({ data: req.drop });
 }
 
@@ -339,6 +343,52 @@ async function create(
 }
 
 /**
+ * Unsubscribe to a Drop
+ *
+ * POST /api/v2/drops/:dropId/unsubscribe
+ *
+ * @property {*} req Express request
+ * @property {*} req.params Express params parameters
+ * @property {string} req.params.dropId The target drop to unsubscribe to
+ */
+async function unsubscribe(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { drop } = req;
+
+  const myUserId = req.user._id.toString();
+
+  try {
+    if (myUserId === drop.seller._id.toString()) {
+      throw new APIError(
+        'Cannot unsubscribe your own drop',
+        httpStatus.BAD_REQUEST
+      );
+    }
+
+    const subscribers = drop.subscribers.map(subscriber =>
+      subscriber._id.toString()
+    );
+
+    if (subscribers.indexOf(myUserId) === -1) {
+      throw new APIError("You're not subscribed", httpStatus.BAD_REQUEST);
+    }
+
+    drop.subscribers = drop.subscribers.filter(
+      sub => sub._id.toString() !== myUserId
+    );
+
+    await drop.save();
+
+    res.status(httpStatus.CREATED).json({ data: drop });
+  } catch (error) {
+    next(error);
+  }
+}
+
+/**
  * Subscribe to a Drop
  *
  * POST /api/v2/drops/:dropId/subscribe
@@ -438,5 +488,5 @@ export default {
   myFeed,
   // myFriendsFeed
   subscribe,
-  // unsubscribe,
+  unsubscribe,
 };

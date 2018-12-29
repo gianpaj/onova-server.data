@@ -735,6 +735,49 @@ describe('## Drops feed APIs', () => {
     });
   });
 
+  describe('# POST /api/v2/drops/:uuid/unsubscribe', () => {
+    let drops;
+    beforeAll(async () => {
+      await Promise.all([
+        Drop.deleteMany({}),
+        Product.deleteMany({}),
+        clearJobs(),
+      ]);
+      drops = await createManyDrops(1, users[0].token);
+    });
+
+    it('should NOT unsubscribe to my own drop', () => {
+      return request(app)
+        .post(`/api/v2/drops/${drops[0].uuid}/unsubscribe`)
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe('Cannot unsubscribe your own drop')
+        );
+    });
+
+    it('should unsubscribe to a drop', async () => {
+      await request(app)
+        .post(`/api/v2/drops/${drops[0].uuid}/subscribe`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => expect(body.data.subscribers).toHaveLength(1));
+      return request(app)
+        .post(`/api/v2/drops/${drops[0].uuid}/unsubscribe`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => expect(body.data.subscribers).toHaveLength(0));
+    });
+
+    it('should NOT unsubscribe to the same drop twice', () => {
+      return request(app)
+        .post(`/api/v2/drops/${drops[0].uuid}/unsubscribe`)
+        .set('Authorization', users[1].token)
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toBe("You're not subscribed"));
+    });
+  });
+
   describe('# GET /api/feed/drops?lastId=', () => {
     let _ids = [];
     beforeAll(async () => {
