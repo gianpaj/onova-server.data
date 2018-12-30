@@ -423,7 +423,7 @@ async function subscribe(
     if (differenceInMinutes(drop.scheduledAt, new Date()) > 15) {
       // schedule to send push notifications + Notification
       agenda.schedule(
-        addMinutes(body.date, -15),
+        addMinutes(drop.scheduledAt, -15),
         config.JOBNAMES.DROP_SUBSCRIPTION,
         { drop, sub: req.user },
         err => {
