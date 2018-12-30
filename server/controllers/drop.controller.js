@@ -2,11 +2,16 @@
 
 import httpStatus from 'http-status';
 import shortid from 'shortid';
-import { differenceInCalendarDays, differenceInSeconds } from 'date-fns';
+import {
+  addMinutes,
+  differenceInCalendarDays,
+  differenceInSeconds,
+} from 'date-fns';
 import path from 'path';
 const geocoder = require('offline-geocoder')({
   database: path.join(__dirname, '../../db.sqlite'),
 });
+const debug = require('debug')('server-data:drop');
 
 import { agenda } from '../config/express';
 import config from '../config/config';
@@ -345,11 +350,24 @@ async function create(
     await drop.save();
 
     if (!posted) {
-      // schedule a single job that it's only job is to set the products as 'forsale', from 'ready'
-      // and to set the Drop as
-      await agenda.schedule(body.date, config.JOBNAMES.SCHEDULE, drop, err => {
-        if (err) throw new APIError(`Error scheduling a drop: ${err}`);
-      });
+      await Promise.all([
+        // schedule a single job that it's only job is to set the products as 'forsale', from 'ready'
+        // and to set the Drop as
+        agenda.schedule(body.date, config.JOBNAMES.SCHEDULE, drop, err => {
+          if (err) throw new APIError(`Error scheduling a drop: ${err}`);
+          debug(`job ${config.JOBNAMES.SCHEDULE} saved`);
+        }),
+        // send push notifications to anybody that has subscribed
+        agenda.schedule(
+          addMinutes(body.date, -15),
+          config.JOBNAMES.DROP_SUBSCRIPTION,
+          drop,
+          err => {
+            if (err) throw new APIError(`Error drop subscription: ${err}`);
+            debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
+          }
+        ),
+      ]);
     }
 
     return res.status(httpStatus.CREATED).json({ data: drop });

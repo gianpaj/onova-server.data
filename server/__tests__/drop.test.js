@@ -177,7 +177,7 @@ describe('## Drops feed APIs', () => {
         .delete('/api/v2/drops/SkXbwQxyQ')
         .set('Authorization', adminJwtToken)
         .expect(httpStatus.NOT_FOUND)
-        .then(({ body }) => expect(body).toBe(''));
+        .then(({ body }) => expect(body.message).toBe('Drop not found'));
     });
 
     it('should NOT delete one drop (if not an admin)', () => {
@@ -399,6 +399,12 @@ describe('## Drops feed APIs', () => {
           expect(body.data).toHaveLength(0);
         });
 
+      await request(app)
+        .post(`/api/v2/drops/${drop.uuid}/subscribe`)
+        .set('Authorization', users[0].token)
+        .expect(httpStatus.CREATED)
+        .then(({ body }) => expect(body.data.subscribers).toHaveLength(1));
+
       const waitFor = 15 * 1000; // seconds
       const interval = Math.floor(waitFor / 100);
       let totalTime = interval;
@@ -407,13 +413,21 @@ describe('## Drops feed APIs', () => {
       const timer = setInterval(async () => {
         totalTime += interval;
 
-        // check the job has been scheduled
-        const jobs = await findJobs(config.JOBNAMES.SCHEDULE, {
+        // job to list the drop has been scheduled
+        const scheduled = await findJobs(config.JOBNAMES.SCHEDULE, {
           'data.uuid': drop.uuid,
         });
+        // job to notify subscribers
+        const subscriptions = await findJobs(
+          config.JOBNAMES.DROP_SUBSCRIPTION,
+          {
+            'data.uuid': drop.uuid,
+          }
+        );
 
-        if (jobs.length) {
-          expect(jobs).toHaveLength(1);
+        if (scheduled.length && subscriptions.length) {
+          expect(scheduled).toHaveLength(1);
+          expect(subscriptions).toHaveLength(1);
           done();
           clearInterval(timer);
           return;
