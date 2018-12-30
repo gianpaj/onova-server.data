@@ -417,17 +417,9 @@ describe('## Drops feed APIs', () => {
         const scheduled = await findJobs(config.JOBNAMES.SCHEDULE, {
           'data.uuid': drop.uuid,
         });
-        // job to notify subscribers
-        const subscriptions = await findJobs(
-          config.JOBNAMES.DROP_SUBSCRIPTION,
-          {
-            'data.uuid': drop.uuid,
-          }
-        );
 
-        if (scheduled.length && subscriptions.length) {
+        if (scheduled.length) {
           expect(scheduled).toHaveLength(1);
-          expect(subscriptions).toHaveLength(1);
           done();
           clearInterval(timer);
           return;
@@ -738,7 +730,7 @@ describe('## Drops feed APIs', () => {
         .expect(httpStatus.CREATED)
         .then(({ body }) => expect(body.data.subscribers).toHaveLength(1));
 
-      return request(app)
+      await request(app)
         .get('/api/feed/drops')
         .set('Authorization', users[1].token)
         .expect(httpStatus.OK)
@@ -746,6 +738,35 @@ describe('## Drops feed APIs', () => {
           expect(body.data).toHaveLength(1);
           expect(body.data[0].amISubscribed).toBe(true);
         });
+
+      const waitFor = 15 * 1000; // seconds
+      const interval = Math.floor(waitFor / 100);
+      let totalTime = interval;
+
+      // Check every 150ms for up to 15 seconds
+      const timer = setInterval(async () => {
+        totalTime += interval;
+
+        // job to notify me
+        const subscriptions = await findJobs(
+          config.JOBNAMES.DROP_SUBSCRIPTION,
+          {
+            'data.uuid': drops[0].uuid,
+          }
+        );
+
+        if (subscriptions.length) {
+          expect(subscriptions).toHaveLength(1);
+          done();
+          clearInterval(timer);
+          return;
+        }
+
+        if (totalTime >= waitFor) {
+          clearInterval(timer);
+          throw new Error('timeout');
+        }
+      }, interval);
     });
 
     it('should NOT subscribe to the same drop twice', () => {
@@ -786,11 +807,40 @@ describe('## Drops feed APIs', () => {
         .set('Authorization', users[1].token)
         .expect(httpStatus.CREATED)
         .then(({ body }) => expect(body.data.subscribers).toHaveLength(1));
-      return request(app)
+      await request(app)
         .post(`/api/v2/drops/${drops[0].uuid}/unsubscribe`)
         .set('Authorization', users[1].token)
         .expect(httpStatus.CREATED)
         .then(({ body }) => expect(body.data.subscribers).toHaveLength(0));
+
+      const waitFor = 15 * 1000; // seconds
+      const interval = Math.floor(waitFor / 100);
+      let totalTime = interval;
+
+      // Check every 150ms for up to 15 seconds
+      const timer = setInterval(async () => {
+        totalTime += interval;
+
+        // job to notify me
+        const subscriptions = await findJobs(
+          config.JOBNAMES.DROP_SUBSCRIPTION,
+          {
+            'data.uuid': drops[0].uuid,
+          }
+        );
+
+        if (subscriptions.length) {
+          expect(subscriptions).toHaveLength(0);
+          done();
+          clearInterval(timer);
+          return;
+        }
+
+        if (totalTime >= waitFor) {
+          clearInterval(timer);
+          throw new Error('timeout');
+        }
+      }, interval);
     });
 
     it('should NOT unsubscribe to the same drop twice', () => {

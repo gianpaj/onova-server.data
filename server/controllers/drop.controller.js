@@ -6,6 +6,7 @@ import {
   addMinutes,
   differenceInCalendarDays,
   differenceInSeconds,
+  differenceInMinutes,
 } from 'date-fns';
 import path from 'path';
 const geocoder = require('offline-geocoder')({
@@ -366,29 +367,74 @@ async function create(
     await drop.save();
 
     if (!posted) {
-      await Promise.all([
-        // schedule a single job that it's only job is to set the products as 'forsale', from 'ready'
-        // and to set the Drop as
-        agenda.schedule(body.date, config.JOBNAMES.SCHEDULE, drop, err => {
-          if (err) throw new APIError(`Error scheduling a drop: ${err}`);
-          debug(`job ${config.JOBNAMES.SCHEDULE} saved`);
-        }),
-        // send push notifications to anybody that has subscribed
-        agenda.schedule(
-          addMinutes(body.date, -15),
-          config.JOBNAMES.DROP_SUBSCRIPTION,
-          drop,
-          err => {
-            if (err) throw new APIError(`Error drop subscription: ${err}`);
-            debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
-          }
-        ),
-      ]);
+      // schedule a single job that it's only job is to set the products as 'forsale', from 'ready'
+      // and to set the Drop as
+      agenda.schedule(body.date, config.JOBNAMES.SCHEDULE, drop, err => {
+        if (err) throw new APIError(`Error scheduling a drop: ${err}`);
+        debug(`job ${config.JOBNAMES.SCHEDULE} saved`);
+      });
     }
 
     return res.status(httpStatus.CREATED).json({ data: drop });
   } catch (error) {
     if (!(error instanceof APIError)) console.error(error);
+    next(error);
+  }
+}
+
+/**
+ * Subscribe to a Drop
+ *
+ * POST /api/v2/drops/:dropId/subscribe
+ *
+ * @property {*} req Express request
+ * @property {*} req.params Express params parameters
+ * @property {string} req.params.dropId The target drop to subscribe to
+ */
+async function subscribe(
+  req: session$Request,
+  res: express$Response,
+  next: express$NextFunction
+) {
+  const { drop } = req;
+
+  const myUserId = req.user._id.toString();
+
+  try {
+    if (myUserId === drop.seller._id.toString()) {
+      throw new APIError(
+        'Cannot subscribe your own drop',
+        httpStatus.BAD_REQUEST
+      );
+    }
+
+    const subscribers = drop.subscribers.map(subscriber =>
+      subscriber._id.toString()
+    );
+
+    if (subscribers.indexOf(myUserId) > -1) {
+      throw new APIError("You're already subscribed", httpStatus.BAD_REQUEST);
+    }
+
+    drop.subscribers.push(req.user);
+
+    await drop.save();
+
+    if (differenceInMinutes(drop.scheduledAt, new Date()) > 15) {
+      // schedule to send push notifications + Notification
+      agenda.schedule(
+        addMinutes(body.date, -15),
+        config.JOBNAMES.DROP_SUBSCRIPTION,
+        { drop, sub: req.user },
+        err => {
+          if (err) throw new APIError(`Error drop subscription: ${err}`);
+          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
+        }
+      );
+    }
+
+    res.status(httpStatus.CREATED).json({ data: drop });
+  } catch (error) {
     next(error);
   }
 }
@@ -433,49 +479,7 @@ async function unsubscribe(
 
     await drop.save();
 
-    res.status(httpStatus.CREATED).json({ data: drop });
-  } catch (error) {
-    next(error);
-  }
-}
-
-/**
- * Subscribe to a Drop
- *
- * POST /api/v2/drops/:dropId/subscribe
- *
- * @property {*} req Express request
- * @property {*} req.params Express params parameters
- * @property {string} req.params.dropId The target drop to subscribe to
- */
-async function subscribe(
-  req: session$Request,
-  res: express$Response,
-  next: express$NextFunction
-) {
-  const { drop } = req;
-
-  const myUserId = req.user._id.toString();
-
-  try {
-    if (myUserId === drop.seller._id.toString()) {
-      throw new APIError(
-        'Cannot subscribe your own drop',
-        httpStatus.BAD_REQUEST
-      );
-    }
-
-    const subscribers = drop.subscribers.map(subscriber =>
-      subscriber._id.toString()
-    );
-
-    if (subscribers.indexOf(myUserId) > -1) {
-      throw new APIError("You're already subscribed", httpStatus.BAD_REQUEST);
-    }
-
-    drop.subscribers.push(req.user);
-
-    await drop.save();
+    await agenda.cancel({ drop, sub: req.user });
 
     res.status(httpStatus.CREATED).json({ data: drop });
   } catch (error) {
