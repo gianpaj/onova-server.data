@@ -431,6 +431,7 @@ async function subscribe(
           debug(
             `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 15m`
           );
+          res.status(httpStatus.CREATED).json({ data: drop });
         }
       );
     } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 10) {
@@ -444,6 +445,7 @@ async function subscribe(
           debug(
             `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 10m`
           );
+          res.status(httpStatus.CREATED).json({ data: drop });
         }
       );
     } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 1) {
@@ -457,11 +459,12 @@ async function subscribe(
           debug(
             `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 1m`
           );
+          res.status(httpStatus.CREATED).json({ data: drop });
         }
       );
+    } else {
+      res.status(httpStatus.CREATED).json({ data: drop });
     }
-
-    res.status(httpStatus.CREATED).json({ data: drop });
   } catch (error) {
     next(error);
   }
