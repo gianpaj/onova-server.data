@@ -431,6 +431,28 @@ async function subscribe(
           debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
         }
       );
+    } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 10) {
+      // schedule to send push notifications + Notification
+      agenda.schedule(
+        addMinutes(drop.scheduledAt, -5),
+        config.JOBNAMES.DROP_SUBSCRIPTION,
+        { drop, sub: req.user },
+        err => {
+          if (err) throw new APIError(`Error drop subscription: ${err}`);
+          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
+        }
+      );
+    } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 5) {
+      // schedule to send push notifications + Notification
+      agenda.schedule(
+        addMinutes(drop.scheduledAt, 1),
+        config.JOBNAMES.DROP_SUBSCRIPTION,
+        { drop, sub: req.user },
+        err => {
+          if (err) throw new APIError(`Error drop subscription: ${err}`);
+          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
+        }
+      );
     }
 
     res.status(httpStatus.CREATED).json({ data: drop });
