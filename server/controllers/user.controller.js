@@ -394,7 +394,7 @@ function update(
   return Promise.all(Promises)
     .then(() => user.save())
     .then(savedUser => res.json(savedUser))
-    .then(() => debug(`Username: ${user.username} saved.`))
+    .then(() => debug(`Username: ${user.username} updated.`))
     .catch(error => next(error));
 }
 

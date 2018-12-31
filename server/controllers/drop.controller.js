@@ -428,7 +428,9 @@ async function subscribe(
         { drop, sub: req.user },
         err => {
           if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
+          debug(
+            `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 15m`
+          );
         }
       );
     } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 10) {
@@ -439,10 +441,12 @@ async function subscribe(
         { drop, sub: req.user },
         err => {
           if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
+          debug(
+            `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 10m`
+          );
         }
       );
-    } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 5) {
+    } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 1) {
       // schedule to send push notifications + Notification
       agenda.schedule(
         addMinutes(drop.scheduledAt, 1),
@@ -450,7 +454,9 @@ async function subscribe(
         { drop, sub: req.user },
         err => {
           if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved`);
+          debug(
+            `job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 1m`
+          );
         }
       );
     }
@@ -501,9 +507,14 @@ async function unsubscribe(
 
     await drop.save();
 
-    await agenda.cancel({ drop, sub: req.user });
-
-    res.status(httpStatus.CREATED).json({ data: drop });
+    agenda.cancel(
+      { 'data.drop._id': drop._id, 'data.sub._id': req.user._id },
+      (err, numRemoved) => {
+        if (err) return console.error(err);
+        debug('numRemoved ' + numRemoved);
+        return res.status(httpStatus.OK).json({ data: drop });
+      }
+    );
   } catch (error) {
     next(error);
   }

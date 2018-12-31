@@ -19,6 +19,13 @@ import {
 } from './utils';
 import { i18n } from '../controllers/drop.controller';
 
+// if server.push is NOT running
+const schedulerIsRunning = process.env.SCHEDULER_IS_RUNNING !== 'true';
+
+if (!schedulerIsRunning) {
+  console.warn('skipping tests with scheduler (server.push)');
+}
+
 /**
  * root level hooks
  */
@@ -810,7 +817,7 @@ describe('## Drops feed APIs', () => {
       await request(app)
         .post(`/api/v2/drops/${drops[0].uuid}/unsubscribe`)
         .set('Authorization', users[1].token)
-        .expect(httpStatus.CREATED)
+        .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data.subscribers).toHaveLength(0));
 
       const waitFor = 15 * 1000; // seconds
