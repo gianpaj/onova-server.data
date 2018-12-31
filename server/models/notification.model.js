@@ -30,7 +30,7 @@ const NotificationSchema = new Schema({
   triggeredType: {
     type: Schema.Types.String,
     required: true,
-    enum: ['User', 'Product', 'Order'],
+    enum: ['User', 'Product', 'Order', 'DropSubscription'],
   },
   dateCreated: {
     type: Date,
