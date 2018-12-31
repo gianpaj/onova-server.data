@@ -449,7 +449,7 @@ async function subscribe(
     } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 1) {
       // schedule to send push notifications + Notification
       agenda.schedule(
-        addMinutes(drop.scheduledAt, 1),
+        addMinutes(drop.scheduledAt, -1),
         config.JOBNAMES.DROP_SUBSCRIPTION,
         { drop, sub: req.user },
         err => {
