@@ -557,7 +557,7 @@ function createPaymentUAPAY(
           cartId: cart.id,
           // TODO: if existing order, get deal instead of creating a new one
           // externalId: order._id,
-          productTitle: product.description,
+          productTitle: product.description.slice(0, 20),
           productWeight: product.weight,
           productPrice: product.price.toString().replace('.', ''), // to number in cents
           sellerFirstName: Sship.firstName,
