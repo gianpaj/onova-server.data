@@ -111,7 +111,7 @@ yarn lint
 
 ### Prod Deployment
 
-We're using Google Cloud Engine:
+We're using AWS Lightsail:
 
 - https://onova.co/api/
 
