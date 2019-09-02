@@ -64,6 +64,7 @@ export default {
         .empty('')
         .phoneNumber(),
       emailAddress: Joi.string().email(),
+      instagram: validation.instagram.empty(''),
       password: Joi.string()
         .min(8)
         .max(50),

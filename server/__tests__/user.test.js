@@ -704,6 +704,15 @@ describe('## User APIs', () => {
           expect(body.paymentInfo.full.last_four).toBe('6327');
         });
     });
+
+    it('should update the instagram username for scraping', () => {
+      return request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ instagram: '_hello_' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.scraping.instagram).toBe('_hello_'));
+    });
   });
 
   describe('# GET /api/users/', () => {

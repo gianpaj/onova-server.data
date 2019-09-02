@@ -11,6 +11,7 @@ import { i18n } from '../../controllers/order.controller';
 import { Order, Product } from '../../models';
 
 import { NP } from '../../helpers/shipping';
+import { novaPoshta } from '../../helpers/shipping';
 
 import {
   beforeAllTests,
@@ -24,7 +25,6 @@ import {
   mock,
   payOrder,
 } from '../utils';
-import { novaPoshta } from '../../helpers/shipping';
 
 const photos = {
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],

@@ -130,6 +130,9 @@ const UserSchema = new Schema(
         message: '{VALUE} is not an integer value',
       },
     },
+    scraping: {
+      instagram: String,
+    },
     shippingAddress: {
       firstName: String,
       lastName: String,
@@ -180,6 +183,9 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   pushToken: ?string;
   ratingsTotal: number;
   reviewsCount: number;
+  scraping: ?{
+    instagram: ?string,
+  };
   shippingAddress: ?any;
   tokens: Array<any>;
   updatedAt: Date;
