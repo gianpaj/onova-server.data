@@ -115,7 +115,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
     ],
   });
 
-  const { createdAt, mobileNumber, paymentInfo, shippingAddress } = req.user;
+  const { createdAt, mobileNumber, paymentInfo, shippingAddress, scraping } = req.user;
 
   return res.json({
     ...doc,
@@ -123,6 +123,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
     mobileNumber,
     ordersAndReviewsCount,
     paymentInfo,
+    scraping,
     shippingAddress,
   });
 }
@@ -290,6 +291,7 @@ function update(req: session$Request, res: express$Response, next: express$NextF
   if (body.platform) user.platform = body.platform;
   if (body.pushToken) user.pushToken = body.pushToken;
   if (body.increaseShare) user.sharedCount++;
+  if ('instagram' in body) user.scraping.instagram = body.instagram;
   if (body.facebook) {
     user.facebook = body.facebook;
     user.tokens.push({

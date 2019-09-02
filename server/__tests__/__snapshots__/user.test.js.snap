@@ -166,6 +166,7 @@ Array [
   "paymentInfo",
   "ratingsTotal",
   "reviewsCount",
+  "scraping",
   "sharedCount",
   "shippingAddress",
   "tokens",
