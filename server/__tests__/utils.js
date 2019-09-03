@@ -119,7 +119,6 @@ export function createUserAndLogin(
       if (!body.data) {
         throw new Error(body);
       }
-      expect(Object.keys(body.data).sort()).toMatchSnapshot();
 
       const paymentInfo = paymentInfoAs === 'buyer' ? buyerPaymentInfo : sellerPaymentInfo;
 

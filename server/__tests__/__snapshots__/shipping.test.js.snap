@@ -1,37 +1,5 @@
 // Jest Snapshot v1, https://goo.gl/fbAQLP
 
-exports[` 1`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
-exports[` 2`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
 exports[`## Shipping # GET /api/shipping/cities should get the list of cities 1`] = `
 Array [
   "id",
