@@ -5,7 +5,7 @@ import Cities from './cities.model';
 import Departments from './departments.model';
 import DiscardedUser, { DiscardedUserDoc } from './discardedUser.model';
 import Follow, { FollowDoc } from './follow.model';
-// import Like from './like.model';
+import InstagramScrapped, { InstagramScrappedDoc } from './instagramScrapped.model';
 import Notification, { NotificationDoc } from './notification.model';
 import Order, { OrderDoc } from './order.model';
 import Product, { ProductDoc, CommentDoc } from './product.model';
@@ -32,6 +32,7 @@ const productPopulateFields = 'currency photoURIs price status uuid';
 Block.syncIndexes();
 DefaultFollow.syncIndexes();
 Follow.syncIndexes();
+InstagramScrapped.syncIndexes();
 Notification.syncIndexes();
 Product.syncIndexes();
 Report.syncIndexes();
@@ -54,7 +55,8 @@ export {
   DiscardedUserDoc,
   Follow,
   FollowDoc,
-  // Like,
+  InstagramScrapped,
+  InstagramScrappedDoc,
   Notification,
   NotificationDoc,
   Order,

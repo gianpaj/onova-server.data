@@ -79,14 +79,11 @@ export const ProductSchema = new Schema(
     dropId: {
       type: Schema.Types.ObjectId,
     },
+    location: { type: GeoJSON, required: false },
+    locality: String,
     photoURIs: {
       type: [String],
       // required: true, // added async after the images are uploaded to GSC
-    },
-    location: { type: GeoJSON, required: false },
-    locality: {
-      type: String,
-      // required: true,
     },
     price: {
       type: Schema.Types.Decimal,
