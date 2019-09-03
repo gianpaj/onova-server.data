@@ -48,86 +48,6 @@ Array [
 ]
 `;
 
-exports[`## User APIs # DELETE /api/users/:userId should get error when deleting invalid user 1`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
-exports[`## User APIs # GET /api/users/ should get all users (with limit) 1`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
-exports[`## User APIs # GET /api/users/ should get all users (with limit) 2`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
-exports[`## User APIs # GET /api/users/ should get all users (with limit) 3`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
-exports[`## User APIs # GET /api/users/ should get all users (with limit) 4`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
 exports[`## User APIs # GET /api/users/ should get all users 1`] = `
 Array [
   "_id",
@@ -183,22 +103,6 @@ Array [
   "followersCount",
   "followingCount",
   "ordersAndReviewsCount",
-  "ratingsTotal",
-  "reviewsCount",
-  "sharedCount",
-  "tokens",
-  "types",
-  "username",
-]
-`;
-
-exports[`## User APIs # GET /api/users/?u=<username> should NOT find deleted users 1`] = `
-Array [
-  "_id",
-  "accountStatus",
-  "emailAddress",
-  "followersCount",
-  "followingCount",
   "ratingsTotal",
   "reviewsCount",
   "sharedCount",
