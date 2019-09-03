@@ -24,7 +24,7 @@ const instagramScrappedSchema = new Schema({
   },
   shortcode: String,
   username: String,
-  timestamp: Date,
+  timestamp: Number,
 });
 
 export class instagramScrappedDoc /*:: extends Mongoose$Document */ {
@@ -48,6 +48,6 @@ instagramScrappedSchema.set('toJSON', {
   },
 });
 
-// instagramScrappedSchema.index({ instagramId: 1 }); // created by `unique` schema setting above
+instagramScrappedSchema.index({ instagramOwnerId: 1 });
 
-export default mongoose.model('InstagramScrapped', instagramScrappedSchema);
+export default mongoose.model('InstagramScrapped', instagramScrappedSchema, 'instagramscrapped');

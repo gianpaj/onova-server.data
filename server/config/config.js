@@ -140,6 +140,7 @@ export default {
       SHIPPING_STATUS_STARTER: 'shipping-status-starter',
     },
     SHIPPING_STATUS_CHECKER: 'shipping-status-checker',
+    IG_SCRAPPING: 'instagram-scrapper',
   },
   // hard coded settings
   settings: {

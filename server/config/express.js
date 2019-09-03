@@ -23,8 +23,7 @@ import routes from '../routes';
 import routesV2 from '../routes/indexV2';
 import config from './config';
 import APIError from '../helpers/APIError';
-import EscrowRunner from '../runners/escrow.runner';
-import ShippingRunner from '../runners/shipping.runner';
+import { EscrowRunner, InstagramRunner, ShippingRunner } from '../runners';
 
 const debug = require('debug')('server-data:index');
 
@@ -66,6 +65,11 @@ new EscrowRunner();
  * Shipping manager to updates users on the status of their shipping. From order ready to ship to finilised.
  */
 new ShippingRunner();
+
+/**
+ * Instagram scheduler which automatically posts Producs after a connected user posts an Instagram photo or album.
+ */
+new InstagramRunner();
 
 /**
  * API keys and Passport configuration.
