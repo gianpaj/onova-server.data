@@ -80,7 +80,7 @@ exports.scrapeUserPageDeep = function(username) {
         const promises = Promise.map(edges, edge =>
           exports
             .scrapePostCode(edge.node.shortcode)
-            .then(postPage => postPage)
+            .then(postPage => exports.preparePostFields(postPage))
             .catch(err => {
               console.log('An error occurred calling scrapePostPage inside deepScrapeTagPage' + ':' + err);
             })
@@ -466,8 +466,8 @@ exports.scrapeUserPageDeep = function(username) {
 
         promises.then(results =>
           resolve({
-            username: results[0].owner.username,
-            instagramOwnerId: results[0].owner.id,
+            username: results[0].username,
+            instagramOwnerId: results[0].instagramOwnerId,
             total: results.length,
             medias: results,
           })
@@ -575,6 +575,39 @@ exports.scrapePostData = function(post) {
     thumbnail_resource: post.node.thumbnail_resources,
   };
 };
+
+exports.preparePostFields = media => {
+  // console.log(media);
+  let images;
+  // if album
+  if (media.edge_sidecar_to_children) {
+    images = media.edge_sidecar_to_children.edges.map(edge => largestImage(edge.node.display_resources).src);
+  } else {
+    images = [largestImage(media.display_resources).src];
+  }
+  return {
+    instagramId: media.id,
+    instagramOwnerId: media.owner.id,
+    shortcode: media.shortcode,
+    username: media.owner.username,
+    timestamp: media.taken_at_timestamp,
+    // extra fields. These won't be inserted in the db
+    ...{ location: media.location ? JSON.parse(media.location.address_json).city_name : {} },
+    description: media.edge_media_to_caption.edges[0] && media.edge_media_to_caption.edges[0].node.text,
+    images,
+    // TODO: ignore videos?
+    // is_video
+  };
+};
+
+/**
+ * Get the largest image (resource object) based on a field (config_height)
+ *
+ * @param {Array<any>} array of object resources
+ */
+function largestImage(array) {
+  return array.reduce((acc, cur) => (acc.config_height > cur.config_height ? acc : cur));
+}
 
 exports.scrapePostCode = function(code) {
   return new Promise(function(resolve, reject) {
