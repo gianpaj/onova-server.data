@@ -14,11 +14,9 @@ const { JOBNAMES } = config;
 
 export default class InstagramRunner {
   constructor() {
+    // TODO: only start it if we're testing this runner
     // if (config.env == 'test') {
-    //   // wait some time for the beforeAll of tests to finish
-    //   setTimeout(() => {
     //     this.initJob();
-    //   }, 500);
     // } else {
     this.initJob();
     // }
@@ -63,25 +61,11 @@ export default class InstagramRunner {
         for (let i = 0; i < user_pages.length; i++) {
           const user_page = user_pages[i];
           debug('user scrapped:', user_page.username);
-          console.log(JSON.stringify(user_page.medias[0]));
-          const IG_posts = user_page.medias.map(media => ({
-            instagramId: media.id,
-            instagramOwnerId: media.owner.id,
-            shortcode: media.shortcode,
-            username: media.owner.username,
-            timestamp: media.taken_at_timestamp,
-            // extra fields. These won't be inserted in the db
-            ...{ location: media.location ? JSON.parse(media.location.address_json).city_name : {} },
-            images: media.display_resources.map(res => res.src),
-            description: media.edge_media_to_caption.edges[0] && media.edge_media_to_caption.edges[0].node.text,
-            // TODO: ignore videos?
-            // is_video
-          }));
-          // console.log(IG_posts);
+          // console.log(user_page.medias[0]);
           const IG_doc = await InstagramScrapped.find({ instagramOwnerId: user_page.instagramOwnerId })
             .sort({ timestamp: -1 })
             .limit(1); // last post by timestamp
-          const last_IGPost_timestamp_scrapped = Math.max(...IG_posts.map(media => media.timestamp));
+          const last_IGPost_timestamp_scrapped = Math.max(...user_page.medias.map(media => media.timestamp));
           console.log('last_IGPost_timestamp_scrapped', last_IGPost_timestamp_scrapped);
           // if we found a newer IG post (with a greater timestamp)
 
@@ -90,12 +74,12 @@ export default class InstagramRunner {
             // only new posts
             IG_docs_to_scrape = [
               ...IG_docs_to_scrape,
-              ...IG_posts.filter(doc => doc.timestamp > IG_posts[0].timestamp),
+              ...user_page.medias.filter(doc => doc.timestamp > user_page.medias[0].timestamp),
             ];
             debug('no new IG_docs_to_scrape for', user_page.username);
           } else {
             // scrape all
-            IG_docs_to_scrape = [...IG_docs_to_scrape, ...IG_posts];
+            IG_docs_to_scrape = [...IG_docs_to_scrape, ...user_page.medias];
           }
         }
 
@@ -106,8 +90,6 @@ export default class InstagramRunner {
         if (!IG_docs_to_scrape.length) {
           return done();
         }
-
-        console.log(IG_docs_to_scrape.map(m => m.timestamp));
 
         await InstagramScrapped.insertMany(IG_docs_to_scrape);
 
@@ -124,8 +106,6 @@ export default class InstagramRunner {
 
         // console.log(IG_docs[0].images);
         // const arrayOfURLs = [].concat.apply([], IG_docs.map(doc => doc.images));
-
-        // const uploadedImages = await uploadURLToGCS(arrayOfURLs);
 
         // console.log(uploadedImages);
 
