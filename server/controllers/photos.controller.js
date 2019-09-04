@@ -32,14 +32,30 @@ const storage = Storage({
 
 const tempBucket = storage.bucket('temp-uploads.onova.co');
 
-async function tempUploadProductImage(req: express$Request, res: express$Response, next: express$NextFunction) {
-  const { file } = req;
+/**
+ * Upload image to temporary bucket in GSC
+ *
+ * @param {*} req Express Request OR filename (if used internally)
+ * @param {*} res Express Response OR callback (if used internally)
+ * @param {Function} next Express Next m OR error callback (if used internally)
+ * @param {Boolean} internal Whether to use the internal code path (used after scraping Instagram posts)
+ */
+async function tempUploadProductImage(
+  req: express$Request | String,
+  res: express$Response,
+  next: express$NextFunction,
+  internal = false
+) {
+  let { file } = req;
   const uploadDate = Date.now();
 
+  if (internal) {
+    file = { buffer: req };
+  }
   const pipeline = sharp(file.buffer);
   const metadata = await pipeline.metadata();
 
-  if (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT) {
+  if (!internal && (metadata.width < MIN_WIDTH || metadata.height < MIN_HEIGHT)) {
     const APIerr = new APIError(
       `Image too small. Min width and height ${MIN_WIDTH} px. The uploaded image is ${metadata.width}x${
         metadata.height
@@ -84,7 +100,8 @@ async function tempUploadProductImage(req: express$Request, res: express$Respons
       })
       .catch(err => {
         console.error(err);
-        res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
+        if (internal) res(err);
+        else res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
       });
 
     pipeline
@@ -124,7 +141,8 @@ async function tempUploadProductImage(req: express$Request, res: express$Respons
       .then(() => {
         const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co${tempFilePath}`;
         debug('temp product image uploaded to:', cloudStoragePublicUrl);
-        res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
+        if (internal) res(cloudStoragePublicUrl);
+        else res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
       })
       .catch(err => {
         console.error(err);
@@ -134,6 +152,9 @@ async function tempUploadProductImage(req: express$Request, res: express$Respons
   }
   // generate 2 square thumbnails
   const gcsname = `${uploadDate}.jpg`;
+  if (internal) {
+    file.metadata = `image/${metadata.format}`;
+  }
   photos.uploadThumbnailToGCS(THUMB_WIDTH, THUMB_HEIGHT, file, gcsname.replace('.jpg', '-thumb.jpg'), tempBucket);
   photos.uploadThumbnailToGCS(
     THUMB_WIDTH * 2,
@@ -144,11 +165,10 @@ async function tempUploadProductImage(req: express$Request, res: express$Respons
   );
 
   // upload temp image
-  const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;
   const gcsFile = tempBucket.file(gcsname);
   const stream = gcsFile.createWriteStream({
     metadata: {
-      contentType: file.mimetype,
+      contentType: !internal ? file.mimetype : `image/${metadata.format}`,
     },
   });
   stream.on('error', err => {
@@ -176,15 +196,18 @@ async function tempUploadProductImage(req: express$Request, res: express$Respons
     return;
   }
 
+  const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;
   stream.on('finish', () => {
     gcsFile
       .makePublic()
       .then(() => {
         debug('temp product image uploaded to:', cloudStoragePublicUrl);
-        res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
+        if (internal) res(cloudStoragePublicUrl);
+        else res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
       })
       .catch(err => {
-        console.log('Error makePublic product image', err);
+        console.log('Error makePublic product image');
+        console.error(err);
       });
   });
 }
@@ -270,6 +293,52 @@ async function uploadToVK(req: express$Request, res: express$Response, next: exp
       console.error(err);
     }
     next(err);
+  }
+}
+
+/**
+ * Download URL images and upload them to Google Cloud Storage
+ *
+ * @property {Array<string>|string} photos
+ */
+export async function uploadURLToGCS(photos) {
+  // download the photos
+  const dest = '/tmp';
+
+  try {
+    const downloads = photos.map(url => download.image({ url, dest }));
+
+    const files = await Promise.all(downloads);
+
+    debug('File(s) saved to', files.map(f => f.filename));
+
+    const uploads = files.map(file => {
+      return new Promise((resolve, reject) => {
+        tempUploadProductImage(
+          file.filename,
+          function callback(URL) {
+            resolve(URL);
+          },
+          function next(err) {
+            console.log(err);
+            reject(err);
+          },
+          true
+        );
+      });
+    });
+
+    const data = await Promise.all(uploads);
+
+    debug('photo(s) uploaded to GCS');
+    return data;
+  } catch (err) {
+    if (config.env === 'test') {
+      console.error("Couldn't test uploading images to GCS");
+    } else {
+      console.error(err);
+    }
+    throw err;
   }
 }
 
