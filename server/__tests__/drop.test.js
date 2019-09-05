@@ -11,9 +11,9 @@ import { User, Drop, Product, Notification, DropDoc } from '../models';
 import config from '../config/config';
 import app from '../index';
 import { beforeAllTests, clearJobs, createUserAndLogin, findJobs, followUser } from './utils';
-import { i18n } from '../controllers/drop.controller';
+import dropController, { i18n } from '../controllers/drop.controller';
 
-// if server.push is NOT running
+// assume the scheduler (server.push) is running
 const schedulerIsRunning = process.env.SCHEDULER_IS_RUNNING !== 'true';
 
 if (!schedulerIsRunning) {
@@ -128,6 +128,53 @@ describe('## Drops feed APIs', () => {
      * | user1 | follows -> | user0  |
      */
     await Promise.all([followUser(users[0].token, users[1]._id), followUser(users[1].token, users[0]._id)]);
+  });
+
+  describe('Internal Drop creating', () => {
+    it('should create a Drop internally', async () => {
+      const drop = await new Promise((resolve, reject) =>
+        dropController.create(
+          {
+            user: { _id: users[0]._id },
+            body: {
+              date: new Date(), // post now
+              longitude: 23.9573617, // FIXME:
+              latitude: 49.8134431, // FIXME:
+              products: [
+                {
+                  categoryIds: [1],
+                  tags: ['winter', 'spring2007'],
+                  description: ' Відправку здійснюємо по Україні',
+                  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1567677448651.jpg'],
+                  price: '99999.99',
+                  quantity: 1,
+                },
+              ],
+              instagram: '2100753171433006316',
+            },
+          },
+          drop => resolve(drop),
+          err => reject(err),
+          true
+        )
+      );
+      let product;
+      await request(app)
+        .get(`/api/v2/drops/${drop.uuid}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.uuid).toBe(drop.uuid);
+          expect(body.data.posted).toBe(true);
+          expect(body.data.products).toHaveLength(1);
+          product = body.data.products[0];
+        });
+
+      const p = await Product.findById(product._id);
+      expect(p.status).toBe('forsale');
+      expect(p.currency).toBe('UAH');
+      expect(p.instagram).toBe('2100753171433006316');
+      expect(p.photoURIs).toHaveLength(1);
+    });
   });
 
   describe('# GET /api/v2/drops/:uuid', () => {
@@ -429,7 +476,7 @@ describe('## Drops feed APIs', () => {
           expect(shortid.isValid(d.uuid)).toBe(true);
           return d;
         });
-      console.log('created drop');
+
       // check that the drop item is not yet listed
       await request(app)
         .get('/api/products/')
@@ -438,9 +485,8 @@ describe('## Drops feed APIs', () => {
           expect(Array.isArray(body.data));
           expect(body.data).toHaveLength(0);
         });
-      console.log('no items posted');
 
-      // if (!schedulerIsRunning) return done();
+      if (!schedulerIsRunning) return done();
 
       const waitFor = 15 * 1000; // 15 seconds
       const interval = Math.floor(waitFor / 100);
@@ -457,9 +503,7 @@ describe('## Drops feed APIs', () => {
           .get('/api/products/')
           .expect(httpStatus.OK);
 
-        const notif = await Notification.findOne({
-          notifI18n: i18n.listedDrop,
-        });
+        const notif = await Notification.findOne({ notifI18n: i18n.listedDrop });
 
         if (products.length && notif) {
           expect(products).toHaveLength(1);
@@ -876,8 +920,8 @@ async function createManyDrops(num: number, jwtToken: string) {
     tags: ['winter', 'spring2007'], // optional
     description: 'nice boots',
     photos: [
-      'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733068.jpg',
-      'https://storage.googleapis.com/temp-uploads.onova.co/tmp/1545329733069.jpg',
+      'https://storage.googleapis.com/temp-uploads.onova.co/1545329733068.jpg',
+      'https://storage.googleapis.com/temp-uploads.onova.co/1545329733069.jpg',
     ],
     price: '1100.99',
     quantity: 1,
@@ -904,8 +948,8 @@ function createDrop(drop: DropDoc, jwtToken: string) {
     .set('Authorization', jwtToken)
     .send(drop)
     .expect(httpStatus.CREATED)
-    .then(res => {
-      if (!res.body.data) console.error(res.body);
-      return res.body.data;
+    .then(({ body }) => {
+      if (!body.data) console.error(body);
+      return body.data;
     });
 }

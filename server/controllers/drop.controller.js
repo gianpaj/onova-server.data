@@ -224,6 +224,7 @@ async function myFeed(req: session$Request, res: express$Response, next: express
  * @property {string} req.body.products.quantity
  * @property {Array<string>=} req.body.products.tags
  * @property {Array<number>} req.body.products.typeIds
+ * @property {Array<number>} req.body.instagram (For internal user only)
  * @property {Boolean} internal Whether to use the internal code path (used after scraping Instagram posts)
  */
 async function create(req: session$Request, res: express$Response, next: express$NextFunction, internal) {
@@ -276,7 +277,7 @@ async function create(req: session$Request, res: express$Response, next: express
         // createdAt: new Date(body.date),
         seller: req.user._id,
         status: posted ? 'forsale' : 'ready',
-        ...(internal ? { instagram: body.instagramId } : {}),
+        ...(internal ? { instagram: body.instagram } : {}),
       });
 
       let promises = [];
@@ -302,13 +303,7 @@ async function create(req: session$Request, res: express$Response, next: express
       return Product.create(product);
     });
 
-    // const savedProducts = await Promise.all(products);
-
-    // guarantee order - notice `reverse()` in the map
-    const savedProducts = [];
-    for (let i = 0; i < productPromises.length; i++) {
-      savedProducts.push(await productPromises[i]);
-    }
+    const savedProducts = await Promise.all(productPromises);
 
     drop.products = savedProducts.map(p => p._id);
 

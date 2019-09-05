@@ -55,7 +55,8 @@ router
   .get(validate(paramValidation.getDrops), optionalAuth, dropCtrl.list)
 
   // POST /api/v2/drops - create a drop
-  .post(validate(paramValidation.create), requireAuth, dropCtrl.create);
+  // Note: It's necessary to manually pass the Express params as there's an extra argument in the create() controller, `internal` for Instagram Scraping purposes
+  .post(validate(paramValidation.create), requireAuth, (...args) => dropCtrl.create(...args));
 
 // Load a drop when API with uuid route parameter is hit
 router.param('uuid', dropCtrl.load);
