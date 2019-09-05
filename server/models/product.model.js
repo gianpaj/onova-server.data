@@ -79,10 +79,7 @@ export const ProductSchema = new Schema(
     dropId: {
       type: Schema.Types.ObjectId,
     },
-    instagram: {
-      type: Schema.Types.ObjectId,
-      ref: 'InstagramScrapped',
-    },
+    instagram: String,
     location: { type: GeoJSON, required: false },
     locality: String,
     photoURIs: {
