@@ -88,6 +88,14 @@ describe('## Instagram Runner', () => {
         .split(/\s/);
       expect(IG_Class.extractHashtags(description)).toEqual(['здійснюємо', ...hashtags]);
     });
+
+    it('should remove the hashtags from the description', () => {
+      const description =
+        '📬 Відправку #здійснюємо по Україні 🇺🇦 та закордон 🛸\n⠀\nВартість доставки не включена в ціну товару.\n⠀\nВідправлення відбувається в тот самий день коли відбулась передоплата.\n⠀\nПісля відправки, надсилаємо фото декларації у Facebook/Instagram, по якому Ви зможете відслідковувати замовлення 🌏\n⠀\nДОСТАВКА МОЖЛИВА:\n🍓 на відділення Нової пошти;\n🍓 на відділення Укрпошти;\n🍓 самовивіз з майстерні м. Львів, вул. Угорська, 2\n⠀\n📌 ВАЖЛИВО! Перевіряйте товар відразу при отриманні у відділенні!\n⠀\nЗалишились питання?\n👉 пишіть нам у Messenger ✉\n👉 або звертайтесь за телефоном: (068) 099 49 06\n⠀\n#horondi #lviv #ukraine #Львів #Горонді #наплічники #рюкзак #бананки #рюкзакльвів #рюкзакукраїна #рюкзакдляподорожей #рюкзакдляміста #рюкзакдлямам #рюкзаки #рюкзаккупити #бананки #бананочки #сумку #бананкальвів #рюкзакльвів #наплічник #сумкачерезплече #гаманець #щастя #любов #друзі #подарунок';
+
+      const descriptionWithoutHashtags = description.slice(0, description.indexOf('#horondi')).trim();
+      expect(IG_Class.removeHashtags(description)).toBe(descriptionWithoutHashtags.replace('#', ''));
+    });
   });
     // create a user and set bio in order to set the socials
     beforeAll(async () => {

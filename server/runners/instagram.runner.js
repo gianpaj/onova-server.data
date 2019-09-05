@@ -160,4 +160,19 @@ export default class InstagramRunner {
   extractHashtags(text) {
     return text.match(/#[^\s#\.\;]*/g).map(v => v.replace('#', ''));
   }
+
+  /**
+   * Remove hashtags from the end of the string (for Instagram post description) and leave the other hashtags but without the # char
+   *
+   * Inspired from https://stackoverflow.com/a/29822636/728287
+   *
+   * @param {String} text
+   * @returns {String}
+   */
+  removeHashtags(text) {
+    return text
+      .replace(/(\s#[^\s#\.\;]+)*$/g, '')
+      .replace('#', '')
+      .trim();
+  }
 }
