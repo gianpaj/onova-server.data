@@ -1,12 +1,13 @@
 // @flow
 
-// import _ from 'lodash';
 import instagramScraping from '../helpers/instagram-scraping';
-import { Drop, Product, InstagramScrapped, User } from '../models';
+import { InstagramScrapped, User } from '../models';
 import config from '../config/config';
 
 import { agenda } from '../config/express';
 import { uploadURLToGCS } from '../controllers/photos.controller';
+import dropController from '../controllers/drop.controller';
+
 // const debug = require('debug')('server-data:instagram');
 const debug = console.log;
 
@@ -38,7 +39,8 @@ export default class InstagramRunner {
   createScrapingJob() {
     const job = agenda.create(JOBNAMES.IG_SCRAPPING);
     job.unique({ jobName: JOBNAMES.IG_SCRAPPING });
-    job.repeatEvery(config.env === 'test' ? '3 seconds' : '30 seconds');
+    // job.repeatEvery(config.env === 'test' ? '3 seconds' : '30 seconds');
+    job.repeatEvery('60 seconds');
     job.save();
   }
 
@@ -81,6 +83,7 @@ export default class InstagramRunner {
             // scrape all
             IG_docs_to_scrape = [...IG_docs_to_scrape, ...user_page.medias];
           }
+          IG_docs_to_scrape = IG_docs_to_scrape.map(doc => ({ ...doc, onovaUser: users[i] }));
         }
 
         // TODO: filter docs without the #onova hashtag in the description
@@ -93,24 +96,49 @@ export default class InstagramRunner {
 
         await InstagramScrapped.insertMany(IG_docs_to_scrape);
 
-        console.log(IG_docs_to_scrape[0]);
+        // console.log(IG_docs_to_scrape[0]);
 
-        // for (let j = 0; j < IG_docs_to_scrape.length; j++) {
-        //   const doc = IG_docs_to_scrape[j];
-        //   const uploadedImages = await uploadURLToGCS(doc.images);
+        for (let j = 0; j < IG_docs_to_scrape.length; j++) {
+          const doc = IG_docs_to_scrape[j];
+          const uploadedImages = await uploadURLToGCS(doc.images);
+          console.log(uploadedImages);
+          IG_docs_to_scrape[j].uploadedImages = uploadedImages;
+        }
 
-        // }
+        const drops = await Promise.all(
+          IG_docs_to_scrape.map(
+            doc =>
+              new Promise((resolve, reject) =>
+                dropController.create(
+                  {
+                    user: { _id: doc.onovaUser._id },
+                    body: {
+                      date: new Date(), // post now
+                      longitude: 23.9573617, // FIXME:
+                      latitude: 49.8134431, // FIXME:
+                      products: [
+                        {
+                          categoryIds: [1], // FIXME:
+                          tags: ['winter', 'spring2007'], // TODO:
+                          description: doc.description,
+                          photos: doc.uploadedImages,
+                          price: '99999.99',
+                          quantity: 1,
+                        },
+                      ],
+                      instagram: doc.instagramId,
+                    },
+                  },
+                  drop => resolve(drop),
+                  err => reject(err),
+                  true
+                )
+              )
+          )
+        );
 
-        // const arrayOfArrayOfMedias = user_pages.map(u => u.medias);
-        // const arrayOfMedias = [].concat.apply([], arrayOfArrayOfMedias);
-
-        // console.log(IG_docs[0].images);
-        // const arrayOfURLs = [].concat.apply([], IG_docs.map(doc => doc.images));
-
-        // console.log(uploadedImages);
-
-        // for each IG doc, create a Product + Drop
-        // Upload the images
+        console.log('drops created', drops.length);
+        console.log(drops);
 
         done();
       } catch (error) {

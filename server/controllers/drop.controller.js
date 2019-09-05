@@ -224,8 +224,9 @@ async function myFeed(req: session$Request, res: express$Response, next: express
  * @property {string} req.body.products.quantity
  * @property {Array<string>=} req.body.products.tags
  * @property {Array<number>} req.body.products.typeIds
+ * @property {Boolean} internal Whether to use the internal code path (used after scraping Instagram posts)
  */
-async function create(req: session$Request, res: express$Response, next: express$NextFunction) {
+async function create(req: session$Request, res: express$Response, next: express$NextFunction, internal) {
   const { body } = req;
 
   try {
@@ -275,6 +276,7 @@ async function create(req: session$Request, res: express$Response, next: express
         // createdAt: new Date(body.date),
         seller: req.user._id,
         status: posted ? 'forsale' : 'ready',
+        ...(internal ? { instagram: body.instagramId } : {}),
       });
 
       let promises = [];
@@ -294,7 +296,7 @@ async function create(req: session$Request, res: express$Response, next: express
         product.photoURIs = photos.filter(photo => !photo.includes('thumb'));
       } catch (err) {
         console.error(err);
-        throw new APIError('Error copying photos', 500);
+        throw new APIError('Error copying photos', httpStatus.INTERNAL_SERVER_ERROR);
       }
 
       return Product.create(product);
@@ -321,7 +323,8 @@ async function create(req: session$Request, res: express$Response, next: express
       });
     }
 
-    return res.status(httpStatus.CREATED).json({ data: drop });
+    if (internal) res(drop);
+    else res.status(httpStatus.CREATED).json({ data: drop });
   } catch (error) {
     if (!(error instanceof APIError)) console.error(error);
     next(error);
