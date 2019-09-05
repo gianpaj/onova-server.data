@@ -148,4 +148,16 @@ export default class InstagramRunner {
       }
     });
   }
+
+  /**
+   * Extract hashtags from Instagram post description
+   *
+   * https://stackoverflow.com/a/56954025/728287
+   *
+   * @param {String} text
+   * @returns {Array<String>}
+   */
+  extractHashtags(text) {
+    return text.match(/#[^\s#\.\;]*/g).map(v => v.replace('#', ''));
+  }
 }

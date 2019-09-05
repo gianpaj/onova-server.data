@@ -7,6 +7,7 @@ import httpStatus from 'http-status';
 import app from '../../index';
 import config from '../../config/config';
 import { beforeAllTests, clearJobs, closeDBConnection, createUserAndLogin, findJobs } from '../utils';
+import { InstagramRunner } from '../../runners';
 
 /**
  * root level hooks
@@ -55,6 +56,39 @@ describe('## Instagram Runner', () => {
   // });
 
   describe('Scrape Instagram and create Product', () => {
+  describe('Unit tests', () => {
+    const IG_Class = new InstagramRunner();
+
+    it('should extract the hashtags from post description (all at the end)', () => {
+      const description =
+        '📬 Відправку здійснюємо по Україні 🇺🇦 та закордон 🛸\n⠀\nВартість доставки не включена в ціну товару.\n⠀\nВідправлення відбувається в тот самий день коли відбулась передоплата.\n⠀\nПісля відправки, надсилаємо фото декларації у Facebook/Instagram, по якому Ви зможете відслідковувати замовлення 🌏\n⠀\nДОСТАВКА МОЖЛИВА:\n🍓 на відділення Нової пошти;\n🍓 на відділення Укрпошти;\n🍓 самовивіз з майстерні м. Львів, вул. Угорська, 2\n⠀\n📌 ВАЖЛИВО! Перевіряйте товар відразу при отриманні у відділенні!\n⠀\nЗалишились питання?\n👉 пишіть нам у Messenger ✉\n👉 або звертайтесь за телефоном: (068) 099 49 06\n⠀\n#horondi #lviv #ukraine #Львів #Горонді #наплічники #рюкзак #бананки #рюкзакльвів #рюкзакукраїна #рюкзакдляподорожей #рюкзакдляміста #рюкзакдлямам #рюкзаки #рюкзаккупити #бананки #бананочки #сумку #бананкальвів #рюкзакльвів #наплічник #сумкачерезплече #гаманець #щастя #любов #друзі #подарунок #деньнародження';
+      const hashtags = description
+        .slice(description.indexOf('#'))
+        .replace(/#/g, '')
+        .split(/\s/);
+      expect(IG_Class.extractHashtags(description)).toEqual(hashtags);
+    });
+
+    it('should extract the hashtags from post description (in the middle as well)', () => {
+      const description =
+        "Бананка 🍎  вже стала незамінною річчю у побуті 😏\n⠀\nадже це зручно, а з бананками від Horondi це щей красиво, стильно і завжди яскраво 🖤❤\n⠀\n📏 Розмір: 17х35 см\n⠀\nНаші #бананки із якісного, міцного матеріалу. ⠀\n✅ Вмістка;\n✅ Ззовні є кишеня для дрібничок;\n✅ Всередині кишеня на липучці;\n⠀\nДодайте трішки Horondi в своє життя і воно обов'язково стане яскравішим🖤💜🧡💛💚💙❤\n⠀\n🍎 Також Ви можете обрати колір тканини та різновид габалену для Вашої майбутньої бананки;\n⠀\n🍎 Ціна 400 грн.*\n⠀\n* При змінні тканини/габалену, просимо ціну уточнювати у менеджерів 💚\n⠀\nЗалишились питання?\n👉 пишіть нам у Messenger ✉\n👉 або звертайтесь за телефоном: (068) 099 49 06\n⠀\n#horondi #lviv #ukraine #Львів #Горонді #наплічники #рюкзак #бананки #рюкзакльвів #рюкзакукраїна #рюкзакдляподорожей #рюкзакдляміста #рюкзакдлямам #рюкзаки #рюкзаккупити #бананки #бананочки #сумку #бананкальвів #рюкзакльвів #наплічник #сумкачерезплече #гаманець #щастя #любов #друзі #подарунок #деньнародження";
+      const hashtags = description
+        .slice(description.indexOf('#horondi'))
+        .replace(/#/g, '')
+        .split(/\s/);
+      expect(IG_Class.extractHashtags(description)).toEqual(['бананки', ...hashtags]);
+    });
+
+    it('should extract the hashtags from post description (in the middle as well - another)', () => {
+      const description =
+        '📬 Відправку #здійснюємо по Україні 🇺🇦 та закордон 🛸\n⠀\nВартість доставки не включена в ціну товару.\n⠀\nВідправлення відбувається в тот самий день коли відбулась передоплата.\n⠀\nПісля відправки, надсилаємо фото декларації у Facebook/Instagram, по якому Ви зможете відслідковувати замовлення 🌏\n⠀\nДОСТАВКА МОЖЛИВА:\n🍓 на відділення Нової пошти;\n🍓 на відділення Укрпошти;\n🍓 самовивіз з майстерні м. Львів, вул. Угорська, 2\n⠀\n📌 ВАЖЛИВО! Перевіряйте товар відразу при отриманні у відділенні!\n⠀\nЗалишились питання?\n👉 пишіть нам у Messenger ✉\n👉 або звертайтесь за телефоном: (068) 099 49 06\n⠀\n#horondi #lviv #ukraine #Львів #Горонді #наплічники #рюкзак #бананки #рюкзакльвів #рюкзакукраїна #рюкзакдляподорожей #рюкзакдляміста #рюкзакдлямам #рюкзаки #рюкзаккупити #бананки #бананочки #сумку #бананкальвів #рюкзакльвів #наплічник #сумкачерезплече #гаманець #щастя #любов #друзі #подарунок';
+      const hashtags = description
+        .slice(description.indexOf('#horondi'))
+        .replace(/#/g, '')
+        .split(/\s/);
+      expect(IG_Class.extractHashtags(description)).toEqual(['здійснюємо', ...hashtags]);
+    });
+  });
     // create a user and set bio in order to set the socials
     beforeAll(async () => {
       const { user: u1, jwtToken: j1 } = await createUserAndLogin(user1);
