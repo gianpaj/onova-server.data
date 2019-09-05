@@ -83,6 +83,8 @@ async function tempUploadProductImage(
 
   // save locally for test
   if (config.env === 'test') {
+    const tempFilePath = `${TEMP_PATH}/${uploadDate}.jpg`;
+
     pipeline
       .resize({
         width: THUMB_WIDTH,
@@ -94,9 +96,9 @@ async function tempUploadProductImage(
       .on('error', err => {
         console.log('Error generating thumbnail', err);
       })
-      .toFile(`${TEMP_PATH}/${uploadDate}-thumb.jpg`)
+      .toFile(tempFilePath.replace('.jpg', '-thumb.jpg'))
       .then(() => {
-        debug('temp thumbnail generated', `${TEMP_PATH}/${uploadDate}-thumb.jpg`);
+        debug('temp thumbnail generated', tempFilePath.replace('.jpg', '-thumb.jpg'));
       })
       .catch(err => {
         console.error(err);
@@ -115,16 +117,14 @@ async function tempUploadProductImage(
       .on('error', err => {
         console.log('Error generating thumbnail', err);
       })
-      .toFile(`${TEMP_PATH}/${uploadDate}-thumb@2x.jpg`)
+      .toFile(tempFilePath.replace('.jpg', '-thumb@2x.jpg'))
       .then(() => {
-        debug('temp thumbnail generated', `${TEMP_PATH}/${uploadDate}-thumb@2x.jpg`);
+        debug('temp thumbnail generated', tempFilePath.replace('.jpg', '-thumb@2x.jpg'));
       })
       .catch(err => {
         console.error(err);
         res.status(httpStatus.INTERNAL_SERVER_ERROR).json({ message: err });
       });
-
-    const tempFilePath = `${TEMP_PATH}/${uploadDate}.jpg`;
 
     pipeline
       .resize({
@@ -139,7 +139,7 @@ async function tempUploadProductImage(
       })
       .toFile(tempFilePath)
       .then(() => {
-        const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co${tempFilePath}`;
+        const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${uploadDate}.jpg`;
         debug('temp product image uploaded to:', cloudStoragePublicUrl);
         if (internal) res(cloudStoragePublicUrl);
         else res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
