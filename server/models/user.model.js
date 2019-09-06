@@ -250,6 +250,28 @@ UserSchema.statics = {
   },
 };
 
+UserSchema.methods.sellerCanTransact = function() {
+  return this.sellerHasValidPaymentInfo() && this.sellerHasValidShippingAddress();
+};
+
+UserSchema.methods.sellerHasValidShippingAddress = function() {
+  const { shippingAddress } = this;
+  return (
+    shippingAddress.firstName &&
+    shippingAddress.lastName &&
+    shippingAddress.city &&
+    shippingAddress.departmentNovaposhta
+  );
+};
+UserSchema.methods.sellerHasValidPaymentInfo = function() {
+  const { paymentInfo } = this;
+  // if card information as a seller or buyer
+  const canReceivePayments =
+    paymentInfo &&
+    ((paymentInfo.short && paymentInfo.short.card_token) || (paymentInfo.full && paymentInfo.full.card_token));
+  return canReceivePayments;
+};
+
 /**
  * Password hash middleware.
  */

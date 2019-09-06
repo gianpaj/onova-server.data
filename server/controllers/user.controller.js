@@ -291,7 +291,6 @@ function update(req: session$Request, res: express$Response, next: express$NextF
   if (body.platform) user.platform = body.platform;
   if (body.pushToken) user.pushToken = body.pushToken;
   if (body.increaseShare) user.sharedCount++;
-  if ('instagram' in body) user.scraping.instagram = body.instagram;
   if (body.facebook) {
     user.facebook = body.facebook;
     user.tokens.push({
@@ -311,6 +310,16 @@ function update(req: session$Request, res: express$Response, next: express$NextF
       last_four: payload.panMasked.slice(-4),
       card_token: payload.id,
     };
+  }
+  if ('instagram' in body) {
+    const beforeText = 'before saving your Instagram username for scraping';
+    if (!user.sellerHasValidShippingAddress()) {
+      throw new APIError(`Please enter your shipping address ${beforeText}`, httpStatus.BAD_REQUEST);
+    }
+    if (!user.sellerHasValidPaymentInfo()) {
+      throw new APIError(`Please enter your payment information ${beforeText}`, httpStatus.BAD_REQUEST);
+    }
+    user.scraping.instagram = body.instagram;
   }
 
   let Promises = [];

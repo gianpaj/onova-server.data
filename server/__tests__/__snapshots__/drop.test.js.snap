@@ -81,25 +81,3 @@ Array [
   "weight",
 ]
 `;
-
-exports[`## Drops feed APIs Internal Drop creating should create a Drop internally 1`] = `
-Array [
-  "_id",
-  "createdAt",
-  "posted",
-  "products",
-  "scheduledAt",
-  "seller",
-  "status",
-  "subscribers",
-  "updatedAt",
-  "uuid",
-]
-`;
-
-exports[`## Drops feed APIs Internal Drop creating should create a Drop internally 2`] = `
-Array [
-  "_id",
-  "username",
-]
-`;

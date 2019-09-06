@@ -705,11 +705,68 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should update the instagram username for scraping', () => {
+    it("it should NOT update the Instagram username for scraping if use doesn't have a shippingAddress ", async () => {
+      const { user, jwtToken } = await createUserAndLogin(
+        {
+          username: 'instagramlord',
+          emailAddress: 'instagramlord@gmail.com',
+          password: 'express2',
+        },
+        false
+      );
+
       return request(app)
-        .put(`/api/users/${userId}`)
+        .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
         .send({ instagram: '_hello_' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe(
+            'Please enter your shipping address before saving your Instagram username for scraping'
+          )
+        );
+    });
+
+    it("it should NOT update the Instagram username for scraping if use doesn't have a paymentInfo ", async () => {
+      const { user, jwtToken } = await createUserAndLogin(
+        {
+          username: 'instagramprince',
+          emailAddress: 'instagramprince@gmail.com',
+          password: 'express2',
+        },
+        false
+      );
+
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({
+          ...userShippingAddress,
+          instagram: '_hello_',
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe(
+            'Please enter your payment information before saving your Instagram username for scraping'
+          )
+        );
+    });
+
+    it('should update the instagram username for scraping', async () => {
+      const { user, jwtToken } = await createUserAndLogin({
+        username: 'instagramqueen',
+        emailAddress: 'instagramqueen@gmail.com',
+        password: 'express2',
+      });
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({
+          ...userPaymentInfo,
+          // short: false,
+          ...userShippingAddress,
+          instagram: '_hello_',
+        })
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.scraping.instagram).toBe('_hello_'));
     });
@@ -743,7 +800,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(6);
+          expect(res.body.length).toBe(9);
           expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
         });
     });
@@ -904,16 +961,12 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
-    beforeAll(() => {
-      return createUserAndLogin(forthUser)
-        .then(({ user, jwtToken: token }) => {
-          forthUserId = user._id.toString();
-          forthJwtToken = token;
-        })
-        .catch(err => {
-          console.error(err);
-        });
-    });
+    beforeAll(() =>
+      createUserAndLogin(forthUser).then(({ user, jwtToken: token }) => {
+        forthUserId = user._id.toString();
+        forthJwtToken = token;
+      })
+    );
 
     it('should NOT update an user`s email to an existing one', () => {
       return request(app)
