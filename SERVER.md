@@ -4,10 +4,10 @@
 
 - account: `760442980053`
 - name of instance: nodeserver-1-vm
-- hostmame: `onova-gb-frankfurt-2`
+- hostname: `onova-gb-frankfurt-2`
 - disk: 80GB SSD
 - zone: `eu-central-1a` (Frankfurt, Zone A)
-- Linux distribution: Ubuntu 16.04.5 LTS (xenial) (VM image from [bitnami](//docs.bitnami.com/aws/infrastructure/nodejs/))
+- Linux distribution: Ubuntu 16.04.5 LTS (xenial) (VM image from [bitnami](https://docs.bitnami.com/aws/infrastructure/nodejs/))
 - Node JS 10.x
 
 ## Initial setup

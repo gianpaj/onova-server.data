@@ -104,21 +104,21 @@ const buyerPaymentInfo = {
 };
 
 /**
- * Create a user and activate it
+ * Create a user, activate it and, by default, set paymentInfo and shippingAddress
  */
 // TODO: return a tuple so it's shorter to rename
 export function createUserAndLogin(
   user: UserDoc,
-  paymentInfoAs: 'buyer' | 'seller' = 'buyer'
+  paymentInfoAs: 'buyer' | 'seller' | false = 'buyer'
 ): Promise<{ user: UserDoc, jwtToken: string }> {
   return request(app)
     .post('/api/users')
     .send(user)
     .expect(httpStatus.CREATED)
     .then(async ({ body }) => {
-      if (!body.data) {
-        throw new Error(body);
-      }
+      if (!body.data) throw new Error(body);
+
+      if (!paymentInfoAs) return { resUser: body.data, jwtToken: body.token };
 
       const paymentInfo = paymentInfoAs === 'buyer' ? buyerPaymentInfo : sellerPaymentInfo;
 
