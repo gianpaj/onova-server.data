@@ -15,6 +15,7 @@ import config from '../config/config';
 import photoHelper from '../helpers/photos';
 import APIError from '../helpers/APIError';
 import { Drop, DropDoc, Follow, FollowDoc, User, UserDoc, Product, ProductDoc } from '../models';
+import { tempBucketURL } from './photos.controller';
 
 const { minPrice } = config.settings;
 

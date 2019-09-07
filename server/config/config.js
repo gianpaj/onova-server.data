@@ -32,33 +32,20 @@ const envVarsSchema = Joi.object({
   SALT_ROUNDS: Joi.string()
     .required()
     .description('The salt to be used in password encryption by bcrypt'),
-  MONGO_HOST: Joi.string()
-    .required()
-    .description('MongoDB host'),
-  MONGO_DB: Joi.string()
-    .required()
-    .description('MongoDB database'),
+  MONGO_HOST: Joi.string().required(),
+  MONGO_DB: Joi.string().required(),
   MONGO_JOB_DB: Joi.string()
     .required()
     .description('MongoDB database for the agenda for push notifications'),
-  MONGO_PORT: Joi.number().default(27017),
-  // MONGO_USER: Joi.string(),
-  // MONGO_PASS: Joi.string(),
-  MJ_APIKEY_PUBLIC: Joi.string()
-    .required()
-    .description('Mailjet API public key'),
-  MJ_APIKEY_PRIVATE: Joi.string()
-    .required()
-    .description('Mailjet API private key'),
+  MJ_APIKEY_PUBLIC: Joi.string().required(),
+  MJ_APIKEY_PRIVATE: Joi.string().required(),
   CLOUD_BUCKET: Joi.string()
     .required()
     .description('Google Cloud Storage bucket'),
   CHATKIT_INSTANCE: Joi.string()
     .description('Chatkit instanceLocator')
     .when('NODE_ENV', nonRequiredForDev),
-  CHATKIT_KEY: Joi.string()
-    .description('Chatkit key')
-    .when('NODE_ENV', nonRequiredForDev),
+  CHATKIT_KEY: Joi.string().when('NODE_ENV', nonRequiredForDev),
   SLACK_WEBHOOK_URL: Joi.string()
     .required()
     .description('Slack Webhook URL (for reporting)'),
@@ -67,15 +54,11 @@ const envVarsSchema = Joi.object({
   VK_APP_ID: Joi.string()
     .description("VK APP ID for Auth to post item on sellers' walls")
     .when('NODE_ENV', nonRequiredForDev),
-  VK_SECRET_KEY: Joi.string()
-    .description('VK APP Secret')
-    .when('NODE_ENV', nonRequiredForDev),
+  VK_SECRET_KEY: Joi.string().when('NODE_ENV', nonRequiredForDev),
   SEGMENT: Joi.string()
     .required()
     .description('Segment.com Analytics write key'),
-  SENTRY_DSN: Joi.string()
-    .required()
-    .description('Sentry key'),
+  SENTRY_DSN: Joi.string().required(),
   UAPAY_CLIENTID_P2P: Joi.string()
     .required()
     .description('UAPAY param for JWT clientId for P2P - to a request card token'),
