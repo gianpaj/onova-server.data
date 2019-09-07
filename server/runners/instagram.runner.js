@@ -122,39 +122,44 @@ export default class InstagramRunner {
         }
 
         const drops = await Promise.all(
-          IG_docs_to_scrape.map(
-            doc =>
-              new Promise((resolve, reject) =>
-                dropController.create(
-                  {
-                    user: { _id: doc.onovaUser._id },
-                    body: {
-                      date: new Date(), // post now
-                      longitude: 23.9573617, // FIXME:
-                      latitude: 49.8134431, // FIXME:
-                      products: [
-                        {
-                          categoryIds: [1], // FIXME:
-                          tags: ['winter', 'spring2007'], // TODO:
-                          description: doc.description,
-                          photos: doc.uploadedImages,
-                          price: '99999.99',
-                          quantity: 1,
-                        },
-                      ],
-                      instagram: doc.instagramId,
-                    },
+          IG_docs_to_scrape.map(doc =>
+            new Promise((resolve, reject) =>
+              dropController.create(
+                {
+                  user: { _id: doc.onovaUser._id },
+                  body: {
+                    date: new Date(), // post now
+                    products: [
+                      {
+                        // Men Clothes by default
+                        categoryIds: doc.lastProductCategoryIds ? doc.lastProductCategoryIds : [0],
+                        tags: doc.description ? this.extractHashtags(doc.description) : [],
+                        description: this.removeHashtags(doc.description),
+                        photos: doc.uploadedImages,
+                        price: '99999.99',
+                        quantity: 1,
+                      },
+                    ],
+                    instagram: doc.instagramId,
+                    ...this.getPostLocation(doc),
+                    // longitude: 23.9573617, // FIXME:
+                    // latitude: 49.8134431, // FIXME:
                   },
-                  drop => resolve(drop),
-                  err => reject(err),
-                  true
-                )
+                },
+                drop => resolve(drop),
+                err => reject(err),
+                true
               )
+            ).catch(e => {
+              console.error(e);
+              return e;
+            })
           )
         );
 
         console.log('drops created', drops.length);
         console.log(drops);
+        const validDrops = drops.filter(drop => !(drop instanceof Error));
 
         done();
       } catch (error) {
@@ -174,7 +179,7 @@ export default class InstagramRunner {
    * @returns {Array<String>}
    */
   extractHashtags(text) {
-    return text.match(/#[^\s#\.\;]*/g).map(v => v.replace('#', ''));
+    return (text.match(/#[^\s#\.\;]*/g) || []).map(v => v.replace('#', ''));
   }
 
   /**
@@ -185,7 +190,7 @@ export default class InstagramRunner {
    * @param {String} text
    * @returns {String}
    */
-  removeHashtags(text) {
+  removeHashtags(text = '') {
     return text
       .replace(/(\s#[^\s#\.\;]+)*$/g, '')
       .replace('#', '')

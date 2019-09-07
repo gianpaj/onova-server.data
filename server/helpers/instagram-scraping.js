@@ -654,9 +654,7 @@ var scrape = function(html) {
     if (process.env.NODE_ENV === 'production') {
       console.error('The HTML returned from instagram was not suitable for scraping');
     } else {
-      console.error(e);
       console.error(html);
-      console.error(dataExp);
     }
     return null;
   }

@@ -255,9 +255,9 @@ async function create(req: session$Request, res: express$Response, next: express
     const posted = Math.abs(differenceInSeconds(new Date(), body.date)) <= secondsDiff;
 
     const drop: DropDoc = new Drop({
-      scheduledAt: body.date,
-      seller: req.user._id,
       posted,
+      seller: req.user._id,
+      scheduledAt: body.date,
     });
 
     const date = Date.now();
@@ -274,7 +274,6 @@ async function create(req: session$Request, res: express$Response, next: express
         tags: prod.tags,
         typeIds: prod.typeIds,
         uuid: shortid.generate(), // needed here for photos' filenames
-        // createdAt: new Date(body.date),
         seller: req.user._id,
         status: posted ? 'forsale' : 'ready',
         ...(internal ? { instagram: body.instagram } : {}),

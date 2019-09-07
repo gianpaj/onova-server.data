@@ -1,13 +1,14 @@
 import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
-// import superagent from 'superagent';
-// import mockSuperagent from 'superagent-mock';
+import nock from 'nock';
+import fs from 'fs';
 
 import app from '../../index';
 import config from '../../config/config';
 import { beforeAllTests, clearJobs, closeDBConnection, createUserAndLogin, findJobs } from '../utils';
 import { InstagramRunner } from '../../runners';
+import { Product } from '../../models';
 
 /**
  * root level hooks
@@ -22,25 +23,8 @@ afterAll(done => {
 
 jest.setTimeout(10000);
 
-// const instagramEndPoint = 'https://www.instagram.com/';
-// const instagramPostEndPoint = 'https://www.instagram.com/p/';
-// let superagentMock, instagramParams;
-
 describe('## Instagram Runner', () => {
   beforeAll(beforeAllTests);
-
-  // beforeAll(() => {
-  //   superagentMock = mockSuperagent(superagent, [
-  //     {
-  //       pattern: instagramEndPoint,
-  //       fixtures: (match, params) => {
-  //         instagramParams = params;
-  //         return {};
-  //       },
-  //       get: (match, data) => ({ body: data }),
-  //     },
-  //   ]);
-  // });
 
   let user1 = {
     username: 'userone',
@@ -48,7 +32,6 @@ describe('## Instagram Runner', () => {
     password: 'expressos',
   };
 
-  const bio = 'Авторський крій, геометричні форми, апелювання до японських дизайнерів.';
   let user1JwtToken;
 
   // afterAll(() => {
@@ -141,10 +124,12 @@ describe('## Instagram Runner', () => {
             .expect(httpStatus.OK);
 
           if (products.length) {
-            expect(products).toHaveLength(1);
+            expect(products).toHaveLength(12);
 
             // GET User products
 
+            const p = await Product.find({ uuid: products[0].uuid });
+            expect(p.instagram).toBe('2100753171433006316');
             // expect(products[0].description.startsWith(i18n.orderConfirmed.slice(0, 10))).toBe(true);
             done();
             clearInterval(timer);
