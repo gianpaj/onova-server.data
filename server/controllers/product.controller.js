@@ -10,6 +10,7 @@ import photos from '../helpers/photos';
 import { Block, Product, ProductDoc, Tag, TagDoc, User, UserDoc, userPopulateFields } from '../models';
 import config from '../config/config';
 import Analytics from '../config/analytics';
+import { tempBucketURL } from './photos.controller';
 
 const { minPrice } = config.settings;
 
@@ -164,9 +165,7 @@ async function create(req: session$Request, res: express$Response, next: express
 
       product.seller = req.user._id;
 
-      const correctPhotos = body.photos.filter(p =>
-        p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
-      );
+      const correctPhotos = body.photos.filter(p => p.startsWith(tempBucketURL));
 
       if (correctPhotos.length < 1) {
         throw new APIError('Product photo(s) are required', httpStatus.BAD_REQUEST);

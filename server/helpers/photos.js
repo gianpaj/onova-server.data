@@ -9,9 +9,11 @@ import sharp from 'sharp';
 const debug = require('debug')('server-data:index');
 
 import { UserDoc } from '../models';
-// import { Product, ProductDoc } from '../models';
 import APIError from './APIError';
 import config from '../config/config';
+import { bucket as tempBucket } from '../controllers/photos.controller';
+
+const destBucketName = config.CLOUD_BUCKET;
 
 const PROFILE_PIC_WIDTH = 350;
 const PROFILE_PIC_HEIGHT = 350;
@@ -255,9 +257,6 @@ function uploadThumbnailToGCS(
   });
 }
 
-const srcBucketName = 'temp-uploads.onova.co';
-const destBucketName = config.CLOUD_BUCKET;
-
 /**
  * Copy image from one GCS bucket to another. From temp bucket to
  * Used when a product is created via the Schedule (Drop) or when editing product's images.
@@ -278,10 +277,10 @@ async function copyPhoto(
 
   try {
     await storage
-      .bucket(srcBucketName)
+      .bucket(tempBucket)
       .file(srcFilename)
       .copy(storage.bucket(destBucketName).file(destFilename));
-    debug(`gs://${srcBucketName}/${srcFilename} copied to gs://${destBucketName}/${destFilename}.`);
+    debug(`gs://${tempBucket}/${srcFilename} copied to gs://${destBucketName}/${destFilename}.`);
     await storage
       .bucket(destBucketName)
       .file(destFilename)

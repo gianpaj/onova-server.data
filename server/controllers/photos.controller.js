@@ -30,7 +30,9 @@ const storage = Storage({
   keyFilename: 'Onova-3a339323d16a.json',
 });
 
-const tempBucket = storage.bucket('temp-uploads.onova.co');
+export const bucket = 'temp-uploads.onova.co';
+const tempBucket = storage.bucket(bucket);
+export const tempBucketURL = `https://storage.googleapis.com/${bucket}`;
 
 /**
  * Upload image to temporary bucket in GSC
@@ -139,7 +141,7 @@ async function tempUploadProductImage(
       })
       .toFile(tempFilePath)
       .then(() => {
-        const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${uploadDate}.jpg`;
+        const cloudStoragePublicUrl = `${tempBucketURL}/${uploadDate}.jpg`;
         debug('temp product image uploaded to:', cloudStoragePublicUrl);
         if (internal) res(cloudStoragePublicUrl);
         else res.status(httpStatus.CREATED).json({ data: cloudStoragePublicUrl });
@@ -196,7 +198,7 @@ async function tempUploadProductImage(
     return;
   }
 
-  const cloudStoragePublicUrl = `https://storage.googleapis.com/temp-uploads.onova.co/${gcsname}`;
+  const cloudStoragePublicUrl = `${tempBucketURL}/${gcsname}`;
   stream.on('finish', () => {
     gcsFile
       .makePublic()

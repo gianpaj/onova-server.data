@@ -19,17 +19,6 @@ if (!schedulerIsRunning) {
   console.warn('skipping tests with scheduler (server.push)');
 }
 
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
-
 /* TODO: flow - :: extends UserDoc */
 type UserTestDoc = {
   _id: MongoId,

@@ -33,6 +33,7 @@ import app from '../index';
 import config from '../config/config';
 import { agenda } from '../config/express';
 import { buyerNeedsToPay, buyerPaidDeal, dealConfirmationResp, sellerConfirmedResponse } from '../helpers/shipping';
+import { tempBucketURL } from '../controllers/photos.controller';
 
 // This sets the mock adapter on the default instance
 export const mock = new MockAdapter(axios);
@@ -241,7 +242,7 @@ export async function createManyProducts(num: number, jwtToken: string) {
     typeIds: [1],
     tags: ['warm', 'bundle'],
     description: 'nice pair of socks',
-    photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+    photos: [`${tempBucketURL}/1533146500579-.jpeg`],
     price: '999',
     quantity: 1,
   };
