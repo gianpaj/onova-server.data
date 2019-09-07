@@ -236,19 +236,30 @@ async function create(req: session$Request, res: express$Response, next: express
       throw new APIError('Cannot create a drop 90 days from today', httpStatus.BAD_REQUEST);
     }
 
-    validateProducts(body.products);
+    throwIfThereAreInvalidProducts(body.products);
 
     const seller = await User.findById(req.user._id);
 
     validateSeller(seller);
 
-    const location = {
-      type: 'Point',
-      coordinates: [body.longitude, body.latitude],
-    };
-
-    const geodata = await geocoder.reverse(body.latitude, body.longitude);
-    const locality = geodata.admin1.name;
+    let locality, location;
+    if (internal) {
+      if (body.location) {
+        locality = body.location.slice(body.location.indexOf(',') + 2);
+      } else if (body.latitude && body.longitude) {
+        const geodata = await geocoder.reverse(body.latitude, body.longitude);
+        locality = geodata.admin1.name;
+      }
+    } else {
+      if (body.latitude && body.longitude) {
+        location = {
+          type: 'Point',
+          coordinates: [body.longitude, body.latitude],
+        };
+        const geodata = await geocoder.reverse(body.latitude, body.longitude);
+        locality = geodata.admin1.name;
+      }
+    }
 
     // if the drop date is not further than 30 seconds in the future, mark it as posted, skipping the job scheduler
     // but for testing only is not further thatn 3 seconds in the future
@@ -336,9 +347,9 @@ async function create(req: session$Request, res: express$Response, next: express
  * @property {string} req.params.dropId The target drop to subscribe to
  */
 async function subscribe(req: session$Request, res: express$Response, next: express$NextFunction) {
-  const { drop } = req;
+  const { drop, user } = req;
 
-  const myUserId = req.user._id.toString();
+  const myUserId = user._id.toString();
 
   try {
     if (myUserId === drop.seller._id.toString()) {
@@ -351,7 +362,7 @@ async function subscribe(req: session$Request, res: express$Response, next: expr
       throw new APIError("You're already subscribed", httpStatus.BAD_REQUEST);
     }
 
-    drop.subscribers.push(req.user);
+    drop.subscribers.push(user);
 
     await drop.save();
 
@@ -360,7 +371,7 @@ async function subscribe(req: session$Request, res: express$Response, next: expr
       agenda.schedule(
         addMinutes(drop.scheduledAt, -15),
         config.JOBNAMES.DROP_SUBSCRIPTION,
-        { drop, sub: req.user },
+        { drop, sub: user },
         err => {
           if (err) throw new APIError(`Error drop subscription: ${err}`);
           debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 15m`);
@@ -369,28 +380,18 @@ async function subscribe(req: session$Request, res: express$Response, next: expr
       );
     } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 10) {
       // schedule to send push notifications + Notification
-      agenda.schedule(
-        addMinutes(drop.scheduledAt, -5),
-        config.JOBNAMES.DROP_SUBSCRIPTION,
-        { drop, sub: req.user },
-        err => {
-          if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 10m`);
-          res.status(httpStatus.CREATED).json({ data: drop });
-        }
-      );
+      agenda.schedule(addMinutes(drop.scheduledAt, -5), config.JOBNAMES.DROP_SUBSCRIPTION, { drop, sub: user }, err => {
+        if (err) throw new APIError(`Error drop subscription: ${err}`);
+        debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 10m`);
+        res.status(httpStatus.CREATED).json({ data: drop });
+      });
     } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 1) {
       // schedule to send push notifications + Notification
-      agenda.schedule(
-        addMinutes(drop.scheduledAt, -1),
-        config.JOBNAMES.DROP_SUBSCRIPTION,
-        { drop, sub: req.user },
-        err => {
-          if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 1m`);
-          res.status(httpStatus.CREATED).json({ data: drop });
-        }
-      );
+      agenda.schedule(addMinutes(drop.scheduledAt, -1), config.JOBNAMES.DROP_SUBSCRIPTION, { drop, sub: user }, err => {
+        if (err) throw new APIError(`Error drop subscription: ${err}`);
+        debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 1m`);
+        res.status(httpStatus.CREATED).json({ data: drop });
+      });
     } else {
       res.status(httpStatus.CREATED).json({ data: drop });
     }
@@ -409,9 +410,9 @@ async function subscribe(req: session$Request, res: express$Response, next: expr
  * @property {string} req.params.dropId The target drop to unsubscribe to
  */
 async function unsubscribe(req: session$Request, res: express$Response, next: express$NextFunction) {
-  const { drop } = req;
+  const { drop, user } = req;
 
-  const myUserId = req.user._id.toString();
+  const myUserId = user._id.toString();
 
   try {
     if (myUserId === drop.seller._id.toString()) {
@@ -428,7 +429,7 @@ async function unsubscribe(req: session$Request, res: express$Response, next: ex
 
     await drop.save();
 
-    agenda.cancel({ 'data.drop._id': drop._id, 'data.sub._id': req.user._id }, (err, numRemoved) => {
+    agenda.cancel({ 'data.drop._id': drop._id, 'data.sub._id': user._id }, (err, numRemoved) => {
       if (err) return console.error(err);
       debug('numRemoved ' + numRemoved);
       return res.status(httpStatus.OK).json({ data: drop });
@@ -438,15 +439,13 @@ async function unsubscribe(req: session$Request, res: express$Response, next: ex
   }
 }
 
-function validateProducts(products: Array<ProductDoc>) {
+function throwIfThereAreInvalidProducts(products: Array<ProductDoc>) {
   products.forEach(product => {
     if (parseFloat(product.price) < minPrice) {
       throw new APIError(`Invalid product price. The minimum price is ${minPrice} UAH`, httpStatus.BAD_REQUEST);
     }
 
-    const correctPhotos = product.photos.filter(p =>
-      p.startsWith('https://storage.googleapis.com/temp-uploads.onova.co/')
-    );
+    const correctPhotos = product.photos.filter(p => p.startsWith(tempBucketURL));
 
     if (correctPhotos.length < 1) {
       throw new APIError('Invalid photos', httpStatus.BAD_REQUEST);

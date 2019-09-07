@@ -54,7 +54,13 @@ const nonActiveUser = {
   password: 'expressos',
 };
 
-let nonActiveUserJwtToken;
+const userWithoutShippingAddress = {
+  username: 'noshipping',
+  emailAddress: 'gianpa+noshipping@gmail.com',
+  password: 'expressos',
+};
+
+let nonActiveUserJwtToken, userWithoutShippingAddressJwtToken;
 
 const admin = {
   username: 'gianpaj',
@@ -80,22 +86,23 @@ const product = {
 describe('## Drops feed APIs', () => {
   beforeAll(beforeAllTests);
 
-  // create 4 users + a non-active user
+  // create:
+  // - 4 normal users
+  // - 1 non-active user
+  // - 1 user without shipping address
   beforeAll(async () => {
     await clearJobs();
 
-    const usersAndTokens = await Promise.all(users.map(createUserAndLogin));
+    const usersAndTokens = await Promise.all(users.map(u => createUserAndLogin(u, 'seller')));
     users = usersAndTokens.map(user => ({
       ...user.user,
       token: user.jwtToken,
     }));
 
     await Promise.all([
-      request(app)
-        .put(`/api/users/${users[2]._id}`)
-        .set('Authorization', users[2].token)
-        .send({ shippingAddress: {} })
-        .expect(httpStatus.OK),
+      createUserAndLogin(userWithoutShippingAddress, 'buyer', false).then(
+        user => (userWithoutShippingAddressJwtToken = user.jwtToken)
+      ),
       request(app)
         .post('/api/users')
         .send(nonActiveUser)
@@ -278,7 +285,7 @@ describe('## Drops feed APIs', () => {
     it(`should NOT create a drop if seller doesn't have a shipping address`, () => {
       return request(app)
         .post('/api/v2/drops')
-        .set('Authorization', users[2].token)
+        .set('Authorization', userWithoutShippingAddressJwtToken)
         .send({
           date: new Date(),
           products: [product],
@@ -683,7 +690,7 @@ describe('## Drops feed APIs', () => {
     it("should get an empty list if my followers haven't posted anything", () => {
       return request(app)
         .get('/api/feed/drops')
-        .set('Authorization', users[2].token)
+        .set('Authorization', userWithoutShippingAddressJwtToken)
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.data).toHaveLength(0));
     });
