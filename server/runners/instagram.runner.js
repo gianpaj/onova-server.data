@@ -1,7 +1,7 @@
 // @flow
 
 import instagramScraping from '../helpers/instagram-scraping';
-import { InstagramScrapped, User } from '../models';
+import { InstagramScrapped, User, Product } from '../models';
 import config from '../config/config';
 
 import { agenda } from '../config/express';
@@ -71,6 +71,11 @@ export default class InstagramRunner {
           console.log('last_IGPost_timestamp_scrapped', last_IGPost_timestamp_scrapped);
           // if we found a newer IG post (with a greater timestamp)
 
+          // Find the category of the last item for each User-Product
+          const productCategory = await Product.find({ seller: users[i]._id })
+            .sort({ _id: -1 })
+            .limit(1);
+
           // if we previously scrapped this user
           if (IG_doc.length > 0) {
             // only new posts
@@ -81,9 +86,20 @@ export default class InstagramRunner {
             debug('no new IG_docs_to_scrape for', user_page.username);
           } else {
             // scrape all
-            IG_docs_to_scrape = [...IG_docs_to_scrape, ...user_page.medias];
+            IG_docs_to_scrape = [
+              ...IG_docs_to_scrape.map(doc => ({
+                ...doc,
+                onovaUser: users[i],
+                lastProductCategoryIds: productCategory.categoryIds,
+              })),
+              ...user_page.medias,
+            ];
           }
-          IG_docs_to_scrape = IG_docs_to_scrape.map(doc => ({ ...doc, onovaUser: users[i] }));
+          IG_docs_to_scrape = IG_docs_to_scrape.map(doc => ({
+            ...doc,
+            onovaUser: users[i],
+            lastProductCategoryIds: productCategory.categoryIds,
+          }));
         }
 
         // TODO: filter docs without the #onova hashtag in the description
