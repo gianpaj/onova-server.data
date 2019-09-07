@@ -1,6 +1,5 @@
 // @flow
 
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 import jwt from 'jsonwebtoken';
@@ -8,17 +7,6 @@ import jwt from 'jsonwebtoken';
 import app from '../index';
 import { beforeAllTests } from './utils';
 import config from '../config/config';
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 describe('## UserWeb APIs', () => {
   beforeAll(beforeAllTests);

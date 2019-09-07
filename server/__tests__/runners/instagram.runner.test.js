@@ -1,4 +1,3 @@
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 import nock from 'nock';
@@ -9,17 +8,6 @@ import config from '../../config/config';
 import { beforeAllTests, clearJobs, closeDBConnection, createUserAndLogin, findJobs } from '../utils';
 import { InstagramRunner } from '../../runners';
 import { Product } from '../../models';
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 jest.setTimeout(10000);
 

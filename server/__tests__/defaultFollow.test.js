@@ -1,6 +1,5 @@
 // @flow
 
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 const debug = require('debug')('server-data:index');
@@ -12,17 +11,6 @@ import { beforeAllTests, createUserAndLogin } from './utils';
 const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 describe('## Default Follow methods', () => {
   beforeAll(beforeAllTests);

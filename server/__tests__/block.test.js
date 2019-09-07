@@ -1,25 +1,13 @@
 // @flow
 
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
-import { beforeAllTests, createUserAndLogin, createProduct, createOrder, followUser } from './utils';
 import { UserDoc, ProductDoc } from '../models';
+import { beforeAllTests, createUserAndLogin, createProduct, createOrder, followUser } from './utils';
 
 const blockFields = ['createdAt', '_id', 'sourceUser', 'targetUser'];
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 describe('## Block methods', () => {
   beforeAll(beforeAllTests);
@@ -38,6 +26,7 @@ describe('## Block methods', () => {
     description: 'nice boots',
     price: '1100.99',
     photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+    quantity: 1,
   };
 
   // $FlowFixMe
@@ -110,7 +99,6 @@ describe('## Block methods', () => {
       firstUser.followers++;
 
       // firstUser -- orders --> product from user 0
-      // $FlowFixMe
       const o = await createOrder({ ...product, uuid: p2.uuid }, firstUser.jwtToken);
       await request(app)
         .put(`/api/orders/${o.id}`)

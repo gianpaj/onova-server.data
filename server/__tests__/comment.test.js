@@ -1,6 +1,5 @@
 // @flow
 
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
@@ -8,17 +7,6 @@ import { Product, Tag } from '../models';
 
 import app from '../index';
 import { beforeAllTests, createComment, createProduct, createUserAndLogin } from './utils';
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 // should only have these fields
 const commentFields = ['_id', 'createdAt', 'text', 'user'];

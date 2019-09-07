@@ -1,23 +1,11 @@
 // @flow
 
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
 import { User } from '../models';
 import { beforeAllTests, createUserAndLogin, followUser } from './utils';
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 describe('## Follow APIs', () => {
   beforeAll(beforeAllTests);

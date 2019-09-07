@@ -10,17 +10,6 @@ import { SuggestedUsers } from '../models';
 import app from '../index';
 import { beforeAllTests, createUserAndLogin, followUser } from './utils';
 
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
-
 /* TODO: flow - :: extends UserDoc */
 type User = {
   _id: MongoId,

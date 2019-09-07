@@ -1,6 +1,5 @@
 // @flow
 
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 import path from 'path';
@@ -12,17 +11,6 @@ import app from '../index';
 import config from '../config/config';
 import { Verification, User, UserDoc } from '../models';
 import { createUserAndLogin, beforeAllTests } from './utils';
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 const validPhoneNumber = '0977414301';
 const validPhoneNumber2 = '0977414302';
