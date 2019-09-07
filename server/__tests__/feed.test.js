@@ -1,23 +1,11 @@
 // @flow
 
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 
 import app from '../index';
 import { Tag, Product, UserDoc } from '../models';
 import { beforeAllTests, createProduct, createUserAndLogin, createManyProducts, followUser } from './utils';
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 // GET /api/feed/ should only return these fields
 const feedFields = [

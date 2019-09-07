@@ -1,6 +1,5 @@
 // @flow
 
-import mongoose from 'mongoose';
 import request from 'supertest';
 import httpStatus from 'http-status';
 import axios from 'axios';
@@ -29,17 +28,6 @@ import { buyerPaidDeal } from '../helpers/shipping';
 const mock = new MockAdapter(axios);
 
 jest.setTimeout(10000);
-
-/**
- * root level hooks
- */
-afterAll(done => {
-  // required because https://github.com/Automattic/mongoose/issues/1251#issuecomment-65793092
-  mongoose.models = {};
-  mongoose.modelSchemas = {};
-  mongoose.connection.close();
-  done();
-});
 
 // GET /api/users/notifications - should only return these fields
 const notifFields = [
@@ -74,6 +62,7 @@ const product = {
   // seller comes after the user is created
   price: '1010.99', // if no decimal points .00 will be added
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
 };
 
 let anotherProduct = {
@@ -82,6 +71,7 @@ let anotherProduct = {
   description: 'nice jacket',
   price: '230.99',
   photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  quantity: 1,
 };
 
 let userId;
@@ -531,7 +521,7 @@ describe('## Notification APIs', () => {
           const comment = data.find(c => c.data.text == '@anotherperson oops thats`s me!');
           expect(comment).toBeUndefined();
           expect(data[0].data.text).not.toContain('oops thats');
-          expect(data).toHaveLength(numberOfNotifForFirstUser + 1);
+          expect(data).toHaveLength(numberOfNotifForFirstUser);
         });
     });
   });

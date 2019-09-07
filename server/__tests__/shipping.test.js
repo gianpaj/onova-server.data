@@ -8,13 +8,14 @@ import MockAdapter from 'axios-mock-adapter';
 import app from '../index';
 
 import { beforeAllTests, createOrder, createProduct, createUserAndLogin } from './utils';
+import { tempBucketURL } from '../controllers/photos.controller';
 
 const mock = new MockAdapter(axios);
 
-const kyiv = '8d5a980d-391c-11dd-90d9-001a92567626';
+const kyivCityId = '8d5a980d-391c-11dd-90d9-001a92567626';
 
 const photos = {
-  photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+  photos: [`${tempBucketURL}/1533146500579-.jpeg`],
 };
 
 describe('## Shipping', () => {
@@ -59,7 +60,7 @@ describe('## Shipping', () => {
   describe('# GET /api/shipping/departments/${city}', () => {
     it('should get the list of departments', () => {
       return request(app)
-        .get(`/api/shipping/departments/${kyiv}`)
+        .get(`/api/shipping/departments/${kyivCityId}`)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
@@ -88,16 +89,16 @@ describe('## Shipping', () => {
       typeIds: [1],
       description: 'my old panties',
       price: '99900.59',
+      quantity: 1,
       ...photos,
     };
 
-    let orderId, orderProdUUID;
+    let orderId;
 
     beforeAll(() => {
       return createProduct(productDoc, user1JwtToken).then(product =>
         createOrder({ ...product, ...productDoc }, user2JwtToken).then(o => {
           expect(o.priceOfItem).toBe(productDoc.price);
-          // orderProdUUID = product.uuid;
           orderId = o.id;
         })
       );
