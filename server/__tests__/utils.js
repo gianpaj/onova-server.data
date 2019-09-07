@@ -110,7 +110,8 @@ const buyerPaymentInfo = {
 // TODO: return a tuple so it's shorter to rename
 export function createUserAndLogin(
   user: UserDoc,
-  paymentInfoAs: 'buyer' | 'seller' | false = 'buyer'
+  paymentInfoAs: 'buyer' | 'seller' | false = 'buyer',
+  addShippingAddress: Boolean = true
 ): Promise<{ user: UserDoc, jwtToken: string }> {
   return request(app)
     .post('/api/users')
@@ -126,7 +127,7 @@ export function createUserAndLogin(
       await request(app)
         .put(`/api/users/${body.data._id}`)
         .set('Authorization', body.token)
-        .send({ ...paymentInfo, ...userShippingAddress })
+        .send({ ...paymentInfo, ...(addShippingAddress ? userShippingAddress : {}) })
         .expect(httpStatus.OK);
 
       return { resUser: body.data, jwtToken: body.token };
