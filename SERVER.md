@@ -164,7 +164,7 @@ Taken from: [How To Secure Nginx with Let's Encrypt on Ubuntu 16.04 | DigitalOce
 
 ```bash
 # apt-get update
-# apt-get install software-properties-common
+# apt-get install software-properties-common -y
 add-apt-repository ppa:certbot/certbot
 apt-get update
 apt-get install python-certbot-nginx -y
