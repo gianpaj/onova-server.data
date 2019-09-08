@@ -3,6 +3,7 @@
 import httpStatus from 'http-status';
 import Chatkit from '@pusher/chatkit-server';
 import bs58 from 'bs58';
+import _ from 'lodash';
 const debug = require('debug')('server-data:index');
 
 import APIError from '../helpers/APIError';
@@ -419,24 +420,24 @@ function list(req: session$Request, res: express$Response, next: express$NextFun
   if (username) {
     // flow-disable-next-line
     return User.findOne({ username })
+      .select(userPublicFields)
       .then((user: UserDoc) => {
-        if (!user) return Promise.reject();
-        return user;
+        if (!user) throw new APIError('Invalid user', httpStatus.BAD_REQUEST);
+        return res.json(user);
       })
-      .then(user => res.json(_prepareUserJson(user)))
-      .catch(() => {
-        const err = new APIError('Invalid user', httpStatus.BAD_REQUEST);
-        return next(err);
+      .catch(e => {
+        if (!(e instanceof APIError)) console.log(error);
+        return next(e);
       });
   }
 
   if (u) {
     const regex = new RegExp(escapeRegex(u), 'gi');
-    User.find({
+    return User.find({
       username: regex,
-      accountStatus: { $nin: ['deleted', 'banned'] },
+      accountStatus: { $nin: ['deleted', 'banned', 'notverified'] },
     })
-      .select('_id accountStatus displayName username profilePic bio')
+      .select(userPublicFields)
       .then(users => {
         if (!users) {
           return res.json({});
@@ -447,7 +448,6 @@ function list(req: session$Request, res: express$Response, next: express$NextFun
         const APIerr = new APIError(e, httpStatus.INTERNAL_SERVER_ERROR);
         next(APIerr);
       });
-    return;
   }
 
   // use static method from UserSchema
@@ -472,30 +472,30 @@ function remove(req: session$Request, res: express$Response, next: express$NextF
     .catch(e => next(e));
 }
 
+export const userPublicFields = [
+  '_id',
+  'accountStatus',
+  'bio',
+  'displayName',
+  'emailAddress',
+  'facebook',
+  'followersCount',
+  'followingCount',
+  'profilePic',
+  'ratingsTotal',
+  'reviewsCount',
+  'sharedCount',
+  'socials',
+  'tokens',
+  'types',
+  'username',
+];
+
 /**
- * @private
- *
  * Limit number of fields send back for a user - Un-protected data / no auth
  */
 function _prepareUserJson(user: UserDoc): Object {
-  return {
-    _id: user._id,
-    accountStatus: user.accountStatus,
-    bio: user.bio,
-    displayName: user.displayName,
-    emailAddress: user.emailAddress,
-    facebook: user.facebook,
-    followersCount: user.followersCount,
-    followingCount: user.followingCount,
-    profilePic: user.profilePic,
-    ratingsTotal: user.ratingsTotal,
-    reviewsCount: user.reviewsCount,
-    sharedCount: user.sharedCount,
-    socials: user.socials,
-    tokens: user.tokens,
-    types: user.types,
-    username: user.username,
-  };
+  return _.pick(user, userPublicFields);
 }
 
 export default { load, get, getPersonal, create, update, list, remove };
