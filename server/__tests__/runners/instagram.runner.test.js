@@ -8,10 +8,14 @@ import { beforeAllTests, createUserAndLogin } from '../utils';
 import { InstagramRunner } from '../../runners';
 import { Product } from '../../models';
 
-jest.setTimeout(10000);
+jest.setTimeout(20000);
 
 describe('## Instagram Runner', () => {
   beforeAll(beforeAllTests);
+  // nock.back.fixtures = path.join(__dirname, '__fixtures__');
+  // nock.back.setMode('record');
+  // nock.enableNetConnect();
+  // nock.enableNetConnect(/(localhost|127.0.0.1|api.mailjet.com|127.0.0.1:(.+))/);
 
   let user1 = {
     username: 'userone',
@@ -20,10 +24,9 @@ describe('## Instagram Runner', () => {
   };
 
   let user1JwtToken;
+  const IG_Class = new InstagramRunner();
 
   describe('Unit tests', () => {
-    const IG_Class = new InstagramRunner();
-
     it('should extract the hashtags from post description (all at the end)', () => {
       const description =
         '📬 Відправку здійснюємо по Україні 🇺🇦 та закордон 🛸\n⠀\nВартість доставки не включена в ціну товару.\n⠀\nВідправлення відбувається в тот самий день коли відбулась передоплата.\n⠀\nПісля відправки, надсилаємо фото декларації у Facebook/Instagram, по якому Ви зможете відслідковувати замовлення 🌏\n⠀\nДОСТАВКА МОЖЛИВА:\n🍓 на відділення Нової пошти;\n🍓 на відділення Укрпошти;\n🍓 самовивіз з майстерні м. Львів, вул. Угорська, 2\n⠀\n📌 ВАЖЛИВО! Перевіряйте товар відразу при отриманні у відділенні!\n⠀\nЗалишились питання?\n👉 пишіть нам у Messenger ✉\n👉 або звертайтесь за телефоном: (068) 099 49 06\n⠀\n#horondi #lviv #ukraine #Львів #Горонді #наплічники #рюкзак #бананки #рюкзакльвів #рюкзакукраїна #рюкзакдляподорожей #рюкзакдляміста #рюкзакдлямам #рюкзаки #рюкзаккупити #бананки #бананочки #сумку #бананкальвів #рюкзакльвів #наплічник #сумкачерезплече #гаманець #щастя #любов #друзі #подарунок #деньнародження';
@@ -72,6 +75,17 @@ describe('## Instagram Runner', () => {
       const descriptionWithoutHashtags = description.slice(0, description.indexOf('#horondi')).trim();
       expect(IG_Class.removeHashtags(description)).toBe(descriptionWithoutHashtags.replace('#', ''));
     });
+
+    it('should extract the price from the description', () => {
+      const description = '📬 Відправку #здійснюємо 100 UAH Україні 🇺🇦 та ';
+      expect(IG_Class.extractPrice(description)).toBe('100');
+      const description2 = 'Відправку #здійснюємо 100.00 UAH Україні $$';
+      expect(IG_Class.extractPrice(description2)).toBe('100.00');
+      const description3 = 'Відправку #здійснюємо 100 грн Україні €€';
+      expect(IG_Class.extractPrice(description3)).toBe('100');
+      const description4 = 'Відправку #здійснюємо ₴100 Україні';
+      expect(IG_Class.extractPrice(description4)).toBe('100');
+    });
   });
 
   describe('Scrape Instagram and create Product', () => {
@@ -89,6 +103,7 @@ describe('## Instagram Runner', () => {
     });
 
     it('should created a Drop and a product', async done => {
+      await IG_Class.scrape();
       try {
         const waitFor = 15 * 1000; // seconds
         const interval = Math.floor(waitFor / 100);
@@ -106,12 +121,13 @@ describe('## Instagram Runner', () => {
             .expect(httpStatus.OK);
 
           if (products.length) {
-            expect(products).toHaveLength(12);
+            expect(products).toHaveLength(2);
 
             const p = await Product.findOne({ uuid: products[0].uuid });
+            console.log(p);
+            // console.log(products);
+            // expect(p.instagram).toBe('2060899296590629529');
 
-            expect(p.instagram).toBe('2100753171433006316');
-            // expect(products[0].description.startsWith(i18n.orderConfirmed.slice(0, 10))).toBe(true);
             done();
             return clearInterval(timer);
           }
