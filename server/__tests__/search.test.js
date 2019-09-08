@@ -93,49 +93,44 @@ describe('## Search APIs', () => {
   beforeAll(beforeAllTests);
 
   // create 2 users/sellers + 3 products (1 deleted)
-  beforeAll(done => {
-    createUserAndLogin(user)
-      .then(({ user, jwtToken }) => {
-        userId = user._id;
-        firstJwtToken = jwtToken;
-      })
-      .then(() => Tag.create([{ _id: 'winter' }, { _id: 'summer' }]))
-      .then(async () => {
-        try {
-          const { user, jwtToken } = await createUserAndLogin(anotherUser);
-          anotherUserId = user._id;
-          anotherJwtToken = jwtToken;
+  beforeAll(async done => {
+    try {
+      const { user: u1, jwtToken: t1 } = await createUserAndLogin(user);
+      userId = u1._id;
+      firstJwtToken = t1;
+      const { user: u2, jwtToken: t2 } = await createUserAndLogin(anotherUser);
+      anotherUserId = u2._id;
+      anotherJwtToken = t2;
 
-          const p1 = await createProduct(product, firstJwtToken);
-          expect(p1.description).toBe(product.description);
+      const p1 = await createProduct(product, firstJwtToken);
+      expect(p1.description).toBe(product.description);
 
-          const p2 = await createProduct(anotherProduct, anotherJwtToken);
-          expect(p2.description).toBe(anotherProduct.description);
+      const p2 = await createProduct(anotherProduct, anotherJwtToken);
+      expect(p2.description).toBe(anotherProduct.description);
 
-          const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(user5Reseller);
-          user5Reseller._id = resUser5._id;
-          jwtToken5Reseller = token5;
-          await User.updateOne({ _id: user5Reseller._id }, { $set: { types: ['reseller'] } });
-          const p3 = await createProduct(deletedProduct, anotherJwtToken);
-          expect(p3.description).toBe(deletedProduct.description);
-          await request(app)
-            .delete(`/api/products/${p3.uuid}`)
-            .set('Authorization', anotherJwtToken)
-            .expect(httpStatus.NO_CONTENT);
+      const { user: resUser5, jwtToken: token5 } = await createUserAndLogin(user5Reseller);
+      user5Reseller._id = resUser5._id;
+      jwtToken5Reseller = token5;
+      await User.updateOne({ _id: user5Reseller._id }, { $set: { types: ['reseller'] } });
+      const p3 = await createProduct(deletedProduct, anotherJwtToken);
+      expect(p3.description).toBe(deletedProduct.description);
+      await request(app)
+        .delete(`/api/products/${p3.uuid}`)
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.NO_CONTENT);
 
-          const p4 = await createProduct(soldOutProduct, anotherJwtToken);
-          expect(p4.description).toBe(soldOutProduct.description);
-          await request(app)
-            .put(`/api/products/${p4.uuid}`)
-            .send({ quantity: 0 })
-            .set('Authorization', anotherJwtToken)
-            .expect(httpStatus.OK);
-          done();
-        } catch (error) {
-          console.error(error);
-          done();
-        }
-      });
+      const p4 = await createProduct(soldOutProduct, anotherJwtToken);
+      expect(p4.description).toBe(soldOutProduct.description);
+      await request(app)
+        .put(`/api/products/${p4.uuid}`)
+        .send({ quantity: 0 })
+        .set('Authorization', anotherJwtToken)
+        .expect(httpStatus.OK);
+      done();
+    } catch (error) {
+      console.error(error);
+      done();
+    }
   });
 
   // both accounts follow each other
