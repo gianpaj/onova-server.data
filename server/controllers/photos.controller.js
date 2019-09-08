@@ -32,7 +32,10 @@ const storage = Storage({
 
 export const bucket = 'temp-uploads.onova.co';
 const tempBucket = storage.bucket(bucket);
-export const tempBucketURL = `https://storage.googleapis.com/${bucket}`;
+
+const tempBucketURLStaging = `https://staging.onova-183307.appspot.com/${bucket}`;
+const tempBucketURLProd = `https://storage.googleapis.com/${bucket}`;
+export const tempBucketURL = config.env == 'dev' ? tempBucketURLStaging : tempBucketURLProd;
 
 /**
  * Upload image to temporary bucket in GSC
