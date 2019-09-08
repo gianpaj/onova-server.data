@@ -118,7 +118,15 @@ Array [
   "accountStatus",
   "bio",
   "displayName",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
   "profilePic",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
   "username",
 ]
 `;
