@@ -13,6 +13,8 @@ const debug = console.log;
 
 const { JOBNAMES } = config;
 
+let created = false;
+
 export default class InstagramRunner {
   constructor() {
     // TODO: only start it if we're testing this runner
@@ -37,19 +39,28 @@ export default class InstagramRunner {
   }
 
   createScrapingJob() {
+    if (created) return;
+    created = true;
     const job = agenda.create(JOBNAMES.IG_SCRAPPING);
     job.unique({ jobName: JOBNAMES.IG_SCRAPPING });
-    // job.repeatEvery(config.env === 'test' ? '3 seconds' : '30 seconds');
-    job.repeatEvery('60 seconds');
+    if (config.env !== 'test') job.repeatEvery('60 seconds');
     job.save();
   }
 
   defineScrapingJob() {
-    agenda.define(JOBNAMES.IG_SCRAPPING, async (job, done) => {
-      debug(`${JOBNAMES.IG_SCRAPPING} job running at`, new Date());
-
+    agenda.define(JOBNAMES.IG_SCRAPPING, { concurrency: 1, lockLimit: 1 }, async (job, done) => {
       try {
-        const users = await User.find({ 'scraping.instagram': { $exists: true } });
+        if (config.env === 'test') await sleep(1000);
+        debug(`${JOBNAMES.IG_SCRAPPING} job running at`, new Date());
+
+        // TODO: (and test) do not scrape users without payment info
+        const users = await User.find(
+          {
+            'scraping.instagram': { $exists: true },
+            // 'seller.paymentInfo': { $exists: true }
+          },
+          { scraping: 1 }
+        );
         debug('users found:', users.length);
         if (!users.length) return done();
 
@@ -116,9 +127,12 @@ export default class InstagramRunner {
 
         for (let j = 0; j < IG_docs_to_scrape.length; j++) {
           const doc = IG_docs_to_scrape[j];
+          // TODO: improve speed by returning index of array
           const uploadedImages = await uploadURLToGCS(doc.images);
           console.log(uploadedImages);
           IG_docs_to_scrape[j].uploadedImages = uploadedImages;
+          // tell Agenda the job is still running, which resets the lock timeout
+          await job.touch();
         }
 
         const drops = await Promise.all(
@@ -157,9 +171,10 @@ export default class InstagramRunner {
           )
         );
 
-        console.log('drops created', drops.length);
-        console.log(drops);
         const validDrops = drops.filter(drop => !(drop instanceof Error));
+
+        // console.log('drops attempted to create', drops.length);
+        debug('validDrops created', validDrops.length);
 
         done();
       } catch (error) {
@@ -171,7 +186,7 @@ export default class InstagramRunner {
   }
 
   /**
-   * Extract hashtags from Instagram post description
+   * Extract hashtags from Instagram post description, excluding #onova
    *
    * https://stackoverflow.com/a/56954025/728287
    *
@@ -179,7 +194,7 @@ export default class InstagramRunner {
    * @returns {Array<String>}
    */
   extractHashtags(text) {
-    return (text.match(/#[^\s#\.\;]*/g) || []).map(v => v.replace('#', ''));
+    return (text.match(/#[^\s#\.\;]*/g) || []).map(v => v.replace('#', '')).filter(v => !new RegExp(/onova/i).test(v));
   }
 
   /**
@@ -196,4 +211,25 @@ export default class InstagramRunner {
       .replace('#', '')
       .trim();
   }
+
+  getLvivCoordinates() {
+    return {
+      longitude: 23.9573617,
+      latitude: 49.8134431,
+    };
+  }
+
+  /**
+   * If the IG post has a location name use that as city name
+   * or use by default the coordinates of Lviv (not used at the moment - only stored)
+   *
+   * @param {*} doc
+   */
+  getPostLocation(doc) {
+    return doc.location ? doc.location : this.getLvivCoordinates();
+  }
+}
+
+function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
 }
