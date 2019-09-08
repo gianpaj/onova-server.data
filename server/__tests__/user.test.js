@@ -90,9 +90,9 @@ describe('## User APIs', () => {
     password: 'express4',
   };
 
-  const fifthUser = {
-    username: 'fifthuser',
-    emailAddress: 'gianpa+fifthuser@gmail.com',
+  const nonVerifiedUser = {
+    username: 'nonverifieduser',
+    emailAddress: 'gianpa+nonverifieduser@gmail.com',
     password: 'express5',
     type: 'reseller',
   };
@@ -149,25 +149,25 @@ describe('## User APIs', () => {
       it('should create a new user (reseller)', () => {
         return request(app)
           .post('/api/users')
-          .send(fifthUser)
+          .send(nonVerifiedUser)
           .expect(httpStatus.CREATED)
           .then(res => {
             const { data } = res.body;
             expect(typeof data._id).toBe('string');
             expect(data.accountStatus).toBe('notverified');
-            expect(data.emailAddress).toBe(fifthUser.emailAddress);
+            expect(data.emailAddress).toBe(nonVerifiedUser.emailAddress);
             expect(data.followersCount).toBe(0);
             expect(data.followingCount).toBe(0);
             expect(data.ratingsTotal).toBe(0);
             expect(data.reviewsCount).toBe(0);
-            expect(data.username).toBe(fifthUser.username);
+            expect(data.username).toBe(nonVerifiedUser.username);
             expect(data.types).toEqual(['reseller']);
             expect(typeof res.body.token).toBe('string');
             expect(Object.keys(data).sort()).toMatchSnapshot();
 
             const emailMsg = mailJetParams.Messages[0];
             expect(emailMsg.Subject).toBe('Підтвердження профілю - Welcome to Drop, verify your email address');
-            expect(emailMsg.To[0].Email).toBe(fifthUser.emailAddress);
+            expect(emailMsg.To[0].Email).toBe(nonVerifiedUser.emailAddress);
             expect(emailMsg.From.Email).toBe('noreply@drop.uno');
           });
       });
@@ -775,15 +775,17 @@ describe('## User APIs', () => {
 
     beforeAll(async () => {
       for (let i = 0; i < people.length; i++) {
-        try {
-          const u = await createUserAndLogin(people[i]);
-          people[i]._id = u.user._id;
-          people[i].jwtToken = u.jwtToken;
-          if (u instanceof Error) throw u;
-        } catch (err) {
-          console.error(err);
-        }
+        const u = await createUserAndLogin(people[i]);
+        people[i]._id = u.user._id;
+        people[i].jwtToken = u.jwtToken;
       }
+
+      // const { body } = await request(app)
+      //   .post('/api/users')
+      //   .send(nonVerifiedUser)
+      //   .expect(httpStatus.CREATED);
+      // expect(typeof body.data._id).toBe('string');
+      // expect(body.data.accountStatus).toBe('notverified');
 
       // delete user `maria`
       const m = await request(app)
@@ -826,8 +828,8 @@ describe('## User APIs', () => {
         .get('/api/users?u=person')
         .expect(httpStatus.OK)
         .then(res => {
-          expect(res.body.length).toBe(2);
-          expect(res.body[0].username).toBe(user.username);
+          expect(res.body.length).toBe(1);
+          expect(res.body[0].username).toBe(people[2].username);
         });
     });
 
@@ -847,14 +849,21 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => expect(res.body.length).toBe(0));
     });
+
+    it('should NOT find non-verified users', () => {
+      return request(app)
+        .get('/api/users?u=nonverifieduser')
+        .expect(httpStatus.OK)
+        .then(res => expect(res.body.length).toBe(0));
+    });
   });
 
   describe('# DELETE /api/users/:userId', () => {
-    beforeAll(() => {
-      return createUserAndLogin(anotherUser).then(({ user }) => {
+    beforeAll(() =>
+      createUserAndLogin(anotherUser).then(({ user }) => {
         anotherUserId = user._id.toString();
-      });
-    });
+      })
+    );
 
     it('should delete user', () => {
       return request(app)
@@ -895,16 +904,12 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
-    beforeAll(() => {
-      return createUserAndLogin(forthUser)
-        .then(({ user, jwtToken: token }) => {
-          forthUserId = user._id.toString();
-          forthJwtToken = token;
-        })
-        .catch(err => {
-          console.error(err);
-        });
-    });
+    beforeAll(() =>
+      createUserAndLogin(forthUser).then(({ user, jwtToken: token }) => {
+        forthUserId = user._id.toString();
+        forthJwtToken = token;
+      })
+    );
 
     it('should NOT update an user`s email to an existing one', () => {
       return request(app)

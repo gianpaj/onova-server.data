@@ -191,7 +191,7 @@ Array [
 ]
 `;
 
-exports[`## User APIs # GET /api/users/?u=<username> should NOT find deleted users 1`] = `
+exports[`## User APIs # GET /api/users/?u=<username> should NOT find non-verified users 1`] = `
 Array [
   "_id",
   "accountStatus",
@@ -213,7 +213,15 @@ Array [
   "accountStatus",
   "bio",
   "displayName",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
   "profilePic",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
   "username",
 ]
 `;
