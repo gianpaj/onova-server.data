@@ -92,7 +92,7 @@
     "rimraf": "^2.6.0",
     "superagent-mock": "3.7.0",
     "supertest": "^3.4.0",
-    "throat": "^4.1.0"
+    "throat": "^5.0.0"
   },
   "engineStrict": true,
   "engines": {

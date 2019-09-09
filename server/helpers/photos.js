@@ -250,7 +250,7 @@ function uploadThumbnailToGCS(
           resolve();
         })
         .catch(err => {
-          console.log('Error makePublic thumbnail');
+          console.error('Error makePublic thumbnail: %j', photoURL);
           reject(err);
         });
     });
