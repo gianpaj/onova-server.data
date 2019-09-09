@@ -758,7 +758,25 @@ describe('## User APIs', () => {
         .then(({ body }) => expect(body.scraping.instagram).toBe('_hello_'));
     });
 
-    it('should NOT update the Instagram username for scraping if invalid', async () => {
+    it('should NOT update the instagram username for scraping (if duplicate)', async () => {
+      const { user, jwtToken } = await createUserAndLogin({
+        username: 'insta',
+        emailAddress: 'insta@gmail.com',
+        password: 'express2',
+      });
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({
+          ...userPaymentInfo,
+          ...userShippingAddress,
+          instagram: '_hello_',
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toBe('Duplicate Instagram username'));
+    });
+
+    it('should NOT update the Instagram username for scraping (if invalid)', async () => {
       const { user, jwtToken } = await createUserAndLogin({
         username: 'instagramlady',
         emailAddress: 'instagramlady@gmail.com',
@@ -801,7 +819,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(10);
+          expect(res.body.length).toBe(11);
           expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
         });
     });

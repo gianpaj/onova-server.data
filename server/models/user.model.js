@@ -297,6 +297,10 @@ UserSchema.post('save', function(error: Error, doc, next) {
     const APIerr = new APIError('Duplicate facebook id', httpStatus.BAD_REQUEST);
     return next(APIerr);
   }
+  if (error.code === 11000 && error.message.includes('instagram_1 dup')) {
+    const APIerr = new APIError('Duplicate Instagram username', httpStatus.BAD_REQUEST);
+    return next(APIerr);
+  }
 });
 
 // Never return these fields in the JSON representation
@@ -314,7 +318,7 @@ UserSchema.set('toJSON', {
 UserSchema.index({ emailAddress: 1 }, { unique: true });
 UserSchema.index({ username: 1 }, { unique: true });
 UserSchema.index({ createdAt: -1 });
-// UserSchema.index({ facebook: 1 }, { unique: true, sparse: true });
+UserSchema.index({ 'scraping.instagram': 1 }, { unique: true, sparse: true });
 
 /**
  * @memberof UserSchema
