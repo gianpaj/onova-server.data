@@ -35,6 +35,7 @@ const tempBucket = storage.bucket(bucket);
 
 const tempBucketURLStaging = `https://staging.onova-183307.appspot.com/${bucket}`;
 const tempBucketURLProd = `https://storage.googleapis.com/${bucket}`;
+
 export const tempBucketURL = config.env == 'dev' ? tempBucketURLStaging : tempBucketURLProd;
 
 /**

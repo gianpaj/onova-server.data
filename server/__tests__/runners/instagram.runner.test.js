@@ -8,7 +8,7 @@ import { beforeAllTests, createUserAndLogin } from '../utils';
 import { InstagramRunner } from '../../runners';
 import { Product } from '../../models';
 
-jest.setTimeout(20000);
+jest.setTimeout(30000);
 
 describe('## Instagram Runner', () => {
   beforeAll(beforeAllTests);
