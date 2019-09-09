@@ -140,7 +140,7 @@ export default class InstagramRunner {
 
       IG_docs_to_scrape = await Promise.all(
         // Chunk up the image upload to 4 images at the same time
-        IG_docs_to_scrape.map(
+        IG_docs_to_scrape.reverse().map(
           throat(4, async doc => {
             const uploadedImages = await uploadURLToGCS(doc.images);
             if (job) await job.touch();
