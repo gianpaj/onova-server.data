@@ -155,6 +155,7 @@ app.use((err: any, req: $Request, res: $Response, next: NextFunction) => {
     const error = new APIError(unifiedErrorMessage, err.status, true);
     return next(error);
   } else if (!(err instanceof APIError)) {
+    if (config.env === 'development') console.error(err);
     const apiError = new APIError(err.message, err.status, err.isPublic);
     return next(apiError);
   }

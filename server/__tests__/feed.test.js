@@ -336,16 +336,15 @@ describe('## Feed APIs', () => {
       typeIdProductUUID = pp.uuid;
     });
 
-    it('should get feed by typeIds', () => {
-      return request(app)
+    it('should get feed by typeIds', () =>
+      request(app)
         .get('/api/feed/flat?typeIds=5')
         .set('Authorization', user5_jwttoken_reseller)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.data[0].uuid).toBe(typeIdProductUUID);
           expect(body.data).toHaveLength(1);
-        });
-    });
+        }));
   });
 
   describe('# GET /api/feed/flat?tag=', () => {

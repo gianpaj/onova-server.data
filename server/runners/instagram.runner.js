@@ -70,7 +70,7 @@ export default class InstagramRunner {
         { scraping: 1 }
       );
       debug('users found:', users.length);
-      if (!users.length) return done();
+      if (!users.length) return;
 
       const IG_usernames = users.map(u => u.scraping.instagram);
       const user_pages = await Promise.all(IG_usernames.map(instagramScraping.scrapeUserPageDeep));
