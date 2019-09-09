@@ -1,5 +1,6 @@
 // @flow
 
+import crypto from 'crypto';
 import gcsSharp from 'multer-sharp';
 import sharp from 'sharp';
 import httpStatus from 'http-status';
@@ -157,7 +158,8 @@ async function tempUploadProductImage(
     return;
   }
   // generate 2 square thumbnails
-  const gcsname = `${uploadDate}.jpg`;
+  const randomString = crypto.randomBytes(3).toString('hex');
+  const gcsname = `${uploadDate}${randomString}.jpg`;
   if (internal) {
     file.metadata = `image/${metadata.format}`;
   }
