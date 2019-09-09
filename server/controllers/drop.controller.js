@@ -211,8 +211,10 @@ async function myFeed(req: session$Request, res: express$Response, next: express
  * Create a drop a new listing with a specific dropId
  *
  * POST /api/v2/drops
+ * +and+
+ * Used internally by Instagram Scraper runner/job scheduler
  *
- * @property {*} req - Express request
+ * @property {*} req - Express request | Object with drop info (internal)
  * @property {*} req.body - Express body parameters
  * @property {string} req.body.description
  * @property {string} req.body.date

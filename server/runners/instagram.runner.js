@@ -83,18 +83,18 @@ export default class InstagramRunner {
         const user_page = user_pages[i];
         debug('user scrapped:', user_page.username);
         debug(user_page.medias[0]);
-        const IG_doc = await InstagramScrapped.find({ instagramOwnerId: user_page.instagramOwnerId })
-          .sort({ timestamp: -1 })
-          .limit(1); // last post by timestamp
-        const last_IGPost_timestamp_scrapped = Math.max(...user_page.medias.map(media => media.timestamp));
-        debug('last_IGPost_timestamp_scrapped', last_IGPost_timestamp_scrapped);
+        const IG_doc = await InstagramScrapped.findOne({ instagramOwnerId: user_page.instagramOwnerId }).sort({
+          timestamp: -1,
+        }); // last post by timestamp
+        const last_IGPost_scrapped_timestamp = Math.max(...user_page.medias.map(media => media.timestamp));
+        debug('last_IGPost_scrapped_timestamp', last_IGPost_scrapped_timestamp);
         // if we found a newer IG post (with a greater timestamp)
 
         // Find the category of the last item for each User-Product
         const productCategory = await Product.findOne({ seller: users[i]._id }).sort({ _id: -1 });
 
         // if we previously scrapped this user
-        if (IG_doc.length > 0) {
+        if (IG_doc) {
           // only new posts
           IG_docs_to_scrape = [
             ...IG_docs_to_scrape,
@@ -107,7 +107,8 @@ export default class InstagramRunner {
             ...IG_docs_to_scrape.map(doc => ({
               ...doc,
               onovaUser: users[i],
-              lastProductCategoryIds: productCategory.categoryIds,
+              // Men Clothes by default
+              lastProductCategoryIds: productCategory ? productCategory.categoryIds : [0],
             })),
             ...user_page.medias,
           ];
@@ -129,21 +130,30 @@ export default class InstagramRunner {
 
       await InstagramScrapped.insertMany(IG_docs_to_scrape);
 
-      for (let j = 0; j < IG_docs_to_scrape.length; j++) {
-        const doc = IG_docs_to_scrape[j];
-        // TODO: improve speed by parallelising & returning index of array
-        const uploadedImages = await uploadURLToGCS(doc.images);
-        // const uploadedImages = ['https://storage.googleapis.com/temp-uploads.onova.co/1567677448651.jpg'];
-        // console.log(uploadedImages);
-        IG_docs_to_scrape[j].uploadedImages = uploadedImages;
+      // when testing scrape 3 posts
+      if (config.env === 'test') IG_docs_to_scrape.splice(3);
 
-        // tell Agenda the job is still running, which resets the lock timeout
-        if (job) await job.touch();
+      IG_docs_to_scrape = await Promise.all(
+        IG_docs_to_scrape.map(async doc => {
+          const uploadedImages = await uploadURLToGCS(doc.images);
+          return { ...doc, uploadedImages };
+        })
+      );
+      // for (let j = 0; j < IG_docs_to_scrape.length; j++) {
+      //   const doc = IG_docs_to_scrape[j];
+      //   console.log(doc.images);
+      //   // TODO: improve speed by parallelising & returning index of array
+      //   const uploadedImages = await uploadURLToGCS(doc.images);
+      //   // const uploadedImages = ['https://storage.googleapis.com/temp-uploads.onova.co/1567677448651.jpg'];
+      //   console.log(uploadedImages);
+      //   IG_docs_to_scrape[j].uploadedImages = uploadedImages;
 
-        // when testing stop after scraping 3 images
-        if (config.env === 'test' && j > 0) break;
-        // if (config.env === 'test' && j > 2) break;
-      }
+      //   // tell Agenda the job is still running, which resets the lock timeout
+      //   if (job) await job.touch();
+
+      //   // when testing stop after scraping 2 posts
+      //   if (config.env === 'test' && j === 1) break;
+      // }
 
       // console.log(IG_docs_to_scrape[0]);
 
