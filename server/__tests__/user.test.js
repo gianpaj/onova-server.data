@@ -751,12 +751,25 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send({
           ...userPaymentInfo,
-          // short: false,
           ...userShippingAddress,
           instagram: '_hello_',
         })
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.scraping.instagram).toBe('_hello_'));
+    });
+
+    it('should NOT update the Instagram username for scraping if invalid', async () => {
+      const { user, jwtToken } = await createUserAndLogin({
+        username: 'instagramlady',
+        emailAddress: 'instagramlady@gmail.com',
+        password: 'express2',
+      });
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({ instagram: '.' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toBe('Invalid Instagram username'));
     });
   });
 
@@ -788,7 +801,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(9);
+          expect(res.body.length).toBe(10);
           expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
         });
     });
