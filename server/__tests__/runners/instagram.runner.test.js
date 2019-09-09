@@ -121,7 +121,7 @@ describe('## Instagram Runner', () => {
             .expect(httpStatus.OK);
 
           if (products.length) {
-            expect(products).toHaveLength(2);
+            expect(products).toHaveLength(3);
 
             const p = await Product.findOne({ uuid: products[0].uuid });
             console.log(p);

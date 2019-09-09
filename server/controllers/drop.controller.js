@@ -14,10 +14,11 @@ import config from '../config/config';
 
 import photoHelper from '../helpers/photos';
 import APIError from '../helpers/APIError';
-import { Drop, DropDoc, Follow, FollowDoc, User, UserDoc, Product, ProductDoc } from '../models';
+import { Drop, DropDoc, Follow, FollowDoc, User, UserDoc, Notification, Product, ProductDoc } from '../models';
 import { tempBucketURL } from './photos.controller';
 
 const { minPrice } = config.settings;
+const { JOBNAMES } = config;
 
 export const i18n = {
   // TODO: send message based on seller type (for Drop or Onova)
@@ -25,6 +26,7 @@ export const i18n = {
   // listedDrop: 'Ваш Дроп виставлено на продаж',
   // listedDrop: 'Your collection is for sale',
   listedDrop: 'Вашу колекцію виставлено на продаж',
+  listedDropInstagram: 'Вашу колекцію виставлено на продаж - через Instagram',
   sellerDropIsAboutToDrop: 'дроп скоро в продажу!',
 };
 
@@ -325,14 +327,35 @@ async function create(req: session$Request, res: express$Response, next: express
     if (!posted) {
       // schedule a single job that it's only job is to set the products as 'forsale', from 'ready'
       // and to set the Drop as
-      agenda.schedule(body.date, config.JOBNAMES.SCHEDULE, drop, err => {
+      agenda.schedule(body.date, JOBNAMES.SCHEDULE, drop, err => {
         if (err) throw new APIError(`Error scheduling a drop: ${err}`);
-        debug(`job ${config.JOBNAMES.SCHEDULE} saved`);
+        debug(`job ${JOBNAMES.SCHEDULE} saved`);
       });
     }
 
-    if (internal) res(drop);
-    else res.status(httpStatus.CREATED).json({ data: drop });
+    if (internal) {
+      const dropId = drop._id;
+      await Promise.all([
+        Notification.create({
+          dropId,
+          notifI18n: i18n.listedDropInstagram,
+          sourceUser: seller,
+          targetUser: seller,
+          triggeredBy: seller,
+          triggeredType: 'User',
+        }),
+        // Send push notification to the seller
+        schedulePush({
+          // data,
+          dropId,
+          notifI18n: i18n.listedDropInstagram,
+          targetUser: seller,
+          triggeredBy: seller,
+          triggeredType: 'User',
+        }),
+      ]);
+      res(drop);
+    } else res.status(httpStatus.CREATED).json({ data: drop });
   } catch (error) {
     if (!(error instanceof APIError)) console.error(error);
     next(error);
@@ -370,28 +393,23 @@ async function subscribe(req: session$Request, res: express$Response, next: expr
 
     if (differenceInMinutes(drop.scheduledAt, new Date()) > 15) {
       // schedule to send push notifications + Notification
-      agenda.schedule(
-        addMinutes(drop.scheduledAt, -15),
-        config.JOBNAMES.DROP_SUBSCRIPTION,
-        { drop, sub: user },
-        err => {
-          if (err) throw new APIError(`Error drop subscription: ${err}`);
-          debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 15m`);
-          res.status(httpStatus.CREATED).json({ data: drop });
-        }
-      );
+      agenda.schedule(addMinutes(drop.scheduledAt, -15), JOBNAMES.DROP_SUBSCRIPTION, { drop, sub: user }, err => {
+        if (err) throw new APIError(`Error drop subscription: ${err}`);
+        debug(`job ${JOBNAMES.DROP_SUBSCRIPTION} saved for later than 15m`);
+        res.status(httpStatus.CREATED).json({ data: drop });
+      });
     } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 10) {
       // schedule to send push notifications + Notification
-      agenda.schedule(addMinutes(drop.scheduledAt, -5), config.JOBNAMES.DROP_SUBSCRIPTION, { drop, sub: user }, err => {
+      agenda.schedule(addMinutes(drop.scheduledAt, -5), JOBNAMES.DROP_SUBSCRIPTION, { drop, sub: user }, err => {
         if (err) throw new APIError(`Error drop subscription: ${err}`);
-        debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 10m`);
+        debug(`job ${JOBNAMES.DROP_SUBSCRIPTION} saved for later than 10m`);
         res.status(httpStatus.CREATED).json({ data: drop });
       });
     } else if (differenceInMinutes(drop.scheduledAt, new Date()) > 1) {
       // schedule to send push notifications + Notification
-      agenda.schedule(addMinutes(drop.scheduledAt, -1), config.JOBNAMES.DROP_SUBSCRIPTION, { drop, sub: user }, err => {
+      agenda.schedule(addMinutes(drop.scheduledAt, -1), JOBNAMES.DROP_SUBSCRIPTION, { drop, sub: user }, err => {
         if (err) throw new APIError(`Error drop subscription: ${err}`);
-        debug(`job ${config.JOBNAMES.DROP_SUBSCRIPTION} saved for later than 1m`);
+        debug(`job ${JOBNAMES.DROP_SUBSCRIPTION} saved for later than 1m`);
         res.status(httpStatus.CREATED).json({ data: drop });
       });
     } else {
@@ -468,6 +486,45 @@ function validateSeller(seller) {
   }
   if (!seller.paymentInfo.short.card_token && !seller.paymentInfo.full.card_token) {
     throw new APIError('Please enter your payment info before creating a drop', httpStatus.BAD_REQUEST);
+  }
+}
+
+async function schedulePush({
+  data,
+  dropId,
+  notifI18n,
+  targetUser,
+  triggeredBy,
+  triggeredType,
+}: NotifPayload): Promise<void> {
+  try {
+    const sender: UserDoc = await User.findById(triggeredBy);
+    if (!sender) throw new Error('Cannot find sender');
+
+    const target: UserDoc = await User.findById(targetUser);
+    if (!target) throw new Error('Cannot find target');
+
+    const pushData = {
+      message: notifI18n,
+      platform: target.platform,
+      pushToken: target.pushToken,
+      triggeredBy: sender._id,
+      triggeredType,
+      senderName: sender.username,
+      targetUser: target._id,
+      ...data,
+    };
+
+    const job = agenda.create(JOBNAMES.PUSH_DROP_LISTED, pushData);
+    job.unique({ dropId });
+
+    return job.save(err => {
+      if (err) throw new Error(`Job failed with error: ${err}`);
+      console.log(JOBNAMES.PUSH_DROP_LISTED + ' scheduled');
+    });
+  } catch (error) {
+    console.error(error);
+    throw error;
   }
 }
 
