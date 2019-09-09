@@ -62,7 +62,14 @@ export default class InstagramRunner {
       const users = await User.find(
         {
           'scraping.instagram': { $exists: true },
-          // 'seller.paymentInfo': { $exists: true }
+          $or: [
+            { 'paymentInfo.short.card_token': { $exists: true } },
+            { 'paymentInfo.full.card_token': { $exists: true } },
+          ],
+          'shippingAddress.departmentNovaposhta': { $exists: true },
+          'shippingAddress.city': { $exists: true },
+          'shippingAddress.firstName': { $exists: true },
+          'shippingAddress.lastName': { $exists: true },
         },
         { scraping: 1 }
       );
