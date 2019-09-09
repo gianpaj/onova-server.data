@@ -1,4 +1,5 @@
 // @flow
+import throat from 'throat';
 
 import instagramScraping from '../helpers/instagram-scraping';
 import { InstagramScrapped, User, Product } from '../models';
@@ -18,11 +19,7 @@ let created = false;
 export default class InstagramRunner {
   constructor() {
     // TODO: only start it if we're testing this runner
-    // if (config.env == 'test') {
-    //     this.initJob();
-    // } else {
     this.initJob();
-    // }
   }
 
   initJob() {
@@ -73,7 +70,8 @@ export default class InstagramRunner {
       if (!users.length) return;
 
       const IG_usernames = users.map(u => u.scraping.instagram);
-      const user_pages = await Promise.all(IG_usernames.map(instagramScraping.scrapeUserPageDeep));
+      // Chunk up the scraping of instagram users to 4 at the same time
+      const user_pages = await Promise.all(IG_usernames.map(throat(4, instagramScraping.scrapeUserPageDeep)));
 
       // console.log(user_pages[0]);
 
@@ -125,7 +123,7 @@ export default class InstagramRunner {
 
       debug('IG_docs_to_scrape', IG_docs_to_scrape.length);
       if (!IG_docs_to_scrape.length) {
-        return resolve();
+        return;
       }
 
       await InstagramScrapped.insertMany(IG_docs_to_scrape);
@@ -134,10 +132,14 @@ export default class InstagramRunner {
       if (config.env === 'test') IG_docs_to_scrape.splice(3);
 
       IG_docs_to_scrape = await Promise.all(
-        IG_docs_to_scrape.map(async doc => {
-          const uploadedImages = await uploadURLToGCS(doc.images);
-          return { ...doc, uploadedImages };
-        })
+        // Chunk up the image upload to 4 images at the same time
+        IG_docs_to_scrape.map(
+          throat(4, async doc => {
+            const uploadedImages = await uploadURLToGCS(doc.images);
+            if (job) await job.touch();
+            return { ...doc, uploadedImages };
+          })
+        )
       );
       // for (let j = 0; j < IG_docs_to_scrape.length; j++) {
       //   const doc = IG_docs_to_scrape[j];
