@@ -46,19 +46,22 @@ export default class InstagramRunner {
 
   defineScrapingJob() {
     agenda.define(JOBNAMES.IG_SCRAPPING, { concurrency: 1, lockLimit: 1 }, (job, done) => {
+      // expire after 10 mins
+      const timer = setTimeout(() => {
+        console.error(JOBNAMES.IG_SCRAPPING, 'expired');
+        done();
+      }, 10 * 60 * 1000);
       this.scrape(job)
         .then(() => done())
-        .catch(e => done(e));
+        .catch(e => done(e))
+        .then(() => clearTimeout(timer));
     });
   }
 
   async scrape(job) {
-    // return new Promise((resolve, reject) => {
-    // if (config.env === 'test') await sleep(1000);
     try {
       debug(`${JOBNAMES.IG_SCRAPPING} job running at`, new Date());
 
-      // TODO: (and test) do not scrape users without payment info
       const users = await User.find(
         {
           'scraping.instagram': { $exists: true },
@@ -148,23 +151,6 @@ export default class InstagramRunner {
           })
         )
       );
-      // for (let j = 0; j < IG_docs_to_scrape.length; j++) {
-      //   const doc = IG_docs_to_scrape[j];
-      //   console.log(doc.images);
-      //   // TODO: improve speed by parallelising & returning index of array
-      //   const uploadedImages = await uploadURLToGCS(doc.images);
-      //   // const uploadedImages = ['https://storage.googleapis.com/temp-uploads.onova.co/1567677448651.jpg'];
-      //   console.log(uploadedImages);
-      //   IG_docs_to_scrape[j].uploadedImages = uploadedImages;
-
-      //   // tell Agenda the job is still running, which resets the lock timeout
-      //   if (job) await job.touch();
-
-      //   // when testing stop after scraping 2 posts
-      //   if (config.env === 'test' && j === 1) break;
-      // }
-
-      // console.log(IG_docs_to_scrape[0]);
 
       const drops = await Promise.all(
         IG_docs_to_scrape.map(doc =>
@@ -281,8 +267,4 @@ export default class InstagramRunner {
   getPostLocation(doc) {
     return doc.location ? doc.location : this.getLvivCoordinates();
   }
-}
-
-function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
 }
