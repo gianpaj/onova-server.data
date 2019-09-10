@@ -81,12 +81,10 @@ export default class InstagramRunner {
       const IG_usernames = users.map(u => u.scraping.instagram);
       // Chunk up the scraping of instagram users to 4 at the same time
       let user_pages = await Promise.all(
-        IG_usernames.map(
-          throat(4, instagramScraping.scrapeUserPageDeep).catch(e => {
-            console.error(e);
-            return e;
-          })
-        )
+        IG_usernames.map(throat(4, instagramScraping.scrapeUserPageDeep)).catch(e => {
+          console.error(e);
+          return e;
+        })
       );
 
       user_pages = user_pages.filter(user_page => !(user_page instanceof Error));
