@@ -387,3 +387,7 @@ export async function confirmOrder(orderId: string, sellerJwtToken: string, deal
       expect(!isNaN(Date.parse(o.dateConfirmed))).toBe(true);
     });
 }
+
+export function sleep(ms) {
+  return new Promise(resolve => setTimeout(resolve, ms));
+}
