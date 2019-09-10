@@ -6,11 +6,7 @@ const debug = require('debug')('server-data:index');
 
 import app from '../index';
 import { DefaultFollow, User } from '../models';
-import { beforeAllTests, createUserAndLogin } from './utils';
-
-const sleep = ms => {
-  return new Promise(resolve => setTimeout(resolve, ms));
-};
+import { beforeAllTests, createUserAndLogin, sleep } from './utils';
 
 describe('## Default Follow methods', () => {
   beforeAll(beforeAllTests);
@@ -27,35 +23,13 @@ describe('## Default Follow methods', () => {
     password: 'expressos',
   };
 
-  const defaultSellers = [
-    {
-      username: 'seller1',
-      emailAddress: 'gianpa+seller1@gmail.com',
-      password: 'express2',
-    },
-    {
-      username: 'seller2',
-      emailAddress: 'gianpa+seller2@gmail.com',
-      password: 'express2',
-    },
-    {
-      username: 'seller3',
-      emailAddress: 'gianpa+seller3@gmail.com',
-      password: 'express2',
-    },
-    {
-      username: 'seller4',
-      emailAddress: 'gianpa+seller4@gmail.com',
-      password: 'express2',
-    },
-    {
-      username: 'seller5',
-      emailAddress: 'gianpa+seller5@gmail.com',
-      password: 'express2',
-    },
-  ];
+  const defaultSellers = Array.from(['seller1', 'seller2', 'seller3', 'seller4', 'seller5'], username => ({
+    username,
+    emailAddress: `${username}@gmail.com`,
+    password: 'express2',
+  }));
 
-  // create 6 users/sellers
+  // create 7 users/sellers
   beforeAll(async () => {
     for (let i = 0; i < defaultSellers.length; i++) {
       const { user, jwtToken } = await createUserAndLogin(defaultSellers[i]);

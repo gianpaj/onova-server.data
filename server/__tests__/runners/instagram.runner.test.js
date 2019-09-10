@@ -4,7 +4,7 @@ import nock from 'nock';
 import fs from 'fs';
 
 import app from '../../index';
-import { beforeAllTests, createUserAndLogin } from '../utils';
+import { beforeAllTests, createUserAndLogin, sleep } from '../utils';
 import { InstagramRunner } from '../../runners';
 import { Product } from '../../models';
 
