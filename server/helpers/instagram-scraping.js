@@ -5,7 +5,7 @@
 // - replace 'request' with 'superagent' package for mocking the API
 
 var request = require('request'),
-  Promise = require('bluebird'),
+  BluePromise = require('bluebird'),
   async = require('async'),
   userURL = 'https://www.instagram.com/',
   listURL = 'https://www.instagram.com/explore/tags/',
@@ -77,7 +77,7 @@ exports.scrapeUserPageDeep = function(username) {
       ) {
         var edges = data.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges;
         // const promises = Promise.map(edges, function(edge, i, len) {
-        const promises = Promise.map(edges, edge =>
+        const promises = BluePromise.map(edges, edge =>
           exports
             .scrapePostCode(edge.node.shortcode)
             .then(postPage => exports.preparePostFields(postPage))
