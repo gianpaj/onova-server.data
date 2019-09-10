@@ -9,8 +9,8 @@ import { agenda } from '../config/express';
 import { uploadURLToGCS } from '../controllers/photos.controller';
 import dropController from '../controllers/drop.controller';
 
-// const debug = require('debug')('server-data:instagram');
 const debug = console.log;
+// const debug = require('debug')('server-data:instagram');
 
 const { JOBNAMES } = config;
 
@@ -18,8 +18,7 @@ let created = false;
 
 export default class InstagramRunner {
   constructor() {
-    // TODO: only start it if we're testing this runner
-    this.initJob();
+    if (config.env !== 'test') this.initJob();
   }
 
   initJob() {
@@ -106,26 +105,29 @@ export default class InstagramRunner {
           // only new posts
           IG_docs_to_scrape = [
             ...IG_docs_to_scrape,
+            // when testing scrape 3 posts per user
+            // ...user_page.medias.filter((_, i) => i < 3).filter(doc => doc.timestamp > user_page.medias[0].timestamp),
             ...user_page.medias.filter(doc => doc.timestamp > user_page.medias[0].timestamp),
           ];
           debug('no new IG_docs_to_scrape for', user_page.username);
         } else {
           // scrape all
           IG_docs_to_scrape = [
-            ...IG_docs_to_scrape.map(doc => ({
-              ...doc,
-              onovaUser: users[i],
-              // Men Clothes by default
-              lastProductCategoryIds: productCategory ? productCategory.categoryIds : [0],
-            })),
+            ...IG_docs_to_scrape,
+            // when testing scrape 3 posts per user
+            // ...user_page.medias.filter((_, i) => i < 3),
             ...user_page.medias,
           ];
         }
         IG_docs_to_scrape = IG_docs_to_scrape.map(doc => ({
           ...doc,
-          onovaUser: users[i],
+          onovaUser: doc.onovaUser ? doc.onovaUser : users[i],
           // Men Clothes by default
-          lastProductCategoryIds: productCategory ? productCategory.categoryIds : [0],
+          lastProductCategoryIds: doc.lastProductCategoryIds
+            ? doc.lastProductCategoryIds
+            : productCategory
+            ? productCategory.categoryIds
+            : [0],
         }));
       }
 
@@ -138,14 +140,14 @@ export default class InstagramRunner {
 
       await InstagramScrapped.insertMany(IG_docs_to_scrape);
 
-      // when testing scrape 3 posts
-      if (config.env === 'test') IG_docs_to_scrape.splice(3);
-
       IG_docs_to_scrape = await Promise.all(
         // Chunk up the image upload to 4 images at the same time
         IG_docs_to_scrape.reverse().map(
           throat(4, async doc => {
             const uploadedImages = await uploadURLToGCS(doc.images);
+            // const uploadedImages = [
+            //   'https://storage.googleapis.com/temp-uploads.onova.co/dGbEB7IHm-1-1568133652508.jpg',
+            // ];
             if (job) await job.touch();
             return { ...doc, uploadedImages };
           })
