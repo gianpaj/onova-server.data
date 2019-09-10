@@ -1,14 +1,14 @@
 import request from 'supertest';
 import httpStatus from 'http-status';
-import nock from 'nock';
-import fs from 'fs';
+// import nock from 'nock';
+// import fs from 'fs';
 
 import app from '../../index';
 import { beforeAllTests, createUserAndLogin, sleep } from '../utils';
 import { InstagramRunner } from '../../runners';
 import { Product } from '../../models';
 
-jest.setTimeout(30000);
+jest.setTimeout(50000);
 
 describe('## Instagram Runner', () => {
   beforeAll(beforeAllTests);
@@ -23,7 +23,13 @@ describe('## Instagram Runner', () => {
     password: 'expressos',
   };
 
-  let user1JwtToken;
+  let user2 = {
+    username: 'usertwo',
+    emailAddress: 'usertwo@gmail.com',
+    password: 'expressos',
+  };
+
+  let user1JwtToken, user2JwtToken;
   const IG_Class = new InstagramRunner();
 
   describe('Unit tests', () => {
@@ -91,52 +97,37 @@ describe('## Instagram Runner', () => {
   describe('Scrape Instagram and create Product', () => {
     beforeAll(async () => {
       const { user: u1, jwtToken: j1 } = await createUserAndLogin(user1);
+      const { user: u2, jwtToken: j2 } = await createUserAndLogin(user2);
       user1JwtToken = j1;
       user1._id = u1._id;
+      user2JwtToken = j2;
+      user2._id = u2._id;
 
-      return request(app)
+      await request(app)
         .put(`/api/users/${user1._id}`)
         .set('Authorization', user1JwtToken)
         .send({ instagram: 'horondi' })
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.scraping.instagram).toBe('horondi'));
+
+      return request(app)
+        .put(`/api/users/${user2._id}`)
+        .set('Authorization', user2JwtToken)
+        .send({ instagram: 'gianpaj' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.scraping.instagram).toBe('gianpaj'));
     });
 
     it('should created a Drop and a product', async done => {
+      await sleep(1000);
       await IG_Class.scrape();
       try {
-        const waitFor = 15 * 1000; // seconds
-        const interval = Math.floor(waitFor / 100);
-        let totalTime = interval;
+        const p = await Product.findOne({});
+        console.log(p);
+        // console.log(products);
+        // expect(p.instagram).toBe('2060899296590629529');
 
-        // Check every 150ms for up to 15 seconds
-        const timer = setInterval(async () => {
-          totalTime += interval;
-
-
-          const {
-            body: { data: products },
-          } = await request(app)
-            .get('/api/products/')
-            .expect(httpStatus.OK);
-
-          if (products.length) {
-            expect(products).toHaveLength(3);
-
-            const p = await Product.findOne({ uuid: products[0].uuid });
-            console.log(p);
-            // console.log(products);
-            // expect(p.instagram).toBe('2060899296590629529');
-
-            done();
-            return clearInterval(timer);
-          }
-
-          if (totalTime >= waitFor) {
-            clearInterval(timer);
-            throw new Error('timeout to scrape IG');
-          }
-        }, interval);
+        done();
       } catch (error) {
         console.error(error);
         done(error);
