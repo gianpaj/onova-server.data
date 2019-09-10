@@ -476,9 +476,6 @@ exports.scrapeUserPageDeep = function(username) {
         reject(new Error('Error scraping user page "' + username + '"'));
       }
     });
-  }).catch(e => {
-    console.error(e);
-    return e;
   });
 };
 
