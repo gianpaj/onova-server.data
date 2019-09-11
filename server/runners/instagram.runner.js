@@ -82,8 +82,12 @@ export default class InstagramRunner {
       const IG_usernames = users.map(u => u.scraping.instagram);
       // Chunk up the scraping of instagram users to 4 at the same time
       let user_pages = [];
-      for (let i = 0; i < IG_usernames.length; i++) {
-        const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i]);
+      // for (let i = 0; i < IG_usernames.length; i++) {
+      for (let i = 0; i < 3; i++) {
+        const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i]).catch(e => {
+          console.error(e);
+          return e;
+        });
         debug('user scrapped:', user_page.username);
         await sleep(getRandomArbitrary(1000, 1500));
         user_pages.push(user_page);
@@ -145,9 +149,7 @@ export default class InstagramRunner {
         return;
       }
 
-      await InstagramScrapped.insertMany(IG_docs_to_scrape);
-
-      IG_docs_to_scrape = await Promise.all(
+      const IG_docs_to_scraped = await Promise.all(
         // Chunk up the image upload to 4 images at the same time
         IG_docs_to_scrape.reverse().map(
           throat(4, async doc => {
@@ -162,7 +164,7 @@ export default class InstagramRunner {
       );
 
       const drops = await Promise.all(
-        IG_docs_to_scrape.map(doc =>
+        IG_docs_to_scraped.map(doc =>
           new Promise((resolve, reject) => {
             const product = {
               categoryIds: doc.lastProductCategoryIds,
@@ -199,6 +201,8 @@ export default class InstagramRunner {
 
       // console.log('drops attempted to create', drops.length);
       debug('validDrops created', validDrops.length);
+
+      await InstagramScrapped.insertMany(IG_docs_to_scrape);
 
       return;
     } catch (error) {
