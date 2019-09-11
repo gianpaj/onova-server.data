@@ -86,6 +86,7 @@ exports.scrapeUserPageDeep = function(username) {
             })
         );
 
+        // #region
         // return resolve({
         //   username: 'ga.eva.wear',
         //   instagramOwnerId: '4924240195',
@@ -463,6 +464,7 @@ exports.scrapeUserPageDeep = function(username) {
         // }
         //   ],
         // });
+        // #endregion
 
         promises.then(results =>
           resolve({
@@ -473,6 +475,7 @@ exports.scrapeUserPageDeep = function(username) {
           })
         );
       } else {
+        console.debug(JSON.stringify(data, null, 2));
         reject(new Error('Error scraping user page "' + username + '"'));
       }
     });
