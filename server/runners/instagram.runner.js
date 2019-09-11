@@ -40,17 +40,17 @@ export default class InstagramRunner {
     created = true;
     const job = agenda.create(JOBNAMES.IG_SCRAPPING);
     job.unique({ jobName: JOBNAMES.IG_SCRAPPING });
-    if (config.env !== 'test') job.repeatEvery('60 seconds');
+    if (config.env !== 'test') job.repeatEvery('10 minutes');
     job.save();
   }
 
   defineScrapingJob() {
     agenda.define(JOBNAMES.IG_SCRAPPING, { concurrency: 1, lockLimit: 1 }, (job, done) => {
-      // expire after 10 mins
+      // expire after 20 mins
       const timer = setTimeout(() => {
         console.error(JOBNAMES.IG_SCRAPPING, 'expired');
         done();
-      }, 10 * 60 * 1000);
+      }, 20 * 60 * 1000);
       this.scrape(job)
         .then(() => done())
         .catch(e => done(e))
