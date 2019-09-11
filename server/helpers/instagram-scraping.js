@@ -614,7 +614,7 @@ function largestImage(array) {
 }
 
 exports.scrapePostCode = function(code) {
-  return new Promise(function(resolve, reject) {
+  return new BluePromise(function (resolve, reject) {
     if (!code) return reject(new Error('Argument "code" must be specified'));
 
     request(postURL + code, function(err, response, body) {

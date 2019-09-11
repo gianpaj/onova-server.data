@@ -62,20 +62,17 @@ export default class InstagramRunner {
     try {
       debug(`${JOBNAMES.IG_SCRAPPING} job running at`, new Date());
 
-      const users = await User.find(
-        {
-          'scraping.instagram': { $exists: true },
-          $or: [
-            { 'paymentInfo.short.card_token': { $exists: true } },
-            { 'paymentInfo.full.card_token': { $exists: true } },
-          ],
-          'shippingAddress.departmentNovaposhta': { $exists: true },
-          'shippingAddress.city': { $exists: true },
-          'shippingAddress.firstName': { $exists: true },
-          'shippingAddress.lastName': { $exists: true },
-        },
-        { scraping: 1 }
-      );
+      const users = await User.find({
+        'scraping.instagram': { $exists: true },
+        $or: [
+          { 'paymentInfo.short.card_token': { $exists: true } },
+          { 'paymentInfo.full.card_token': { $exists: true } },
+        ],
+        'shippingAddress.departmentNovaposhta': { $exists: true },
+        'shippingAddress.city': { $exists: true },
+        'shippingAddress.firstName': { $exists: true },
+        'shippingAddress.lastName': { $exists: true },
+      });
       debug('users found:', users.length);
       if (!users.length) return;
 
@@ -141,6 +138,7 @@ export default class InstagramRunner {
         }));
         IG_docs_to_scrape = IG_docs_to_scrape.filter(doc => doc.description);
 
+        // debug('IG_docs_to_scrape for %j:', IG_docs_to_scrape[0].onovaUser.username, IG_docs_to_scrape.length);
         debug('IG_docs_to_scrape for %j:', user_page.username, IG_docs_to_scrape.length);
       }
 
@@ -164,6 +162,7 @@ export default class InstagramRunner {
       );
 
       const drops = await Promise.all(
+        // nice to do - group by user (doc.onovaUser._id) to create a single drop with all the products
         IG_docs_to_scraped.map(doc =>
           new Promise((resolve, reject) => {
             const product = {
