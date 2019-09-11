@@ -79,8 +79,8 @@ export default class InstagramRunner {
       const IG_usernames = users.map(u => u.scraping.instagram);
       // Chunk up the scraping of instagram users to 4 at the same time
       let user_pages = [];
-      // for (let i = 0; i < IG_usernames.length; i++) {
-      for (let i = 0; i < 3; i++) {
+      for (let i = 0; i < IG_usernames.length; i++) {
+        // for (let i = 2; i < 6; i++) {
         const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i]).catch(e => {
           console.error(e);
           return e;
@@ -94,39 +94,41 @@ export default class InstagramRunner {
 
       // console.log(user_pages[0]);
 
-      let IG_docs_to_scrape = [];
+      let IG_medias_to_scrape = [];
 
       for (let i = 0; i < user_pages.length; i++) {
         const user_page = user_pages[i];
         debug('user scrapped:', user_page.username);
-        debug(user_page.medias[0]);
-        const IG_doc = await InstagramScrapped.findOne({ instagramOwnerId: user_page.instagramOwnerId }).sort({
-          timestamp: -1,
-        }); // last post by timestamp
+        // debug(user_page.medias[0]);
+        let IG_ids = await InstagramScrapped.find({ instagramOwnerId: user_page.instagramOwnerId });
+        if (IG_ids.length) IG_ids = IG_ids.map(d => d.instagramId);
 
         // Find the category of the last item for each User-Product
         const productCategory = await Product.findOne({ seller: users[i]._id }).sort({ _id: -1 });
 
         // if we previously scrapped this user
-        if (IG_doc) {
+        if (IG_ids.length) {
+          // filter already scrapped IG medias
+          const newMedias = user_page.medias.filter(m => IG_ids.indexOf(m.instagramId) < 0);
           // only new posts
-          IG_docs_to_scrape = [
-            ...IG_docs_to_scrape,
+          IG_medias_to_scrape = [
+            ...IG_medias_to_scrape,
             // when testing scrape 3 posts per user
-            // ...user_page.medias.filter((_, i) => i < 3).filter(doc => doc.timestamp > user_page.medias[0].timestamp),
-            ...user_page.medias.filter(doc => doc.timestamp > IG_doc.timestamp),
+            // ...newMedias.filter((_, i) => i < 3).filter(doc => doc.timestamp > user_page.medias[0].timestamp),
+            ...newMedias,
           ];
-          debug('no new IG_docs_to_scrape for', user_page.username);
+          debug('%d new IG_docs_to_scrape for %j', newMedias.length, user_page.username);
         } else {
           // scrape all
-          IG_docs_to_scrape = [
-            ...IG_docs_to_scrape,
+          IG_medias_to_scrape = [
+            ...IG_medias_to_scrape,
             // when testing scrape 3 posts per user
             // ...user_page.medias.filter((_, i) => i < 3),
             ...user_page.medias,
           ];
+          debug('%d IG_docs_to_scrape for %j (first time)', user_page.medias.length, user_page.username);
         }
-        IG_docs_to_scrape = IG_docs_to_scrape.map(doc => ({
+        IG_medias_to_scrape = IG_medias_to_scrape.map(doc => ({
           ...doc,
           onovaUser: doc.onovaUser ? doc.onovaUser : users[i],
           // Men Clothes by default
@@ -136,20 +138,17 @@ export default class InstagramRunner {
             ? productCategory.categoryIds
             : [0],
         }));
-        IG_docs_to_scrape = IG_docs_to_scrape.filter(doc => doc.description);
-
-        // debug('IG_docs_to_scrape for %j:', IG_docs_to_scrape[0].onovaUser.username, IG_docs_to_scrape.length);
-        debug('IG_docs_to_scrape for %j:', user_page.username, IG_docs_to_scrape.length);
+        IG_medias_to_scrape = IG_medias_to_scrape.filter(doc => doc.description);
       }
 
-      debug('total IG_docs_to_scrape:', IG_docs_to_scrape.length);
-      if (!IG_docs_to_scrape.length) {
+      debug('total IG_docs_to_scrape:', IG_medias_to_scrape.length);
+      if (!IG_medias_to_scrape.length) {
         return;
       }
 
       const IG_docs_to_scraped = await Promise.all(
         // Chunk up the image upload to 4 images at the same time
-        IG_docs_to_scrape.reverse().map(
+        IG_medias_to_scrape.reverse().map(
           throat(4, async doc => {
             const uploadedImages = await uploadURLToGCS(doc.images);
             // const uploadedImages = [
@@ -201,7 +200,7 @@ export default class InstagramRunner {
       // console.log('drops attempted to create', drops.length);
       debug('validDrops created', validDrops.length);
 
-      await InstagramScrapped.insertMany(IG_docs_to_scrape);
+      await InstagramScrapped.insertMany(IG_medias_to_scrape);
 
       return;
     } catch (error) {
