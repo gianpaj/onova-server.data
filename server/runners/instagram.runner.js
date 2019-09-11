@@ -95,9 +95,6 @@ export default class InstagramRunner {
         const IG_doc = await InstagramScrapped.findOne({ instagramOwnerId: user_page.instagramOwnerId }).sort({
           timestamp: -1,
         }); // last post by timestamp
-        const last_IGPost_scrapped_timestamp = Math.max(...user_page.medias.map(media => media.timestamp));
-        debug('last_IGPost_scrapped_timestamp', last_IGPost_scrapped_timestamp);
-        // if we found a newer IG post (with a greater timestamp)
 
         // Find the category of the last item for each User-Product
         const productCategory = await Product.findOne({ seller: users[i]._id }).sort({ _id: -1 });
@@ -109,7 +106,7 @@ export default class InstagramRunner {
             ...IG_docs_to_scrape,
             // when testing scrape 3 posts per user
             // ...user_page.medias.filter((_, i) => i < 3).filter(doc => doc.timestamp > user_page.medias[0].timestamp),
-            ...user_page.medias.filter(doc => doc.timestamp > user_page.medias[0].timestamp),
+            ...user_page.medias.filter(doc => doc.timestamp > IG_doc.timestamp),
           ];
           debug('no new IG_docs_to_scrape for', user_page.username);
         } else {
@@ -131,11 +128,12 @@ export default class InstagramRunner {
             ? productCategory.categoryIds
             : [0],
         }));
+        IG_docs_to_scrape = IG_docs_to_scrape.filter(doc => doc.description);
+
+        debug('IG_docs_to_scrape for %j:', user_page.username, IG_docs_to_scrape.length);
       }
 
-      IG_docs_to_scrape = IG_docs_to_scrape.filter(doc => doc.description);
-
-      debug('IG_docs_to_scrape', IG_docs_to_scrape.length);
+      debug('total IG_docs_to_scrape:', IG_docs_to_scrape.length);
       if (!IG_docs_to_scrape.length) {
         return;
       }
