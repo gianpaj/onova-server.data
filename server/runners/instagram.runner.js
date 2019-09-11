@@ -1,11 +1,12 @@
 // @flow
 import throat from 'throat';
 
-import instagramScraping from '../helpers/instagram-scraping';
+import instagramScraping, { getRandomArbitrary } from '../helpers/instagram-scraping';
 import { InstagramScrapped, User, Product } from '../models';
 import config from '../config/config';
 
 import { agenda } from '../config/express';
+import { sleep } from '../__tests__/utils';
 import { uploadURLToGCS } from '../controllers/photos.controller';
 import dropController from '../controllers/drop.controller';
 
@@ -80,7 +81,13 @@ export default class InstagramRunner {
 
       const IG_usernames = users.map(u => u.scraping.instagram);
       // Chunk up the scraping of instagram users to 4 at the same time
-      let user_pages = await Promise.all(IG_usernames.map(throat(4, instagramScraping.scrapeUserPageDeep)));
+      let user_pages = [];
+      for (let i = 0; i < IG_usernames.length; i++) {
+        const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i]);
+        debug('user scrapped:', user_page.username);
+        await sleep(getRandomArbitrary(1000, 1500));
+        user_pages.push(user_page);
+      }
 
       user_pages = user_pages.filter(user_page => !(user_page instanceof Error));
 
