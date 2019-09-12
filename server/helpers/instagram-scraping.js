@@ -587,7 +587,10 @@ exports.preparePostFields = media => {
   let images;
   // if album
   if (media.edge_sidecar_to_children) {
-    images = media.edge_sidecar_to_children.edges.map(edge => largestImage(edge.node.display_resources).src);
+    // ignore videos
+    const edges = media.edge_sidecar_to_children.edges.filter(i => !i.node.is_video);
+    // console.log(edges);
+    images = edges.map(edge => largestImage(edge.node.display_resources).src);
   } else {
     images = [largestImage(media.display_resources).src];
   }
@@ -601,8 +604,6 @@ exports.preparePostFields = media => {
     ...{ location: media.location ? JSON.parse(media.location.address_json).city_name : {} },
     description: media.edge_media_to_caption.edges[0] && media.edge_media_to_caption.edges[0].node.text,
     images,
-    // TODO: ignore videos?
-    // is_video
   };
 };
 
