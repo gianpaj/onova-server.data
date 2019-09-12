@@ -64,6 +64,7 @@ export default class InstagramRunner {
       debug(`${JOBNAMES.IG_SCRAPPING} job running at`, new Date());
 
       const users = await User.find({
+        // 'scraping.instagram': { $in: ['warmink_design', 'zelenew_shop'] },
         'scraping.instagram': { $exists: true },
         $or: [
           { 'paymentInfo.short.card_token': { $exists: true } },
@@ -84,6 +85,7 @@ export default class InstagramRunner {
       // for (let i = 0; i < 2; i++) {
       for (let i = 0; i < IG_usernames.length; i++) {
         debug("scrapping user's posts: %j", IG_usernames[i]);
+        // TODO: do not scrape the individual posts first before we filter those which we have already scrapped
         const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i]).catch(e => {
           console.error(e);
           return e;
@@ -117,9 +119,10 @@ export default class InstagramRunner {
           IG_medias_to_scrape = [
             ...IG_medias_to_scrape,
             // when testing scrape 3 posts per user
-            // ...newMedias.filter((_, i) => i < 3)
+            // ...newMedias.filter((_, i) => i < 3),
             ...newMedias,
           ];
+          // debug('%d new IG_medias_to_scrape for %j', newMedias.filter((_, i) => i < 3).length, user_page.username);
           debug('%d new IG_medias_to_scrape for %j', newMedias.length, user_page.username);
         } else {
           // scrape all
@@ -252,7 +255,7 @@ export default class InstagramRunner {
   /**
    * Parse price or set to 99999.00 as default
    */
-  extractPrice(text) {
+  extractPrice(text): string {
     const regex1 = new RegExp(/(\b\d{0,6}\.?\d{1,2})\s+(UAH)/);
     // e.g. #здійснюємо 100 UAH Україні => 100
     if (regex1.test(text)) {
