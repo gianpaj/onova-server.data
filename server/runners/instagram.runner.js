@@ -1,5 +1,6 @@
 // @flow
 import throat from 'throat';
+import pick from 'lodash/pick';
 
 import instagramScraping, { getRandomArbitrary } from '../helpers/instagram-scraping';
 import { InstagramScrapped, User, Product } from '../models';
@@ -75,24 +76,26 @@ export default class InstagramRunner {
       });
       debug('users found:', users.length);
       if (!users.length) return;
+      console.log(users.map(u => pick(u, 'scraping.instagram', 'username', '_id')));
 
       const IG_usernames = users.map(u => u.scraping.instagram);
       // Chunk up the scraping of instagram users to 4 at the same time
       let user_pages = [];
+      // for (let i = 0; i < 2; i++) {
       for (let i = 0; i < IG_usernames.length; i++) {
-        // for (let i = 2; i < 6; i++) {
+        debug("scrapping user's posts: %j", IG_usernames[i]);
         const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i]).catch(e => {
           console.error(e);
           return e;
         });
-        debug('user scrapped:', user_page.username);
         await sleep(getRandomArbitrary(1000, 1500));
+        debug("scrapping user's posts: %j ✅", user_page.username);
         user_pages.push(user_page);
       }
 
       user_pages = user_pages.filter(user_page => !(user_page instanceof Error));
 
-      // console.log(user_pages[0]);
+      debug('user pages scrapped successfully:', user_pages.length);
 
       let IG_medias_to_scrape = [];
 
@@ -114,10 +117,10 @@ export default class InstagramRunner {
           IG_medias_to_scrape = [
             ...IG_medias_to_scrape,
             // when testing scrape 3 posts per user
-            // ...newMedias.filter((_, i) => i < 3).filter(doc => doc.timestamp > user_page.medias[0].timestamp),
+            // ...newMedias.filter((_, i) => i < 3)
             ...newMedias,
           ];
-          debug('%d new IG_docs_to_scrape for %j', newMedias.length, user_page.username);
+          debug('%d new IG_medias_to_scrape for %j', newMedias.length, user_page.username);
         } else {
           // scrape all
           IG_medias_to_scrape = [
@@ -126,7 +129,7 @@ export default class InstagramRunner {
             // ...user_page.medias.filter((_, i) => i < 3),
             ...user_page.medias,
           ];
-          debug('%d IG_docs_to_scrape for %j (first time)', user_page.medias.length, user_page.username);
+          debug('%d IG_medias_to_scrape for %j (first time)', user_page.medias.length, user_page.username);
         }
         IG_medias_to_scrape = IG_medias_to_scrape.map(doc => ({
           ...doc,
