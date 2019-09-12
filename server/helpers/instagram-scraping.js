@@ -84,6 +84,7 @@ exports.scrapeUserPageDeep = function(username) {
             .then(postPage => exports.preparePostFields(postPage))
             .catch(err => {
               console.log('An error occurred calling scrapePostPage inside deepScrapeTagPage' + ':' + err);
+              return err;
             })
         );
 
@@ -467,14 +468,15 @@ exports.scrapeUserPageDeep = function(username) {
         // });
         // #endregion
 
-        promises.then(results =>
+        promises.then(results => {
+          results = results.filter(result => !(result instanceof Error));
           resolve({
             username: results[0].username,
             instagramOwnerId: results[0].instagramOwnerId,
             total: results.length,
             medias: results,
-          })
-        );
+          });
+        });
       } else {
         console.debug(JSON.stringify(data, null, 2));
         reject(new Error('Error scraping user page "' + username + '"'));
