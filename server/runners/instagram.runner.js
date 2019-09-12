@@ -170,11 +170,14 @@ export default class InstagramRunner {
         // nice to do - group by user (doc.onovaUser._id) to create a single drop with all the products
         IG_docs_to_scraped.map(doc =>
           new Promise((resolve, reject) => {
+            const priceString = this.extractPrice(doc.description);
+            if (parseInt(priceString) < 150) return reject('min price is 150');
+
             const product = {
               categoryIds: doc.lastProductCategoryIds,
               description: this.removeHashtags(doc.description),
               photos: doc.uploadedImages,
-              price: this.extractPrice(doc.description),
+              price: priceString,
               quantity: 1,
               tags: doc.description ? this.extractHashtags(doc.description) : [],
             };
