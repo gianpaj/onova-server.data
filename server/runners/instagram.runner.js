@@ -153,6 +153,10 @@ export default class InstagramRunner {
         // nice to do - group by user (doc.onovaUser._id) to create a single drop with all the products
         IG_docs_to_scraped.map(doc =>
           new Promise((resolve, reject) => {
+            // if no description a Drop is not created. Note that a InstagramScrapped is still saved
+            if (!doc.description) {
+              return reject(`${doc.shortcode} by ${doc.onovaUser.username} has an empty description`);
+            }
             const priceString = this.extractPrice(doc.description);
             if (parseInt(priceString) < 150) return reject('min price is 150', JSON.stringify(doc));
 
