@@ -345,14 +345,14 @@ async function create(req: session$Request, res: express$Response, next: express
           triggeredType: 'User',
         }),
         // Send push notification to the seller
-        schedulePush({
-          // data,
-          dropId,
-          notifI18n: i18n.listedDropInstagram,
-          targetUser: seller,
-          triggeredBy: seller,
-          triggeredType: 'User',
-        }),
+        // schedulePush({
+        //   // data,
+        //   dropId,
+        //   notifI18n: i18n.listedDropInstagram,
+        //   targetUser: seller,
+        //   triggeredBy: seller,
+        //   triggeredType: 'User',
+        // }),
       ]);
       res(drop);
     } else res.status(httpStatus.CREATED).json({ data: drop });

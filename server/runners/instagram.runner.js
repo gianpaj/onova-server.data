@@ -41,7 +41,7 @@ export default class InstagramRunner {
     created = true;
     const job = agenda.create(JOBNAMES.IG_SCRAPPING);
     job.unique({ jobName: JOBNAMES.IG_SCRAPPING });
-    if (config.env !== 'test') job.repeatEvery('10 minutes');
+    if (config.env !== 'test') job.repeatEvery('6 hours');
     job.save();
   }
 
