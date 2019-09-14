@@ -85,8 +85,9 @@ export default class InstagramRunner {
       // for (let i = 0; i < 2; i++) {
       for (let i = 0; i < IG_usernames.length; i++) {
         debug("scrapping user's posts: %j", IG_usernames[i]);
-        // TODO: do not scrape the individual posts first before we filter those which we have already scrapped
-        const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i]).catch(e => {
+        let IG_ids_to_filter = await InstagramScrapped.find({ username: new RegExp(IG_usernames[i], 'i') });
+        if (IG_ids_to_filter.length) IG_ids_to_filter = IG_ids_to_filter.map(d => d.instagramId);
+        const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i], IG_ids_to_filter).catch(e => {
           console.error(e);
           return e;
         });
