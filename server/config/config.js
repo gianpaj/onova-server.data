@@ -1,17 +1,21 @@
 import Joi from 'joi';
 
 const isTestEnv = process.env.NODE_ENV === 'test';
+const isDevEnv = process.env.NODE_ENV === 'development';
 
 // require and configure dotenv, will load vars in .env file in process.env
 if (isTestEnv) {
   console.warn('running on `test` environment');
   require('dotenv').config({ path: '.env.test' });
+} else if (isDevEnv) {
+  console.warn('running on `development` environment');
+  require('dotenv').config({ path: '.env.development' });
 } else {
   require('dotenv').config();
 }
 
-const nonRequiredForDev = {
-  is: Joi.string().equal('development'),
+const nonRequiredForTest = {
+  is: Joi.string().valid(['development', 'production']),
   then: Joi.required(),
 };
 
@@ -44,36 +48,36 @@ const envVarsSchema = Joi.object({
     .description('Google Cloud Storage bucket'),
   CHATKIT_INSTANCE: Joi.string()
     .description('Chatkit instanceLocator')
-    .when('NODE_ENV', nonRequiredForDev),
-  CHATKIT_KEY: Joi.string().when('NODE_ENV', nonRequiredForDev),
+    .when('NODE_ENV', nonRequiredForTest),
+  CHATKIT_KEY: Joi.string().when('NODE_ENV', nonRequiredForTest),
   SLACK_WEBHOOK_URL: Joi.string()
-    .required()
-    .description('Slack Webhook URL (for reporting)'),
-  FACEBOOK_APP_ID: Joi.string().description("Facebook APP ID for Posting item on sellers' walls [not using]"),
-  FACEBOOK_APP_SECRET: Joi.string().description('Facebook APP Secret [not using]'),
+    .description('Slack Webhook URL (for reporting)')
+    .when('NODE_ENV', nonRequiredForTest),
+  // FACEBOOK_APP_ID: Joi.string().description("Facebook APP ID for Posting item on sellers' walls [not using]"),
+  // FACEBOOK_APP_SECRET: Joi.string().description('Facebook APP Secret [not using]'),
   VK_APP_ID: Joi.string()
     .description("VK APP ID for Auth to post item on sellers' walls")
-    .when('NODE_ENV', nonRequiredForDev),
-  VK_SECRET_KEY: Joi.string().when('NODE_ENV', nonRequiredForDev),
+    .when('NODE_ENV', nonRequiredForTest),
+  VK_SECRET_KEY: Joi.string().when('NODE_ENV', nonRequiredForTest),
   SEGMENT: Joi.string()
-    .required()
-    .description('Segment.com Analytics write key'),
-  SENTRY_DSN: Joi.string().required(),
+    .description('Segment.com Analytics write key')
+    .when('NODE_ENV', nonRequiredForTest),
+  SENTRY_DSN: Joi.string().when('NODE_ENV', nonRequiredForTest),
   UAPAY_CLIENTID_P2P: Joi.string()
-    .required()
-    .description('UAPAY param for JWT clientId for P2P - to a request card token'),
+    .description('UAPAY param for JWT clientId for P2P - to a request card token')
+    .when('NODE_ENV', nonRequiredForTest),
   UAPAY_SECRET_P2P: Joi.string()
-    .required()
-    .description('UAPAY JWT secret for P2P'),
+    .description('UAPAY JWT secret for P2P')
+    .when('NODE_ENV', nonRequiredForTest),
   UAPAY_CLIENTID_ESCROW: Joi.string()
-    .required()
-    .description('UAPAY API Client ID for EscrowBow'),
+    .description('UAPAY API Client ID for EscrowBow')
+    .when('NODE_ENV', nonRequiredForTest),
   UAPAY_KEY_ESCROW: Joi.string()
-    .required()
-    .description('UAPAY API Key for Escrowbox'),
+    .description('UAPAY API Key for Escrowbox')
+    .when('NODE_ENV', nonRequiredForTest),
   UAPAY_BASE_URL: Joi.string()
-    .required()
-    .description('UAPAY API URL'),
+    .description('UAPAY API URL')
+    .when('NODE_ENV', nonRequiredForTest),
 })
   .unknown()
   .required();
