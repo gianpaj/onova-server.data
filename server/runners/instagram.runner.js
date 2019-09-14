@@ -141,8 +141,8 @@ export default class InstagramRunner {
           lastProductCategoryIds: doc.lastProductCategoryIds
             ? doc.lastProductCategoryIds
             : productCategory
-            ? productCategory.categoryIds
-            : [0],
+              ? productCategory.categoryIds
+              : [0],
         }));
         IG_medias_to_scrape = IG_medias_to_scrape.filter(doc => doc.description);
       }
@@ -171,7 +171,7 @@ export default class InstagramRunner {
         IG_docs_to_scraped.map(doc =>
           new Promise((resolve, reject) => {
             const priceString = this.extractPrice(doc.description);
-            if (parseInt(priceString) < 150) return reject('min price is 150');
+            if (parseInt(priceString) < 150) return reject('min price is 150', JSON.stringify(doc));
 
             const product = {
               categoryIds: doc.lastProductCategoryIds,

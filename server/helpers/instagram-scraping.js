@@ -80,7 +80,7 @@ exports.scrapeUserPageDeep = function(username) {
         const promises = BluePromise.map(edges, edge =>
           exports
             .scrapePostCode(edge.node.shortcode)
-            .delay(exports.getRandomArbitrary(1000, 1500))
+            .delay(getRandomArbitrary(1000, 1500))
             .then(postPage => exports.preparePostFields(postPage))
             .catch(err => {
               console.log('An error occurred calling scrapePostPage inside deepScrapeTagPage' + ':' + err);
@@ -669,6 +669,6 @@ var scrape = function(html) {
   return json;
 };
 
-exports.getRandomArbitrary = function (min, max) {
+function getRandomArbitrary(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 }
