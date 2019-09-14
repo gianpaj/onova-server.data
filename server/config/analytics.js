@@ -1,4 +1,9 @@
 import config from '../config/config';
 
 const Analytics = require('analytics-node');
-export default new Analytics(config.SEGMENT);
+let a;
+if (config.env === 'production') {
+  a = new Analytics(config.SEGMENT);
+}
+
+export default a;

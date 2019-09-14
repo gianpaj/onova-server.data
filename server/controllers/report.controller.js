@@ -1,13 +1,17 @@
 // @flow
 
 import httpStatus from 'http-status';
-const IncomingWebhook = require('@slack/client').IncomingWebhook;
 
 import APIError from '../helpers/APIError';
 import { User, UserDoc, Product, Report } from '../models';
 import config from '../config/config';
 
-const webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
+let webhook;
+let IncomingWebhook;
+if (config.env === 'production') {
+  IncomingWebhook = require('@slack/client').IncomingWebhook;
+  webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
+}
 
 declare class session$Request extends express$Request {
   user: UserDoc;
