@@ -145,7 +145,6 @@ export default class InstagramRunner {
               ? productCategory.categoryIds
               : [0],
         }));
-        IG_medias_to_scrape = IG_medias_to_scrape.filter(doc => doc.description);
       }
 
       debug('total IG_docs_to_scrape:', IG_medias_to_scrape.length);
