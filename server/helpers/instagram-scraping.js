@@ -2,7 +2,6 @@
 
 // Gian changed:
 // - added scrapeUserPageDeep
-// - replace 'request' with 'superagent' package for mocking the API
 
 var request = require('request'),
   BluePromise = require('bluebird'),
@@ -13,10 +12,13 @@ var request = require('request'),
   locURL = 'https://www.instagram.com/explore/locations/',
   dataExp = /window\._sharedData\s?=\s?({.+);<\/script>/;
 
-exports.scrapeUserPage = function(username) {
-  return new Promise(function(resolve, reject) {
+const debug = require('debug')('server-data:instagram');
+// const debug = console.log;
+
+exports.scrapeUserPage = function (username) {
+  return new Promise(function (resolve, reject) {
     if (!username) return reject(new Error('Argument "username" must be specified'));
-    request(userURL + username, function(err, response, body) {
+    request(userURL + username, function (err, response, body) {
       var data = scrape(body);
       if (
         data &&
@@ -56,10 +58,10 @@ exports.scrapeUserPage = function(username) {
   });
 };
 
-exports.scrapeUserPageDeep = function(username) {
+exports.scrapeUserPageDeep = function (username, toFilter) {
   return new Promise((resolve, reject) => {
     if (!username) return reject(new Error('Argument "username" must be specified'));
-    request(userURL + username, function(err, response, body) {
+    request(userURL + username, function (err, response, body) {
       if (err || response.statusCode > 200) {
         return reject(err || response.statusCode);
       }
@@ -75,8 +77,8 @@ exports.scrapeUserPageDeep = function(username) {
         data.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.count > 0 &&
         data.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges
       ) {
-        var edges = data.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media.edges;
-        // const promises = Promise.map(edges, function(edge, i, len) {
+        let { edges } = data.entry_data.ProfilePage[0].graphql.user.edge_owner_to_timeline_media;
+        if (toFilter && toFilter.length) edges = edges.filter(edge => toFilter.indexOf(edge.node.id) < 0);
         const promises = BluePromise.map(edges, edge =>
           exports
             .scrapePostCode(edge.node.shortcode)
@@ -471,8 +473,8 @@ exports.scrapeUserPageDeep = function(username) {
         promises.then(results => {
           results = results.filter(result => !(result instanceof Error));
           resolve({
-            username: results[0].username,
-            instagramOwnerId: results[0].instagramOwnerId,
+            username,
+            instagramOwnerId: results.length ? results[0].instagramOwnerId : null,
             total: results.length,
             medias: results,
           });
@@ -485,46 +487,46 @@ exports.scrapeUserPageDeep = function(username) {
   });
 };
 
-exports.deepScrapeTagPage = function(tag) {
-  return new Promise(function(resolve, reject) {
+exports.deepScrapeTagPage = function (tag) {
+  return new Promise(function (resolve, reject) {
     exports
       .scrapeTag(tag)
-      .then(function(tagPage) {
-        return Promise.map(tagPage.medias, function(media, i, len) {
+      .then(function (tagPage) {
+        return Promise.map(tagPage.medias, function (media, i, len) {
           return exports
             .scrapePostCode(media.shortcode)
-            .then(function(postPage) {
+            .then(function (postPage) {
               tagPage.medias[i] = postPage;
               if (typeof postPage.location !== 'undefined' && postPage.location.has_public_page) {
                 return exports
                   .scrapeLocation(postPage.location.id)
-                  .then(function(locationPage) {
+                  .then(function (locationPage) {
                     tagPage.media[i].location = locationPage;
                   })
-                  .catch(function(err) {
+                  .catch(function (err) {
                     console.log('An error occurred calling scrapeLocation inside deepScrapeTagPage' + ':' + err);
                   });
               }
             })
-            .catch(function(err) {
+            .catch(function (err) {
               console.log('An error occurred calling scrapePostPage inside deepScrapeTagPage' + ':' + err);
             });
         })
-          .then(function() {
+          .then(function () {
             resolve(tagPage);
           })
-          .catch(function(err) {
+          .catch(function (err) {
             console.log('An error occurred resolving tagPage inside deepScrapeTagPage' + ':' + err);
           });
       })
-      .catch(function(err) {
+      .catch(function (err) {
         console.log('An error occurred calling scrapeTagPage inside deepScrapeTagPage' + ':' + err);
       });
   });
 };
 
-exports.scrapeTag = function(tag) {
-  return new Promise(function(resolve, reject) {
+exports.scrapeTag = function (tag) {
+  return new Promise(function (resolve, reject) {
     if (!tag) return reject(new Error('Argument "tag" must be specified'));
     var options = {
       url: listURL + tag,
@@ -533,7 +535,7 @@ exports.scrapeTag = function(tag) {
           'Mozilla/5.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/600.1.3 (KHTML, like Gecko) Version/8.0 Mobile/12A4345d Safari/600.1.4',
       },
     };
-    request(options, function(err, response, body) {
+    request(options, function (err, response, body) {
       if (err) return reject(err);
 
       var data = scrape(body);
@@ -567,7 +569,7 @@ exports.scrapeTag = function(tag) {
   });
 };
 
-exports.scrapePostData = function(post) {
+exports.scrapePostData = function (post) {
   return {
     media_id: post.node.id,
     shortcode: post.node.shortcode,
@@ -619,11 +621,12 @@ function largestImage(array) {
   return array.reduce((acc, cur) => (acc.config_height > cur.config_height ? acc : cur));
 }
 
-exports.scrapePostCode = function(code) {
+exports.scrapePostCode = function (code) {
+  debug('scraping %j', code);
   return new BluePromise(function (resolve, reject) {
     if (!code) return reject(new Error('Argument "code" must be specified'));
 
-    request(postURL + code, function(err, response, body) {
+    request(postURL + code, function (err, response, body) {
       var data = scrape(body);
       if (
         data &&
@@ -640,11 +643,11 @@ exports.scrapePostCode = function(code) {
   });
 };
 
-exports.scrapeLocation = function(id) {
-  return new Promise(function(resolve, reject) {
+exports.scrapeLocation = function (id) {
+  return new Promise(function (resolve, reject) {
     if (!id) return reject(new Error('Argument "id" must be specified'));
 
-    request(locURL + id, function(err, response, body) {
+    request(locURL + id, function (err, response, body) {
       var data = scrape(body);
 
       if (data && data.entry_data && typeof data.entry_data.LocationsPage !== 'undefined') {
@@ -656,7 +659,7 @@ exports.scrapeLocation = function(id) {
   });
 };
 
-var scrape = function(html) {
+var scrape = function (html) {
   try {
     var dataString = html.match(dataExp)[1];
     var json = JSON.parse(dataString);
@@ -672,6 +675,6 @@ var scrape = function(html) {
   return json;
 };
 
-exports.getRandomArbitrary = function(min, max) {
+exports.getRandomArbitrary = function (min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 };
