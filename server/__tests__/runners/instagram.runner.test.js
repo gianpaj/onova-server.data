@@ -85,12 +85,20 @@ describe('## Instagram Runner', () => {
     it('should extract the price from the description', () => {
       const description = '📬 Відправку #здійснюємо 100 UAH Україні 🇺🇦 та ';
       expect(IG_Class.extractPrice(description)).toBe('100');
+      const description1 = '📬 Відправку #здійснюємо 100UAH Україні 🇺🇦 та ';
+      expect(IG_Class.extractPrice(description1)).toBe('100');
       const description2 = 'Відправку #здійснюємо 100.00 UAH Україні $$';
       expect(IG_Class.extractPrice(description2)).toBe('100.00');
       const description3 = 'Відправку #здійснюємо 100 грн Україні €€';
       expect(IG_Class.extractPrice(description3)).toBe('100');
-      const description4 = 'Відправку #здійснюємо ₴100 Україні';
+      const description4 = 'Відправку #здійснюємо 100грн Україні €€';
       expect(IG_Class.extractPrice(description4)).toBe('100');
+      const description5 = 'Відправку #здійснюємо ₴100 Україні';
+      expect(IG_Class.extractPrice(description5)).toBe('100');
+      const description6 = 'Відправку #здійснюємо ₴ 100 Україні';
+      expect(IG_Class.extractPrice(description6)).toBe('100');
+      const defaultDesc = 'Відправку #здійснюємо Україні';
+      expect(IG_Class.extractPrice(defaultDesc)).toBe('99999.00');
     });
   });
 
