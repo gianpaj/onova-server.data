@@ -587,6 +587,9 @@ exports.scrapePostData = function (post) {
 exports.preparePostFields = media => {
   let images;
 
+  if (!media.description) {
+    throw new Error(`${media.shortcode} by ${media.owner.username} has an empty description`);
+  }
   if (media.is_video) {
     throw new Error(`${media.shortcode} by ${media.owner.username} is a video`);
   }
