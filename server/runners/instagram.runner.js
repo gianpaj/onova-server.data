@@ -106,35 +106,18 @@ export default class InstagramRunner {
         const user_page = user_pages[i];
         debug('user scrapped:', user_page.username);
         // debug(user_page.medias[0]);
-        let IG_ids = await InstagramScrapped.find({ instagramOwnerId: user_page.instagramOwnerId });
-        if (IG_ids.length) IG_ids = IG_ids.map(d => d.instagramId);
+
+        IG_medias_to_scrape = [
+          ...IG_medias_to_scrape,
+          // when testing scrape 3 posts per user
+          // ...user_page.medias.filter((_, i) => i < 3),
+          ...user_page.medias,
+        ];
+        debug('%d IG_medias_to_scrape for %j', user_page.medias.length, user_page.username);
 
         // Find the category of the last item for each User-Product
         const productCategory = await Product.findOne({ seller: users[i]._id }).sort({ _id: -1 });
 
-        // if we previously scrapped this user
-        if (IG_ids.length) {
-          // filter already scrapped IG medias
-          const newMedias = user_page.medias.filter(m => IG_ids.indexOf(m.instagramId) < 0);
-          // only new posts
-          IG_medias_to_scrape = [
-            ...IG_medias_to_scrape,
-            // when testing scrape 3 posts per user
-            // ...newMedias.filter((_, i) => i < 3),
-            ...newMedias,
-          ];
-          // debug('%d new IG_medias_to_scrape for %j', newMedias.filter((_, i) => i < 3).length, user_page.username);
-          debug('%d new IG_medias_to_scrape for %j', newMedias.length, user_page.username);
-        } else {
-          // scrape all
-          IG_medias_to_scrape = [
-            ...IG_medias_to_scrape,
-            // when testing scrape 3 posts per user
-            // ...user_page.medias.filter((_, i) => i < 3),
-            ...user_page.medias,
-          ];
-          debug('%d IG_medias_to_scrape for %j (first time)', user_page.medias.length, user_page.username);
-        }
         IG_medias_to_scrape = IG_medias_to_scrape.map(doc => ({
           ...doc,
           onovaUser: doc.onovaUser ? doc.onovaUser : users[i],
