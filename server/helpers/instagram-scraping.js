@@ -80,7 +80,7 @@ exports.scrapeUserPageDeep = function(username) {
         const promises = BluePromise.map(edges, edge =>
           exports
             .scrapePostCode(edge.node.shortcode)
-            .delay(getRandomArbitrary(1000, 1500))
+            .delay(exports.getRandomArbitrary(1000, 1500))
             .then(postPage => exports.preparePostFields(postPage))
             .catch(err => {
               console.log('An error occurred calling scrapePostPage inside deepScrapeTagPage' + ':' + err);
@@ -583,13 +583,16 @@ exports.scrapePostData = function(post) {
 };
 
 exports.preparePostFields = media => {
-  // console.log(media);
   let images;
+
+  if (media.is_video) {
+    throw new Error(`${media.shortcode} by ${media.owner.username} is a video`);
+  }
+
   // if album
   if (media.edge_sidecar_to_children) {
     // ignore videos
     const edges = media.edge_sidecar_to_children.edges.filter(i => !i.node.is_video);
-    // console.log(edges);
     images = edges.map(edge => largestImage(edge.node.display_resources).src);
   } else {
     images = [largestImage(media.display_resources).src];
@@ -669,6 +672,6 @@ var scrape = function(html) {
   return json;
 };
 
-function getRandomArbitrary(min, max) {
+exports.getRandomArbitrary = function(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
-}
+};
