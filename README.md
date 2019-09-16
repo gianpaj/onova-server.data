@@ -159,11 +159,44 @@ Generating...
 Created db.sqlite with 132399 features.
 ```
 
-## Import NovaPoshta cities and departments into MongoDB
+## Import NovaPoshta cities and departments into MongoDB (automatically)
+
+Run this command from the AWS server:
+
+```
+bash loadDepartments.sh -u __username__ -p __password__
+```
+
+Output:
+
+```bash
+Loading Nova Poshta Departments and Cities into MongoDB.
+cities-2019-09-16T09-48-26Z.json created
+2019-09-16T12:48:27.443+0300	connected to: localhost
+2019-09-16T12:48:27.444+0300	dropping: onova-data.cities
+2019-09-16T12:48:27.595+0300	imported 3098 documents
+(node:94512) DeprecationWarning: collection.ensureIndex is deprecated. Use createIndexes instead.
+connected to mongodb://localhost:27017/onova-data
+loading cities
+current cities: 3098
+current cities with departments: 3067
+citiesToLoad: 31
+...
+3098/3098 Ясенівка
+3098/3098 Яцьківка
+3098/3098 Яськи
+done loading
+latestCities: 3067
+citiesToDelete: 31
+```
+
+## Import NovaPoshta cities and departments into MongoDB (locally)
+
+> Manual step
 
 1. Start MongoDB
 
-2. Import the cities (TODO: import the cities via the Nodejs script)
+2. Import the cities
 
 ```bash
 http "https://api.escrowbox.uapay.ua/api/handlers/NovaPoshta/cities" --auth-type basic --auth 'USER:PASS' -b --output cities.json
@@ -180,7 +213,7 @@ mongoimport -d onova-data -c cities cities.json --jsonArray --drop
 4. Load the departments for every city, and delete the cities without any departments
 
 ```
-node loadDepartments.js
+node loadDepartments.js __USERNAME__ __PASSWORD__
 # output
 connected to mongodb://localhost:27017/onova-data
 loading cities
@@ -206,7 +239,7 @@ citiesToDelete: 7
 
 NOTE: there are 155 cities that do not have any Nova Poshta departments
 
-5. Add these collections (cities, departments) to `onova-data-test`
+5. Add these cities and departments to `onova-data-test`
 
 ```
 mongodump --host localhost -d onova-data -c cities
@@ -240,7 +273,7 @@ mongorestore --host localhost --port 9999 -d onova-data -c cities dump/onova-dat
 mongorestore --host localhost --port 9999 -d onova-data -c departments dump/onova-data/departments.bson --drop
 ```
 
-### Verify if the just-loaded cities or departments have been updated
+### Verify if the just-loaded cities or departments have been updated (optional)
 
 1.  Export the departments collection without \_id field
 
