@@ -2,14 +2,19 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const throat = require('throat');
 
+if (!process.argv[2] || !process.argv[3]) {
+  console.log('user and pass missing for UAPAY API');
+  process.exit(0);
+}
+
 const http = axios.create({
   baseURL: 'https://api.escrowbox.uapay.ua/api',
   headers: {
     'Cache-Control': 'no-cache',
   },
   auth: {
-    username: '__USER_PROD__',
-    password: '__PASS_PROD__',
+    username: process.argv[2],
+    password: process.argv[3],
   },
 });
 
@@ -105,7 +110,7 @@ async function main() {
   process.exit(0);
 }
 
-let mongoURI = `mongodb://localhost:27017/onova-data`;
+const mongoURI = `mongodb://localhost:27017/onova-data`;
 
 const options = {
   keepAlive: 1,
