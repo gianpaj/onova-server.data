@@ -92,10 +92,10 @@ yarn test:coverage
 yarn test:watch
 
 # Run individual test files
-npm run test:one server/__tests__/order.test.js
+yarn test:one server/__tests__/order.test.js
 
 # Enable debug() output
-DEBUG=server-data:* npm run test:one server/__tests__/order.test.js
+DEBUG=server-data:* yarn test:one server/__tests__/order.test.js
 
 # Run tests that require the job scheduler (like drop.test.js)
 cd ../server.push
