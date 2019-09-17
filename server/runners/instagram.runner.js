@@ -158,7 +158,9 @@ export default class InstagramRunner {
               return reject(`${doc.shortcode} by ${doc.onovaUser.username} has an empty description`);
             }
             const priceString = this.extractPrice(doc.description);
-            if (parseInt(priceString) < 150) return reject('min price is 150', JSON.stringify(doc));
+            if (parseInt(priceString) < 150) {
+              return reject(`${doc.shortcode} by ${doc.onovaUser.username} has a lower price than 150`);
+            }
 
             const product = {
               categoryIds: doc.lastProductCategoryIds,
