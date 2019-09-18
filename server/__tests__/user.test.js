@@ -706,7 +706,7 @@ describe('## User APIs', () => {
       return request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
-        .send({ instagram: '_hello_' })
+        .send({ instagram: '_hello2_' })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) =>
           expect(body.message).toBe(
@@ -758,7 +758,35 @@ describe('## User APIs', () => {
         .then(({ body }) => expect(body.scraping.instagram).toBe('_hello_'));
     });
 
-    it('should NOT update the instagram username for scraping (if duplicate)', async () => {
+    it('should remove the instagram username for scraping', async () => {
+      const { user, jwtToken } = await createUserAndLogin({
+        username: 'instagramjoker',
+        emailAddress: 'instagramjoker@gmail.com',
+        password: 'express2',
+      });
+      await request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({
+          ...userPaymentInfo,
+          ...userShippingAddress,
+          instagram: '_joker_',
+        })
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.scraping.instagram).toBe('_joker_'));
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({
+          ...userPaymentInfo,
+          ...userShippingAddress,
+          instagram: '',
+        })
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.scraping).toBeUndefined());
+    });
+
+    it.skip('should NOT update the instagram username for scraping (if duplicate)', async () => {
       const { user, jwtToken } = await createUserAndLogin({
         username: 'insta',
         emailAddress: 'insta@gmail.com',
