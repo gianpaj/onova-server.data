@@ -320,7 +320,12 @@ function update(req: session$Request, res: express$Response, next: express$NextF
     if (!user.sellerHasValidPaymentInfo()) {
       throw new APIError(`Please enter your payment information ${beforeText}`, httpStatus.BAD_REQUEST);
     }
-    user.scraping.instagram = body.instagram;
+    if (body.instagram !== '') {
+      user.scraping.instagram = body.instagram;
+    } else {
+      // $unset
+      user.scraping.instagram = undefined;
+    }
   }
 
   let Promises = [];
