@@ -484,11 +484,10 @@ function createPaymentUAPAY(order: OrderDoc, product: ProductDoc, cvc: string, r
       const { shippingAddress: Sship } = seller;
 
       // TODO: if existing order, get deal instead of creating a new one
-      // externalId: order._id,
       // Step 1 - Create cart
       const {
         data: { data: cart },
-      } = await axios.post('/carts', null, axiosConfig); // no data necessary
+      } = await axios.post('/carts', null, axiosConfig); // Note: externalId must be unique every time
 
       // Step 2 - Create Deal
       const {

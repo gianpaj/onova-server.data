@@ -36,7 +36,8 @@ import { buyerNeedsToPay, buyerPaidDeal, dealConfirmationResp, sellerConfirmedRe
 import { tempBucketURL } from '../controllers/photos.controller';
 
 // This sets the mock adapter on the default instance
-export const mock = new MockAdapter(axios);
+export let mock;
+if (config.env === 'test') mock = new MockAdapter(axios);
 
 // GET & PUT /api/orders/ should only return these fields
 export const orderFields = [
