@@ -92,8 +92,8 @@ export default class InstagramRunner {
           return e;
         });
         await sleep(getRandomArbitrary(1000, 1500));
-        if (!(user_page instanceof Error)) debug("scrapping user's posts: %j ✅", user_page.username);
-        else debug("scrapping user's posts: %j ⚠️", IG_usernames[i]);
+        if (user_page instanceof Error) debug("scrapping user's posts: %j ⚠️", IG_usernames[i]);
+        else debug("scrapping user's posts: %j ✅", user_page.username);
         user_pages.push(user_page);
       }
 
@@ -171,6 +171,7 @@ export default class InstagramRunner {
               quantity: 1,
               tags: doc.description ? this.extractHashtags(doc.description) : [],
             };
+
             dropController.create(
               {
                 user: { _id: doc.onovaUser._id },
@@ -199,7 +200,9 @@ export default class InstagramRunner {
       // console.log('drops attempted to create', drops.length);
       debug('validDrops created', validDrops.length);
 
-      await InstagramScrapped.insertMany(IG_medias_to_scrape);
+      // orderder: false ==> continue with remaining inserts when one fails
+      // this an accour after a IG username has been changed and we already scrapped it
+      await InstagramScrapped.insertMany(IG_medias_to_scrape, { ordered: false });
 
       return;
     } catch (error) {
