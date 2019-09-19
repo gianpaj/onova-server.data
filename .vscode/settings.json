@@ -7,6 +7,8 @@
     "**/yarn.lock": true,
     "**/coverage": true
   },
+  "editor.formatOnSave": false,
+  "eslint.autoFixOnSave": true,
   "eslint.enable": true,
   "eslint.packageManager": "yarn",
   "flow.useNPMPackagedFlow": true,

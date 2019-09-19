@@ -15,10 +15,10 @@ var request = require('request'),
 const debug = require('debug')('server-data:instagram');
 // const debug = console.log;
 
-exports.scrapeUserPage = function (username) {
-  return new Promise(function (resolve, reject) {
+exports.scrapeUserPage = function(username) {
+  return new Promise(function(resolve, reject) {
     if (!username) return reject(new Error('Argument "username" must be specified'));
-    request(userURL + username, function (err, response, body) {
+    request(userURL + username, function(err, response, body) {
       var data = scrape(body);
       if (
         data &&
@@ -58,11 +58,11 @@ exports.scrapeUserPage = function (username) {
   });
 };
 
-exports.scrapeUserPageDeep = function (username, toFilter) {
+exports.scrapeUserPageDeep = function(username, toFilter) {
   return new Promise((resolve, reject) => {
     if (!username) return reject(new Error('Argument "username" must be specified'));
     const URL = userURL + username;
-    request(URL, function (err, response, body) {
+    request(URL, function(err, response, body) {
       if (err || response.statusCode > 200) {
         return reject(err || new Error(`http statusCode: "${response.statusCode}" for: "${URL}"`));
       }
@@ -488,46 +488,46 @@ exports.scrapeUserPageDeep = function (username, toFilter) {
   });
 };
 
-exports.deepScrapeTagPage = function (tag) {
-  return new Promise(function (resolve, reject) {
+exports.deepScrapeTagPage = function(tag) {
+  return new Promise(function(resolve, reject) {
     exports
       .scrapeTag(tag)
-      .then(function (tagPage) {
-        return Promise.map(tagPage.medias, function (media, i, len) {
+      .then(function(tagPage) {
+        return Promise.map(tagPage.medias, function(media, i, len) {
           return exports
             .scrapePostCode(media.shortcode)
-            .then(function (postPage) {
+            .then(function(postPage) {
               tagPage.medias[i] = postPage;
               if (typeof postPage.location !== 'undefined' && postPage.location.has_public_page) {
                 return exports
                   .scrapeLocation(postPage.location.id)
-                  .then(function (locationPage) {
+                  .then(function(locationPage) {
                     tagPage.media[i].location = locationPage;
                   })
-                  .catch(function (err) {
+                  .catch(function(err) {
                     console.log('An error occurred calling scrapeLocation inside deepScrapeTagPage' + ':' + err);
                   });
               }
             })
-            .catch(function (err) {
+            .catch(function(err) {
               console.log('An error occurred calling scrapePostPage inside deepScrapeTagPage' + ':' + err);
             });
         })
-          .then(function () {
+          .then(function() {
             resolve(tagPage);
           })
-          .catch(function (err) {
+          .catch(function(err) {
             console.log('An error occurred resolving tagPage inside deepScrapeTagPage' + ':' + err);
           });
       })
-      .catch(function (err) {
+      .catch(function(err) {
         console.log('An error occurred calling scrapeTagPage inside deepScrapeTagPage' + ':' + err);
       });
   });
 };
 
-exports.scrapeTag = function (tag) {
-  return new Promise(function (resolve, reject) {
+exports.scrapeTag = function(tag) {
+  return new Promise(function(resolve, reject) {
     if (!tag) return reject(new Error('Argument "tag" must be specified'));
     var options = {
       url: listURL + tag,
@@ -536,7 +536,7 @@ exports.scrapeTag = function (tag) {
           'Mozilla/5.0 (iPhone; CPU iPhone OS 8_0 like Mac OS X) AppleWebKit/600.1.3 (KHTML, like Gecko) Version/8.0 Mobile/12A4345d Safari/600.1.4',
       },
     };
-    request(options, function (err, response, body) {
+    request(options, function(err, response, body) {
       if (err) return reject(err);
 
       var data = scrape(body);
@@ -570,7 +570,7 @@ exports.scrapeTag = function (tag) {
   });
 };
 
-exports.scrapePostData = function (post) {
+exports.scrapePostData = function(post) {
   return {
     media_id: post.node.id,
     shortcode: post.node.shortcode,
@@ -607,7 +607,9 @@ exports.preparePostFields = media => {
     username: media.owner.username,
     timestamp: media.taken_at_timestamp,
     // extra fields. These won't be inserted in the db
-    ...{ location: media.location ? JSON.parse(media.location.address_json).city_name : {} },
+    ...{
+      location: media.location && media.location.address_json ? JSON.parse(media.location.address_json).city_name : {},
+    },
     description: media.edge_media_to_caption.edges[0] && media.edge_media_to_caption.edges[0].node.text,
     images,
   };
@@ -622,12 +624,12 @@ function largestImage(array) {
   return array.reduce((acc, cur) => (acc.config_height > cur.config_height ? acc : cur));
 }
 
-exports.scrapePostCode = function (code) {
+exports.scrapePostCode = function(code) {
   debug('scraping %j', code);
-  return new BluePromise(function (resolve, reject) {
+  return new BluePromise(function(resolve, reject) {
     if (!code) return reject(new Error('Argument "code" must be specified'));
 
-    request(postURL + code, function (err, response, body) {
+    request(postURL + code, function(err, response, body) {
       var data = scrape(body);
       if (
         data &&
@@ -644,11 +646,11 @@ exports.scrapePostCode = function (code) {
   });
 };
 
-exports.scrapeLocation = function (id) {
-  return new Promise(function (resolve, reject) {
+exports.scrapeLocation = function(id) {
+  return new Promise(function(resolve, reject) {
     if (!id) return reject(new Error('Argument "id" must be specified'));
 
-    request(locURL + id, function (err, response, body) {
+    request(locURL + id, function(err, response, body) {
       var data = scrape(body);
 
       if (data && data.entry_data && typeof data.entry_data.LocationsPage !== 'undefined') {
@@ -660,7 +662,7 @@ exports.scrapeLocation = function (id) {
   });
 };
 
-var scrape = function (html) {
+var scrape = function(html) {
   try {
     var dataString = html.match(dataExp)[1];
     var json = JSON.parse(dataString);
@@ -676,6 +678,6 @@ var scrape = function (html) {
   return json;
 };
 
-exports.getRandomArbitrary = function (min, max) {
+exports.getRandomArbitrary = function(min, max) {
   return Math.floor(Math.random() * (max - min) + min);
 };
