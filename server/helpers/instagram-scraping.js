@@ -61,9 +61,10 @@ exports.scrapeUserPage = function (username) {
 exports.scrapeUserPageDeep = function (username, toFilter) {
   return new Promise((resolve, reject) => {
     if (!username) return reject(new Error('Argument "username" must be specified'));
-    request(userURL + username, function (err, response, body) {
+    const URL = userURL + username;
+    request(URL, function (err, response, body) {
       if (err || response.statusCode > 200) {
-        return reject(err || response.statusCode);
+        return reject(err || new Error(`http statusCode: "${response.statusCode}" for: "${URL}"`));
       }
       var data = scrape(body);
       if (

@@ -92,7 +92,8 @@ export default class InstagramRunner {
           return e;
         });
         await sleep(getRandomArbitrary(1000, 1500));
-        debug("scrapping user's posts: %j ✅", user_page.username);
+        if (!(user_page instanceof Error)) debug("scrapping user's posts: %j ✅", user_page.username);
+        else debug("scrapping user's posts: %j ⚠️", IG_usernames[i]);
         user_pages.push(user_page);
       }
 

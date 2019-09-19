@@ -847,7 +847,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.OK)
         .then(res => {
           expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(11);
+          expect(res.body.length).toBe(12);
           expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
         });
     });
