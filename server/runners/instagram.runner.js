@@ -105,8 +105,13 @@ export default class InstagramRunner {
 
       for (let i = 0; i < user_pages.length; i++) {
         const user_page = user_pages[i];
-        debug('user scrapped:', user_page.username);
         // debug(user_page.medias[0]);
+
+        debug('%d IG_medias_to_scrape for %j', user_page.medias.length, user_page.username);
+
+        if (!user_page.medias.length) continue;
+
+        const onovaUser = users.find(u => u.scraping.instagram === user_page.username);
 
         IG_medias_to_scrape = [
           ...IG_medias_to_scrape,
@@ -114,20 +119,18 @@ export default class InstagramRunner {
           // ...user_page.medias.filter((_, i) => i < 3),
           ...user_page.medias,
         ];
-        debug('%d IG_medias_to_scrape for %j', user_page.medias.length, user_page.username);
-
         // Find the category of the last item for each User-Product
-        const productCategory = await Product.findOne({ seller: users[i]._id }).sort({ _id: -1 });
+        const productCategory = await Product.findOne({ seller: onovaUser._id }).sort({ _id: -1 });
 
         IG_medias_to_scrape = IG_medias_to_scrape.map(doc => ({
           ...doc,
-          onovaUser: doc.onovaUser ? doc.onovaUser : users[i],
+          onovaUser,
           // Men Clothes by default
           lastProductCategoryIds: doc.lastProductCategoryIds
             ? doc.lastProductCategoryIds
             : productCategory
-              ? productCategory.categoryIds
-              : [0],
+            ? productCategory.categoryIds
+            : [0],
         }));
       }
 
@@ -161,6 +164,12 @@ export default class InstagramRunner {
             const priceString = this.extractPrice(doc.description);
             if (parseInt(priceString) < 150) {
               return reject(`${doc.shortcode} by ${doc.onovaUser.username} has a lower price than 150`);
+            }
+            // extra safety but should not get in this state any more
+            if (doc.onovaUser.scraping.instagram !== doc.username) {
+              return reject(
+                `wrong user scraped: ${doc.onovaUser.scraping.instagram} !== ${doc.username} - ${doc.shortcode}`
+              );
             }
 
             const product = {
