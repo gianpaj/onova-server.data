@@ -1,6 +1,6 @@
 import winston from 'winston';
 
-export default new winston.Logger({
+export default new winston.createLogger({
   transports: [
     new winston.transports.Console({
       json: true,
