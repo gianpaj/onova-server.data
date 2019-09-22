@@ -43,7 +43,7 @@
     "dotenv": "^5.0.1",
     "express": "4.16.4",
     "express-validation": "1.0.2",
-    "express-winston": "2.5.1",
+    "express-winston": "^3.3.0",
     "fbgraph": "1.4.4",
     "form-data": "2.3.2",
     "google-libphonenumber": "^3.1.14",
@@ -70,8 +70,8 @@
     "request": "^2.88.0",
     "sharp": "^0.22",
     "shortid": "^2.2.13",
-    "winston": "2.4.2",
-    "winston-daily-rotate-file": "^3.3.2"
+    "winston": "^3.2.1",
+    "winston-daily-rotate-file": "^4.1.0"
   },
   "devDependencies": {
     "axios": "^0.18.0",
