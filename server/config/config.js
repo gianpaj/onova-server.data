@@ -1,21 +1,24 @@
 import Joi from 'joi';
 
-const isTestEnv = process.env.NODE_ENV === 'test';
-const isDevEnv = process.env.NODE_ENV === 'development';
+const NODE_ENV = process.env.NODE_ENV;
+
+const isTestEnv = NODE_ENV === 'test';
+const isDevEnv = NODE_ENV === 'development';
 
 // require and configure dotenv, will load vars in .env file in process.env
-if (isTestEnv) {
-  console.warn('running on `test` environment');
-  require('dotenv').config({ path: '.env.test' });
-} else if (isDevEnv) {
-  console.warn('running on `development` environment');
-  require('dotenv').config({ path: '.env.development' });
+if (isTestEnv || isDevEnv) {
+  console.warn(`running on "${NODE_ENV}" environment`);
+  require('dotenv').config({ path: `.env.${NODE_ENV}` });
 } else {
   require('dotenv').config();
 }
 
 const nonRequiredForTest = {
   is: Joi.string().valid(['development', 'production']),
+  then: Joi.required(),
+};
+const nonRequiredForDev = {
+  is: Joi.string().invalid('development'),
   then: Joi.required(),
 };
 
@@ -59,6 +62,8 @@ const envVarsSchema = Joi.object({
     .description("VK APP ID for Auth to post item on sellers' walls")
     .when('NODE_ENV', nonRequiredForTest),
   VK_SECRET_KEY: Joi.string().when('NODE_ENV', nonRequiredForTest),
+  TIMBER_API_KEY: Joi.string().when('NODE_ENV', nonRequiredForDev),
+  TIMBER_SOURCE_ID: Joi.string().when('NODE_ENV', nonRequiredForDev),
   SEGMENT: Joi.string()
     .description('Segment.com Analytics write key')
     .when('NODE_ENV', nonRequiredForTest),
