@@ -20,7 +20,7 @@ let created = false;
 
 export default class InstagramRunner {
   constructor() {
-    if (config.env !== 'test') this.initJob();
+    if (config.env === 'production') this.initJob();
   }
 
   initJob() {
