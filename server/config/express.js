@@ -16,6 +16,8 @@ import helmet from 'helmet';
 import passport from 'passport';
 import Agenda from 'agenda';
 import * as Sentry from '@sentry/node';
+import { Timber } from '@timberio/node';
+import { TimberTransport } from '@timberio/winston';
 require('winston-daily-rotate-file');
 
 import winstonInstance, { winstonDailyRotateConfig } from './winston';
@@ -25,6 +27,7 @@ import config from './config';
 import APIError from '../helpers/APIError';
 import { EscrowRunner, InstagramRunner, ShippingRunner } from '../runners';
 
+let timber;
 const debug = require('debug')('server-data:index');
 
 const jobDb = `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.jobDb}`;
@@ -87,6 +90,8 @@ if (config.env === 'production') {
 
   // The request handler must be the first middleware on the app
   app.use(Sentry.Handlers.requestHandler());
+
+  timber = new Timber(config.TIMBER_API_KEY, config.TIMBER_SOURCE_ID);
 }
 
 // parse body params and attache them to req.body
@@ -134,6 +139,7 @@ if (config.env === 'production') {
   app.use(
     expressWinston.logger({
       transports: [
+        new TimberTransport(timber),
         new winston.transports.DailyRotateFile({
           ...winstonDailyRotateConfig,
           filename: 'access-%DATE%.log',
@@ -183,6 +189,7 @@ if (config.env === 'development') {
   app.use(
     expressWinston.errorLogger({
       transports: [
+        new TimberTransport(timber),
         new winston.transports.DailyRotateFile({
           ...winstonDailyRotateConfig,
           filename: 'error-%DATE%.log',
