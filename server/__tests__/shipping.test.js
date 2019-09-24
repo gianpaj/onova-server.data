@@ -51,6 +51,7 @@ describe('## Shipping', () => {
         .get('/api/shipping/cities')
         .expect(httpStatus.OK)
         .then(({ body }) => {
+          expect(body.data[0].uk).toBe('Київ');
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
           expect(body.data.length).toBeGreaterThan(1100);
         });

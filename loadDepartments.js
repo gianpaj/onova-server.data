@@ -2,6 +2,9 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const throat = require('throat');
 
+const City = require('./server/models/cities.model');
+const Department = require('./server/models/departments.model');
+
 if (!process.argv[2] || !process.argv[3]) {
   console.log('user and pass missing for UAPAY API');
   process.exit(0);
@@ -18,39 +21,6 @@ const http = axios.create({
   },
 });
 
-const CitiesSchema = new mongoose.Schema(
-  {
-    id: {
-      type: String,
-      index: true,
-    },
-    uk: String,
-  },
-  { collection: 'cities' }
-);
-
-const City = mongoose.model('cities', CitiesSchema);
-
-const DepartmentsSchema = new mongoose.Schema({
-  id: {
-    type: String,
-    required: true,
-  },
-  uk: {
-    type: String,
-    required: true,
-    index: true,
-  },
-  maxWeight: Number,
-  cityID: {
-    type: String,
-    required: true,
-    index: true,
-  },
-});
-
-const Department = mongoose.model('departments', DepartmentsSchema);
-
 async function main() {
   console.log('loading cities');
   // find all the cities in which we haven't loaded the departments from
@@ -66,32 +36,37 @@ async function main() {
   // await Department.collection.deleteMany({}, { safe: true });
 
   let i = 0;
-  const promises = citiesToLoad.map(
-    throat(5, async city => {
-      let data;
-      i++;
-      try {
-        const res = await http.get(`/handlers/NovaPoshta/cities/${city.id}/offices`);
-        if (!res.data || !res.data.data || !res.data.data.length) {
-          console.log(res);
-          if (!res.data.data) console.error('error with city id:', city.id);
+  const promises = citiesToLoad
+    // .filter((c, i) => i < 4)
+    .map(
+      throat(5, async city => {
+        let departments;
+        i++;
+        try {
+          // TODO: retry if error 500
+          const res = await http.get(`/handlers/NovaPoshta/cities/${city.id}/offices`);
+          if (!res.data || !res.data.data || !res.data.data.length) {
+            if (!res.data || !res.data.data.length) console.log('no deparments for city id: %j (%j)', city.id, city.uk);
+            if (!res.data || !res.data.data) console.error('error with city id: %j (%j)', city.id, city.uk);
+            return Promise.resolve();
+          }
+          departments = res.data.data;
+          const departmentsOnCity = await Department.findOne({ cityID: city.id });
+          if (departmentsOnCity) return;
+          console.log(`${i}/${citiesToLoad.length}`, city.uk);
+        } catch (error) {
+          console.error('error with city id: %j (%j)', city.id, city.uk);
+          console.error(error);
           return Promise.resolve();
         }
-        data = res.data.data;
-        const departmentsOnCity = await Department.findOne({ cityID: city.id });
-        if (departmentsOnCity) return;
-        console.log(`${i}/${citiesToLoad.length}`, city.uk);
-      } catch (error) {
-        console.error(error);
-        return Promise.resolve();
-      }
 
-      // TODO: update the number of departments for the city
+        city.departmentsCount = departments.length;
+        await city.save();
 
-      return await Department.insertMany(data.map(o => ({ ...o, cityID: city.id })));
-      // console.log(res[0]);
-    })
-  );
+        return await Department.insertMany(departments.map(o => ({ ...o, cityID: city.id })));
+        // console.log(res[0]);
+      })
+    );
   await Promise.all(promises);
   console.log('done loading');
 
@@ -105,8 +80,8 @@ async function main() {
   citiesToDelete = citiesToDelete.map(c => c._id);
 
   // remove cities that do not have any Nova Poshta departments
-  console.log('citiesToDelete:', citiesToDelete.length);
   await City.deleteMany({ _id: { $in: citiesToDelete } });
+  console.log('cities deleted:', citiesToDelete.length);
   process.exit(0);
 }
 
