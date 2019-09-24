@@ -18,7 +18,7 @@ const nonRequiredForTest = {
   then: Joi.required(),
 };
 const nonRequiredForDev = {
-  is: Joi.string().invalid('development'),
+  is: Joi.string().invalid('development', 'test'),
   then: Joi.required(),
 };
 
