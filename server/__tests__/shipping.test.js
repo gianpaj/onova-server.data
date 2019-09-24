@@ -64,6 +64,7 @@ describe('## Shipping', () => {
         .get(`/api/shipping/departments/${kyivCityId}`)
         .expect(httpStatus.OK)
         .then(({ body }) => {
+          expect(body.data[0].uk).toBe('Відділення №1: вул. Пирогівський шлях, 135');
           expect(Object.keys(body.data[0]).sort()).toMatchSnapshot();
           expect(body.data.length).toBeGreaterThan(250);
         });

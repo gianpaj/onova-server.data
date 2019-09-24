@@ -9,6 +9,8 @@ import config from '../config/config';
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
 
+const departNumRegex = /№(\w+)/;
+
 /**
  * Get list of cities for Nova Poshta
  *
@@ -37,8 +39,8 @@ function cities(req: express$Request, res: express$Response, next: express$NextF
  * @property {*} req.query - Express query parameters
  * @property {number} req.query.price // TODO: price and weight should be retrieved in the order as buyer cannot change those
  * @property {number} req.query.weight
- * @property {number} req.query.recipientOfficeID
- * @property {number} req.query.orderId
+ * @property {String} req.query.recipientOfficeID
+ * @property {MongoId} req.query.orderId
  */
 async function costs(req: express$Request, res: express$Response, next: express$NextFunction) {
   const { recipientOfficeID, orderId, price, weight } = req.query;
@@ -109,7 +111,7 @@ export function getShippingCost(
  *
  * @property {*} req - express session
  * @property {*} req.params - express session parameters
- * @property {MongoId} req.params.city
+ * @property {String} req.params.city
  */
 async function departments(req: express$Request, res: express$Response, next: express$NextFunction) {
   Departments.find({ cityID: req.params.city }, { _id: 0, uk: 1, id: 1 })
@@ -117,6 +119,15 @@ async function departments(req: express$Request, res: express$Response, next: ex
       if (!departments.length) {
         throw new Error('Error getting departments');
       }
+      departments.sort((a, b) => {
+        if (!departNumRegex.test(a.uk) || !departNumRegex.test(b.uk)) {
+          return 0;
+        }
+        if (parseInt(a.uk.match(departNumRegex)[1]) > parseInt(b.uk.match(departNumRegex)[1])) {
+          return 1;
+        }
+        return -1;
+      });
       res.json({ data: departments });
     })
     .catch(error => {

@@ -62,7 +62,7 @@ async function main() {
 
         city.departmentsCount = departments.length;
         await city.save();
-
+        // TODO: add department number to its own field for ease of sorting
         return await Department.insertMany(departments.map(o => ({ ...o, cityID: city.id })));
         // console.log(res[0]);
       })
