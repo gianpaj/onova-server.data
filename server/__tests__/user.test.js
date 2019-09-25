@@ -97,7 +97,6 @@ describe('## User APIs', () => {
   let jwtToken;
   let anotherJwtToken;
   let forthJwtToken;
-  let activationToken;
   let resetToken;
 
   afterAll(() => {
@@ -199,86 +198,74 @@ describe('## User APIs', () => {
           .expect(httpStatus.BAD_REQUEST)
           .then(({ body }) => expect(body.message).toContain('Invalid username')));
 
-      it('should create a user with a valid username (. dot)', () => {
-        const user5 = {
-          emailAddress: 'user5@gmail.com',
-          username: 'user.user',
-        };
-        return request(app)
+      it('should create a user with a valid username (. dot)', () =>
+        request(app)
           .post('/api/users')
-          .send({ ...user, ...user5 })
-          .expect(httpStatus.CREATED);
-      });
+          .send({ ...user, emailAddress: 'user5@gmail.com', username: 'user.user' })
+          .expect(httpStatus.CREATED));
 
-      it('should create and validate a user with email starting with onovaapp', () => {
-        const user7 = {
-          emailAddress: 'onovaapp+user7@gmail.com',
-          username: 'onovaapp',
-        };
-        return request(app)
+      it('should create and validate a user with email starting with onovaapp', () =>
+        request(app)
           .post('/api/users')
-          .send({ ...user, ...user7 })
+          .send({ ...user, emailAddress: 'onovaapp+user7@gmail.com', username: 'onovaapp' })
           .expect(httpStatus.CREATED)
           .then(({ body }) => {
             expect(body.data.accountStatus).toBe('verified');
-          });
-      });
+          }));
 
-      it('should create a user with a valid username (_ char)', () => {
-        const user6 = { emailAddress: 'u6@gmail.com', username: 'under_score' };
-        return request(app)
+      it('should create a user with a valid username (_ char)', () =>
+        request(app)
           .post('/api/users')
-          .send({ ...user, ...user6 })
-          .expect(httpStatus.CREATED);
-      });
+          .send({ ...user, emailAddress: 'u6@gmail.com', username: 'under_score' })
+          .expect(httpStatus.CREATED));
 
-      it('should not create a user with the same email address', () => {
-        return request(app)
+      it('should not create a user with the same email address', () =>
+        request(app)
           .post('/api/users')
           .send(user)
           .expect(httpStatus.BAD_REQUEST)
           .then(res => {
             expect(res.body.message).toBe('An account with the same email address or username exists.');
-          });
-      });
+          }));
 
-      it('should not create a user with a short password', () => {
-        return request(app)
+      it('should not create a user with a short password', () =>
+        request(app)
           .post('/api/users')
           .send({ ...user, password: '123' })
           .expect(httpStatus.BAD_REQUEST)
-          .then(res => {
-            expect(res.body.message).toBe('"password" length must be at least 8 characters long');
-          });
-      });
+          .then(res => expect(res.body.message).toBe('"password" length must be at least 8 characters long')));
     });
 
     describe('# GET /api/auth/activate/:token (page)', () => {
-      it('should activate the user', done => {
-        Verification.findOne({ user: userId }, (err, verDoc) => {
-          if (err) return done(err);
-          if (!verDoc) return done('no verification token found');
+      let userId9, activationToken;
+      beforeAll(() =>
+        request(app)
+          .post('/api/users')
+          .send({ username: 'user2', emailAddress: 'gianpa+test9@gmail.com', password: 'expressos' })
+          .expect(httpStatus.CREATED)
+          .then(res => {
+            userId9 = res.body.data._id;
+          })
+      );
+      it('should activate the user', () =>
+        Verification.findOne({ user: userId9 }).then(verDoc => {
           activationToken = verDoc.resetToken;
-          request(app)
+          return request(app)
             .get(`/api/auth/activate/${activationToken}`)
             .expect(httpStatus.OK)
-            .then(res => {
-              expect(res.text).toContain('Профіль активовано');
-              done();
-            })
-            .catch(done);
-        });
-      });
+            .then(res =>
+              // Account activated
+              expect(res.text).toContain('Профіль активовано')
+            );
+        }));
 
       it('should NOT reactivate the user', () => {
         return request(app)
           .get(`/api/auth/activate/${activationToken}`)
           .expect(httpStatus.OK)
           .then(res =>
-            expect(res.text).toContain(
-              'Виникла проблема при активації вашого профілю'
-              // 'something wrong with the link you received'
-            )
+            // 'something wrong with the link you received'
+            expect(res.text).toContain('Виникла проблема при активації вашого профілю')
           );
       });
 
@@ -287,16 +274,16 @@ describe('## User APIs', () => {
           .get(`/api/auth/activate/e700760eb3d6fc65`)
           .expect(httpStatus.OK)
           .then(res =>
-            expect(res.text).toContain(
-              'Виникла проблема при активації вашого профілю'
-              // 'something wrong with the link you received'
-            )
+            // 'something wrong with the link you received'
+            expect(res.text).toContain('Виникла проблема при активації вашого профілю')
           );
       });
     });
   });
 
   describe('# POST /api/auth/login', () => {
+    beforeAll(() => createUserAndLogin(user));
+
     it('should NOT find the email', () => {
       return request(app)
         .post('/api/auth/login')
@@ -341,6 +328,13 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/:userId', () => {
+    let userId;
+    beforeAll(() =>
+      createUserAndLogin(user).then(({ user }) => {
+        userId = user._id;
+      })
+    );
+
     it("should get the user's details (public)", () => {
       return request(app)
         .get(`/api/users/${userId}`)
@@ -363,13 +357,19 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/?username=username', () => {
+    let userDoc;
+    beforeAll(() =>
+      createUserAndLogin(user).then(data => {
+        userDoc = data.user;
+      })
+    );
     it("should get the user's details (public) by username", () => {
       return request(app)
-        .get(`/api/users/?username=${user.username}`)
+        .get(`/api/users/?username=${userDoc.username}`)
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.username).toBe(user.username);
-          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.username).toBe(userDoc.username);
+          expect(body.emailAddress).toBe(userDoc.emailAddress);
           expect(body.followersCount).toBe(0);
           expect(body.followingCount).toBe(0);
           expect(Object.keys(body).sort()).toMatchSnapshot();
@@ -385,12 +385,20 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
-    let userWebToken;
-    beforeAll(() =>
-      request(app)
-        .post('/api/users-web')
-        .expect(httpStatus.CREATED)
-        .then(({ body }) => (userWebToken = body.token))
+    let userWebToken, userId, userDoc, jwtToken;
+    beforeEach(() =>
+      Promise.all([
+        User.deleteMany({}),
+        createUserAndLogin(user, false).then(data => {
+          userDoc = data.user;
+          userId = data.user._id;
+          jwtToken = data.jwtToken;
+        }),
+        request(app)
+          .post('/api/users-web')
+          .expect(httpStatus.CREATED)
+          .then(({ body }) => (userWebToken = body.token)),
+      ])
     );
 
     it("should remove the user's mobile number", () => {
@@ -399,11 +407,10 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send({ mobileNumber: '' })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe('');
-          expect(res.body.username).toBe(user.username);
-          expect(res.body.accountStatus).toBe('verified');
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe(userDoc.emailAddress);
+          expect(body.mobileNumber).toBe('');
+          expect(body.username).toBe(userDoc.username);
         });
     });
 
@@ -414,10 +421,9 @@ describe('## User APIs', () => {
         .send({ mobileNumber: '+380977414301' })
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.emailAddress).toBe(userDoc.emailAddress);
           expect(body.mobileNumber).toBe('0977414301');
-          expect(body.username).toBe(user.username);
-          expect(body.accountStatus).toBe('verified');
+          expect(body.username).toBe(userDoc.username);
         });
     });
 
@@ -428,25 +434,22 @@ describe('## User APIs', () => {
         .send({ mobileNumber: '380977414380' })
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.emailAddress).toBe(userDoc.emailAddress);
           expect(body.mobileNumber).toBe('0977414380');
-          expect(body.username).toBe(user.username);
-          expect(body.accountStatus).toBe('verified');
+          expect(body.username).toBe(userDoc.username);
         });
     });
 
     it("should update user's details", () => {
-      user.mobileNumber = validPhoneNumber2;
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send(user)
+        .send({ ...user, mobileNumber: validPhoneNumber2 })
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.emailAddress).toBe(user.emailAddress);
-          expect(res.body.mobileNumber).toBe(validPhoneNumber2);
-          expect(res.body.username).toBe(user.username);
-          expect(res.body.accountStatus).toBe('verified');
+        .then(({ body }) => {
+          expect(body.emailAddress).toBe(userDoc.emailAddress);
+          expect(body.mobileNumber).toBe(validPhoneNumber2);
+          expect(body.username).toBe(userDoc.username);
         });
     });
 
@@ -471,7 +474,6 @@ describe('## User APIs', () => {
           expect(body.bio).toBe(bio);
           expect(body.mobileNumber).toBe(user.mobileNumber);
           expect(body.username).toBe(user.username);
-          expect(body.accountStatus).toBe('verified');
         });
     });
 
@@ -503,7 +505,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should update only the password', done => {
+    it('should update only the password', () =>
       request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
@@ -513,7 +515,6 @@ describe('## User APIs', () => {
           expect(body.emailAddress).toBe(user.emailAddress);
           expect(body.mobileNumber).toBe(user.mobileNumber);
           expect(body.username).toBe(user.username);
-          expect(body.accountStatus).toBe('verified');
           return request(app)
             .post('/api/auth/login')
             .send({
@@ -521,13 +522,8 @@ describe('## User APIs', () => {
               password: 'express123',
             })
             .expect(httpStatus.OK)
-            .then(res => {
-              expect(res.body).toHaveProperty('token');
-              done();
-            });
-        })
-        .catch(done);
-    });
+            .then(res => expect(res.body).toHaveProperty('token'));
+        }));
 
     it('should update user email and unverify it', done => {
       request(app)
@@ -576,19 +572,18 @@ describe('## User APIs', () => {
     });
 
     it("should update user's payment info", () => {
-      const tempuser = {
-        ...user,
-        ...userPaymentInfo,
-      };
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send(tempuser)
+        .send({
+          ...user,
+          ...userPaymentInfo,
+        })
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.emailAddress).toBe(tempuser.emailAddress);
-          expect(body.mobileNumber).toBe(tempuser.mobileNumber);
-          expect(body.username).toBe(tempuser.username);
+          expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.mobileNumber).toBe(user.mobileNumber);
+          expect(body.username).toBe(user.username);
           expect(body.paymentInfo.short.first_four).toBe('5168');
           expect(body.paymentInfo.short.last_four).toBe('6327');
         });
@@ -608,8 +603,6 @@ describe('## User APIs', () => {
           expect(body.emailAddress).toBe(tempuser.emailAddress);
           expect(body.mobileNumber).toBe(tempuser.mobileNumber);
           expect(body.username).toBe(tempuser.username);
-          expect(body.paymentInfo.short.first_four).toBe('5168');
-          expect(body.paymentInfo.short.last_four).toBe('6327');
           expect(body.pushToken).toEqual(tempuser.pushToken);
         });
     });
@@ -652,9 +645,7 @@ describe('## User APIs', () => {
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send({
-          increaseShare: true,
-        })
+        .send({ increaseShare: true })
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.emailAddress).toBe(user.emailAddress);
@@ -667,7 +658,7 @@ describe('## User APIs', () => {
       return request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
-        .send({ ...userPaymentInfo })
+        .send(userPaymentInfo)
         .expect(httpStatus.OK)
         .then(({ body }) => {
           expect(body.paymentInfo.short.first_four).toBe('5168');
@@ -683,8 +674,6 @@ describe('## User APIs', () => {
         .send({ ...userPaymentInfo, short: false })
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.paymentInfo.short.first_four).toBe('5168');
-          expect(body.paymentInfo.short.last_four).toBe('6327');
           expect(body.paymentInfo.full.first_four).toBe('5168');
           expect(body.paymentInfo.full.last_four).toBe('6327');
         });
@@ -746,11 +735,7 @@ describe('## User APIs', () => {
       return request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
-        .send({
-          ...userPaymentInfo,
-          ...userShippingAddress,
-          instagram: '_hello_',
-        })
+        .send({ instagram: '_hello_' })
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.scraping.instagram).toBe('_hello_'));
     });
@@ -764,51 +749,44 @@ describe('## User APIs', () => {
       await request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
-        .send({
-          ...userPaymentInfo,
-          ...userShippingAddress,
-          instagram: '_joker_',
-        })
+        .send({ instagram: '_joker_' })
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.scraping.instagram).toBe('_joker_'));
       return request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
-        .send({
-          ...userPaymentInfo,
-          ...userShippingAddress,
-          instagram: '',
-        })
+        .send({ instagram: '' })
         .expect(httpStatus.OK)
         .then(({ body }) => expect(body.scraping).toBeUndefined());
     });
 
-    it.skip('should NOT update the instagram username for scraping (if duplicate)', async () => {
+    it('should NOT update the instagram username for scraping (if duplicate)', async () => {
       const { user, jwtToken } = await createUserAndLogin({
         username: 'insta',
-        emailAddress: 'insta@gmail.com',
+        emailAddress: 'insta1@gmail.com',
+        password: 'express1',
+      });
+      const { user: user2, jwtToken: jwtToken2 } = await createUserAndLogin({
+        username: 'insta1',
+        emailAddress: 'insta2@gmail.com',
         password: 'express2',
       });
+      await request(app)
+        .put(`/api/users/${user2._id}`)
+        .set('Authorization', jwtToken2)
+        .send({ instagram: '_hello_' })
+        .expect(httpStatus.OK);
       return request(app)
         .put(`/api/users/${user._id}`)
         .set('Authorization', jwtToken)
-        .send({
-          ...userPaymentInfo,
-          ...userShippingAddress,
-          instagram: '_hello_',
-        })
+        .send({ instagram: '_hello_' })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toBe('Duplicate Instagram username'));
     });
 
     it('should NOT update the Instagram username for scraping (if invalid)', async () => {
-      const { user, jwtToken } = await createUserAndLogin({
-        username: 'instagramlady',
-        emailAddress: 'instagramlady@gmail.com',
-        password: 'express2',
-      });
       return request(app)
-        .put(`/api/users/${user._id}`)
+        .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
         .send({ instagram: '.' })
         .expect(httpStatus.BAD_REQUEST)
@@ -817,7 +795,53 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/', () => {
-    it('should get personal info', () => {
+    let userId, jwtToken;
+    let users = [
+      {
+        username: 'user0',
+        emailAddress: 'gianpa+test0@gmail.com',
+        password: 'expressos',
+      },
+      {
+        username: 'user1',
+        emailAddress: 'gianpa+test1@gmail.com',
+        password: 'express2',
+      },
+      {
+        username: 'user2',
+        emailAddress: 'gianpa+test2@gmail.com',
+        password: 'express3',
+      },
+      {
+        username: 'user3',
+        emailAddress: 'gianpa+test3@gmail.com',
+        password: 'express4',
+      },
+    ];
+    beforeAll(() => User.deleteMany({}));
+
+    beforeAll(() =>
+      Promise.all([
+        createUserAndLogin(user).then(data => {
+          userId = data.user._id;
+          jwtToken = data.jwtToken;
+        }),
+        users.map(createUserAndLogin),
+      ])
+    );
+
+    it('should get personal info', async () => {
+      const socials = ' www.instagram.com/ga.eva.wear www.facebook.com/gaevawear';
+      await request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .send({ bio: 'my super bio' + socials, displayName: 'mydisplayName', instagram: '_joker_' })
+        .expect(httpStatus.OK);
+      await request(app)
+        .put(`/api/users/${userId}`)
+        .set('Authorization', jwtToken)
+        .attach('profilePic', path.join(__dirname, 'images/profilepic.jpg'))
+        .expect(httpStatus.OK);
       return request(app)
         .get(`/api/users/${userId}/personal`)
         .set('Authorization', jwtToken)
@@ -826,14 +850,20 @@ describe('## User APIs', () => {
           const { shippingAddress } = userShippingAddress;
           const shipInfo = body.shippingAddress;
           expect(body.username).toBe(user.username);
+          expect(body.bio).toBe('my super bio' + socials);
+          expect(body.displayName).toBe('mydisplayName');
           expect(body.emailAddress).toBe(user.emailAddress);
+          expect(body.profilePic).toBe('https://assets.onova.co/users/5b091babdde06965f6580a6b-1527323596437.jpg');
+          expect(body.socials.facebook).toBe('https://www.facebook.com/gaevawear');
+          expect(body.socials.instagram).toBe('https://www.instagram.com/ga.eva.wear');
           expect(Object.keys(body.paymentInfo).sort()).toMatchSnapshot('paymentInfo');
-          expect(body.paymentInfo.short.first_four).toBe('5168');
-          expect(body.paymentInfo.short.last_four).toBe('6327');
+          expect(body.paymentInfo.full.first_four).toBe('5168');
+          expect(body.paymentInfo.full.last_four).toBe('6327');
           expect(shipInfo.firstName).toBe(shippingAddress.firstName);
           expect(shipInfo.lastName).toBe(shippingAddress.lastName);
-          expect(shipInfo.city).toBe(shippingAddress.city);
-          expect(shipInfo.departmentNovaposhta).toBe(shippingAddress.departmentNovaposhta);
+          expect(shipInfo.city).toBe('8d5a980d-391c-11dd-90d9-001a92567626'); // Lviv
+          expect(shipInfo.departmentNovaposhta).toBe('1ec09d88-e1c2-11e3-8c4a-0050568002cf');
+          expect(body.scraping.instagram).toBe('_joker_');
           expect(Object.keys(body).sort()).toMatchSnapshot('personal info');
         });
     });
@@ -842,10 +872,10 @@ describe('## User APIs', () => {
       return request(app)
         .get('/api/users')
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(Array.isArray(res.body)).toBe(true);
-          expect(res.body.length).toBe(12);
-          expect(Object.keys(res.body[0]).sort()).toMatchSnapshot();
+        .then(({ body }) => {
+          expect(Array.isArray(body)).toBe(true);
+          expect(body.length).toBe(5);
+          expect(Object.keys(body[0]).sort()).toMatchSnapshot();
         });
     });
 
@@ -882,6 +912,8 @@ describe('## User APIs', () => {
         password: 'express2',
       },
     ];
+
+    beforeAll(() => User.deleteMany({}));
 
     beforeAll(async () => {
       for (let i = 0; i < people.length; i++) {
@@ -968,7 +1000,7 @@ describe('## User APIs', () => {
     });
   });
 
-  describe('# DELETE /api/users/:userId', () => {
+  describe.only('# DELETE /api/users/:userId', () => {
     beforeAll(() =>
       createUserAndLogin(anotherUser).then(({ user }) => {
         anotherUserId = user._id.toString();
