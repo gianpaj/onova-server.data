@@ -91,19 +91,13 @@ describe('## User APIs', () => {
     password: 'IDontKnow',
   };
 
-  let userId;
-  let anotherUserId;
-  let forthUserId;
-  let jwtToken;
-  let anotherJwtToken;
-  let forthJwtToken;
-  let resetToken;
-
   afterAll(() => {
     superagentMock.unset();
   });
 
   describe('# Create user and verify email address', () => {
+    beforeAll(() => User.deleteMany({}));
+
     describe('# POST /api/users - ', () => {
       it('should create a new user (designer - by default)', () => {
         return request(app)
@@ -128,8 +122,6 @@ describe('## User APIs', () => {
             expect(emailMsg.Subject).toBe('Підтвердження профілю - Welcome to Onova, verify your email address');
             expect(emailMsg.To[0].Email).toBe(user.emailAddress);
             expect(emailMsg.From.Email).toBe('noreply@onova.co');
-
-            userId = data._id;
           });
       });
 
@@ -282,6 +274,8 @@ describe('## User APIs', () => {
   });
 
   describe('# POST /api/auth/login', () => {
+    beforeAll(() => User.deleteMany({}));
+
     beforeAll(() => createUserAndLogin(user));
 
     it('should NOT find the email', () => {
@@ -319,7 +313,6 @@ describe('## User APIs', () => {
           jwt.verify(token, config.jwtSecret, (err, decoded) => {
             expect(err).toBeFalsy();
             expect(decoded.emailAddress).toBe(user.emailAddress);
-            jwtToken = body.token;
             done();
           });
         })
@@ -329,6 +322,9 @@ describe('## User APIs', () => {
 
   describe('# GET /api/users/:userId', () => {
     let userId;
+
+    beforeAll(() => User.deleteMany({}));
+
     beforeAll(() =>
       createUserAndLogin(user).then(({ user }) => {
         userId = user._id;
@@ -358,6 +354,9 @@ describe('## User APIs', () => {
 
   describe('# GET /api/users/?username=username', () => {
     let userDoc;
+
+    beforeAll(() => User.deleteMany({}));
+
     beforeAll(() =>
       createUserAndLogin(user).then(data => {
         userDoc = data.user;
@@ -386,6 +385,7 @@ describe('## User APIs', () => {
 
   describe('# PUT /api/users/:userId', () => {
     let userWebToken, userId, userDoc, jwtToken;
+
     beforeEach(() =>
       Promise.all([
         User.deleteMany({}),
@@ -505,7 +505,7 @@ describe('## User APIs', () => {
         });
     });
 
-    it('should update only the password', () =>
+    it('should update the password', () =>
       request(app)
         .put(`/api/users/${userId}`)
         .set('Authorization', jwtToken)
@@ -1000,11 +1000,21 @@ describe('## User APIs', () => {
     });
   });
 
-  describe.only('# DELETE /api/users/:userId', () => {
+  describe('# DELETE /api/users/:userId', () => {
+    let jwtToken, anotherUserId, userId;
+
+    beforeAll(() => User.deleteMany({}));
+
     beforeAll(() =>
-      createUserAndLogin(anotherUser).then(({ user }) => {
-        anotherUserId = user._id.toString();
-      })
+      Promise.all([
+        createUserAndLogin(user).then(data => {
+          userId = data.user._id;
+          jwtToken = data.jwtToken;
+        }),
+        createUserAndLogin(anotherUser).then(({ user }) => {
+          anotherUserId = user._id;
+        }),
+      ])
     );
 
     it('should delete user', () => {
@@ -1046,11 +1056,18 @@ describe('## User APIs', () => {
   });
 
   describe('# PUT /api/users/:userId', () => {
+    let forthUserId, forthJwtToken;
+
+    beforeAll(() => User.deleteMany({}));
+
     beforeAll(() =>
-      createUserAndLogin(forthUser).then(({ user, jwtToken: token }) => {
-        forthUserId = user._id.toString();
-        forthJwtToken = token;
-      })
+      Promise.all([
+        createUserAndLogin(anotherUser),
+        createUserAndLogin(forthUser).then(({ user, jwtToken }) => {
+          forthUserId = user._id;
+          forthJwtToken = jwtToken;
+        }),
+      ])
     );
 
     it('should NOT update an user`s email to an existing one', () => {
@@ -1087,25 +1104,24 @@ describe('## User APIs', () => {
     });
   });
 
-  describe('# POST /api/auth/login', () => {
-    it('should get another valid JWT token', () => {
-      return request(app)
-        .post('/api/auth/login')
-        .send({
-          emailAddress: anotherUser.emailAddress,
-          password: anotherUser.password,
-        })
-        .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body).toHaveProperty('token');
-          anotherJwtToken = body.token;
-        });
-    });
-  });
-
   describe('# PUT /api/users/:userId', () => {
+    let userId, anotherUserId, anotherJwtToken;
     const bio = 'Авторський крій, геометричні форми, апелювання до японських дизайнерів.';
     const socials = ' www.instagram.com/ga.eva.wear www.facebook.com/gaevawear';
+
+    beforeAll(() => User.deleteMany({}));
+
+    beforeAll(() =>
+      Promise.all([
+        createUserAndLogin(user).then(({ user }) => {
+          userId = user._id;
+        }),
+        createUserAndLogin(anotherUser).then(({ user, jwtToken }) => {
+          anotherUserId = user._id;
+          anotherJwtToken = jwtToken;
+        }),
+      ])
+    );
 
     it("should upload the user's profile pic", () => {
       return request(app)
@@ -1181,7 +1197,7 @@ describe('## User APIs', () => {
         .then(({ body }) => expect(body.username).toBe('anotherperson_update'));
     });
 
-    it('should update to only one social URL v1', () => {
+    it('should update to one social URL v1', () => {
       return request(app)
         .put(`/api/users/${anotherUserId}`)
         .set('Authorization', anotherJwtToken)
@@ -1247,6 +1263,15 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/auth/random-number', () => {
+    let wtToken;
+
+    beforeAll(() => User.deleteMany({}));
+
+    beforeAll(() =>
+      createUserAndLogin(user).then(({ jwtToken }) => {
+        wtToken = jwtToken;
+      })
+    );
     it('should fail to get random number because of missing Authorization', () => {
       return request(app)
         .get('/api/auth/random-number')
@@ -1263,7 +1288,7 @@ describe('## User APIs', () => {
     it('should get a random number', () => {
       return request(app)
         .get('/api/auth/random-number')
-        .set('Authorization', anotherJwtToken)
+        .set('Authorization', wtToken)
         .expect(httpStatus.OK)
         .then(res => expect(typeof res.body.num).toBe('number'));
     });
@@ -1286,17 +1311,21 @@ describe('## User APIs', () => {
   });
 
   describe('Password reset', () => {
+    beforeAll(() => User.deleteMany({}));
+
+    beforeAll(() => createUserAndLogin(user));
+
     it('# POST /api/auth/reset - should request a password reset via email', done => {
       request(app)
         .post('/api/auth/reset')
-        .send({ emailAddress: anotherUser.emailAddress })
+        .send({ emailAddress: user.emailAddress })
         .expect(httpStatus.OK)
         .then(res => {
           expect(res.body.message).toBe('Password reset email sent.');
           setTimeout(() => {
             const emailMsg = mailJetParams.Messages[0];
             expect(emailMsg.Subject).toBe('Відновлення пароля');
-            expect(emailMsg.To[0].Email).toBe(anotherUser.emailAddress);
+            expect(emailMsg.To[0].Email).toBe(user.emailAddress);
             expect(emailMsg.From.Email).toBe('noreply@onova.co');
             expect(emailMsg.TemplateID).toBe(345696);
             done();
@@ -1305,30 +1334,22 @@ describe('## User APIs', () => {
     });
 
     describe('# POST /api/auth/reset/:token (page)', () => {
-      it('should reset the user`s password', done => {
-        User.findOne({ emailAddress: anotherUser.emailAddress }, (err, existingUser) => {
-          if (err) {
-            return done(err);
-          }
-
-          Verification.findOne({ user: existingUser._id }, (err, verDoc) => {
-            if (err) return done(err);
-            if (!verDoc) return done('no verification token found');
+      let resetToken;
+      it('should reset the user`s password', () =>
+        User.findOne({ emailAddress: user.emailAddress })
+          .then(existingUser => Verification.findOne({ user: existingUser._id }))
+          .then(verDoc => {
             resetToken = verDoc.resetToken;
-            request(app)
+            return request(app)
               .post(`/api/auth/reset/${verDoc.resetToken}`)
               .send({ password: 'americano', passwordagain: 'americano' })
               .expect(httpStatus.OK)
               .then(res => {
                 // expect(res.text).toContain('Your password has been updated');
                 expect(res.text).toContain('Ваш пароль оновлено');
-                anotherUser.password = 'americano';
-                done();
-              })
-              .catch(done);
-          });
-        });
-      });
+                user.password = 'americano';
+              });
+          }));
 
       it('should NOT reset the user`s password', () => {
         return request(app)
@@ -1336,10 +1357,8 @@ describe('## User APIs', () => {
           .send({ password: 'americano', passwordagain: 'americano' })
           .expect(httpStatus.BAD_REQUEST)
           .then(res =>
-            expect(res.text).toContain(
-              'Виникла проблема при зміні паролю'
-              // 'There was an issue resetting your password'
-            )
+            // 'There was an issue resetting your password'
+            expect(res.text).toContain('Виникла проблема при зміні паролю')
           );
       });
 
@@ -1356,8 +1375,8 @@ describe('## User APIs', () => {
       return request(app)
         .post('/api/auth/login')
         .send({
-          emailAddress: anotherUser.emailAddress,
-          password: anotherUser.password,
+          emailAddress: user.emailAddress,
+          password: user.password,
         })
         .expect(httpStatus.OK)
         .then(res => expect(res.body).toHaveProperty('token'));
