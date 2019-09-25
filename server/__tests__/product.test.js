@@ -240,7 +240,7 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken1)
         .send(badProduct)
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) => expect(body.message).toContain('fails to match the required pattern'));
+        .then(({ body }) => expect(body.message).toContain('Invalid product tag'));
     });
 
     it('should NOT create product with an invalid tag (with space)', () => {
@@ -249,7 +249,7 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken1)
         .send({ ...badProduct, tags: ['my pony'] })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) => expect(body.message).toContain('fails to match the required pattern'));
+        .then(({ body }) => expect(body.message).toContain('Invalid product tag'));
     });
 
     it('should NOT create product with an invalid tag (with .)', () => {
@@ -258,7 +258,7 @@ describe('## Product APIs', () => {
         .set('Authorization', jwtToken1)
         .send({ ...badProduct, tags: ['lol.pony'] })
         .expect(httpStatus.BAD_REQUEST)
-        .then(({ body }) => expect(body.message).toContain('fails to match the required pattern'));
+        .then(({ body }) => expect(body.message).toContain('Invalid product tag'));
     });
 
     it('should create product with a valid tag (start with numbers)', () => {
