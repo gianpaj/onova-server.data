@@ -137,7 +137,7 @@ function activate(req, res) {
         if (types.includes('reseller')) {
           data.title = 'Drop - Email confirmation';
         }
-        data.heading = 'Профіль активовано!';
+        data.heading = 'Профіль активовано!'; // Account activated
         data.paragraph = `${username}, Можеш користуватись додатком на повну (${verDoc.user.emailAddress}).`;
 
         //if token exists, activate user
