@@ -59,7 +59,8 @@ export default {
   username: Joi.string()
     .regex(username)
     .min(3)
-    .max(30),
+    .max(30)
+    .error(() => ({ message: 'Invalid username' })),
   instagram: Joi.string()
     .regex(/^(?!.*\.\.)(?!.*\.$)[^\W][\w.]{0,29}$/)
     .error(() => ({ message: 'Invalid Instagram username' })),
