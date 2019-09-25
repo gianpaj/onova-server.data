@@ -178,29 +178,26 @@ describe('## User APIs', () => {
           });
       });
 
-      it('should NOT create a user with an invalid username (space)', () => {
-        const user1 = { emailAddress: 'u1@gmail.com', username: 'white space' };
-        return request(app)
+      it('should NOT create a user with an invalid username (space)', () =>
+        request(app)
           .post('/api/users')
-          .send({ ...user, ...user1 })
-          .expect(httpStatus.BAD_REQUEST);
-      });
+          .send({ ...user, emailAddress: 'u1@gmail.com', username: 'white space' })
+          .expect(httpStatus.BAD_REQUEST)
+          .then(({ body }) => expect(body.message).toContain('Invalid username')));
 
-      it('should NOT create a user with an invalid username (@ char)', () => {
-        const user2 = { emailAddress: 'user2@gmail.com', username: 'at@sign' };
-        return request(app)
+      it('should NOT create a user with an invalid username (@ char)', () =>
+        request(app)
           .post('/api/users')
-          .send({ ...user, ...user2 })
-          .expect(httpStatus.BAD_REQUEST);
-      });
+          .send({ ...user, emailAddress: 'u1@gmail.com', username: 'at@sign' })
+          .expect(httpStatus.BAD_REQUEST)
+          .then(({ body }) => expect(body.message).toContain('Invalid username')));
 
-      it('should NOT create a user with an invalid username (cyrillic alphabet)', () => {
-        const user3 = { emailAddress: 'user3@gmail.com', username: 'Кплнаше' };
-        return request(app)
+      it('should NOT create a user with an invalid username (cyrillic alphabet)', () =>
+        request(app)
           .post('/api/users')
-          .send({ ...user, ...user3 })
-          .expect(httpStatus.BAD_REQUEST);
-      });
+          .send({ ...user, emailAddress: 'u1@gmail.com', username: 'Кплнаше' })
+          .expect(httpStatus.BAD_REQUEST)
+          .then(({ body }) => expect(body.message).toContain('Invalid username')));
 
       it('should create a user with a valid username (. dot)', () => {
         const user5 = {
@@ -1132,6 +1129,24 @@ describe('## User APIs', () => {
           expect(body.socials.facebook).toBe('https://www.facebook.com/gaevawear');
           expect(body.socials.instagram).toBe('https://www.instagram.com/ga.eva.wear');
         });
+    });
+
+    it('should NOT save the username (if invalid)', () => {
+      return request(app)
+        .put(`/api/users/${anotherUserId}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ username: '#$%@#update' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toBe('Invalid username'));
+    });
+
+    it('should save the username', () => {
+      return request(app)
+        .put(`/api/users/${anotherUserId}`)
+        .set('Authorization', anotherJwtToken)
+        .send({ username: 'anotherperson_update' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.username).toBe('anotherperson_update'));
     });
 
     it('should update to only one social URL v1', () => {
