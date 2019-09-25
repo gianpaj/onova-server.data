@@ -48,11 +48,12 @@ export default {
     .max(99)
     .default(1),
   sellerType: Joi.string().valid(['designer', 'reseller']),
-  tag,
+  tag: tag.error(() => ({ message: 'Invalid product tag' })),
   tags: Joi.array()
     .max(30)
     .items(tag)
-    .single(),
+    .single()
+    .error(() => ({ message: 'Invalid product tag' })),
   uuid: Joi.string().regex(shortid),
   shortid,
   username: Joi.string()
