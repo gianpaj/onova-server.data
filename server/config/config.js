@@ -73,7 +73,7 @@ const envVarsSchema = Joi.object({
     .when('NODE_ENV', nonRequiredForTest),
   UAPAY_SECRET_P2P: Joi.string()
     .description('UAPAY JWT secret for P2P')
-    .when('NODE_ENV', nonRequiredForTest),
+    .required(),
   UAPAY_CLIENTID_ESCROW: Joi.string()
     .description('UAPAY API Client ID for EscrowBow')
     .when('NODE_ENV', nonRequiredForTest),
