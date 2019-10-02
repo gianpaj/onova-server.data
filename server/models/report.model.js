@@ -74,8 +74,11 @@ ReportSchema.set('toJSON', {
 });
 
 ReportSchema.index({ reporter: 1, createdAt: -1 });
-ReportSchema.index({ reporter: 1, user: 1 }, { unique: true });
-ReportSchema.index({ reporter: 1, product: 1 }, { unique: true });
+ReportSchema.index({ reporter: 1, user: 1 }, { unique: true, partialFilterExpression: { user: { $exists: true } } });
+ReportSchema.index(
+  { reporter: 1, product: 1 },
+  { unique: true, partialFilterExpression: { product: { $exists: true } } }
+);
 // ReportSchema.index({ reporter: 1, commentId: 1 }, { unique: true });
 
 export default mongoose.model('Report', ReportSchema);
