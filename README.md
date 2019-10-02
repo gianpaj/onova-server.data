@@ -163,7 +163,8 @@ Created db.sqlite with 132399 features.
 
 Run this command from the AWS server:
 
-```
+```bash
+cd scripts
 bash loadDepartments.sh -u __username__ -p __password__
 ```
 
