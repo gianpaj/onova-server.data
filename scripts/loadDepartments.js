@@ -2,8 +2,8 @@ const axios = require('axios');
 const mongoose = require('mongoose');
 const throat = require('throat');
 
-const City = require('./server/models/cities.model');
-const Department = require('./server/models/departments.model');
+const City = require('../server/models/cities.model');
+const Department = require('../server/models/departments.model');
 
 if (!process.argv[2] || !process.argv[3]) {
   console.log('user and pass missing for UAPAY API');
