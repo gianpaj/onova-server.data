@@ -53,9 +53,7 @@ const envVarsSchema = Joi.object({
     .description('Chatkit instanceLocator')
     .when('NODE_ENV', nonRequiredForTest),
   CHATKIT_KEY: Joi.string().when('NODE_ENV', nonRequiredForTest),
-  SLACK_WEBHOOK_URL: Joi.string()
-    .description('Slack Webhook URL (for reporting)')
-    .when('NODE_ENV', nonRequiredForTest),
+  SLACK_WEBHOOK_URL: Joi.string().when('NODE_ENV', nonRequiredForTest),
   // FACEBOOK_APP_ID: Joi.string().description("Facebook APP ID for Posting item on sellers' walls [not using]"),
   // FACEBOOK_APP_SECRET: Joi.string().description('Facebook APP Secret [not using]'),
   VK_APP_ID: Joi.string()

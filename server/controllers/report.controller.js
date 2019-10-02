@@ -7,9 +7,8 @@ import { User, UserDoc, Product, Report } from '../models';
 import config from '../config/config';
 
 let webhook;
-let IncomingWebhook;
-if (config.env === 'production') {
-  IncomingWebhook = require('@slack/client').IncomingWebhook;
+if (config.env !== 'production') {
+  const { IncomingWebhook } = require('@slack/webhook');
   webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
 }
 
@@ -143,11 +142,11 @@ async function create(req: session$Request, res: express$Response, next: express
 
     const response = await report.save();
 
-    if (config.env === 'production') {
-      webhook.send(slackJSON, err => {
-        if (err) return console.error('Slack Error:', err);
-        console.log('Report sent to Slack');
-      });
+    if (webhook) {
+      webhook
+        .send(slackJSON)
+        .then(() => console.log('Report sent to Slack'))
+        .catch(err => console.error('Slack Error:', err));
     }
     return res.status(httpStatus.CREATED).json({ data: response });
   } catch (err) {
