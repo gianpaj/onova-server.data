@@ -164,3 +164,21 @@ Array [
   "username",
 ]
 `;
+
+exports[`## User APIs Auto Generated User it should return the date when the user created 1`] = `
+Array [
+  "_id",
+  "accountStatus",
+  "emailAddress",
+  "followersCount",
+  "followingCount",
+  "generatedAt",
+  "ordersAndReviewsCount",
+  "ratingsTotal",
+  "reviewsCount",
+  "sharedCount",
+  "tokens",
+  "types",
+  "username",
+]
+`;

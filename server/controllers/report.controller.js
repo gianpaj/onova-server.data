@@ -7,7 +7,7 @@ import { User, UserDoc, Product, Report } from '../models';
 import config from '../config/config';
 
 let webhook;
-if (config.env !== 'production') {
+if (config.env === 'production') {
   const { IncomingWebhook } = require('@slack/webhook');
   webhook = new IncomingWebhook(config.SLACK_WEBHOOK_URL);
 }

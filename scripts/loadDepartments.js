@@ -85,7 +85,7 @@ async function main() {
   process.exit(0);
 }
 
-const mongoURI = `mongodb://localhost:27017/onova-data`;
+const mongoURI = 'mongodb://localhost:27017/onova-data';
 
 const options = {
   keepAlive: 1,
