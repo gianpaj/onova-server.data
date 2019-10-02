@@ -27,6 +27,7 @@ const UserSchema = new Schema(
       type: String,
       maxlength: 300,
     },
+    deletedAt: Date,
     displayName: {
       type: String,
       minlength: 0,
@@ -41,6 +42,7 @@ const UserSchema = new Schema(
       // validated at API level via 'Joi' and 'isEmail' npm packages
     },
     facebook: String,
+    generatedAt: Date,
     tokens: [
       {
         kind: {
@@ -157,9 +159,8 @@ const UserSchema = new Schema(
       default: ['designer'],
       // required: true,
     },
-    deletedAt: Date,
   },
-  // assigns 'createdAt' and 'updatedAt' fields to your schema
+  // assigns 'createdAt' and 'updatedAt' fields to the schema
   { timestamps: true }
 );
 
@@ -172,6 +173,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   displayName: ?string;
   emailAddress: string;
   facebook: ?string;
+  generatedAt: ?Date;
   followersCount: number;
   followingCount: number;
   sharedCount: number;

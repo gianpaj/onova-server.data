@@ -495,6 +495,7 @@ export const userPublicFields = [
   'displayName',
   'emailAddress',
   'facebook',
+  'generatedAt',
   'followersCount',
   'followingCount',
   'profilePic',

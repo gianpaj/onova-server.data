@@ -1382,4 +1382,28 @@ describe('## User APIs', () => {
         .then(res => expect(res.body).toHaveProperty('token'));
     });
   });
+
+  describe('Auto Generated User', () => {
+    it('it should return the date when the user created', async () => {
+      const user = await User.create({
+        accountStatus: 'verified',
+        emailAddress: 'onovaapp+instagram@gmail.com',
+        generatedAt: new Date(),
+        password: 'password',
+        username: 'username',
+      });
+
+      return request(app)
+        .get(`/api/users/${user._id}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.accountStatus).toBe('verified');
+          expect(body.username).toBe('username');
+          expect(body.emailAddress).toBe('onovaapp+instagram@gmail.com');
+          expect(body.followersCount).toBe(0);
+          expect(body.followingCount).toBe(0);
+          expect(Object.keys(body).sort()).toMatchSnapshot();
+        });
+    });
+  });
 });
