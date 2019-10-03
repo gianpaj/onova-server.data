@@ -2,8 +2,10 @@ import fs from 'fs';
 import path from 'path';
 import parse from 'csv-parse';
 import mongoose from 'mongoose';
+import download from 'image-downloader';
 
 import User from '../server/models/user.model';
+import photos from '../server/helpers/photos';
 
 // const debug = require('debug')('server-data:index');
 const debug = console.log;
@@ -13,12 +15,16 @@ const debug = console.log;
 async function main() {
   try {
     const rows = await loadCSV();
+
+    await User.deleteMany({ username: 'horondi' });
+
     const userCreatePromises = rows.map(user => {
-      console.log(user);
-      // create User
+      // debug(user);
       return createUser(user);
     });
-    await Promise.all(userCreatePromises);
+    const promises = await Promise.all(userCreatePromises);
+    const newUsers = promises.filter(user => !(user instanceof Error));
+    console.log('Users created %j', newUsers.length);
   } catch (error) {
     console.error(error);
   }
@@ -91,23 +97,79 @@ async function createUser(user) {
       if (existingUser.generatedAt) {
         generated = ' (generated) ';
       }
-      debug(`duplicate${generated}user:\n`, existingUser);
-      return;
+      // debug(`duplicate${generated}user:\n`, existingUser);
+      debug(`not adding duplicate${generated}username: %j`, existingUser.username);
+      throw new Error('duplicate');
     }
-    // upload profilePic
-    await User.create({
+    const username = await findUniqueUsername(instagramUsername);
+
+    const Promises = [];
+
+    const user = await User.create({
       accountStatus: 'verified',
       emailAddress: `onovaapp+${instagramUsername}@gmail.com`,
       generatedAt: new Date(),
       password: 'password',
-      username: instagramUsername,
+      username,
       displayName,
       bio,
       scraping: {
         instagram: instagramUsername,
       },
     });
+    if (profilePic) {
+      // or download image and the upload to PUT /api/users/:userId
+
+      // download the photos
+      const dest = '/tmp';
+      const file = await download.image({ url: profilePic, dest });
+
+      file.mimetype = 'image/jpeg';
+      file.buffer = file.image;
+
+      debug('profilePic saved to %j', file.filename);
+
+      Promises.push(
+        photos
+          .uploadProfilePic(user, file)
+          .then(cloudStoragePublicUrl => {
+            user.profilePic = cloudStoragePublicUrl;
+            debug('profilePic updated for user:', user._id);
+            if (config.env === 'production') {
+              return ckInst.updateUser({
+                id: user._id,
+                avatarURL: cloudStoragePublicUrl,
+              });
+            }
+          })
+          .catch(err => {
+            console.error('Error saving user profilePic', err);
+            throw err;
+          })
+      );
+    }
+    await Promise.all(Promises);
+    await user.save();
+    console.log(`Username: ${user.username} created.`);
   } catch (error) {
-    console.error(error);
+    if (error.message !== 'duplicate') console.error(error);
+    return error;
   }
+}
+
+function findUniqueUsername(username, suffix) {
+  const possibleUsername = username + (suffix || '');
+
+  return new Promise((resolve, reject) => {
+    User.findOne(
+      {
+        username: { $regex: new RegExp(`^${possibleUsername}$`, 'i') },
+      },
+      function(err, user) {
+        if (err) return reject(err);
+        if (!user) return resolve(possibleUsername);
+        return findUniqueUsername(username, (suffix || 0) + 1);
+      }
+    );
+  });
 }

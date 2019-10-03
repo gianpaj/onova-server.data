@@ -164,7 +164,7 @@ function uploadProfilePic(user: UserDoc, file: File): Promise<string> {
         .jpeg(JPEG_COMPRESSION)
         .pipe(stream);
     } catch (error) {
-      console.error(object);
+      console.error(error);
       reject(new Error('Error uploading profilePic'));
     }
   });
