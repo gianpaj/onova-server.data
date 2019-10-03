@@ -325,11 +325,7 @@ describe('## User APIs', () => {
 
     beforeAll(() => User.deleteMany({}));
 
-    beforeAll(() =>
-      createUserAndLogin(user).then(({ user }) => {
-        userId = user._id;
-      })
-    );
+    beforeAll(() => createUserAndLogin(user).then(({ user }) => (userId = user._id)));
 
     it("should get the user's details (public)", () => {
       return request(app)
