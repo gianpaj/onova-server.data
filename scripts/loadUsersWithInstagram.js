@@ -3,26 +3,58 @@ import path from 'path';
 import parse from 'csv-parse';
 import mongoose from 'mongoose';
 import download from 'image-downloader';
+import Chatkit from '@pusher/chatkit-server';
 
 import User from '../server/models/user.model';
 import photos from '../server/helpers/photos';
+import config from '../server/config/config';
+
+let ckInst;
+if (config.env == 'production') {
+  ckInst = new Chatkit({
+    instanceLocator: config.chatkit.instanceLocator,
+    key: config.chatkit.key,
+  });
+} else {
+  console.warn('not running in production. Chatkit account creation disabled');
+}
 
 // const debug = require('debug')('server-data:index');
 const debug = console.log;
 
-// const { getUsers } = require('./googleSheetUtil');
+const alex = {
+  mobileNumber: '0677929197',
+  platform: 'android',
+  pushToken:
+    'dQb3oC3zp3g:APA91bHgQhOzKVnigf8V7r90oCWpxK28kpzXA3TCH5ibpdj_eCcUQy5XWzCofRKvDo3624EFAmXJvzUJroK3C2FNwmr9VXgHpnTYapY9Zq2-CBRChRIMVmfhQI8ihe7rjIX5wJ_EfxPa',
+  shippingAddress: {
+    firstName: 'Олександр',
+    lastName: 'Костінський ',
+    city: 'db5c88f5-391c-11dd-90d9-001a92567626',
+    departmentNovaposhta: '39931b85-e1c2-11e3-8c4a-0050568002cf',
+  },
+  paymentInfo: {
+    card_token: '***REMOVED***',
+    short: {
+      first_four: '5167',
+      last_four: '8789',
+      card_token: '***REMOVED***',
+    },
+    full: {
+      first_four: '5167',
+      last_four: '8789',
+      card_token: '***REMOVED***',
+    },
+  },
+};
 
 async function main() {
   try {
     const rows = await loadCSV();
 
-    await User.deleteMany({ username: 'horondi' });
+    // await User.deleteMany({ username: 'horondi' });
 
-    const userCreatePromises = rows.map(user => {
-      // debug(user);
-      return createUser(user);
-    });
-    const promises = await Promise.all(userCreatePromises);
+    const promises = await Promise.all(rows.map(user => createUser(user)));
     const newUsers = promises.filter(user => !(user instanceof Error));
     console.log('Users created %j', newUsers.length);
   } catch (error) {
@@ -105,10 +137,14 @@ async function createUser(user) {
 
     const Promises = [];
 
+    const now = new Date();
     const user = await User.create({
+      ...alex,
       accountStatus: 'verified',
       emailAddress: `onovaapp+${instagramUsername}@gmail.com`,
-      generatedAt: new Date(),
+      createdAt: now,
+      updatedAt: now,
+      generatedAt: now,
       password: 'password',
       username,
       displayName,
@@ -136,10 +172,15 @@ async function createUser(user) {
             user.profilePic = cloudStoragePublicUrl;
             debug('profilePic updated for user:', user._id);
             if (config.env === 'production') {
-              return ckInst.updateUser({
+              return ckInst.createUser({
                 id: user._id,
+                name: user.username,
                 avatarURL: cloudStoragePublicUrl,
               });
+              // return ckInst.updateUser({
+              //   id: user._id,
+              //   avatarURL: cloudStoragePublicUrl,
+              // });
             }
           })
           .catch(err => {
