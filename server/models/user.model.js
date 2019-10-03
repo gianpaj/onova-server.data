@@ -1,7 +1,6 @@
 // @flow
 /** @namespace */
 
-import Promise from 'bluebird';
 import mongoose from 'mongoose';
 import httpStatus from 'http-status';
 import bcrypt from 'bcrypt';
@@ -218,15 +217,17 @@ UserSchema.statics = {
    * @param {MongoId} id - The ObjectId of user.
    */
   get(id: string): Promise<UserDoc | APIError> {
-    return this.findById(id)
-      .then((user: UserDoc) => {
-        if (!user) return Promise.reject();
-        return user;
-      })
-      .catch(() => {
-        const err = new APIError('Invalid user', httpStatus.BAD_REQUEST);
-        return Promise.reject(err);
-      });
+    return new Promise((resolve, reject) => {
+      this.findById(id)
+        .then((user: UserDoc) => {
+          if (!user) throw new Error('User not found');
+          resolve(user);
+        })
+        .catch(() => {
+          const err = new APIError('Invalid user', httpStatus.BAD_REQUEST);
+          return reject(err);
+        });
+    });
   },
 
   /**
@@ -237,18 +238,20 @@ UserSchema.statics = {
    * @param {number} query.limit Limit number of users to be returned
    */
   list({ skip = 0, limit = 50 }): Promise<UserDoc[] | APIError> {
-    return this.find()
-      .sort({ createdAt: -1 })
-      .skip(+skip)
-      .limit(+limit)
-      .then((users: UserDoc[]) => {
-        if (!users) return Promise.reject();
-        return users;
-      })
-      .catch(() => {
-        const err = new APIError('Invalid users', httpStatus.BAD_REQUEST);
-        return Promise.reject(err);
-      });
+    return new Promise((resolve, reject) => {
+      this.find()
+        .sort({ createdAt: -1 })
+        .skip(+skip)
+        .limit(+limit)
+        .then((users: UserDoc[]) => {
+          if (!users) throw new Error('No users found');
+          resolve(users);
+        })
+        .catch(() => {
+          const err = new APIError('Invalid users', httpStatus.BAD_REQUEST);
+          reject(err);
+        });
+    });
   },
 };
 
