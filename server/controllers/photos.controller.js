@@ -8,13 +8,13 @@ import Storage from '@google-cloud/storage';
 import multer from 'multer';
 import fetch from 'node-fetch';
 import FormData from 'form-data';
+import download from 'image-downloader';
 
 import APIError from '../helpers/APIError';
 import config from '../config/config';
 import photos from '../helpers/photos';
 
 const debug = require('debug')('server-data:index');
-const download = require('image-downloader');
 
 const MIN_WIDTH = 1000;
 const MIN_HEIGHT = 1000;
