@@ -14,7 +14,8 @@
     "test:one": "NODE_ENV=test jest --bail --watch --verbose false",
     "test:watch": "yarn test --watch",
     "test:coverage": "yarn jest --coverage",
-    "format": "prettier-eslint \"server/**/*.js\""
+    "format": "prettier-eslint \"server/**/*.js\"",
+    "load-instagram-users": "babel-node --presets @babel/preset-env scripts/loadUsersWithInstagram.js"
   },
   "dependencies": {
     "@babel/cli": "^7.2.0",
@@ -80,6 +81,7 @@
     "axios-mock-adapter": "^1.16.0",
     "babel-eslint": "^10.0.1",
     "babel-jest": "^24.8.0",
+    "csv-parse": "4.4.7",
     "eslint": "^6.0.1",
     "eslint-config-prettier": "^6.0.0",
     "eslint-plugin-flowtype": "^3.2.0",
