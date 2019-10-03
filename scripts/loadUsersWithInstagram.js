@@ -63,7 +63,7 @@ async function main() {
   process.exit(0);
 }
 
-const mongoURI = 'mongodb://localhost:27017/onova-data';
+const mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`;
 
 const options = {
   keepAlive: 1,
@@ -82,7 +82,7 @@ mongoose.connect(mongoURI, options).then(
 
 function loadCSV() {
   const csvfile = path.join(__dirname, '../ig-users.csv');
-  let input = fs.readFileSync(csvfile).toString('ascii');
+  let input = fs.readFileSync(csvfile, { encoding: 'utf8' });
 
   // remove the 3rd line from the file
   let lines = input.split('\n');
@@ -90,18 +90,22 @@ function loadCSV() {
   input = lines.join('\n');
 
   return new Promise((resolve, reject) => {
-    parse(input, { comment: '#' }, function(err, lines) {
-      if (err) {
-        console.error('An error occurred while parsing the CSV document:\r\n', err);
-        return reject(err);
-      }
+    parse(
+      input,
+      { comment: '#', skip_lines_with_error: true, rtrim: true, trim: true, escape: "'", from: 5, to: 20 },
+      function(err, lines) {
+        if (err) {
+          console.error('An error occurred while parsing the CSV document:\r\n', err);
+          return reject(err);
+        }
 
-      lines.map(function(line) {
-        // remove the first column – it's empty
-        line.shift(1, 1);
-      });
-      resolve(lines);
-    });
+        lines.map(function(line) {
+          // remove the first column – it's empty
+          line.shift(1, 1);
+        });
+        resolve(lines);
+      }
+    );
   });
 }
 
