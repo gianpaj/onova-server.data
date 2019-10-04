@@ -183,10 +183,6 @@ async function createUser(user) {
                 name: user.username,
                 avatarURL: cloudStoragePublicUrl,
               });
-              // return ckInst.updateUser({
-              //   id: user._id,
-              //   avatarURL: cloudStoragePublicUrl,
-              // });
             }
           })
           .catch(err => {

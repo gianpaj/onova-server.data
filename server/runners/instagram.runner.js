@@ -129,7 +129,7 @@ export default class InstagramRunner {
           // ...user_page.medias,
           // when testing scrape 3 posts per user
           ...user_page.medias
-            .filter((_, i) => i < 1)
+            // .filter((_, i) => i < 1)
             .map(doc => ({
               ...doc,
               onovaUser,
