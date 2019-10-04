@@ -1385,9 +1385,13 @@ describe('## User APIs', () => {
         accountStatus: 'verified',
         emailAddress: 'onovaapp+instagram@gmail.com',
         generatedAt: new Date(),
+        'scraping.preferredCategoryId': 1,
         password: 'password',
         username: 'username',
       });
+
+      const userDoc = await User.findById(user._id);
+      expect(userDoc.scraping.preferredCategoryId).toBe(1);
 
       return request(app)
         .get(`/api/users/${user._id}`)
