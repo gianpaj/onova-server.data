@@ -80,7 +80,7 @@ export default class InstagramRunner {
       console.log(users.map(u => pick(u, 'scraping.instagram', 'username', '_id')));
 
       const IG_usernames = users.map(u => u.scraping.instagram);
-      // Chunk up the scraping of instagram users to 4 at the same time
+
       let user_pages = [];
       // for (let i = 0; i < 2; i++) {
       for (let i = 0; i < IG_usernames.length; i++) {
@@ -115,22 +115,17 @@ export default class InstagramRunner {
 
         IG_medias_to_scrape = [
           ...IG_medias_to_scrape,
+          // ...user_page.medias,
           // when testing scrape 3 posts per user
-          // ...user_page.medias.filter((_, i) => i < 3),
-          ...user_page.medias,
+          ...user_page.medias.filter((_, i) => i < 3),
         ];
         // Find the category of the last item for each User-Product
-        const productCategory = await Product.findOne({ seller: onovaUser._id }).sort({ _id: -1 });
+        const lastProduct = await Product.findOne({ seller: onovaUser._id }).sort({ _id: -1 });
 
         IG_medias_to_scrape = IG_medias_to_scrape.map(doc => ({
           ...doc,
           onovaUser,
-          // Men Clothes by default
-          lastProductCategoryIds: doc.lastProductCategoryIds
-            ? doc.lastProductCategoryIds
-            : productCategory
-            ? productCategory.categoryIds
-            : [0],
+          lastProductCategoryIds: this.getProductCategoryIds(lastProduct, onovaUser, doc),
         }));
       }
 
@@ -140,18 +135,21 @@ export default class InstagramRunner {
       }
 
       const IG_docs_to_scraped = await Promise.all(
-        // Chunk up the image upload to 4 images at the same time
         IG_medias_to_scrape.reverse().map(
+          // Chunk up the image upload to 4 images at the same time (if bad internet connection)
           throat(4, async doc => {
-            const uploadedImages = await uploadURLToGCS(doc.images);
+            debug('uploading %d images', doc.images.length);
+            // const uploadedImages = await uploadURLToGCS(doc.images);
             // const uploadedImages = [
             //   'https://storage.googleapis.com/temp-uploads.onova.co/dGbEB7IHm-1-1568133652508.jpg',
             // ];
             if (job) await job.touch();
-            return { ...doc, uploadedImages };
+            return uploadURLToGCS(doc.images).then(uploadedImages => ({ ...doc, uploadedImages }));
           })
         )
       );
+
+      // debug('finished uploading');
 
       const drops = await Promise.all(
         // nice to do - group by user (doc.onovaUser._id) to create a single drop with all the products
@@ -221,6 +219,30 @@ export default class InstagramRunner {
       throw error;
     }
     // })
+  }
+
+  /**
+   * @param {ProductDoc} lastProduct
+   * @param {UserDoc} user
+   * @returns {Array<Number>}
+   */
+  getProductCategoryIds(lastProduct, user, doc) {
+    const cat = user.scraping.preferredCategoryId;
+    if (cat) {
+      console.log('adding items with categoryId: %j (preferred)', cat);
+      return [cat];
+    }
+    if (doc.lastProductCategoryIds) {
+      console.log('adding items with categoryIds: %j (lastProductCategoryIds)', doc.lastProductCategoryIds);
+      return doc.lastProductCategoryIds;
+    }
+    if (lastProduct) {
+      console.log('adding items with categoryIds: %j (lastProduct)', lastProduct.categoryIds);
+      return lastProduct.categoryIds;
+    }
+    console.log('adding items with categoryIds: [0] [Men Clothes] (default)');
+    // Men Clothes by default
+    return [0];
   }
 
   /**
