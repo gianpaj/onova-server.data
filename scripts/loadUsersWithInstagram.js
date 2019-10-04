@@ -92,7 +92,7 @@ function loadCSV() {
   return new Promise((resolve, reject) => {
     parse(
       input,
-      { comment: '#', skip_lines_with_error: true, rtrim: true, trim: true, escape: "'", from: 5, to: 20 },
+      { comment: '#', skip_lines_with_error: true, rtrim: true, trim: true, escape: "'", from: 0, to: 5 },
       function(err, lines) {
         if (err) {
           console.error('An error occurred while parsing the CSV document:\r\n', err);
@@ -109,12 +109,29 @@ function loadCSV() {
   });
 }
 
+const categoryIds = [
+  { label: 'Clothes-Men', value: 0 },
+  { label: 'Clothes-Women', value: 1 },
+  { label: 'Clothes-Shoes', value: 2 },
+  { label: 'Accessories-Jewelry', value: 10 },
+  { label: 'Accessories-Bags', value: 11 },
+  { label: 'Accessories-Accessories', value: 12 },
+  { label: 'For Home-Forniture', value: 20 },
+  { label: 'For Home-Art', value: 21 },
+  { label: 'For Home-Design', value: 22 },
+];
+
+function getCategoryId(label) {
+  if (!label) return;
+  return categoryIds.find(catObj => catObj.label === label).value;
+}
+
 /**
  *
  * @param {Array} user - row from CSV file
  */
 async function createUser(user) {
-  const [instagramUsername, displayName, bio, profilePic] = user;
+  const [instagramUsername, displayName, bio, profilePic, category] = user;
 
   try {
     const existingUser = await User.findOne({
@@ -155,6 +172,7 @@ async function createUser(user) {
       bio,
       scraping: {
         instagram: instagramUsername,
+        preferredCategoryId: getCategoryId(category),
       },
     });
     if (profilePic) {
