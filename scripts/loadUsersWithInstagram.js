@@ -53,7 +53,7 @@ async function main() {
   try {
     const rows = await loadCSV();
 
-    // await User.deleteMany({ username: 'horondi' });
+    await User.deleteMany({ username: 'netaki_ua' });
 
     const promises = await Promise.all(rows.map(user => createUser(user)));
     const newUsers = promises.filter(user => !(user instanceof Error));

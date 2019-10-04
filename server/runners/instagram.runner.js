@@ -85,7 +85,7 @@ export default class InstagramRunner {
       // for (let i = 0; i < 2; i++) {
       for (let i = 0; i < IG_usernames.length; i++) {
         debug("scrapping user's posts: %j", IG_usernames[i]);
-        let IG_ids_to_filter = await InstagramScrapped.find({ username: new RegExp(IG_usernames[i], 'i') });
+        let IG_ids_to_filter = await InstagramScrapped.find({ username: new RegExp('^' + IG_usernames[i], 'i') });
         if (IG_ids_to_filter.length) IG_ids_to_filter = IG_ids_to_filter.map(d => d.instagramId);
         const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i], IG_ids_to_filter).catch(e => {
           console.error(e);
@@ -113,20 +113,29 @@ export default class InstagramRunner {
 
         const onovaUser = users.find(u => u.scraping.instagram === user_page.username);
 
+        if (!onovaUser) {
+          throw new Error(`cannot find { \'scraping.instagram\': ${user_page.username} }`);
+        }
+
+        // console.log('---------------');
+        // console.log(pick(onovaUser, 'scraping.instagram', 'username'));
+        // console.log(pick(user_page, 'username', 'total'));
+        // console.log('---------------');
+
+        // Find the category of the last item for each User-Product
+        const lastProduct = await Product.findOne({ seller: onovaUser._id }).sort({ _id: -1 });
         IG_medias_to_scrape = [
           ...IG_medias_to_scrape,
           // ...user_page.medias,
           // when testing scrape 3 posts per user
-          ...user_page.medias.filter((_, i) => i < 3),
+          ...user_page.medias
+            .filter((_, i) => i < 1)
+            .map(doc => ({
+              ...doc,
+              onovaUser,
+              lastProductCategoryIds: this.getProductCategoryIds(lastProduct, onovaUser, doc),
+            })),
         ];
-        // Find the category of the last item for each User-Product
-        const lastProduct = await Product.findOne({ seller: onovaUser._id }).sort({ _id: -1 });
-
-        IG_medias_to_scrape = IG_medias_to_scrape.map(doc => ({
-          ...doc,
-          onovaUser,
-          lastProductCategoryIds: this.getProductCategoryIds(lastProduct, onovaUser, doc),
-        }));
       }
 
       debug('total IG_docs_to_scrape:', IG_medias_to_scrape.length);
