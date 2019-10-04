@@ -7,6 +7,7 @@ import Chatkit from '@pusher/chatkit-server';
 
 import User from '../server/models/user.model';
 import photos from '../server/helpers/photos';
+import { getCategoryId } from '../server/__tests__/utils';
 import config from '../server/config/config';
 
 let ckInst;
@@ -107,23 +108,6 @@ function loadCSV() {
       }
     );
   });
-}
-
-const categoryIds = [
-  { label: 'Clothes-Men', value: 0 },
-  { label: 'Clothes-Women', value: 1 },
-  { label: 'Clothes-Shoes', value: 2 },
-  { label: 'Accessories-Jewelry', value: 10 },
-  { label: 'Accessories-Bags', value: 11 },
-  { label: 'Accessories-Accessories', value: 12 },
-  { label: 'For Home-Forniture', value: 20 },
-  { label: 'For Home-Art', value: 21 },
-  { label: 'For Home-Design', value: 22 },
-];
-
-function getCategoryId(label) {
-  if (!label) return;
-  return categoryIds.find(catObj => catObj.label === label).value;
 }
 
 /**
