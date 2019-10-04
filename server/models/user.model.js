@@ -133,6 +133,7 @@ const UserSchema = new Schema(
     },
     scraping: {
       instagram: String,
+      preferredCategoryId: Number,
     },
     shippingAddress: {
       firstName: String,
@@ -186,6 +187,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
   reviewsCount: number;
   scraping: ?{
     instagram: ?string,
+    preferredCategoryId: ?number,
   };
   shippingAddress: ?any;
   tokens: Array<any>;
