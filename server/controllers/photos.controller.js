@@ -45,7 +45,7 @@ export const tempBucketURL = config.env == 'dev' ? tempBucketURLStaging : tempBu
  * @param {*} req Express Request OR filename (if used internally)
  * @param {*} res Express Response OR callback (if used internally)
  * @param {Function} next Express Next m OR error callback (if used internally)
- * @param {Boolean} internal Whether to use the internal code path (used after scraping Instagram posts)
+ * @param {Boolean} internal Whether to use the internal code path (used by Instagram scraper)
  */
 async function tempUploadProductImage(
   req: express$Request | String,
@@ -320,21 +320,22 @@ export async function uploadURLToGCS(photos) {
 
     debug('File(s) saved to', files.map(f => f.filename));
 
-    const uploads = files.map(file => {
-      return new Promise((resolve, reject) => {
-        tempUploadProductImage(
-          file.filename,
-          function callback(URL) {
-            resolve(URL);
-          },
-          function next(err) {
-            console.log(err);
-            reject(err);
-          },
-          true
-        );
-      });
-    });
+    const uploads = files.map(
+      file =>
+        new Promise((resolve, reject) => {
+          tempUploadProductImage(
+            file.filename,
+            function callback(URL) {
+              resolve(URL);
+            },
+            function next(err) {
+              console.log(err);
+              reject(err);
+            },
+            true
+          );
+        })
+    );
 
     const data = await Promise.all(uploads);
 

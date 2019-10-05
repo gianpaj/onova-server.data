@@ -86,7 +86,11 @@ exports.scrapeUserPageDeep = function(username, toFilter) {
             .delay(exports.getRandomArbitrary(1000, 1500))
             .then(postPage => exports.preparePostFields(postPage))
             .catch(err => {
-              console.log('An error occurred calling scrapePostPage inside deepScrapeTagPage' + ':' + err);
+              if (err.message.includes('is a video')) {
+                console.warn(err.message);
+              } else {
+                console.log('An error occurred calling scrapePostPage inside deepScrapeTagPage:\n%j' + err);
+              }
               return err;
             })
         );
