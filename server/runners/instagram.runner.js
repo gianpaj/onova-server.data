@@ -292,12 +292,12 @@ export default class InstagramRunner {
    * Parse price or set to 99999.00 as default
    */
   extractPrice(text): string {
-    const regex1 = new RegExp(/(\b\d{0,6}\.?\d{1,2})\s?(UAH)/);
+    const regex1 = new RegExp(/(\b\d{0,6}(?:\.?\d{1,2}))\s?(UAH)/);
     // e.g. #здійснюємо 100 UAH Україні => 100
     if (regex1.test(text)) {
       return text.match(regex1)[1];
     }
-    const regex2 = new RegExp(/(\b\d{0,6}\.?\d{1,2})\s?(грн)/);
+    const regex2 = new RegExp(/(\b\d{0,6}(?:\.?\d{1,2}))\s?(грн)/);
     // e.g. #здійснюємо 100 грн Україні => 100
     if (regex2.test(text)) {
       return text.match(regex2)[1];
@@ -306,6 +306,11 @@ export default class InstagramRunner {
     // e.g. #здійснюємо ₴100 Україні => 100
     if (regex3.test(text)) {
       return text.match(regex3)[1];
+    }
+    const regex4 = new RegExp(/UAH\s?(\b\d{0,6}(?:\.?\d{1,2}))/);
+    // e.g. #здійснюємо UAH 100 Україні => 100
+    if (regex4.test(text)) {
+      return text.match(regex4)[1];
     }
 
     return '99999.00';

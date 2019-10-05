@@ -85,6 +85,8 @@ describe('## Instagram Runner', () => {
     it('should extract the price from the description', () => {
       const description = '📬 Відправку #здійснюємо 100 UAH Україні 🇺🇦 та ';
       expect(IG_Class.extractPrice(description)).toBe('100');
+      const description0 = '📬 Відправку #здійснюємо UAH 100 Україні 🇺🇦 та ';
+      expect(IG_Class.extractPrice(description0)).toBe('100');
       const description1 = '📬 Відправку #здійснюємо 100UAH Україні 🇺🇦 та ';
       expect(IG_Class.extractPrice(description1)).toBe('100');
       const description2 = 'Відправку #здійснюємо 100.00 UAH Україні $$';
