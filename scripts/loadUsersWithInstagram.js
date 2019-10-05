@@ -91,22 +91,21 @@ function loadCSV() {
   input = lines.join('\n');
 
   return new Promise((resolve, reject) => {
-    parse(
-      input,
-      { comment: '#', skip_lines_with_error: true, rtrim: true, trim: true, escape: "'", from: 0, to: 5 },
-      function(err, lines) {
-        if (err) {
-          console.error('An error occurred while parsing the CSV document:\r\n', err);
-          return reject(err);
-        }
-
-        lines.map(function(line) {
-          // remove the first column – it's empty
-          line.shift(1, 1);
-        });
-        resolve(lines);
+    parse(input, { comment: '#', skip_lines_with_error: true, rtrim: true, trim: true, escape: "'" }, function(
+      err,
+      lines
+    ) {
+      if (err) {
+        console.error('An error occurred while parsing the CSV document:\r\n', err);
+        return reject(err);
       }
-    );
+
+      lines.map(function(line) {
+        // remove the first column – it's empty
+        line.shift(1, 1);
+      });
+      resolve(lines);
+    });
   });
 }
 
