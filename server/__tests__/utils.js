@@ -400,7 +400,7 @@ const categoryIds = [
   { label: 'Accessories-Jewelry', value: 10 },
   { label: 'Accessories-Bags', value: 11 },
   { label: 'Accessories-Accessories', value: 12 },
-  { label: 'For Home-Forniture', value: 20 },
+  { label: 'For Home-Forniture', value: 20 }, // fix CSV or G. Sheet if typo will be fixed
   { label: 'For Home-Art', value: 21 },
   { label: 'For Home-Design', value: 22 },
 ];
