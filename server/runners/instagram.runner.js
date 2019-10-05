@@ -145,7 +145,7 @@ export default class InstagramRunner {
 
       const IG_docs_to_scraped = await Promise.all(
         IG_medias_to_scrape.reverse().map(
-          // Chunk up the image upload to 4 images at the same time (if bad internet connection)
+          // Chunk up the image upload to 4 posts at the same time (if bad internet connection)
           throat(4, async doc => {
             debug('uploading %d images', doc.images.length);
             // const uploadedImages = await uploadURLToGCS(doc.images);
@@ -238,18 +238,18 @@ export default class InstagramRunner {
   getProductCategoryIds(lastProduct, user, doc) {
     const cat = user.scraping.preferredCategoryId;
     if (cat) {
-      console.log('adding items with categoryId: %j (preferred)', cat);
+      debug('adding items with categoryId: %j (preferred)', cat);
       return [cat];
     }
     if (doc.lastProductCategoryIds) {
-      console.log('adding items with categoryIds: %j (lastProductCategoryIds)', doc.lastProductCategoryIds);
+      debug('adding items with categoryIds: %j (lastProductCategoryIds)', doc.lastProductCategoryIds);
       return doc.lastProductCategoryIds;
     }
     if (lastProduct) {
-      console.log('adding items with categoryIds: %j (lastProduct)', lastProduct.categoryIds);
+      debug('adding items with categoryIds: %j (lastProduct)', lastProduct.categoryIds);
       return lastProduct.categoryIds;
     }
-    console.log('adding items with categoryIds: [0] [Men Clothes] (default)');
+    debug('adding items with categoryIds: [0] [Men Clothes] (default)');
     // Men Clothes by default
     return [0];
   }

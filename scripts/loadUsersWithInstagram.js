@@ -35,7 +35,6 @@ const alex = {
     departmentNovaposhta: '39931b85-e1c2-11e3-8c4a-0050568002cf',
   },
   paymentInfo: {
-    card_token: '***REMOVED***',
     short: {
       first_four: '5167',
       last_four: '8789',
@@ -44,7 +43,7 @@ const alex = {
     full: {
       first_four: '5167',
       last_four: '8789',
-      card_token: '***REMOVED***',
+      card_token: '***REMOVED***', // ends with 8789
     },
   },
 };
