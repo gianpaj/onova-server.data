@@ -74,7 +74,7 @@ export default class InstagramRunner {
         'shippingAddress.city': { $exists: true },
         'shippingAddress.firstName': { $exists: true },
         'shippingAddress.lastName': { $exists: true },
-      });
+      }).sort({ updatedAt: -1 });
       debug('users found:', users.length);
       if (!users.length) return;
       console.log(users.map(u => pick(u, 'scraping.instagram', 'username', '_id')));
@@ -82,7 +82,6 @@ export default class InstagramRunner {
       const IG_usernames = users.map(u => u.scraping.instagram);
 
       let user_pages = [];
-      // for (let i = 0; i < 2; i++) {
       for (let i = 0; i < IG_usernames.length; i++) {
         debug("scrapping user's posts: %j", IG_usernames[i]);
         let IG_ids_to_filter = await InstagramScrapped.find({ username: new RegExp('^' + IG_usernames[i], 'i') });
