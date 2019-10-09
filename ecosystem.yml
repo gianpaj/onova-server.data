@@ -47,3 +47,8 @@ apps:
     env:
       NODE_ENV: production
       PORT: 3002
+  - script: ./bin/www
+    cwd: ./Onova
+    name: forest-admin
+    autorestart: true
+
