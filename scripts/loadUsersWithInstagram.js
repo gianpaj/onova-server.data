@@ -90,10 +90,7 @@ function loadCSV() {
   input = lines.join('\n');
 
   return new Promise((resolve, reject) => {
-    parse(input, { comment: '#', skip_lines_with_error: true, rtrim: true, trim: true, escape: "'" }, function(
-      err,
-      lines
-    ) {
+    parse(input, { comment: '#', rtrim: true, trim: true, escape: "'" }, function(err, lines) {
       if (err) {
         console.error('An error occurred while parsing the CSV document:\r\n', err);
         return reject(err);
@@ -174,7 +171,7 @@ async function createUser(user) {
           .uploadProfilePic(user, file)
           .then(cloudStoragePublicUrl => {
             user.profilePic = cloudStoragePublicUrl;
-            debug('profilePic updated for user:', user._id);
+            debug('profilePic uploaded for user:', user._id);
             if (config.env === 'production') {
               return ckInst.createUser({
                 id: user._id,
