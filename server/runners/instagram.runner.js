@@ -127,10 +127,8 @@ export default class InstagramRunner {
     const confident = result.classification.score > CONFIDENCE_THRESHOLD;
     debug(`Predicted class name: ${result.displayName}`);
     debug(`Predicted class score: ${result.classification.score}`);
-    if (!confident || (confident && label === 'sale')) {
-      return result;
-    }
-    throw { ...result, label, confident };
+
+    return { ...result, label, confident };
   }
 
   async scrape(job) {
@@ -217,6 +215,8 @@ export default class InstagramRunner {
       debug('total IG_medias_to_analyse:', IG_medias_to_analyse.length);
       if (!IG_medias_to_analyse.length) return;
 
+      const IG_docs_notforsale = [];
+
       // use Google Auto ML check if post should be forsale or not
       const IG_docs_to_scrape = await Promise.all(
         IG_medias_to_analyse.map(doc => {
@@ -225,16 +225,15 @@ export default class InstagramRunner {
             .then(res => {
               console.log(`https://instagram.com/p/${doc.shortcode}`);
               console.log(`${doc.shortcode} by ${doc.onovaUser.username} with ${res.classification.score} score`);
-              return doc;
+              if (!res.confident || (res.confident && res.label === 'sale')) {
+                return { ...doc, label: res.label };
+              }
+              IG_docs_notforsale.push({ ...doc, label: res.label });
+              return new Error();
             })
             .catch(e => {
-              if (e.classification) {
-                console.log(`https://instagram.com/p/${doc.shortcode}`);
-                console.log(`${doc.shortcode} by ${doc.onovaUser.username} with ${e.classification.score} score`);
-              }
               console.error(JSON.stringify(e));
               if (e instanceof Error) return e;
-              return new Error(JSON.stringify(e));
             });
         })
       );
@@ -316,9 +315,11 @@ export default class InstagramRunner {
       // console.log('drops attempted to create', drops.length);
       debug('validDrops created', validDrops.length);
 
-      // orderder: false ==> continue with remaining inserts when one fails
-      // this an accour after a IG username has been changed and we already scrapped it
+      // ordered: false => continue with remaining inserts when one fails
+      // this an occour after a IG username has been changed and we already scrapped it
       await InstagramScrapped.insertMany(IG_docs_scraped, { ordered: false });
+
+      await InstagramScrapped.insertMany(IG_docs_notforsale, { ordered: false });
 
       return;
     } catch (error) {
