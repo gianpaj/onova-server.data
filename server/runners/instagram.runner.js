@@ -103,13 +103,13 @@ export default class InstagramRunner {
 
       debug('user pages scrapped successfully:', user_pages.length);
 
-      let IG_medias_to_scrape = [];
+      let IG_medias_to_analyse = [];
 
       for (let i = 0; i < user_pages.length; i++) {
         const user_page = user_pages[i];
         // debug(user_page.medias[0]);
 
-        debug('%d IG_medias_to_scrape for %j', user_page.medias.length, user_page.username);
+        debug('%d IG_medias_to_analyse for %j', user_page.medias.length, user_page.username);
 
         if (!user_page.medias.length) continue;
 
@@ -126,8 +126,8 @@ export default class InstagramRunner {
 
         // Find the category of the last item for each User-Product
         const lastProduct = await Product.findOne({ seller: onovaUser._id }).sort({ _id: -1 });
-        IG_medias_to_scrape = [
-          ...IG_medias_to_scrape,
+        IG_medias_to_analyse = [
+          ...IG_medias_to_analyse,
           // ...user_page.medias,
           // when testing scrape 3 posts per user
           ...user_page.medias
@@ -140,13 +140,27 @@ export default class InstagramRunner {
         ];
       }
 
-      debug('total IG_docs_to_scrape:', IG_medias_to_scrape.length);
-      if (!IG_medias_to_scrape.length) {
-        return;
-      }
+      debug('total IG_medias_to_analyse:', IG_medias_to_analyse.length);
+      if (!IG_medias_to_analyse.length) return;
 
-      const IG_docs_to_scraped = await Promise.all(
-        IG_medias_to_scrape.reverse().map(
+      // TODO: check if post should be forsale or not
+      const IG_docs_to_scrape = await Promise.all(
+        IG_medias_to_analyse.map(doc => {
+          const firstImage = doc.images[0];
+          return analyseImage(firstImage).catch(e => {
+            console.log(`${doc.shortcode} by ${doc.onovaUser.username} with ${e.prediction}`);
+            console.error(e);
+            return e;
+          });
+        })
+      );
+
+      const IG_docs_valid = IG_docs_to_scrape.filter(doc => !(doc instanceof Error));
+
+      debug('IG_docs_valid created', IG_docs_valid.length);
+
+      const IG_docs_scraped = await Promise.all(
+        IG_docs_valid.reverse().map(
           // Chunk up the image upload to 4 posts at the same time (if bad internet connection)
           throat(4, async doc => {
             debug('uploading %d images', doc.images.length);
@@ -164,7 +178,7 @@ export default class InstagramRunner {
 
       const drops = await Promise.all(
         // nice to do - group by user (doc.onovaUser._id) to create a single drop with all the products
-        IG_docs_to_scraped.map(doc =>
+        IG_docs_scraped.map(doc =>
           new Promise((resolve, reject) => {
             // if no description a Drop is not created. Note that a InstagramScrapped is still saved
             if (!doc.description) {
