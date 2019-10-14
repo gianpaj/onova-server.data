@@ -36,8 +36,5 @@ Onova-3a339323d16a.json
 # .env
 .env*
 
-# Google App Engine
-app.yaml
-
 # Novaposhta cities
 cities*.json
