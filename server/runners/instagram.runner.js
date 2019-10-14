@@ -125,8 +125,8 @@ export default class InstagramRunner {
     const label = result.displayName;
 
     const confident = result.classification.score > CONFIDENCE_THRESHOLD;
-    debug(`Predicted class name: ${result.displayName}`);
-    debug(`Predicted class score: ${result.classification.score}`);
+    // debug(`Predicted class name: ${result.displayName}`);
+    // debug(`Predicted class score: ${result.classification.score}`);
 
     return { ...result, label, confident };
   }
@@ -224,7 +224,12 @@ export default class InstagramRunner {
           return this.analyseImage(firstImage)
             .then(res => {
               console.log(`https://instagram.com/p/${doc.shortcode}`);
-              console.log(`${doc.shortcode} by ${doc.onovaUser.username} with ${res.classification.score} score`);
+              const icon = res.label === 'sale' ? '🆗' : '🚫';
+              console.log(
+                `${res.label} ${icon} ${doc.shortcode} by ${doc.onovaUser.username} with ${
+                  res.classification.score
+                } score`
+              );
               if (!res.confident || (res.confident && res.label === 'sale')) {
                 return { ...doc, label: res.label };
               }
@@ -247,10 +252,11 @@ export default class InstagramRunner {
           // Chunk up the image upload to 4 posts at the same time (if bad internet connection)
           throat(4, async doc => {
             debug('uploading %d images', doc.images.length);
-            // const uploadedImages = await uploadURLToGCS(doc.images);
             // const uploadedImages = [
             //   'https://storage.googleapis.com/temp-uploads.onova.co/dGbEB7IHm-1-1568133652508.jpg',
             // ];
+            // if no description, skip uploading images
+            if (!doc.description) return doc;
             if (job) await job.touch();
             return uploadURLToGCS(doc.images).then(uploadedImages => ({ ...doc, uploadedImages }));
           })
