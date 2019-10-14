@@ -22,6 +22,10 @@ const instagramScrappedSchema = new Schema({
     type: Schema.Types.ObjectId,
     ref: 'Product',
   },
+  label: {
+    type: String,
+    enum: ['sale', 'notforsale'],
+  },
   shortcode: String,
   username: String,
   timestamp: Number,
