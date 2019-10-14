@@ -81,6 +81,11 @@ const envVarsSchema = Joi.object({
   UAPAY_BASE_URL: Joi.string()
     .description('UAPAY API URL')
     .when('NODE_ENV', nonRequiredForTest),
+  G_AUTOML_PROJECT_ID: Joi.string()
+    .description('Google AUTO ML project id (for Instagram scraper approval step)')
+    .when('NODE_ENV', nonRequiredForTest),
+  G_AUTOML_COMPUTE_REGION: Joi.string().when('NODE_ENV', nonRequiredForTest),
+  G_AUTOML_MODEL_ID: Joi.string().when('NODE_ENV', nonRequiredForTest),
 })
   .unknown()
   .required();

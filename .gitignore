@@ -33,6 +33,9 @@ node_modules
 # Google Storage credentials
 Onova-3a339323d16a.json
 
+# Google Vision credentials - service account "rabbit-vision" id: 398b8940018c5c4fd58a0123482bc9dd5781ad8e
+Onova-398b8940018c.json
+
 # .env
 .env*
 

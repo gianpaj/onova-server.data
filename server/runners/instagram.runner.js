@@ -1,6 +1,10 @@
 // @flow
 import throat from 'throat';
 import pick from 'lodash/pick';
+import fs from 'fs';
+import path from 'path';
+import automl from '@google-cloud/automl';
+import download from 'image-downloader';
 
 import instagramScraping, { getRandomArbitrary } from '../helpers/instagram-scraping';
 import { InstagramScrapped, User, Product } from '../models';
@@ -16,7 +20,30 @@ const debug = console.log;
 
 const { JOBNAMES } = config;
 
+// FIXME: to avoid creating a duplicate agenda job
 let created = false;
+
+// score threshold for Prediction
+// When the model makes predictions for an image, it will only produce results that have at least this confidence score.
+const scoreThreshold = '0.7';
+// internal confidence requirement to accept a prediction
+const CONFIDENCE_THRESHOLD = '0.7';
+
+const keyfile = path.join(__dirname, '../../Onova-398b8940018c.json');
+const credentials = JSON.parse(fs.readFileSync(keyfile));
+
+// temp download folder for Auto ML analyzer
+const dest = '/tmp';
+
+// Create client for prediction service.
+const client = new automl.PredictionServiceClient({ credentials });
+
+// Get the full path of the model.
+const modelFullId = client.modelPath(
+  config.G_AUTOML_PROJECT_ID,
+  config.G_AUTOML_COMPUTE_REGION,
+  config.G_AUTOML_MODEL_ID
+);
 
 export default class InstagramRunner {
   constructor() {
@@ -57,6 +84,53 @@ export default class InstagramRunner {
         .catch(e => done(e))
         .then(() => clearTimeout(timer));
     });
+  }
+
+  async analyseImage(imageURL) {
+    // Download image from a URL for prediction.
+    let file;
+    try {
+      file = await download.image({ url: imageURL, dest });
+    } catch (error) {
+      console.error('could not download');
+      console.error(error);
+      throw error;
+    }
+
+    const params = { score_threshold: scoreThreshold };
+
+    // Set the payload by giving the image and type of the file.
+    const payload = { image: { imageBytes: file.image } };
+
+    // `params` is additional domain-specific parameters.
+    // https://googleapis.dev/nodejs/automl/latest/v1beta1.PredictionServiceClient.html#predict
+    const [response] = await client.predict({
+      name: modelFullId,
+      payload,
+      params,
+    });
+
+    // const response = {
+    //   payload: [
+    //     {
+    //       annotationSpecId: '3784048431828303872',
+    //       displayName: 'notforsale',
+    //       classification: { score: 0.9999899864196777 },
+    //       detail: 'classification',
+    //     },
+    //   ],
+    // };
+
+    const result = response.payload[0];
+    const label = result.displayName;
+
+    const confident = result.classification.score > CONFIDENCE_THRESHOLD;
+    debug(`Predicted class name: ${result.displayName}`);
+    debug(`Predicted class score: ${result.classification.score}`);
+    if (!confident || (confident && label === 'sale')) {
+      return result;
+    }
+    throw { ...result, label, confident };
   }
 
   async scrape(job) {
@@ -129,8 +203,8 @@ export default class InstagramRunner {
         IG_medias_to_analyse = [
           ...IG_medias_to_analyse,
           // ...user_page.medias,
-          // when testing scrape 3 posts per user
           ...user_page.medias
+            // when testing scrape X posts per user
             // .filter((_, i) => i < 1)
             .map(doc => ({
               ...doc,
@@ -143,15 +217,25 @@ export default class InstagramRunner {
       debug('total IG_medias_to_analyse:', IG_medias_to_analyse.length);
       if (!IG_medias_to_analyse.length) return;
 
-      // TODO: check if post should be forsale or not
+      // use Google Auto ML check if post should be forsale or not
       const IG_docs_to_scrape = await Promise.all(
         IG_medias_to_analyse.map(doc => {
           const firstImage = doc.images[0];
-          return analyseImage(firstImage).catch(e => {
-            console.log(`${doc.shortcode} by ${doc.onovaUser.username} with ${e.prediction}`);
-            console.error(e);
-            return e;
-          });
+          return this.analyseImage(firstImage)
+            .then(res => {
+              console.log(`https://instagram.com/p/${doc.shortcode}`);
+              console.log(`${doc.shortcode} by ${doc.onovaUser.username} with ${res.classification.score} score`);
+              return doc;
+            })
+            .catch(e => {
+              if (e.classification) {
+                console.log(`https://instagram.com/p/${doc.shortcode}`);
+                console.log(`${doc.shortcode} by ${doc.onovaUser.username} with ${e.classification.score} score`);
+              }
+              console.error(JSON.stringify(e));
+              if (e instanceof Error) return e;
+              return new Error(JSON.stringify(e));
+            });
         })
       );
 
@@ -234,7 +318,7 @@ export default class InstagramRunner {
 
       // orderder: false ==> continue with remaining inserts when one fails
       // this an accour after a IG username has been changed and we already scrapped it
-      await InstagramScrapped.insertMany(IG_medias_to_scrape, { ordered: false });
+      await InstagramScrapped.insertMany(IG_docs_scraped, { ordered: false });
 
       return;
     } catch (error) {
