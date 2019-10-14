@@ -18,10 +18,6 @@ const instagramScrappedSchema = new Schema({
     required: true,
     // immutable: true, // TODO: upgrade to mongoose 5.6+
   },
-  product: {
-    type: Schema.Types.ObjectId,
-    ref: 'Product',
-  },
   label: {
     type: String,
     enum: ['sale', 'notforsale'],
