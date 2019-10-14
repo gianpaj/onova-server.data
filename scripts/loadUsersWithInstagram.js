@@ -52,7 +52,10 @@ async function main() {
   try {
     const rows = await loadCSV();
 
-    await User.deleteMany({ username: 'netaki_ua' });
+    // await User.deleteMany({ username: 'netaki_ua' });
+    console.log(rows);
+
+    //FIXME: do a single mongodb query to find all the existing users to skip
 
     const promises = await Promise.all(rows.map(user => createUser(user)));
     const newUsers = promises.filter(user => !(user instanceof Error));
