@@ -68,6 +68,7 @@
     "node-mailjet": "^3.2.1",
     "offline-geocoder": "^1.0.0",
     "passport": "^0.4.0",
+    "passport-instagram": "false1.0.0",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
     "pug": "^2.0.3",

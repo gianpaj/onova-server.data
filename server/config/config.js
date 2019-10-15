@@ -86,6 +86,8 @@ const envVarsSchema = Joi.object({
     .when('NODE_ENV', nonRequiredForTest),
   G_AUTOML_COMPUTE_REGION: Joi.string().when('NODE_ENV', nonRequiredForTest),
   G_AUTOML_MODEL_ID: Joi.string().when('NODE_ENV', nonRequiredForTest),
+  INSTAGRAM_CLIENT_ID: Joi.string().required(),
+  INSTAGRAM_CLIENT_SECRET: Joi.string().required(),
 })
   .unknown()
   .required();
