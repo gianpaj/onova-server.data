@@ -29,21 +29,7 @@ const scoreThreshold = '0.7';
 // internal confidence requirement to accept a prediction
 const CONFIDENCE_THRESHOLD = '0.7';
 
-const keyfile = path.join(__dirname, '../../Onova-398b8940018c.json');
-const credentials = JSON.parse(fs.readFileSync(keyfile));
-
-// temp download folder for Auto ML analyzer
-const dest = '/tmp';
-
-// Create client for prediction service.
-const client = new automl.PredictionServiceClient({ credentials });
-
 // Get the full path of the model.
-const modelFullId = client.modelPath(
-  config.G_AUTOML_PROJECT_ID,
-  config.G_AUTOML_COMPUTE_REGION,
-  config.G_AUTOML_MODEL_ID
-);
 
 export default class InstagramRunner {
   constructor() {
@@ -52,6 +38,20 @@ export default class InstagramRunner {
 
   initJob() {
     this.defineScrapingJob();
+
+    const keyfile = path.join(__dirname, '../../Onova-398b8940018c.json');
+    const credentials = JSON.parse(fs.readFileSync(keyfile));
+
+    // temp download folder for Auto ML analyzer
+    this.dest = '/tmp';
+
+    // Create client for prediction service.
+    this.client = new automl.PredictionServiceClient({ credentials });
+    this.modelFullId = this.client.modelPath(
+      config.G_AUTOML_PROJECT_ID,
+      config.G_AUTOML_COMPUTE_REGION,
+      config.G_AUTOML_MODEL_ID
+    );
 
     agenda.on('ready', () => {
       agenda.cancel({ name: JOBNAMES.IG_SCRAPPING }, (err, numRemoved) => {
@@ -90,7 +90,7 @@ export default class InstagramRunner {
     // Download image from a URL for prediction.
     let file;
     try {
-      file = await download.image({ url: imageURL, dest });
+      file = await download.image({ url: imageURL, dest: this.dest });
     } catch (error) {
       console.error('could not download');
       console.error(error);
@@ -104,8 +104,8 @@ export default class InstagramRunner {
 
     // `params` is additional domain-specific parameters.
     // https://googleapis.dev/nodejs/automl/latest/v1beta1.PredictionServiceClient.html#predict
-    const [response] = await client.predict({
-      name: modelFullId,
+    const [response] = await this.client.predict({
+      name: this.modelFullId,
       payload,
       params,
     });
