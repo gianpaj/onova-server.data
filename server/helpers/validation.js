@@ -20,6 +20,7 @@ export default {
     .hex()
     .length(24),
   hashtag,
+
   categoriesOrTypes: Joi.array()
     .unique()
     .min(1)
@@ -45,6 +46,10 @@ export default {
     .invalid('0.00'),
   quantity: Joi.number()
     .min(1)
+    .max(99)
+    .default(1),
+  category: Joi.number()
+    .min(0)
     .max(99)
     .default(1),
   sellerType: Joi.string().valid(['designer', 'reseller']),

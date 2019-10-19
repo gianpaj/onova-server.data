@@ -40,7 +40,12 @@ export default {
       uuid: validation.uuid,
     },
   },
-
+  //GET /api/products/:category/users
+  productCategory: {
+    params: {
+      category: validation.category,
+    },
+  },
   // PUT /api/products/:uuid
   putProduct: {
     params: {
