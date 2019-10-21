@@ -124,6 +124,13 @@ export default {
     },
   },
 
+  //GET /api/users/category/:category/
+  usersCategory: {
+    params: {
+      category: validation.category,
+    },
+  },
+
   notif: {
     query: {
       limit: Joi.number()

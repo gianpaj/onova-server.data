@@ -435,63 +435,6 @@ async function update(req: session$Request, res: express$Response, next: express
     });
 }
 
-/**
- * Get users by product category
- *
- * GEt /api/products/:category/users
- *
- * @property {*} req - Express request
- * @property {*} req.query - Express query parameters
- * @property {number} req.params.category
- */
-
-function getUsers(req: session$Request, res: express$Response, next: express$NextFunction) {
-  const { category } = req.params;
-
-  Product.aggregate([
-    {
-      $match: {
-        categoryIds: { $in: [category] },
-      },
-    },
-    {
-      $lookup: {
-        from: 'users',
-        localField: 'seller',
-        foreignField: '_id',
-        as: 'users',
-      },
-    },
-    {
-      $group: {
-        _id: null,
-        user: { $addToSet: '$users' },
-      },
-    },
-    {
-      $unwind: '$user',
-    },
-    {
-      $project: {
-        _id: 0,
-      },
-    },
-    {
-      $unwind: '$user',
-    },
-  ])
-    .then(users => {
-      if (!users) {
-        throw new Error('');
-      }
-      return res.json({ data: users.map(user => user.user) });
-    })
-    .catch(() => {
-      const e = new APIError('Invalid category', httpStatus.BAD_REQUEST);
-      next(e);
-    });
-}
-
 function createTags(tags: Array<TagDoc>) {
   tags.forEach(tag => {
     Tag.findOneAndUpdate({ _id: tag }, { _id: tag }, { upsert: true }).catch(err => {
@@ -510,5 +453,4 @@ export default {
   update,
   list,
   remove,
-  getUsers,
 };

@@ -46,8 +46,7 @@ export default {
     .invalid('0.00'),
   quantity: Joi.number()
     .min(1)
-    .max(99)
-    .default(1),
+    .max(29),
   category: Joi.number()
     .min(0)
     .max(99)

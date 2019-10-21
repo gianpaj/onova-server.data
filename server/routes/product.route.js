@@ -52,7 +52,6 @@ router
   // DELETE /api/products/:uuid - Delete product - Protected route
   .delete(validate(paramValidation.productUUIDParam), requireAuth, isAuthorized, productCtrl.remove);
 
-router.route('/:category/users').get(validate(paramValidation.productCategory), productCtrl.getUsers);
 // Load product when API with uuid route parameter is hit
 router.param('uuid', productCtrl.load);
 

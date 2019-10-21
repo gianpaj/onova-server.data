@@ -9,7 +9,7 @@ const debug = require('debug')('server-data:index');
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
 import config from '../config/config';
-import { DefaultFollow, Follow, Order, User, UserDoc } from '../models';
+import { DefaultFollow, Follow, Order, User, UserDoc, Product } from '../models';
 import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 import followController from './follow.controller';
@@ -515,4 +515,53 @@ function _prepareUserJson(user: UserDoc): Object {
   return _.pick(user, userPublicFields);
 }
 
-export default { load, get, getPersonal, create, update, list, remove };
+/**
+ * Get users by product category
+ *
+ * GEt /api/users/category:category/
+ *
+ * @property {*} req - Express request
+ * @property {*} req.query - Express query parameters
+ * @property {number} req.params.category
+ */
+
+function getUsersByCategory(req: session$Request, res: express$Response, next: express$NextFunction) {
+  Product.aggregate([
+    {
+      $match: { categoryIds: req.params.category },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'seller',
+        foreignField: '_id',
+        as: 'users',
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        user: { $addToSet: '$users' },
+      },
+    },
+    {
+      $unwind: '$user',
+    },
+    {
+      $project: { _id: 0 },
+    },
+    {
+      $unwind: '$user',
+    },
+  ])
+    .then(users => res.json({ data: users.map(user => _prepareUserJson(user.user)) }))
+    .catch(err => {
+      if (!(err instanceof APIError)) {
+        console.error(err);
+        err = new APIError('Invalid category', httpStatus.INTERNAL_SERVER_ERROR);
+      }
+      next(err);
+    });
+}
+
+export default { load, get, getPersonal, getUsersByCategory, create, update, list, remove };
