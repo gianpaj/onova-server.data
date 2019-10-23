@@ -42,11 +42,13 @@ const UserSchema = new Schema(
     },
     facebook: String,
     generatedAt: Date,
+    // Instagram ID for social login
+    instagram: String,
     tokens: [
       {
         kind: {
           type: String,
-          enum: ['fb', 'vk'],
+          enum: ['fb', 'vk', 'instagram'],
           required: true,
         },
         accessToken: {

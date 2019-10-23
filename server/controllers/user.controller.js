@@ -264,7 +264,7 @@ function followDefaultUsers(newUser: UserDoc, sellerTypes = ['designer']): Promi
  * @property {string=} req.body.tokens
  * @property {string=} req.body.username
  * @property {*} req.file - Express file parameter - to upload a new profilePic
- * @property {File} req.user
+ * @property {UserDoc} req.user
  */
 function update(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { body, user } = req;
