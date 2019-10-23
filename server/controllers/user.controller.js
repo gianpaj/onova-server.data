@@ -54,7 +54,7 @@ function load(req: session$Request, res: express$Response, next: express$NextFun
  */
 async function get(req: session$Request, res: express$Response) {
   const { userId } = req.params;
-  let doc = _prepareUserJson(req.user);
+  let doc = prepareUserJson(req.user);
   const followers = await Follow.find({
     following: userId,
   }).populate('follower');
@@ -98,7 +98,7 @@ async function get(req: session$Request, res: express$Response) {
  */
 async function getPersonal(req: session$Request, res: express$Response) {
   const userId = req.user._id;
-  const doc = _prepareUserJson(req.user);
+  const doc = prepareUserJson(req.user);
 
   const ordersAndReviewsCount = await Order.countDocuments({
     $and: [
@@ -206,7 +206,7 @@ async function create(req: session$Request, res: express$Response, next: express
     if (!body.emailAddress.startsWith('onovaapp'))
       await mailCtrl.sendVerificationEmail(savedUser.emailAddress, savedUser);
 
-    const payload = _prepareUserJson(savedUser);
+    const payload = prepareUserJson(savedUser);
     return res.status(httpStatus.CREATED).json({
       data: payload,
       token: `JWT ${authCtrl.generateToken(payload)}`,
@@ -214,6 +214,62 @@ async function create(req: session$Request, res: express$Response, next: express
   } catch (error) {
     next(error);
   }
+}
+
+async function createWithInstagram(profile) {
+  const username = await findUniqueUsername(profile.username);
+  const user = new User({
+    ...profile,
+    username,
+  });
+  const savedUser = await user.save();
+
+  // if we should Auto Follow certain users by default
+  if (config.DEFAULT_FOLLOW) {
+    followDefaultUsers(savedUser)
+      .then(num => {
+        if (typeof num == 'number') debug(`followed ${num} default users`);
+      })
+      .catch(e => console.error(e));
+  }
+
+  if (config.env !== 'production') {
+    debug('skipping pusher createUser()');
+  } else {
+    try {
+      await ckInst.createUser({
+        id: savedUser._id,
+        name: savedUser.username,
+      });
+      console.log('chatkit user created');
+    } catch (err) {
+      console.error(err);
+      throw err;
+    }
+  }
+
+  // TODO: upload profile pic to GCS
+
+  console.log('user created');
+
+  return savedUser;
+}
+
+function findUniqueUsername(username, suffix) {
+  const possibleUsername = username + (suffix || '');
+
+  return new Promise((resolve, reject) => {
+    User.findOne(
+      {
+        username: { $regex: new RegExp(`^${possibleUsername}$`, 'i') },
+      },
+      function(err, user) {
+        if (err) return reject(err);
+        if (!user) return resolve(possibleUsername);
+        return findUniqueUsername(username, (suffix || 0) + 1);
+      }
+    );
+  });
 }
 
 /**
@@ -469,7 +525,7 @@ function list(req: session$Request, res: express$Response, next: express$NextFun
   // use static method from UserSchema
   // flow-disable-next-line
   return User.list({ limit })
-    .then(users => res.json(users.map(_prepareUserJson)))
+    .then(users => res.json(users.map(prepareUserJson)))
     .catch(e => next(e));
 }
 
@@ -511,8 +567,19 @@ export const userPublicFields = [
 /**
  * Limit number of fields send back for a user - Un-protected data / no auth
  */
-function _prepareUserJson(user: UserDoc): Object {
+function prepareUserJson(user: UserDoc): Object {
   return _.pick(user, userPublicFields);
 }
 
-export default { load, get, getPersonal, create, update, list, remove };
+export default {
+  connectEmailToSocialLogin,
+  load,
+  get,
+  getPersonal,
+  create,
+  createWithInstagram,
+  update,
+  list,
+  prepareUserJson,
+  remove,
+};

@@ -9,6 +9,7 @@ import passport from 'passport';
 
 import { User, UserWeb, UserDoc, UserWebDoc } from '../models';
 import config from './config';
+import userController from '../controllers/user.controller';
 
 // Configure Passport authenticated session persistence.
 passport.serializeUser((user, done) => {
@@ -70,6 +71,62 @@ passport.use(
         .catch(err => done(err, false, { type: 'web' }));
     }
   })
+);
+
+/**
+ * Sign in with Instagram
+ */
+passport.use(
+  new InstagramStrategy(
+    {
+      clientID: config.INSTAGRAM_ID,
+      clientSecret: config.INSTAGRAM_SECRET,
+      callbackURL: config.INSTAGRAM_CALLBACK_URL,
+      passReqToCallback: true,
+    },
+    async function(req, accessToken, refreshToken, profile, done) {
+      try {
+        const existingUser = await User.findOne({ instagram: profile.id });
+        if (req.user) {
+          if (existingUser) {
+            console.log('There is already an Instagram account that belongs to you. Sign in with that account');
+            return done(null);
+          }
+          // if instagram account was previously connected (without OAuth)
+          const user = await User.findById(req.user.id);
+          user.instagram = profile.id;
+          user.tokens.push({ kind: 'instagram', accessToken });
+          user.displayName = user.displayName || profile.displayName;
+          user.profilePic = user.profilePic || profile._json.data.profile_picture;
+          // user.bio = user.bio || profile._json.data.website;
+          await user.save();
+          console.log('Instagram account has been linked.');
+          done(null, user);
+        } else {
+          if (existingUser) {
+            return done(null, existingUser);
+          }
+          const user = await userController.createWithInstagram({
+            accountStatus: 'verified',
+            username: profile.username,
+            instagram: profile.id,
+            tokens: [{ kind: 'instagram', accessToken }],
+            // We assign a temporary e-mail address to get on with the registration process.
+            // TODO: It can be changed later to a valid e-mail address.
+            emailAddress: `${profile.username}@instagram-temp.com`,
+            displayName: profile.displayName,
+            profilePic: profile._json.data.profile_picture,
+            bio: profile._json.data.bio,
+          });
+          console.log(user);
+          done(null, user);
+        }
+      } catch (error) {
+        console.error(error);
+        done(error);
+      }
+    }
+  )
 );
 
 /*

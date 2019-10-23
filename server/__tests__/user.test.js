@@ -320,6 +320,22 @@ describe('## User APIs', () => {
     });
   });
 
+  describe('# Instagram login', () => {
+    it('should redirect to Instagram for OAuth', () => {
+      return request(app)
+        .get('/api/auth/instagram')
+        .expect(httpStatus.FOUND)
+        .then(res => {
+          expect(res.redirect).toBe(true);
+          expect(
+            res.headers.location.startsWith(
+              'https://api.instagram.com/oauth/authorize/?response_type=code&redirect_uri=http'
+            )
+          ).toBe(true);
+        });
+    });
+  });
+
   describe('# GET /api/users/:userId', () => {
     let userId;
 

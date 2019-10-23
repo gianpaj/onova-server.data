@@ -1,0 +1,9 @@
+extends layout.pug
+
+block content
+  .container
+    h2 Loading Instagram
+    script.
+      var data = !{JSON.stringify(data)}
+      var token = !{JSON.stringify(token)}
+      window.postMessage({ data: data, token: token }, '*')
