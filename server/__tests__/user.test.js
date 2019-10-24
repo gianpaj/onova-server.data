@@ -885,7 +885,7 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/?category', () => {
-    let jwtToken, anotherJwtToken;
+    let jwtToken;
 
     let product = {
       categoryIds: [2], // shoes

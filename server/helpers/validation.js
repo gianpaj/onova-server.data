@@ -20,7 +20,6 @@ export default {
     .hex()
     .length(24),
   hashtag,
-
   categoriesOrTypes: Joi.array()
     .unique()
     .min(1)
