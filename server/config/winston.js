@@ -1,15 +1,3 @@
-import winston from 'winston';
-
-export default new winston.createLogger({
-  transports: [
-    new winston.transports.Console({
-      json: true,
-      colorize: true,
-      dumpExceptions: true,
-    }),
-  ],
-});
-
 export const winstonDailyRotateConfig = {
   dirname: './logs',
   datePattern: 'YYYY-MM-DD',

@@ -20,7 +20,7 @@ import { Timber } from '@timberio/node';
 import { TimberTransport } from '@timberio/winston';
 require('winston-daily-rotate-file');
 
-import winstonInstance, { winstonDailyRotateConfig } from './winston';
+import { winstonDailyRotateConfig } from './winston';
 import routes from '../routes';
 import routesV2 from '../routes/indexV2';
 import config from './config';
@@ -117,24 +117,6 @@ app.set('view engine', 'pug');
 // tell Express to use the remote IP address
 app.set('trust proxy', true);
 
-// enable detailed API console logging in dev env
-if (config.env === 'development') {
-  expressWinston.requestWhitelist.push('body');
-  expressWinston.responseWhitelist.push('body');
-  app.use(
-    expressWinston.logger({
-      winstonInstance,
-      meta: true, // optional: log meta data about request (defaults to true)
-      msg: 'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
-      colorize: true, // Color the status code (default green, 3XX cyan, 4XX yellow, 5XX red).
-    })
-  );
-}
-if (config.env === 'test') {
-  expressWinston.requestWhitelist.push('body');
-  expressWinston.responseWhitelist.push('body');
-}
-
 if (config.env === 'production') {
   app.use(
     expressWinston.logger({
@@ -147,6 +129,10 @@ if (config.env === 'production') {
       ],
     })
   );
+} else {
+  // enable detailed API console logging in dev env
+  expressWinston.requestWhitelist.push('body');
+  expressWinston.responseWhitelist.push('body');
 }
 
 // mount all routes on /api path
@@ -176,9 +162,18 @@ app.use((req: $Request, res: $Response, next: NextFunction) => {
 
 // log error in winston transports in development
 if (config.env === 'development') {
+  const { combine, prettyPrint } = winston.format;
   app.use(
     expressWinston.errorLogger({
-      winstonInstance,
+      winstonInstance: new winston.createLogger({
+        transports: [
+          new winston.transports.Console({
+            dumpExceptions: true,
+            format: combine(winston.format.simple(), prettyPrint()),
+          }),
+        ],
+      }),
+      msg: 'HTTP {{req.method}} {{req.url}} {{res.statusCode}} {{res.responseTime}}ms',
     })
   );
 } else if (config.env === 'production') {
