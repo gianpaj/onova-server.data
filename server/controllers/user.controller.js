@@ -541,7 +541,12 @@ function getUsersByCategory(req: session$Request, res: express$Response, next: e
         as: 'users',
       },
     },
-    { $match: { 'users.types': type } },
+    {
+      $match: {
+        'users.types': type,
+        'users.accountStatus': 'verified',
+      },
+    },
     {
       $group: {
         _id: null,

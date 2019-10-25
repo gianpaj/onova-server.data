@@ -884,7 +884,7 @@ describe('## User APIs', () => {
     });
   });
 
-  describe('# GET /api/users/?category', () => {
+  describe('# GET /api/users/category/:category', () => {
     let jwtToken, anotherJwtToken;
 
     let product = {
