@@ -129,6 +129,11 @@ export default {
     params: {
       category: validation.category,
     },
+    query: {
+      type: Joi.string()
+        .valid(['reseller', 'designer'])
+        .default('designer'),
+    },
   },
 
   notif: {

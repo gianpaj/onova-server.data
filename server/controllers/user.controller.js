@@ -518,14 +518,17 @@ function _prepareUserJson(user: UserDoc): Object {
 /**
  * Get users by product category
  *
- * GEt /api/users/category:category/
+ * GEt /api/users/category/:category/
  *
  * @property {*} req - Express request
  * @property {*} req.query - Express query parameters
- * @property {number} req.params.category
+ * @property {string} req.query.type - User type (designer or developer)
+ * @property {*} req.params - Express URL parameters
+ * @property {number} req.params.category - Product category
  */
 
 function getUsersByCategory(req: session$Request, res: express$Response, next: express$NextFunction) {
+  const { type } = req.query;
   Product.aggregate([
     {
       $match: { categoryIds: req.params.category },
@@ -538,6 +541,7 @@ function getUsersByCategory(req: session$Request, res: express$Response, next: e
         as: 'users',
       },
     },
+    { $match: { 'users.types': type } },
     {
       $group: {
         _id: null,

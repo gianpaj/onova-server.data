@@ -885,7 +885,7 @@ describe('## User APIs', () => {
   });
 
   describe('# GET /api/users/?category', () => {
-    let jwtToken;
+    let jwtToken, anotherJwtToken;
 
     let product = {
       categoryIds: [2], // shoes
@@ -902,13 +902,15 @@ describe('## User APIs', () => {
       await createUserAndLogin(user).then(data => {
         jwtToken = data.jwtToken;
       });
-      await createUserAndLogin(anotherUser).then(data => {
-        anotherUserId = data.user._id;
+      await createUserAndLogin({ ...anotherUser, type: 'reseller' }).then(data => {
+        anotherJwtToken = data.jwtToken;
       });
 
-      // create a Product
+      // create a Product (by designer)
       const p = await createProduct(product, jwtToken);
       expect(p.categoryIds).toEqual([2]);
+      const p2 = await createProduct(product, anotherJwtToken);
+      expect(p2.categoryIds).toEqual([2]);
     });
 
     it('should NOT get a user by category (if no user)', () => {
@@ -918,13 +920,13 @@ describe('## User APIs', () => {
         .then(res => expect(res.body.data.length).toBe(0));
     });
 
-    it('should get a user by category', () => {
+    it('should get a user by category and user type (designer by default)', () => {
       return request(app)
         .get('/api/users/category/2')
         .expect(httpStatus.OK)
-        .then(res => {
-          expect(res.body.data.length).toBe(1);
-          expect(res.body.data[0].username).toBe(user.username);
+        .then(({ body }) => {
+          expect(body.data.length).toBe(1);
+          expect(body.data[0].username).toBe(user.username);
         });
     });
   });
