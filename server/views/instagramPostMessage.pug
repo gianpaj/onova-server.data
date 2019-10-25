@@ -6,4 +6,6 @@ block content
     script.
       var data = !{JSON.stringify(data)}
       var token = !{JSON.stringify(token)}
-      window.postMessage({ data: data, token: token }, '*')
+      // FIXME: why running `postMessage` immediately is not captured/listened
+      setTimeout(()=> window.postMessage({ data: data, token: token }, '*'), 100)
+
