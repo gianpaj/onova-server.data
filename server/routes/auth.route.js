@@ -119,4 +119,6 @@ router
       data: payload,
       token: `JWT ${authCtrl.generateToken(payload)}`,
     });
+  });
+
 export default router;
