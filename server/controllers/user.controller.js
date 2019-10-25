@@ -116,7 +116,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
     ],
   });
 
-  const { createdAt, mobileNumber, paymentInfo, shippingAddress, scraping } = req.user;
+  const { createdAt, mobileNumber, paymentInfo, shippingAddress, scraping, tokens } = req.user;
 
   return res.json({
     ...doc,
@@ -126,6 +126,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
     paymentInfo,
     scraping,
     shippingAddress,
+    tokens,
   });
 }
 
@@ -503,7 +504,6 @@ export const userPublicFields = [
   'reviewsCount',
   'sharedCount',
   'socials',
-  'tokens',
   'types',
   'username',
 ];
