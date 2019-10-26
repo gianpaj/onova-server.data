@@ -107,7 +107,6 @@ passport.use(
             scrappedUser.bio = scrappedUser.bio || profile._json.data.bio;
             scrappedUser.scraping = { ...scrappedUser.scraping, enabled: false };
             await scrappedUser.save();
-            console.log('Instagram account has been linked.');
             done(null, scrappedUser);
             return;
           }
