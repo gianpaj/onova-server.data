@@ -3,8 +3,6 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import passport from 'passport';
-import { promisify } from 'util';
-const instagram = require('instagram-node').instagram();
 const debug = require('debug')('server-data:index');
 
 import { User, Verification } from '../models';

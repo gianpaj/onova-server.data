@@ -841,8 +841,8 @@ describe('## User APIs', () => {
         ],
         paymentInfo: {
           short: {
-            first_four: '5168',
-            last_four: '0937',
+            first_four: '1234',
+            last_four: '1234',
             card_token: '***REMOVED***',
           },
         },
