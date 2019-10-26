@@ -138,6 +138,7 @@ export default class InstagramRunner {
       let users = await User.find({
         // 'scraping.instagram': { $in: ['warmink_design', 'zelenew_shop'] },
         'scraping.instagram': { $exists: true },
+        'scraping.enabled': true,
         // generatedAt: { $exists: true },
         $or: [
           { 'paymentInfo.short.card_token': { $exists: true } },
@@ -151,7 +152,7 @@ export default class InstagramRunner {
       debug('users found:', users.length);
       if (!users.length) return;
 
-      // users = users.filter((_, i) => i > 5 || i < 10);
+      // users = users.filter((_, i) => i > 70 && i < 80);
       debug('users to scrape:', users.length);
       console.log(users.map(u => pick(u, 'scraping.instagram', 'username', '_id')));
       const IG_usernames = users.map(u => u.scraping.instagram);

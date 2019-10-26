@@ -42,11 +42,13 @@ const UserSchema = new Schema(
     },
     facebook: String,
     generatedAt: Date,
+    // Instagram ID for social login
+    instagram: String,
     tokens: [
       {
         kind: {
           type: String,
-          enum: ['fb', 'vk'],
+          enum: ['fb', 'vk', 'instagram'],
           required: true,
         },
         accessToken: {
@@ -91,7 +93,7 @@ const UserSchema = new Schema(
     },
     password: {
       type: String,
-      required: true,
+      // required: true,
     },
     platform: {
       type: String,
@@ -133,6 +135,10 @@ const UserSchema = new Schema(
     },
     scraping: {
       instagram: String,
+      enabled: {
+        type: Boolean,
+        default: true,
+      },
       preferredCategoryId: Number,
     },
     shippingAddress: {
@@ -190,7 +196,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
     preferredCategoryId: ?number,
   };
   shippingAddress: ?any;
-  tokens: Array<any>;
+  tokens: Array<{ kind: string, accessToken: string }>;
   updatedAt: Date;
   username: string;
   types: Array<string>;
@@ -270,6 +276,7 @@ UserSchema.methods.sellerHasValidShippingAddress = function() {
     shippingAddress.departmentNovaposhta
   );
 };
+
 UserSchema.methods.sellerHasValidPaymentInfo = function() {
   const { paymentInfo } = this;
   // if card information as a seller or buyer

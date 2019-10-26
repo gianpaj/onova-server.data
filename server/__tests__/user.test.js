@@ -320,6 +320,22 @@ describe('## User APIs', () => {
     });
   });
 
+  describe('# Instagram login', () => {
+    it('should redirect to Instagram for OAuth', () => {
+      return request(app)
+        .get('/api/auth/instagram')
+        .expect(httpStatus.FOUND)
+        .then(res => {
+          expect(res.redirect).toBe(true);
+          expect(
+            res.headers.location.startsWith(
+              'https://api.instagram.com/oauth/authorize/?response_type=code&redirect_uri=http'
+            )
+          ).toBe(true);
+        });
+    });
+  });
+
   describe('# GET /api/users/:userId', () => {
     let userId;
 
@@ -697,7 +713,7 @@ describe('## User APIs', () => {
         );
     });
 
-    it("it should NOT update the Instagram username for scraping if use doesn't have a paymentInfo ", async () => {
+    it("it should NOT update the Instagram username for scraping if use doesn't have a paymentInfo", async () => {
       const { user, jwtToken } = await createUserAndLogin(
         {
           username: 'instagramprince',
@@ -733,7 +749,10 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send({ instagram: '_hello_' })
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.scraping.instagram).toBe('_hello_'));
+        .then(({ body }) => {
+          expect(body.scraping.instagram).toBe('_hello_');
+          expect(body.scraping.enabled).toBe(true);
+        });
     });
 
     it('should remove the instagram username for scraping', async () => {
@@ -753,7 +772,101 @@ describe('## User APIs', () => {
         .set('Authorization', jwtToken)
         .send({ instagram: '' })
         .expect(httpStatus.OK)
-        .then(({ body }) => expect(body.scraping).toBeUndefined());
+        .then(({ body }) => {
+          expect(body.scraping.instagram).toBeUndefined();
+          expect(body.scraping.enabled).toBe(true);
+        });
+    });
+
+    it('should disable Instagram scraping', async () => {
+      const { user, jwtToken } = await createUserAndLogin({
+        username: 'instagramjoker',
+        emailAddress: 'instagramjoker@gmail.com',
+        password: 'express2',
+      });
+      await request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({ instagram: '_joker_' })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.scraping.instagram).toBe('_joker_');
+          expect(body.scraping.enabled).toBe(true);
+        });
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({ enableScraping: false })
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.scraping.instagram).toBe('_joker_');
+          expect(body.scraping.enabled).toBe(false);
+        });
+    });
+
+    it("it should NOT update enable Instagram scraping if use doesn't have a paymentInfo", async () => {
+      const { user, jwtToken } = await createUserAndLogin(
+        {
+          username: 'instagramprince',
+          emailAddress: 'instagramprince@gmail.com',
+          password: 'express2',
+        },
+        false
+      );
+
+      return request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({
+          ...userShippingAddress,
+          enableScraping: true,
+        })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) =>
+          expect(body.message).toBe('Please enter your payment information before enabling Instagram scraping')
+        );
+    });
+
+    it('should NOT allow to update Instagram username for a user that registered with Insta', async () => {
+      const user = await User.create({
+        accountStatus: 'verified',
+        types: ['designer'],
+        username: 'gianpaj',
+        instagram: '6945128340',
+        tokens: [
+          {
+            kind: 'instagram',
+            accessToken: '***REMOVED***',
+          },
+        ],
+        paymentInfo: {
+          short: {
+            first_four: '1234',
+            last_four: '1234',
+            card_token: '***REMOVED***',
+          },
+        },
+        shippingAddress: {
+          firstName: 'Христина',
+          lastName: 'Духняк',
+          city: 'db5c8911-391c-11dd-90d9-001a92567626',
+          departmentNovaposhta: '0d545f6b-e1c2-11e3-8c4a-0050568002cf',
+        },
+        emailAddress: 'gianpaj@instagram-temp.com',
+        displayName: 'Gianfranco',
+        profilePic: 'https://scontent.cdninstagram.com/',
+        bio: 'yolo',
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        __v: 0,
+      });
+      const jwtToken = 'JWT ' + jwt.sign(user.toJSON(), config.jwtSecret, { expiresIn: 20 });
+      await request(app)
+        .put(`/api/users/${user._id}`)
+        .set('Authorization', jwtToken)
+        .send({ instagram: '_joker_' })
+        .expect(httpStatus.BAD_REQUEST)
+        .then(({ body }) => expect(body.message).toBe('Cannot change your Instagram username for scraping'));
     });
 
     it('should NOT update the instagram username for scraping (if duplicate)', async () => {

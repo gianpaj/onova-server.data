@@ -87,6 +87,7 @@ export default {
         is: Joi.exist(),
         then: Joi.required(),
       }),
+      enableScraping: Joi.boolean(),
     }),
     // when paymentInfoPayload is provided, short is required
     // .with('paymentInfoPayload', ['short']),

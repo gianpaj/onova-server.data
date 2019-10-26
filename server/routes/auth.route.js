@@ -9,6 +9,7 @@ const request = require('request');
 import config from '../config/config';
 import paramValidation from '../config/validation/auth.validation';
 import authCtrl from '../controllers/auth.controller';
+import userCtrl from '../controllers/user.controller';
 import { User } from '../models';
 import APIError from '../helpers/APIError';
 
@@ -97,5 +98,27 @@ router.route('/vk').get((req, res, next) => {
     }
   );
 });
+
+// GET /auth/instagram
+//   Use passport.authenticate() as route middleware to authenticate the
+//   request. The first step in Instagram authentication will involve
+//   redirecting the user to instagram.com. After authorization, Instagram
+//   will redirect the user back to this application at /auth/instagram/callback
+router.route('/instagram').get(passport.authenticate('instagram'));
+
+// GET /auth/instagram/callback
+//   Use passport.authenticate() as route middleware to authenticate the
+//   request. If authentication fails, the user will be redirected back to the
+//   login page. Otherwise, the primary route function function will be called,
+//   which, in this example, will redirect the user to the home page.
+router
+  .route('/instagram/callback')
+  .get(passport.authenticate('instagram', { failureRedirect: '/login' }), function(req, res) {
+    const payload = userCtrl.prepareUserJson(req.user);
+    res.render('instagramPostMessage', {
+      data: payload,
+      token: `JWT ${authCtrl.generateToken(payload)}`,
+    });
+  });
 
 export default router;
