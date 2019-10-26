@@ -369,19 +369,35 @@ function update(req: session$Request, res: express$Response, next: express$NextF
     };
   }
   if ('instagram' in body) {
-    const beforeText = 'before saving your Instagram username for scraping';
-    if (!user.sellerHasValidShippingAddress()) {
-      throw new APIError(`Please enter your shipping address ${beforeText}`, httpStatus.BAD_REQUEST);
-    }
-    if (!user.sellerHasValidPaymentInfo()) {
-      throw new APIError(`Please enter your payment information ${beforeText}`, httpStatus.BAD_REQUEST);
-    }
     if (body.instagram !== '') {
+      const beforeText = 'before saving your Instagram username for scraping';
+      if (!user.sellerHasValidShippingAddress()) {
+        throw new APIError(`Please enter your shipping address ${beforeText}`, httpStatus.BAD_REQUEST);
+      }
+      if (!user.sellerHasValidPaymentInfo()) {
+        throw new APIError(`Please enter your payment information ${beforeText}`, httpStatus.BAD_REQUEST);
+      }
+      if (user.tokens.find(t => t.kind === 'instagram')) {
+        throw new APIError('Cannot change your Instagram username for scraping', httpStatus.BAD_REQUEST);
+      }
       user.scraping.instagram = body.instagram;
     } else {
       // $unset
       user.scraping.instagram = undefined;
     }
+  }
+
+  if ('enableScraping' in body) {
+    if (body.enableScraping) {
+      const beforeText = 'before enabling Instagram scraping';
+      if (!user.sellerHasValidShippingAddress()) {
+        throw new APIError(`Please enter your shipping address ${beforeText}`, httpStatus.BAD_REQUEST);
+      }
+      if (!user.sellerHasValidPaymentInfo()) {
+        throw new APIError(`Please enter your payment information ${beforeText}`, httpStatus.BAD_REQUEST);
+      }
+    }
+    user.scraping.enabled = body.enableScraping;
   }
 
   let Promises = [];
@@ -572,7 +588,6 @@ function prepareUserJson(user: UserDoc): Object {
 }
 
 export default {
-  connectEmailToSocialLogin,
   load,
   get,
   getPersonal,

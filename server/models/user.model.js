@@ -135,6 +135,10 @@ const UserSchema = new Schema(
     },
     scraping: {
       instagram: String,
+      enabled: {
+        type: Boolean,
+        default: true,
+      },
       preferredCategoryId: Number,
     },
     shippingAddress: {
@@ -192,7 +196,7 @@ export class UserDoc /*:: extends Mongoose$Document */ {
     preferredCategoryId: ?number,
   };
   shippingAddress: ?any;
-  tokens: Array<any>;
+  tokens: Array<{ kind: string, accessToken: string }>;
   updatedAt: Date;
   username: string;
   types: Array<string>;
@@ -272,6 +276,7 @@ UserSchema.methods.sellerHasValidShippingAddress = function() {
     shippingAddress.departmentNovaposhta
   );
 };
+
 UserSchema.methods.sellerHasValidPaymentInfo = function() {
   const { paymentInfo } = this;
   // if card information as a seller or buyer

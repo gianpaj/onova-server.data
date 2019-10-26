@@ -138,6 +138,7 @@ export default class InstagramRunner {
       let users = await User.find({
         // 'scraping.instagram': { $in: ['warmink_design', 'zelenew_shop'] },
         'scraping.instagram': { $exists: true },
+        'scraping.enabled': true,
         // generatedAt: { $exists: true },
         $or: [
           { 'paymentInfo.short.card_token': { $exists: true } },

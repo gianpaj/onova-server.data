@@ -112,7 +112,7 @@ passport.use(
             instagram: profile.id,
             tokens: [{ kind: 'instagram', accessToken }],
             // We assign a temporary e-mail address to get on with the registration process.
-            // TODO: It can be changed later to a valid e-mail address.
+            // It can be changed later to a valid e-mail address.
             emailAddress: `${profile.username}@instagram-temp.com`,
             displayName: profile.displayName,
             profilePic: profile._json.data.profile_picture,
