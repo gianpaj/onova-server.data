@@ -87,25 +87,31 @@ passport.use(
     async function(req, accessToken, refreshToken, profile, done) {
       try {
         const existingUser = await User.findOne({ instagram: profile.id });
+        // TODO: if the user logged in with email and is adding Instagram login (e.g. from Settings)
         if (req.user) {
           if (existingUser) {
             console.log('There is already an Instagram account that belongs to you. Sign in with that account');
             return done(null);
           }
           // if instagram account was previously connected (without OAuth)
-          const user = await User.findById(req.user.id);
-          user.instagram = profile.id;
-          user.tokens.push({ kind: 'instagram', accessToken });
-          user.displayName = user.displayName || profile.displayName;
-          user.profilePic = user.profilePic || profile._json.data.profile_picture;
-          // user.bio = user.bio || profile._json.data.website;
-          await user.save();
-          console.log('Instagram account has been linked.');
-          done(null, user);
         } else {
           if (existingUser) {
             return done(null, existingUser);
           }
+          const scrappedUser = await User.findOne({ 'scraping.instagram': profile.username });
+          if (scrappedUser) {
+            scrappedUser.instagram = profile.id;
+            scrappedUser.tokens.push({ kind: 'instagram', accessToken });
+            scrappedUser.displayName = scrappedUser.displayName || profile.displayName;
+            scrappedUser.profilePic = scrappedUser.profilePic || profile._json.data.profile_picture;
+            scrappedUser.bio = scrappedUser.bio || profile._json.data.bio;
+            scrappedUser.scraping = { ...scrappedUser.scraping, enabled: false };
+            await scrappedUser.save();
+            console.log('Instagram account has been linked.');
+            done(null, scrappedUser);
+            return;
+          }
+
           const user = await userController.createWithInstagram({
             accountStatus: 'verified',
             username: profile.username,
@@ -117,6 +123,10 @@ passport.use(
             displayName: profile.displayName,
             profilePic: profile._json.data.profile_picture,
             bio: profile._json.data.bio,
+            scraping: {
+              instagram: profile.username,
+              enabled: false,
+            },
           });
           console.log(user);
           done(null, user);

@@ -152,7 +152,7 @@ export default class InstagramRunner {
       debug('users found:', users.length);
       if (!users.length) return;
 
-      // users = users.filter((_, i) => i > 5 || i < 10);
+      // users = users.filter((_, i) => i > 70 && i < 80);
       debug('users to scrape:', users.length);
       console.log(users.map(u => pick(u, 'scraping.instagram', 'username', '_id')));
       const IG_usernames = users.map(u => u.scraping.instagram);
