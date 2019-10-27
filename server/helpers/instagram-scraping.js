@@ -15,6 +15,26 @@ var request = require('request'),
 const debug = require('debug')('server-data:instagram');
 // const debug = console.log;
 
+exports.scrapeUserPageInfo = function(username) {
+  return new Promise(function(resolve, reject) {
+    if (!username) return reject(new Error('Argument "username" must be specified'));
+    request(userURL + username, function(err, response, body) {
+      var data = scrape(body);
+      if (
+        data &&
+        data.entry_data &&
+        data.entry_data.ProfilePage &&
+        data.entry_data.ProfilePage[0] &&
+        data.entry_data.ProfilePage[0].graphql &&
+        data.entry_data.ProfilePage[0].graphql.user
+      ) {
+        return resolve(data.entry_data.ProfilePage[0].graphql.user);
+      }
+      reject(new Error('Error scraping user page info "' + username + '"'));
+    });
+  });
+};
+
 exports.scrapeUserPage = function(username) {
   return new Promise(function(resolve, reject) {
     if (!username) return reject(new Error('Argument "username" must be specified'));

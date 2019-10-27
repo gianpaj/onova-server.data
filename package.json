@@ -50,6 +50,7 @@
     "express-winston": "^3.3.0",
     "fbgraph": "1.4.4",
     "form-data": "2.3.2",
+    "fwk": "1.1.8",
     "google-libphonenumber": "^3.1.14",
     "helmet": "3.12.1",
     "http-status": "^1.1.2",
