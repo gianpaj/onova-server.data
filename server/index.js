@@ -49,8 +49,8 @@ if (!module.parent) {
   // option for for development, for onova.co domains
   if (process.env.HTTPS) {
     const httpsOptions = {
-      key: fs.readFileSync('./localhost.key'),
-      cert: fs.readFileSync('./localhost.crt'),
+      key: fs.readFileSync('./_wildcard.onova.test+4-key.pem'),
+      cert: fs.readFileSync('./_wildcard.onova.test+4.pem'),
     };
     https
       .createServer(httpsOptions, app)

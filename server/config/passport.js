@@ -2,7 +2,8 @@
 
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import LocalStrategy from 'passport-local';
-import { Strategy as InstagramStrategy } from 'passport-instagram';
+// import { Strategy as InstagramStrategy } from 'passport-instagram';
+// import { Strategy as InstagramStrategy } from './passport.instagram';
 // import FacebookStrategy from 'passport-facebook';
 import passport from 'passport';
 // import VKontakteTokenStrategy from 'passport-vkontakte-token';
@@ -73,70 +74,57 @@ passport.use(
   })
 );
 
-/**
- * Sign in with Instagram
- */
-passport.use(
-  new InstagramStrategy(
-    {
-      clientID: config.INSTAGRAM_ID,
-      clientSecret: config.INSTAGRAM_SECRET,
-      callbackURL: config.INSTAGRAM_CALLBACK_URL,
-      passReqToCallback: true,
-    },
-    async function(req, accessToken, refreshToken, profile, done) {
-      try {
-        const existingUser = await User.findOne({ instagram: profile.id });
-        // TODO: if the user logged in with email and is adding Instagram login (e.g. from Settings)
-        if (req.user) {
-          if (existingUser) {
-            console.log('There is already an Instagram account that belongs to you. Sign in with that account');
-            return done(null);
-          }
-          // if instagram account was previously connected (without OAuth)
-        } else {
-          if (existingUser) {
-            return done(null, existingUser);
-          }
-          const scrappedUser = await User.findOne({ 'scraping.instagram': profile.username });
-          if (scrappedUser) {
-            scrappedUser.instagram = profile.id;
-            scrappedUser.tokens.push({ kind: 'instagram', accessToken });
-            scrappedUser.displayName = scrappedUser.displayName || profile.displayName;
-            scrappedUser.profilePic = scrappedUser.profilePic || profile._json.data.profile_picture;
-            scrappedUser.bio = scrappedUser.bio || profile._json.data.bio;
-            scrappedUser.scraping = { ...scrappedUser.scraping, enabled: false };
-            await scrappedUser.save();
-            done(null, scrappedUser);
-            return;
-          }
-
-          const user = await userController.createWithInstagram({
-            accountStatus: 'verified',
-            username: profile.username,
-            instagram: profile.id,
-            tokens: [{ kind: 'instagram', accessToken }],
-            // We assign a temporary e-mail address to get on with the registration process.
-            // It can be changed later to a valid e-mail address.
-            emailAddress: `${profile.username}@instagram-temp.com`,
-            displayName: profile.displayName,
-            profilePic: profile._json.data.profile_picture,
-            bio: profile._json.data.bio,
-            scraping: {
-              instagram: profile.username,
-              enabled: false,
-            },
-          });
-          console.log(user);
-          done(null, user);
-        }
-      } catch (error) {
-        console.error(error);
-        done(error);
+export async function authenticate(req, accessToken, profile, done) {
+  try {
+    const existingUser = await User.findOne({ instagram: profile.id });
+    // TODO: if the user logged in with email and is adding Instagram login (e.g. from Settings)
+    if (req.user) {
+      if (existingUser) {
+        console.log('There is already an Instagram account that belongs to you. Sign in with that account');
+        return done(null);
       }
+      // if instagram account was previously connected (without OAuth)
+    } else {
+      if (existingUser) {
+        return done(null, existingUser);
+      }
+      const scrappedUser = await User.findOne({ 'scraping.instagram': profile.username });
+      if (scrappedUser) {
+        scrappedUser.instagram = profile.id;
+        scrappedUser.tokens.push({ kind: 'instagram', accessToken });
+        scrappedUser.displayName = scrappedUser.displayName || profile.displayName;
+        scrappedUser.profilePic = scrappedUser.profilePic || profile._json.data.profile_picture;
+        scrappedUser.bio = scrappedUser.bio || profile._json.data.bio;
+        scrappedUser.scraping = { ...scrappedUser.scraping, enabled: false };
+        await scrappedUser.save();
+        done(null, scrappedUser);
+        return;
+      }
+
+      const user = await userController.createWithInstagram({
+        accountStatus: 'verified',
+        username: profile.username,
+        instagram: profile.id,
+        tokens: [{ kind: 'instagram', accessToken }],
+        // We assign a temporary e-mail address to get on with the registration process.
+        // It can be changed later to a valid e-mail address.
+        emailAddress: `${profile.username}@instagram-temp.com`,
+        displayName: profile.displayName,
+        profilePic: profile._json.data.profile_picture,
+        bio: profile._json.data.bio,
+        scraping: {
+          instagram: profile.username,
+          enabled: false,
+        },
+      });
+      console.log(user);
+      done(null, user);
     }
-  )
-);
+  } catch (error) {
+    console.error(error);
+    done(error);
+  }
+}
 
 /*
 When enabled add index (in user.model.js)

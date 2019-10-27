@@ -71,7 +71,7 @@ DEBUG=server-data:* yarn start
 DEBUG=server-data:* MONGOOSE_DEBUG=true yarn dev:start
 ```
 
-Start with HTTPS and different port:
+Start with HTTPS (SSL) and different port:
 
 ```sh
 HTTPS=true PORT=4000 yarn dev:start
