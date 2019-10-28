@@ -305,7 +305,13 @@ function getTokenForRequestingCardId(req, res, next) {
  * https://developers.facebook.com/docs/instagram-basic-display-api/getting-started#step-4--authenticate-the-test-user
  */
 async function instagramAuthenticate(req, res, next) {
-  const { code } = req.query;
+  const { code, error_reason } = req.query;
+
+  if (error_reason == 'user_denied') {
+    return res.render('instagramPostMessage', {
+      error: error_reason,
+    });
+  }
 
   const postData = {
     app_id: config.INSTAGRAM_ID,
