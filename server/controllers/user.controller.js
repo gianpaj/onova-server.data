@@ -250,8 +250,6 @@ async function createWithInstagram(profile) {
 
   // TODO: upload profile pic to GCS
 
-  console.log('user created');
-
   return savedUser;
 }
 

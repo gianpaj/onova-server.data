@@ -5,19 +5,13 @@ import validate from 'express-validation';
 import passport from 'passport';
 import httpStatus from 'http-status';
 const request = require('request');
-const querystring = require('querystring');
 const insta = require('../helpers/instagram.auth').instagram();
 
 import config from '../config/config';
 import paramValidation from '../config/validation/auth.validation';
 import authCtrl from '../controllers/auth.controller';
-import userCtrl from '../controllers/user.controller';
 import { User } from '../models';
 import APIError from '../helpers/APIError';
-import Axios from 'axios';
-import { scrapeUserPageInfo } from '../helpers/instagram-scraping';
-import { authenticate } from '../config/passport';
-
 const requireAuth = passport.authenticate('jwt', { session: false });
 
 const router = express.Router();
@@ -118,60 +112,12 @@ const getAuthUrl = function(req, res) {
   );
 };
 
-// GET /auth/instagram
+// GET /api/auth/instagram
 //   Redirect the user to instagram.com. After authorization, Instagram
-//   will redirect the user back to this application at /auth/instagram/callback
+//   will redirect the user back to this application at /api/auth/instagram/callback
 router.route('/instagram').get(getAuthUrl);
 
-// GET /auth/instagram/callback
-router.route('/instagram/callback').get(function(req, res) {
-  const { code } = req.query;
-
-  const data = {
-    app_id: 709395432891209,
-    app_secret: '***REMOVED***',
-    grant_type: 'authorization_code',
-    redirect_uri: 'https://localhost:4040/api/auth/instagram/callback',
-    code,
-  };
-  Axios.post('https://api.instagram.com/oauth/access_token', querystring.stringify(data))
-    .then(response => {
-      const fields = {
-        fields: 'id,username',
-        access_token: response.data.access_token,
-      };
-
-      console.log(response.data.access_token);
-
-      const profileURL = 'https://graph.instagram.com/me?' + querystring.stringify(fields);
-
-      return Axios.get(profileURL);
-    })
-    .then(response => {
-      const { username } = response.data;
-      // FIXME: if the profile is private
-      return scrapeUserPageInfo(username);
-    })
-
-    .then(profile => {
-      console.log(profile);
-      // authenticate(req, access_token, profile)
-      // const payload = userCtrl.prepareUserJson(req.user);
-      // res.render('instagramPostMessage', {
-      //   data: payload,
-      //   token: `JWT ${authCtrl.generateToken(payload)}`,
-      // });
-      // res.json(profile);
-    })
-    .catch(err => {
-      console.log('error');
-      if (err.response && err.response.data) {
-        console.error(err.response.data);
-        res.status(500).json(err.response.data);
-      } else {
-        console.error(err);
-      }
-    });
-});
+// GET /api/auth/instagram/callback
+router.route('/instagram/callback').get(authCtrl.instagramAuthenticate);
 
 export default router;

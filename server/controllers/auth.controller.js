@@ -3,12 +3,18 @@
 import jwt from 'jsonwebtoken';
 import httpStatus from 'http-status';
 import passport from 'passport';
+import axios from 'axios';
+import pick from 'lodash/pick';
+import querystring from 'querystring';
 const debug = require('debug')('server-data:index');
 
 import { User, Verification } from '../models';
 import mailCtrl from './mail.controller';
+import { scrapeUserPageInfo } from '../helpers/instagram-scraping';
 import APIError from '../helpers/APIError';
 import config from '../config/config';
+import { authenticate } from '../config/passport';
+import userCtrl from './user.controller';
 
 /**
  * POST /api/auth/login
@@ -295,11 +301,64 @@ function getTokenForRequestingCardId(req, res, next) {
   );
 }
 
+/**
+ * https://developers.facebook.com/docs/instagram-basic-display-api/getting-started#step-4--authenticate-the-test-user
+ */
+async function instagramAuthenticate(req, res, next) {
+  const { code } = req.query;
+
+  const postData = {
+    app_id: config.INSTAGRAM_ID,
+    app_secret: config.INSTAGRAM_SECRET,
+    grant_type: 'authorization_code',
+    redirect_uri: config.INSTAGRAM_CALLBACK_URL,
+    code,
+  };
+  try {
+    // Step 5: Exchange the Code for a Token
+    const { data } = await axios.post('https://api.instagram.com/oauth/access_token', querystring.stringify(postData));
+    const fields = {
+      fields: 'id,username',
+      access_token: data.access_token,
+    };
+
+    const profileURL = 'https://graph.instagram.com/me?' + querystring.stringify(fields);
+
+    const basicProfile = await axios.get(profileURL);
+
+    // FIXME: if the profile is private
+    let profile = await scrapeUserPageInfo(basicProfile.data.username);
+
+    profile = pick(profile, 'biography', 'username', 'full_name', 'id', 'profile_pic_url_hd');
+    authenticate(req, data.access_token, profile, (err, user) => {
+      if (err) {
+        console.error(err);
+        return res.status(500).json(err);
+      }
+      const payload = userCtrl.prepareUserJson(user);
+      res.render('instagramPostMessage', {
+        data: payload,
+        token: `JWT ${generateToken(payload)}`,
+      });
+    });
+  } catch (error) {
+    console.log('error');
+    if (error.response && error.response.data) {
+      console.error(error.response.data);
+      res.status(500).json(error.response.data);
+    } else {
+      console.error(error);
+      res.status(500).json(error);
+    }
+  }
+}
+
 export default {
   login,
   getRandomNumber,
   activate,
   generateToken,
+  instagramAuthenticate,
   requestPassReset,
   requireAuth,
   resetPage,

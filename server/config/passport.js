@@ -92,9 +92,9 @@ export async function authenticate(req, accessToken, profile, done) {
       if (scrappedUser) {
         scrappedUser.instagram = profile.id;
         scrappedUser.tokens.push({ kind: 'instagram', accessToken });
-        scrappedUser.displayName = scrappedUser.displayName || profile.displayName;
-        scrappedUser.profilePic = scrappedUser.profilePic || profile._json.data.profile_picture;
-        scrappedUser.bio = scrappedUser.bio || profile._json.data.bio;
+        scrappedUser.displayName = scrappedUser.displayName || profile.full_name;
+        scrappedUser.profilePic = scrappedUser.profilePic || profile.profile_pic_url_hd || profile.profile_pic_url;
+        scrappedUser.bio = scrappedUser.bio || profile.biography;
         scrappedUser.scraping = { ...scrappedUser.scraping, enabled: false };
         await scrappedUser.save();
         done(null, scrappedUser);
@@ -109,15 +109,14 @@ export async function authenticate(req, accessToken, profile, done) {
         // We assign a temporary e-mail address to get on with the registration process.
         // It can be changed later to a valid e-mail address.
         emailAddress: `${profile.username}@instagram-temp.com`,
-        displayName: profile.displayName,
-        profilePic: profile._json.data.profile_picture,
-        bio: profile._json.data.bio,
+        displayName: profile.full_name,
+        profilePic: profile.profile_pic_url_hd || profile.profile_pic_url,
+        bio: profile.biography,
         scraping: {
           instagram: profile.username,
           enabled: false,
         },
       });
-      console.log(user);
       done(null, user);
     }
   } catch (error) {
