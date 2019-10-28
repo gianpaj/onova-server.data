@@ -261,10 +261,11 @@ function findUniqueUsername(username, suffix) {
       {
         username: { $regex: new RegExp(`^${possibleUsername}$`, 'i') },
       },
-      function(err, user) {
+      async function(err, user) {
         if (err) return reject(err);
         if (!user) return resolve(possibleUsername);
-        return findUniqueUsername(username, (suffix || 0) + 1);
+        const u = await findUniqueUsername(username, (suffix || 0) + 1);
+        return resolve(u);
       }
     );
   });
