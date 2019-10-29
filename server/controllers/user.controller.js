@@ -602,7 +602,10 @@ function getUsersByCategory(req: session$Request, res: express$Response, next: e
   const { type } = req.query;
   Product.aggregate([
     {
-      $match: { categoryIds: req.params.category },
+      $match: {
+        status: { $ne: 'deleted' },
+        categoryIds: req.params.category,
+      },
     },
     {
       $lookup: {
