@@ -59,6 +59,11 @@ router
   // GET /api/users/:userId/personal - Get user's personal info - Protected route
   .get(requireAuth, isAuthorized, userCtrl.getPersonal);
 
+router
+  .route('/category/:category')
+  // GET /api/users/category/:category/
+  .get(validate(paramValidation.usersCategory), userCtrl.getUsersByCategory);
+
 // Load user when API with userId route parameter is hit
 // FIXME: verify userId before doing a DB query
 router.param('userId', userCtrl.load);

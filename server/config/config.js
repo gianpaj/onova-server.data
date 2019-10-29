@@ -13,12 +13,12 @@ if (isTestEnv || isDevEnv) {
   require('dotenv').config();
 }
 
-const nonRequiredForTest = {
+const requiredForDevAndProd = {
   is: Joi.string().valid(['development', 'production']),
   then: Joi.required(),
 };
-const nonRequiredForDev = {
-  is: Joi.string().invalid('development', 'test'),
+const requiredForProd = {
+  is: Joi.string().valid('production'),
   then: Joi.required(),
 };
 
@@ -51,41 +51,41 @@ const envVarsSchema = Joi.object({
     .description('Google Cloud Storage bucket'),
   CHATKIT_INSTANCE: Joi.string()
     .description('Chatkit instanceLocator')
-    .when('NODE_ENV', nonRequiredForTest),
-  CHATKIT_KEY: Joi.string().when('NODE_ENV', nonRequiredForTest),
-  SLACK_WEBHOOK_URL: Joi.string().when('NODE_ENV', nonRequiredForTest),
+    .when('NODE_ENV', requiredForDevAndProd),
+  CHATKIT_KEY: Joi.string().when('NODE_ENV', requiredForDevAndProd),
+  SLACK_WEBHOOK_URL: Joi.string().when('NODE_ENV', requiredForDevAndProd),
   // FACEBOOK_APP_ID: Joi.string().description("Facebook APP ID for Posting item on sellers' walls [not using]"),
   // FACEBOOK_APP_SECRET: Joi.string().description('Facebook APP Secret [not using]'),
   VK_APP_ID: Joi.string()
     .description("VK APP ID for Auth to post item on sellers' walls")
-    .when('NODE_ENV', nonRequiredForTest),
-  VK_SECRET_KEY: Joi.string().when('NODE_ENV', nonRequiredForTest),
-  TIMBER_API_KEY: Joi.string().when('NODE_ENV', nonRequiredForDev),
-  TIMBER_SOURCE_ID: Joi.string().when('NODE_ENV', nonRequiredForDev),
+    .when('NODE_ENV', requiredForDevAndProd),
+  VK_SECRET_KEY: Joi.string().when('NODE_ENV', requiredForDevAndProd),
+  TIMBER_API_KEY: Joi.string().when('NODE_ENV', requiredForProd),
+  TIMBER_SOURCE_ID: Joi.string().when('NODE_ENV', requiredForProd),
   SEGMENT: Joi.string()
     .description('Segment.com Analytics write key')
-    .when('NODE_ENV', nonRequiredForTest),
-  SENTRY_DSN: Joi.string().when('NODE_ENV', nonRequiredForTest),
+    .when('NODE_ENV', requiredForDevAndProd),
+  SENTRY_DSN: Joi.string().when('NODE_ENV', requiredForDevAndProd),
   UAPAY_CLIENTID_P2P: Joi.string()
     .description('UAPAY param for JWT clientId for P2P - to a request card token')
-    .when('NODE_ENV', nonRequiredForTest),
+    .required(),
   UAPAY_SECRET_P2P: Joi.string()
     .description('UAPAY JWT secret for P2P')
     .required(),
   UAPAY_CLIENTID_ESCROW: Joi.string()
     .description('UAPAY API Client ID for EscrowBow')
-    .when('NODE_ENV', nonRequiredForTest),
+    .when('NODE_ENV', requiredForDevAndProd),
   UAPAY_KEY_ESCROW: Joi.string()
     .description('UAPAY API Key for Escrowbox')
-    .when('NODE_ENV', nonRequiredForTest),
+    .when('NODE_ENV', requiredForDevAndProd),
   UAPAY_BASE_URL: Joi.string()
     .description('UAPAY API URL')
-    .when('NODE_ENV', nonRequiredForTest),
+    .when('NODE_ENV', requiredForDevAndProd),
   G_AUTOML_PROJECT_ID: Joi.string()
     .description('Google AUTO ML project id (for Instagram scraper approval step)')
-    .when('NODE_ENV', nonRequiredForDev),
-  G_AUTOML_COMPUTE_REGION: Joi.string().when('NODE_ENV', nonRequiredForDev),
-  G_AUTOML_MODEL_ID: Joi.string().when('NODE_ENV', nonRequiredForDev),
+    .when('NODE_ENV', requiredForProd),
+  G_AUTOML_COMPUTE_REGION: Joi.string().when('NODE_ENV', requiredForProd),
+  G_AUTOML_MODEL_ID: Joi.string().when('NODE_ENV', requiredForProd),
   INSTAGRAM_ID: Joi.string().required(),
   INSTAGRAM_SECRET: Joi.string().required(),
   INSTAGRAM_CALLBACK_URL: Joi.string().required(),

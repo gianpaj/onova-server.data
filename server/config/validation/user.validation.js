@@ -125,6 +125,18 @@ export default {
     },
   },
 
+  //GET /api/users/category/:category/
+  usersCategory: {
+    params: {
+      category: validation.category,
+    },
+    query: {
+      type: Joi.string()
+        .valid(['reseller', 'designer'])
+        .default('designer'),
+    },
+  },
+
   notif: {
     query: {
       limit: Joi.number()

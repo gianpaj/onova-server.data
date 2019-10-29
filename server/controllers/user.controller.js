@@ -9,7 +9,7 @@ const debug = require('debug')('server-data:index');
 import APIError from '../helpers/APIError';
 import photos from '../helpers/photos';
 import config from '../config/config';
-import { DefaultFollow, Follow, Order, User, UserDoc } from '../models';
+import { DefaultFollow, Follow, Order, User, UserDoc, Product } from '../models';
 import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 import followController from './follow.controller';
@@ -116,7 +116,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
     ],
   });
 
-  const { createdAt, mobileNumber, paymentInfo, shippingAddress, scraping } = req.user;
+  const { createdAt, mobileNumber, paymentInfo, shippingAddress, scraping, tokens } = req.user;
 
   return res.json({
     ...doc,
@@ -126,6 +126,7 @@ async function getPersonal(req: session$Request, res: express$Response) {
     paymentInfo,
     scraping,
     shippingAddress,
+    tokens,
   });
 }
 
@@ -574,7 +575,6 @@ export const userPublicFields = [
   'reviewsCount',
   'sharedCount',
   'socials',
-  'tokens',
   'types',
   'username',
 ];
@@ -586,14 +586,62 @@ function prepareUserJson(user: UserDoc): Object {
   return _.pick(user, userPublicFields);
 }
 
-export default {
-  load,
-  get,
-  getPersonal,
-  create,
-  createWithInstagram,
-  update,
-  list,
-  prepareUserJson,
-  remove,
-};
+/**
+ * Get users by product category
+ *
+ * GEt /api/users/category/:category/
+ *
+ * @property {*} req - Express request
+ * @property {*} req.query - Express query parameters
+ * @property {string} req.query.type - User type (designer or developer)
+ * @property {*} req.params - Express URL parameters
+ * @property {number} req.params.category - Product category
+ */
+
+function getUsersByCategory(req: session$Request, res: express$Response, next: express$NextFunction) {
+  const { type } = req.query;
+  Product.aggregate([
+    {
+      $match: { categoryIds: req.params.category },
+    },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'seller',
+        foreignField: '_id',
+        as: 'users',
+      },
+    },
+    {
+      $match: {
+        'users.types': type,
+        'users.accountStatus': 'verified',
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        user: { $addToSet: '$users' },
+      },
+    },
+    {
+      $unwind: '$user',
+    },
+    {
+      $project: { _id: 0 },
+    },
+    {
+      $unwind: '$user',
+    },
+  ])
+    .then(users => res.json({ data: users.map(user => prepareUserJson(user.user)) }))
+    .catch(err => {
+      if (!(err instanceof APIError)) {
+        console.error(err);
+        err = new APIError('Invalid category', httpStatus.INTERNAL_SERVER_ERROR);
+      }
+      next(err);
+    });
+}
+
+export default { load, get, getPersonal, getUsersByCategory, create, createWithInstagram, update, list, remove };

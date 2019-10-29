@@ -10,7 +10,7 @@ import mockSuperagent from 'superagent-mock';
 import app from '../index';
 import config from '../config/config';
 import { Verification, User, UserDoc } from '../models';
-import { createUserAndLogin, beforeAllTests } from './utils';
+import { createUserAndLogin, beforeAllTests, createProduct } from './utils';
 
 const validPhoneNumber = '0977414301';
 const validPhoneNumber2 = '0977414302';
@@ -327,11 +327,7 @@ describe('## User APIs', () => {
         .expect(httpStatus.FOUND)
         .then(res => {
           expect(res.redirect).toBe(true);
-          expect(
-            res.headers.location.startsWith(
-              'https://api.instagram.com/oauth/authorize/?response_type=code&redirect_uri=http'
-            )
-          ).toBe(true);
+          expect(res.headers.location.startsWith('https://api.instagram.com/oauth/authorize')).toBe(true);
         });
     });
   });
@@ -994,6 +990,53 @@ describe('## User APIs', () => {
         .query({ limit: 10 })
         .expect(httpStatus.OK)
         .then(res => expect(Array.isArray(res.body)).toBe(true));
+    });
+  });
+
+  describe('# GET /api/users/category/:category', () => {
+    let jwtToken, anotherJwtToken;
+
+    let product = {
+      categoryIds: [2], // shoes
+      description: 'nice winter jacket for anybody',
+      // seller comes after the user is created
+      photos: ['https://storage.googleapis.com/temp-uploads.onova.co/1533146500579-.jpeg'],
+      price: '2100.99', // if 1 decimal point .00 will be added
+      quantity: 1,
+    };
+
+    beforeAll(() => User.deleteMany({}));
+
+    beforeAll(async () => {
+      await createUserAndLogin(user).then(data => {
+        jwtToken = data.jwtToken;
+      });
+      await createUserAndLogin({ ...anotherUser, type: 'reseller' }).then(data => {
+        anotherJwtToken = data.jwtToken;
+      });
+
+      // create a Product (by designer)
+      const p = await createProduct(product, jwtToken);
+      expect(p.categoryIds).toEqual([2]);
+      const p2 = await createProduct(product, anotherJwtToken);
+      expect(p2.categoryIds).toEqual([2]);
+    });
+
+    it('should NOT get a user by category (if no user)', () => {
+      return request(app)
+        .get('/api/users/category/1')
+        .expect(httpStatus.OK)
+        .then(res => expect(res.body.data.length).toBe(0));
+    });
+
+    it('should get a user by category and user type (designer by default)', () => {
+      return request(app)
+        .get('/api/users/category/2')
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.length).toBe(1);
+          expect(body.data[0].username).toBe(user.username);
+        });
     });
   });
 
