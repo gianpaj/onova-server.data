@@ -318,6 +318,32 @@ async function list(req: session$Request, res: express$Response, next: express$N
     .catch(e => next(e));
 }
 
+function stats(req: session$Request, res: express$Response, next: express$NextFunction) {
+  const { sellerType } = req.query;
+  let sellerTypes = ['designer'];
+
+  if (sellerType) {
+    sellerTypes = [sellerType];
+  }
+
+  const query = { status: 'forsale', quantity: { $gt: 0 } };
+  Product.aggregate([
+    { $match: query },
+    {
+      $lookup: {
+        from: 'users',
+        localField: 'seller',
+        foreignField: '_id',
+        as: 'references',
+      },
+    },
+    { $match: { 'references.types': { $in: sellerTypes } } },
+    { $count: 'total' },
+  ])
+    .then(data => res.json({ data: data[0] }))
+    .catch(e => next(e));
+}
+
 /**
  * Remove a product - marking the 'status' as 'deleted'
  *
@@ -453,4 +479,5 @@ export default {
   update,
   list,
   remove,
+  stats,
 };

@@ -42,6 +42,11 @@ router
   .post(validate(paramValidation.createProduct), requireAuth, productCtrl.create);
 
 router
+  .route('/stats')
+  // GET /api/products - Get stats of the products
+  .get(validate(paramValidation.getStats), productCtrl.stats);
+
+router
   .route('/:uuid')
   // GET /api/products/:uuid - Get product
   .get(validate(paramValidation.productUUIDParam), productCtrl.get)

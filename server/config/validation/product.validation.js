@@ -73,4 +73,11 @@ export default {
       username: validation.username.min(3),
     }).nand('username', 'userid'),
   },
+
+  // GET /api/products/stats
+  getStats: {
+    query: {
+      sellerType: validation.sellerType,
+    },
+  },
 };

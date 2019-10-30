@@ -359,6 +359,24 @@ describe('## Product APIs', () => {
     });
   });
 
+  describe('# GET /api/products/stats', () => {
+    beforeAll(async () => {
+      await createProduct(productUser2, jwtToken1);
+      await createProduct(thirdProduct, jwtToken1);
+      productsCount++;
+      productsCount++;
+    });
+
+    it('should get the count of products', () => {
+      return request(app)
+        .get('/api/products/stats')
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.total).toBe(productsCount);
+        });
+    });
+  });
+
   describe('# GET /api/products/', () => {
     beforeAll(async () => {
       const p1 = await createProduct(productUser2, jwtToken1);
@@ -501,11 +519,11 @@ describe('## Product APIs', () => {
         .get('/api/products/?tags[]=winter&tags[]=spring')
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.data).toHaveLength(3);
+          expect(body.data).toHaveLength(4);
           expect(body.data[0].tags).toEqual(thirdProduct.tags);
-          expect(body.data[1].tags).toEqual(product.tags);
-          // not duplicated product. just the same product was added twice
           expect(body.data[2].tags).toEqual(product.tags);
+          // not duplicated product. just the same product was added twice
+          expect(body.data[3].tags).toEqual(product.tags);
         });
     });
 
@@ -514,11 +532,11 @@ describe('## Product APIs', () => {
         .get('/api/products/?tags[]=Winter&tags[]=Spring')
         .expect(httpStatus.OK)
         .then(({ body }) => {
-          expect(body.data).toHaveLength(3);
+          expect(body.data).toHaveLength(4);
           expect(body.data[0].tags).toEqual(thirdProduct.tags);
-          expect(body.data[1].tags).toEqual(product.tags);
-          // not duplicated product. just the same product was added twice
           expect(body.data[2].tags).toEqual(product.tags);
+          // not duplicated product. just the same product was added twice
+          expect(body.data[3].tags).toEqual(product.tags);
         });
     });
   });
