@@ -261,6 +261,15 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.message).toContain('Invalid product tag'));
     });
 
+    it('should create product with an valid tag (with `_` underscore )', () => {
+      return request(app)
+        .post('/api/products')
+        .set('Authorization', jwtToken1)
+        .send({ ...badProduct, tags: ['lol_pony'] })
+        .expect(httpStatus.CREATED)
+        .then(() => void productsCount++);
+    });
+
     it('should create product with a valid tag (start with numbers)', () => {
       return request(app)
         .post('/api/products')

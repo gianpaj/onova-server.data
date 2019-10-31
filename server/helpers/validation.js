@@ -2,7 +2,7 @@ import Joi from 'joi';
 import libphonenumber from 'google-libphonenumber';
 const PhoneUtil = libphonenumber.PhoneNumberUtil.getInstance();
 
-const hashtag = /^[a-zA-Z\u0400-\u04FF0-9]+$/;
+const hashtag = /^[a-zA-Z\u0400-\u04FF0-9_]+$/;
 const price = /^\d+(\.\d{1,2})?$/;
 const shortid = /^[a-zA-Z0-9_-]{7,14}$/;
 const username = /^[a-zA-Z0-9_.]+$/;
