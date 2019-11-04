@@ -357,7 +357,12 @@ export default class InstagramRunner {
       debug('adding items with categoryIds: %j (lastProduct)', lastProduct.categoryIds);
       return lastProduct.categoryIds;
     }
-    debug('adding items with categoryIds: [0] [Men Clothes] (default)');
+    if (user.types[0] === 'designer') {
+      debug('adding items with categoryIds: [3] [Generic Clothes] (default) - Onova');
+      // Generic Clothes by default
+      return [3];
+    }
+    debug('adding items with categoryIds: [0] [Men Clothes] (default) - Drop');
     // Men Clothes by default
     return [0];
   }

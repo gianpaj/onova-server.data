@@ -394,9 +394,10 @@ export function sleep(ms) {
 }
 
 const categoryIds = [
-  { label: 'Clothes-Men', value: 0 },
-  { label: 'Clothes-Women', value: 1 },
-  { label: 'Clothes-Shoes', value: 2 },
+  { label: 'Clothes-Men', value: 3 },
+  { label: 'Clothes-Women', value: 3 },
+  { label: 'Clothes-Shoes', value: 3 },
+  { label: 'Clothes', value: 3 },
   { label: 'Accessories-Jewelry', value: 10 },
   { label: 'Accessories-Bags', value: 11 },
   { label: 'Accessories-Accessories', value: 12 },
