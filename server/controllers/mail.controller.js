@@ -39,7 +39,7 @@ function sendVerificationEmail(emailTo: string, user: UserDoc): Promise<any> {
       Name: 'Onova',
     },
   };
-  if (user.types.includes('reseller')) {
+  if (user.types.includes('reseller') && !user.types.includes('designer')) {
     subject = 'Підтвердження профілю - Welcome to Drop, verify your email address';
     TemplateID = 832474;
     domain = 'drop.uno';
@@ -97,7 +97,7 @@ function resendVerificationEmail(emailTo: string, user: Object): void {
   const token = crypto.randomBytes(8).toString('hex');
 
   let domain = 'onova.co';
-  if (user.types.includes('reseller')) domain = 'drop.uno';
+  if (user.types.includes('reseller') && !user.types.includes('designer')) domain = 'drop.uno';
 
   // generate link
   Verification.create({
@@ -148,7 +148,7 @@ function sendResetEmail(emailTo: string, user: Object): void {
     },
   };
 
-  if (user.types.includes('reseller')) {
+  if (user.types.includes('reseller') && !user.types.includes('designer')) {
     TemplateID = 832656;
     domain = 'drop.uno';
     mailjetOptions = {
@@ -230,7 +230,7 @@ async function sendOrderUpdate({
     },
   };
 
-  if (order.seller.types.includes('reseller')) {
+  if (order.types.includes('reseller') && !order.types.includes('designer')) {
     TemplateID = 832563;
     mailjetOptions = {
       ...mailjetOptions,

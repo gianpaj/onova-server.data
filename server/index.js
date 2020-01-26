@@ -15,7 +15,7 @@ const debug = require('debug')('server-data:index');
 const mongoURI = `mongodb://${config.mongo.host}:${config.mongo.port}/${config.mongo.db}`;
 
 const options = {
-  keepAlive: 1,
+  keepAlive: true,
   useNewUrlParser: true,
   useCreateIndex: true,
   // socketTimeoutMS: 1000
