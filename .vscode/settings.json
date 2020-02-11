@@ -8,9 +8,11 @@
     "**/coverage": true
   },
   "editor.formatOnSave": false,
-  "eslint.autoFixOnSave": true,
   "eslint.enable": true,
   "eslint.packageManager": "yarn",
   "flow.useNPMPackagedFlow": true,
-  "flow.enabled": false
+  "flow.enabled": false,
+  "editor.codeActionsOnSave": {
+    "source.fixAll.eslint": true
+  }
 }
