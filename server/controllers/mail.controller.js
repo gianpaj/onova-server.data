@@ -230,7 +230,7 @@ async function sendOrderUpdate({
     },
   };
 
-  if (order.types.includes('reseller') && !order.types.includes('designer')) {
+  if (order.seller.types.includes('reseller') && !order.seller.types.includes('designer')) {
     TemplateID = 832563;
     mailjetOptions = {
       ...mailjetOptions,
