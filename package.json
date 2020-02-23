@@ -5,11 +5,10 @@
   "author": "Onova Team <hello@onova.co>",
   "main": "lib/index.js",
   "scripts": {
-    "start": "yarn prod:build && yarn prod:start",
-    "dev:start": "nodemon --ignore lib --exec babel-node server",
+    "start": "nodemon --ignore lib --exec babel-node server",
     "debug:start": "cross-env DEBUG=server-data:* yarn start",
     "prod:build": "rimraf lib && babel server -d lib --ignore .test.js",
-    "prod:start": "node .",
+    "prod:start": "yarn prod:build && yarn prod:start",
     "test": "jest --runInBand",
     "test:one": "NODE_ENV=test jest --bail --watch --verbose false",
     "test:watch": "yarn test --watch",

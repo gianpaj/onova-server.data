@@ -1,6 +1,6 @@
 apps:
   - script: npm
-    args: start
+    args: prod:start
     cwd: ./server.data
     name: 'server.data'
     # autorestart: true
