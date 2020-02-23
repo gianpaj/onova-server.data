@@ -27,7 +27,7 @@ export default {
     .items(
       Joi.number()
         .min(0)
-        .max(29)
+        .max(39)
     )
     .single(),
   description: Joi.string()
@@ -45,7 +45,7 @@ export default {
     .invalid('0.00'),
   quantity: Joi.number()
     .min(1)
-    .max(29),
+    .max(299),
   category: Joi.number()
     .min(0)
     .max(99)
