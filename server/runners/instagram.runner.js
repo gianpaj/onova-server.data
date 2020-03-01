@@ -219,32 +219,33 @@ export default class InstagramRunner {
       const IG_docs_notforsale = [];
 
       // use Google Auto ML check if post should be forsale or not
-      const IG_docs_to_scrape = await Promise.all(
-        IG_medias_to_analyse.map(doc => {
-          const firstImage = doc.images[0];
-          return this.analyseImage(firstImage)
-            .then(res => {
-              console.log(`https://instagram.com/p/${doc.shortcode}`);
-              const icon = res.label === 'sale' ? '🆗' : '🚫';
-              console.log(
-                `${res.label} ${icon} ${doc.shortcode} by ${doc.onovaUser.username} with ${
-                  res.classification.score
-                } score`
-              );
-              if (!res.confident || (res.confident && res.label === 'sale')) {
-                return { ...doc, label: res.label };
-              }
-              IG_docs_notforsale.push({ ...doc, label: res.label });
-              return new Error();
-            })
-            .catch(e => {
-              console.error(JSON.stringify(e));
-              if (e instanceof Error) return e;
-            });
-        })
-      );
+      // const IG_docs_to_scrape = await Promise.all(
+      //   IG_medias_to_analyse.map(doc => {
+      //     const firstImage = doc.images[0];
+      //     return this.analyseImage(firstImage)
+      //       .then(res => {
+      //         console.log(`https://instagram.com/p/${doc.shortcode}`);
+      //         const icon = res.label === 'sale' ? '🆗' : '🚫';
+      //         console.log(
+      //           `${res.label} ${icon} ${doc.shortcode} by ${doc.onovaUser.username} with ${
+      //             res.classification.score
+      //           } score`
+      //         );
+      //         if (!res.confident || (res.confident && res.label === 'sale')) {
+      //           return { ...doc, label: res.label };
+      //         }
+      //         IG_docs_notforsale.push({ ...doc, label: res.label });
+      //         return new Error();
+      //       })
+      //       .catch(e => {
+      //         console.error(JSON.stringify(e));
+      //         if (e instanceof Error) return e;
+      //       });
+      //   })
+      // );
 
-      const IG_docs_valid = IG_docs_to_scrape.filter(doc => !(doc instanceof Error));
+      // const IG_docs_valid = IG_docs_to_scrape.filter(doc => !(doc instanceof Error));
+      const IG_docs_valid = IG_medias_to_analyse;
 
       debug('IG_docs_valid created', IG_docs_valid.length);
 
