@@ -30,6 +30,7 @@ export default {
       longitude: Joi.number()
         .min(-180)
         .max(180),
+      weight: validation.weight,
     }).and('latitude', 'longitude'),
   },
 
@@ -56,6 +57,7 @@ export default {
         .max(99),
       tags: validation.tags,
       typeIds: validation.categoriesOrTypes,
+      weight: validation.weight,
     },
   },
 

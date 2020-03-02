@@ -651,6 +651,15 @@ describe('## Product APIs', () => {
         .then(({ body }) => expect(body.data.tags).toEqual(['amazing', 'yolo']));
     });
 
+    it('should update the weight', () => {
+      return request(app)
+        .put(`/api/products/${productUuid}`)
+        .send({ ...product, weight: 4000 })
+        .set('Authorization', jwtToken1)
+        .expect(httpStatus.OK)
+        .then(({ body }) => expect(body.data.weight).toBe(4000));
+    });
+
     it('should update the price with decimal points', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)

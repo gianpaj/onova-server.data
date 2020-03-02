@@ -58,6 +58,9 @@ export default {
     .single()
     .error(() => ({ message: 'Invalid product tag' })),
   uuid: Joi.string().regex(shortid),
+  weight: Joi.number()
+    .min(100)
+    .max(5000),
   shortid,
   username: Joi.string()
     .regex(username)

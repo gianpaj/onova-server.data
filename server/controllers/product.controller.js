@@ -448,6 +448,7 @@ async function update(req: session$Request, res: express$Response, next: express
       foundProduct.price = body.price ? parseFloat(body.price).toFixed(2) : foundProduct.price;
       foundProduct.tags = body.tags ? body.tags : foundProduct.tags;
       foundProduct.typeIds = body.typeIds ? body.typeIds : foundProduct.typeIds;
+      if (body.weight) foundProduct.weight = body.weight;
 
       return foundProduct.save();
     })
