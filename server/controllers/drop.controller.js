@@ -229,6 +229,7 @@ async function myFeed(req: session$Request, res: express$Response, next: express
  * @property {string} req.body.products.quantity
  * @property {Array<string>=} req.body.products.tags
  * @property {Array<number>} req.body.products.typeIds
+ * @property {number} req.body.products.weight
  * @property {Array<number>} req.body.instagram (For internal user only)
  * @property {Boolean} internal Whether to use the internal code path (used after scraping Instagram posts)
  */
@@ -287,11 +288,12 @@ async function create(req: session$Request, res: express$Response, next: express
         location,
         price: parseFloat(prod.price).toFixed(2),
         quantity: prod.quantity,
+        seller: req.user._id,
+        status: posted ? 'forsale' : 'ready',
         tags: prod.tags,
         typeIds: prod.typeIds,
         uuid: shortid.generate(), // needed here for photos' filenames
-        seller: req.user._id,
-        status: posted ? 'forsale' : 'ready',
+        weight: prod.weight,
         ...(internal ? { instagram: body.instagram } : {}),
       });
 

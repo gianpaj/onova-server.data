@@ -81,6 +81,7 @@ const product = {
   ],
   price: '1100.99',
   quantity: 1,
+  weight: 1500,
 };
 
 describe('## Drops feed APIs', () => {
@@ -383,6 +384,7 @@ describe('## Drops feed APIs', () => {
           const p = body.data[0];
           expect(p.quantity).toBe(1);
           expect(p.locality).toBe('Lviv');
+          expect(p.weight).toBe(1500);
           expect(Object.keys(p).sort()).toMatchSnapshot('product');
         });
     });

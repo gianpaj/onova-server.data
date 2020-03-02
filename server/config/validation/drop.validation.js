@@ -45,6 +45,9 @@ export default {
             quantity: validation.quantity.required(),
             tags: validation.tags,
             typeIds: validation.categoriesOrTypes,
+            weight: Joi.number()
+              .min(1)
+              .max(5000),
           })
         )
         .required(),
