@@ -136,6 +136,7 @@ export default class InstagramRunner {
       debug(`${JOBNAMES.IG_SCRAPPING} job running at`, new Date());
 
       let users = await User.find({
+        accountStatus: 'verified',
         // 'scraping.instagram': { $in: ['warmink_design', 'zelenew_shop'] },
         'scraping.instagram': { $exists: true },
         'scraping.enabled': true,
@@ -164,6 +165,7 @@ export default class InstagramRunner {
         if (IG_ids_to_filter.length) IG_ids_to_filter = IG_ids_to_filter.map(d => d.instagramId);
         const user_page = await instagramScraping.scrapeUserPageDeep(IG_usernames[i], IG_ids_to_filter).catch(e => {
           console.error(e);
+          // TODO: if 404 for user page, notify user that scraper doesn't work
           return e;
         });
         await sleep(getRandomArbitrary(1000, 1500));
@@ -253,12 +255,12 @@ export default class InstagramRunner {
         IG_docs_valid.reverse().map(
           // Chunk up the image upload to 4 posts at the same time (if bad internet connection)
           throat(4, async doc => {
+            // if no description, skip uploading images
+            if (!doc.description) return doc;
             debug('uploading %d images', doc.images.length);
             // const uploadedImages = [
             //   'https://storage.googleapis.com/temp-uploads.onova.co/dGbEB7IHm-1-1568133652508.jpg',
             // ];
-            // if no description, skip uploading images
-            if (!doc.description) return doc;
             if (job) await job.touch();
             return uploadURLToGCS(doc.images).then(uploadedImages => ({ ...doc, uploadedImages }));
           })
@@ -273,16 +275,18 @@ export default class InstagramRunner {
           new Promise((resolve, reject) => {
             // if no description a Drop is not created. Note that a InstagramScrapped is still saved
             if (!doc.description) {
-              return reject(`${doc.shortcode} by ${doc.onovaUser.username} has an empty description`);
+              return reject(new Error(`${doc.shortcode} by ${doc.onovaUser.username} has an empty description`));
             }
             const priceString = this.extractPrice(doc.description);
             if (parseInt(priceString) < 150) {
-              return reject(`${doc.shortcode} by ${doc.onovaUser.username} has a lower price than 150`);
+              return reject(new Error(`${doc.shortcode} by ${doc.onovaUser.username} has a lower price than 150`));
             }
             // extra safety but should not get in this state any more
             if (doc.onovaUser.scraping.instagram !== doc.username) {
               return reject(
-                `wrong user scraped: ${doc.onovaUser.scraping.instagram} !== ${doc.username} - ${doc.shortcode}`
+                new Error(
+                  `wrong user scraped: ${doc.onovaUser.scraping.instagram} !== ${doc.username} - ${doc.shortcode}`
+                )
               );
             }
 
@@ -312,7 +316,7 @@ export default class InstagramRunner {
               true
             );
           }).catch(e => {
-            console.error(e);
+            console.error(e.message || e);
             return e;
           })
         )
