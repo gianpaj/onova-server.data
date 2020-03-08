@@ -108,8 +108,9 @@ export default class ShippingRunner {
 
       debug('shipping-status-checker job running at', new Date(), 'for orderId:', orderId);
 
+      let order: OrderDoc;
       try {
-        const order: OrderDoc = await Order.findById(orderId);
+        order = await Order.findById(orderId);
 
         if (!order) {
           throw new Error('Error getting order for checking shipping status');
@@ -140,6 +141,12 @@ export default class ShippingRunner {
             order.status = 'failed_by_buyer';
             order.dateFailed = new Date();
             break;
+          case NP.cancelled:
+          case NP.notFound:
+            order.shippingUpdatedAt = new Date();
+            await order.save();
+            done();
+            return;
 
           default:
             break;
@@ -182,6 +189,7 @@ export default class ShippingRunner {
       } catch (error) {
         console.log(JOBNAMES.SHIPPING_STATUS_CHECKER);
         console.error(error);
+        console.log(order);
         done(error);
       }
     });

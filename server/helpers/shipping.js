@@ -1,7 +1,7 @@
 // @flow
 import axios from 'axios';
 
-import config from '../config/config';
+// import config from '../config/config';
 
 const NovaPoshta_URL = 'https://api.novaposhta.ua/v2.0/json';
 
@@ -10,7 +10,9 @@ export const NP = {
   generated: 'np-generated',
   // 2
   cancelled: 'np-deleted',
-  // 4, 6 or 101
+  // 3
+  notFound: 'np-not-found',
+  // 4, 5, 6 or 101
   shipped: 'np-shipped',
   // 7 or 8
   delivered: 'np-delivered',
@@ -49,7 +51,7 @@ export default class Shipping {
             // Deleted
             result.StatusCode === '2'
           ) {
-            return resolve({ status: false });
+            return resolve({ status: this.getInternalStatus(result.StatusCode) });
           }
 
           try {
@@ -82,6 +84,11 @@ export default class Shipping {
     switch (statusCode) {
       case '1':
         return NP.generated;
+      case '2':
+        return NP.cancelled;
+      // TODO: write test
+      case '3':
+        return NP.notFound;
       case '4':
       case '5':
       case '6':
@@ -797,6 +804,8 @@ export const buyerPaymentFailure = {
 };
 
 // we check novaPoshta to see if a package is shipped, not UAPAY
+// #region
+/*
 const sellerShippedPackage = {
   data: {
     id: '3YSEBLB',
@@ -876,6 +885,8 @@ const sellerShippedPackage = {
     },
   },
 };
+*/
+// #endregion
 
 export const novaPoshta = {
   // 1 - Tracking number generated. Waiting for seller to ship package.
@@ -1406,6 +1417,8 @@ export const novaPoshta = {
   },
 };
 
+// #region
+/*
 let data = {
   Number: '20450072617861',
   Redelivery: 0,
@@ -1469,3 +1482,6 @@ let data = {
   CreatedOnTheBasis: '',
   DatePayedKeeping: '',
 };
+*/
+
+// #endregion

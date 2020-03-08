@@ -149,7 +149,7 @@ const OrderSchema = new Schema(
     },
     shippingStatus: {
       type: String,
-      enum: [NP.generated, NP.shipped, NP.delivered, NP.refused, NP.collected],
+      enum: [NP.generated, NP.shipped, NP.delivered, NP.refused, NP.collected, NP.cancelled, NP.notFound],
     },
     shippingUpdatedAt: Date,
   },
