@@ -6,9 +6,9 @@
   "main": "lib/index.js",
   "scripts": {
     "start": "nodemon --ignore lib --exec babel-node server",
-    "debug:start": "cross-env DEBUG=server-data:* yarn start",
-    "prod:build": "rimraf lib && babel server -d lib --ignore .test.js",
-    "prod:start": "yarn prod:build && yarn prod:start",
+    "start:prod": "yarn build && node lib",
+    "start:debug": "cross-env DEBUG=server-data:* yarn start",
+    "build": "rimraf lib && babel server -d lib --ignore .test.js",
     "test": "jest --runInBand",
     "test:one": "NODE_ENV=test jest --bail --watch --verbose false",
     "test:watch": "yarn test --watch",
