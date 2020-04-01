@@ -88,9 +88,9 @@ export default class InstagramRunner {
             .catch(e => done(e))
             .finally(() => clearTimeout(timer));
         })
-        .catch(() => {
+        .catch(e => {
           console.error('Instagram scrapper blocked');
-          done();
+          done(e);
         });
     });
   }
