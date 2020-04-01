@@ -74,15 +74,24 @@ export default class InstagramRunner {
 
   defineScrapingJob() {
     agenda.define(JOBNAMES.IG_SCRAPPING, { concurrency: 1, lockLimit: 1 }, (job, done) => {
-      // expire after 60 mins
-      const timer = setTimeout(() => {
-        console.error(JOBNAMES.IG_SCRAPPING, 'expired');
-        done();
-      }, 60 * 60 * 1000);
-      this.scrape(job)
-        .then(() => done())
-        .catch(e => done(e))
-        .then(() => clearTimeout(timer));
+      // check if Instagram has banned us
+      instagramScraping
+        .scrapeUserPageInfo('instagram')
+        .then(() => {
+          // expire after 60 mins
+          const timer = setTimeout(() => {
+            console.error(JOBNAMES.IG_SCRAPPING, 'expired');
+            done();
+          }, 60 * 60 * 1000);
+          this.scrape(job)
+            .then(() => done())
+            .catch(e => done(e))
+            .finally(() => clearTimeout(timer));
+        })
+        .catch(() => {
+          console.error('Instagram scrapper blocked');
+          done();
+        });
     });
   }
 
