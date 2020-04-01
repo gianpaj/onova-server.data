@@ -65,6 +65,9 @@ const envVarsSchema = Joi.object({
   SEGMENT: Joi.string()
     .description('Segment.com Analytics write key')
     .when('NODE_ENV', requiredForDevAndProd),
+  ROLLBAR_ACCESSTOKEN: Joi.string()
+    .description('Roll access key')
+    .when('NODE_ENV', requiredForProd),
   SENTRY_DSN: Joi.string().when('NODE_ENV', requiredForDevAndProd),
   UAPAY_CLIENTID_P2P: Joi.string()
     .description('UAPAY param for JWT clientId for P2P - to a request card token')
@@ -110,18 +113,16 @@ export default {
     db: envVars.MONGO_DB,
     jobDb: envVars.MONGO_JOB_DB,
     port: envVars.MONGO_PORT,
-    // user: encodeURIComponent(envVars.MONGO_USER),
-    // pass: encodeURIComponent(envVars.MONGO_PASS),
   },
   mailjet: {
     apikeyPublic: envVars.MJ_APIKEY_PUBLIC,
     apikeyPrivate: envVars.MJ_APIKEY_PRIVATE,
   },
-
   chatkit: {
     instanceLocator: envVars.CHATKIT_INSTANCE,
     key: envVars.CHATKIT_KEY,
   },
+  rollbarAccessToken: envVars.ROLLBAR_ACCESSTOKEN,
   JOBNAMES: {
     DROP_SUBSCRIPTION: 'drop-subscription',
     SCHEDULE: 'listing-schedule',

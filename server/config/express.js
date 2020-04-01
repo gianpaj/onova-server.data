@@ -19,6 +19,7 @@ import * as Sentry from '@sentry/node';
 import { Timber } from '@timberio/node';
 import { TimberTransport } from '@timberio/winston';
 require('winston-daily-rotate-file');
+const RollbarTransport = require('winston-transport-rollbar-3');
 
 import { winstonDailyRotateConfig } from './winston';
 import routes from '../routes';
@@ -189,6 +190,11 @@ if (config.env === 'development') {
           ...winstonDailyRotateConfig,
           filename: 'error-%DATE%.log',
           json: true,
+        }),
+        new RollbarTransport({
+          rollbarConfig: {
+            accessToken: config.rollbarAccessToken,
+          },
         }),
       ],
       exceptionHandlers: [new winston.transports.File({ filename: 'exceptions.log' })],
