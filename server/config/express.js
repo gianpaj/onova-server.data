@@ -127,6 +127,7 @@ if (config.env === 'production') {
           ...winstonDailyRotateConfig,
           filename: 'access-%DATE%.log',
         }),
+        new RollbarTransport({ rollbarConfig: { accessToken: config.rollbarAccessToken } }),
       ],
     })
   );
@@ -191,11 +192,7 @@ if (config.env === 'development') {
           filename: 'error-%DATE%.log',
           json: true,
         }),
-        new RollbarTransport({
-          rollbarConfig: {
-            accessToken: config.rollbarAccessToken,
-          },
-        }),
+        new RollbarTransport({ rollbarConfig: { accessToken: config.rollbarAccessToken } }),
       ],
       exceptionHandlers: [new winston.transports.File({ filename: 'exceptions.log' })],
     })
