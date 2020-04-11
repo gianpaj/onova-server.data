@@ -68,7 +68,8 @@ export default class InstagramRunner {
     created = true;
     const job = agenda.create(JOBNAMES.IG_SCRAPPING);
     job.unique({ jobName: JOBNAMES.IG_SCRAPPING });
-    if (config.env !== 'test') job.repeatEvery('6 hours');
+    if (config.env !== 'test') job.repeatAt('3:00am');
+    // job.repeatEvery('6 hours');
     job.save();
   }
 
@@ -89,7 +90,7 @@ export default class InstagramRunner {
             .finally(() => clearTimeout(timer));
         })
         .catch(e => {
-          console.error('Instagram scrapper blocked');
+          console.error('instagram-scrapper: blocked');
           done(e);
         });
     });
