@@ -158,7 +158,7 @@ export default {
 
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
 
-    minPrice: 150,
+    minPrice: 50,
   },
   DEFAULT_FOLLOW: true,
 };

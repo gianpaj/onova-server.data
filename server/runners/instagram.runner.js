@@ -288,7 +288,7 @@ export default class InstagramRunner {
               return reject(new Error(`${doc.shortcode} by ${doc.onovaUser.username} has an empty description`));
             }
             const priceString = this.extractPrice(doc.description);
-            if (parseInt(priceString) < 150) {
+            if (parseInt(priceString) < config.settings.minPrice) {
               return reject(new Error(`${doc.shortcode} by ${doc.onovaUser.username} has a lower price than 150`));
             }
             // extra safety but should not get in this state any more
