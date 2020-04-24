@@ -1,7 +1,7 @@
 // @flow
 
 import httpStatus from 'http-status';
-import Chatkit from '@pusher/chatkit-server';
+// import Chatkit from '@pusher/chatkit-server';
 import bs58 from 'bs58';
 import _ from 'lodash';
 const debug = require('debug')('server-data:index');
@@ -14,15 +14,15 @@ import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 import followController from './follow.controller';
 
-let ckInst;
-if (config.env == 'production') {
-  ckInst = new Chatkit({
-    instanceLocator: config.chatkit.instanceLocator,
-    key: config.chatkit.key,
-  });
-} else {
-  console.warn('not running in production. Chatkit account creation disabled');
-}
+// let ckInst;
+// if (config.env == 'production') {
+//   ckInst = new Chatkit({
+//     instanceLocator: config.chatkit.instanceLocator,
+//     key: config.chatkit.key,
+//   });
+// } else {
+//   console.warn('not running in production. Chatkit account creation disabled');
+// }
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -188,20 +188,20 @@ async function create(req: session$Request, res: express$Response, next: express
         .catch(e => console.error(e));
     }
 
-    if (config.env !== 'production') {
-      debug('skipping pusher createUser()');
-    } else {
-      try {
-        await ckInst.createUser({
-          id: savedUser._id,
-          name: savedUser.username,
-        });
-        console.log('chatkit user created');
-      } catch (err) {
-        console.error(err);
-        throw err;
-      }
-    }
+    // if (config.env !== 'production') {
+    //   debug('skipping pusher createUser()');
+    // } else {
+    //   try {
+    //     await ckInst.createUser({
+    //       id: savedUser._id,
+    //       name: savedUser.username,
+    //     });
+    //     console.log('chatkit user created');
+    //   } catch (err) {
+    //     console.error(err);
+    //     throw err;
+    //   }
+    // }
 
     // do not send verification email
     if (!body.emailAddress.startsWith('onovaapp'))
@@ -234,20 +234,20 @@ async function createWithInstagram(profile) {
       .catch(e => console.error(e));
   }
 
-  if (config.env !== 'production') {
-    debug('skipping pusher createUser()');
-  } else {
-    try {
-      await ckInst.createUser({
-        id: savedUser._id,
-        name: savedUser.username,
-      });
-      console.log('chatkit user created');
-    } catch (err) {
-      console.error(err);
-      throw err;
-    }
-  }
+  // if (config.env !== 'production') {
+  //   debug('skipping pusher createUser()');
+  // } else {
+  //   try {
+  //     await ckInst.createUser({
+  //       id: savedUser._id,
+  //       name: savedUser.username,
+  //     });
+  //     console.log('chatkit user created');
+  //   } catch (err) {
+  //     console.error(err);
+  //     throw err;
+  //   }
+  // }
 
   // TODO: upload profile pic to GCS
 
@@ -439,12 +439,12 @@ function update(req: session$Request, res: express$Response, next: express$NextF
         .then(cloudStoragePublicUrl => {
           user.profilePic = cloudStoragePublicUrl;
           debug('profilePic updated for user:', user._id);
-          if (config.env === 'production') {
-            return ckInst.updateUser({
-              id: user._id,
-              avatarURL: cloudStoragePublicUrl,
-            });
-          }
+          // if (config.env === 'production') {
+          //   return ckInst.updateUser({
+          //     id: user._id,
+          //     avatarURL: cloudStoragePublicUrl,
+          //   });
+          // }
         })
         .catch(err => {
           console.error('Error saving user profilePic', err);
