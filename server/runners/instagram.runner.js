@@ -33,7 +33,7 @@ const CONFIDENCE_THRESHOLD = '0.7';
 
 export default class InstagramRunner {
   constructor() {
-    if (config.env === 'production') this.initJob();
+    if (config.env === 'production' && config.settings.instagramScraperEnabled) this.initJob();
   }
 
   initJob() {
