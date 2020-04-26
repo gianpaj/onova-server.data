@@ -7,49 +7,20 @@ const price = /^\d+(\.\d{1,2})?$/;
 const shortid = /^[a-zA-Z0-9_-]{7,14}$/;
 const username = /^[a-zA-Z0-9_.]+$/;
 
-const tag = Joi.string()
-  .regex(hashtag)
-  .min(1)
-  .max(30);
+const tag = Joi.string().regex(hashtag).min(1).max(30);
 
 /**
  * Regexes used to validate inputs and DB schema
  */
 export default {
-  objectId: Joi.string()
-    .hex()
-    .length(24),
+  objectId: Joi.string().hex().length(24),
   hashtag,
-  categoriesOrTypes: Joi.array()
-    .unique()
-    .min(1)
-    .max(5)
-    .items(
-      Joi.number()
-        .min(0)
-        .max(39)
-    )
-    .single(),
-  description: Joi.string()
-    .min(7)
-    .max(900),
-  photos: Joi.array()
-    .unique()
-    .min(1)
-    .max(6)
-    .items(Joi.string().uri())
-    .single(),
-  price: Joi.string()
-    .regex(price)
-    .invalid('0')
-    .invalid('0.00'),
-  quantity: Joi.number()
-    .min(1)
-    .max(299),
-  category: Joi.number()
-    .min(0)
-    .max(99)
-    .default(1),
+  categoriesOrTypes: Joi.array().unique().min(1).max(5).items(Joi.number().min(0).max(39)).single(),
+  description: Joi.string().min(7).max(900),
+  photos: Joi.array().unique().min(1).max(6).items(Joi.string().uri()).single(),
+  price: Joi.string().regex(price).invalid('0').invalid('0.00'),
+  quantity: Joi.number().min(1).max(299),
+  category: Joi.number().min(0).max(99).default(1),
   sellerType: Joi.string().valid(['designer', 'reseller']),
   tag: tag.error(() => ({ message: 'Invalid product tag' })),
   tags: Joi.array()
@@ -58,9 +29,7 @@ export default {
     .single()
     .error(() => ({ message: 'Invalid product tag' })),
   uuid: Joi.string().regex(shortid),
-  weight: Joi.number()
-    .min(100)
-    .max(5000),
+  weight: Joi.number().min(100).max(5000),
   shortid,
   username: Joi.string()
     .regex(username)
@@ -78,7 +47,7 @@ export default {
  * @param {Object} joi Joi instance provided by Joi
  * @return {Object} Joi plugin object
  */
-export const joiCustom = joi => ({
+export const joiCustom = (joi) => ({
   base: joi.string(),
   name: 'string',
   language: {
