@@ -32,7 +32,7 @@ export default {
     .single(),
   description: Joi.string()
     .min(7)
-    .max(300),
+    .max(900),
   photos: Joi.array()
     .unique()
     .min(1)
