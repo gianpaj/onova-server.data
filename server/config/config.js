@@ -159,7 +159,12 @@ export default {
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
 
     minPrice: 50,
-    instagramScraperEnabled: false,
+    instagramScraper: {
+      enabled: true,
+      numImagesToUploadParallel: 1,
+      // userTypes: ['designer', 'reseller'] // Drop and Onova users
+      userTypes: ['reseller'], // Drop users,
+    },
   },
   DEFAULT_FOLLOW: true,
 };

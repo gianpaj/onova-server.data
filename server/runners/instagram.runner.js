@@ -18,7 +18,7 @@ import dropController from '../controllers/drop.controller';
 const debug = console.log;
 // const debug = require('debug')('server-data:instagram');
 
-const { JOBNAMES } = config;
+const { JOBNAMES, settings } = config;
 
 // FIXME: to avoid creating a duplicate agenda job
 let created = false;
@@ -33,7 +33,7 @@ const CONFIDENCE_THRESHOLD = '0.7';
 
 export default class InstagramRunner {
   constructor() {
-    if (config.env === 'production' && config.settings.instagramScraperEnabled) this.initJob();
+    if (config.env === 'production' && settings.instagramScraper.enabled) this.initJob();
   }
 
   initJob() {
@@ -145,8 +145,9 @@ export default class InstagramRunner {
     try {
       debug(`${JOBNAMES.IG_SCRAPPING} job running at`, new Date());
 
-      let users = await User.find({
+      const users = await User.find({
         accountStatus: 'verified',
+        types: { $in: settings.instagramScraper.userTypes },
         // 'scraping.instagram': { $in: ['warmink_design', 'zelenew_shop'] },
         'scraping.instagram': { $exists: true },
         'scraping.enabled': true,
@@ -264,7 +265,7 @@ export default class InstagramRunner {
       const IG_docs_scraped = await Promise.all(
         IG_docs_valid.reverse().map(
           // Chunk up the image upload to 4 posts at the same time (if bad internet connection)
-          throat(4, async doc => {
+          throat(settings.instagramScraper.numImagesToUploadParallel, async doc => {
             // if no description, skip uploading images
             if (!doc.description) return doc;
             debug('uploading %d images', doc.images.length);
@@ -288,7 +289,7 @@ export default class InstagramRunner {
               return reject(new Error(`${doc.shortcode} by ${doc.onovaUser.username} has an empty description`));
             }
             const priceString = this.extractPrice(doc.description);
-            if (parseInt(priceString) < config.settings.minPrice) {
+            if (parseInt(priceString) < settings.minPrice) {
               return reject(new Error(`${doc.shortcode} by ${doc.onovaUser.username} has a lower price than 150`));
             }
             // extra safety but should not get in this state any more
@@ -342,15 +343,11 @@ export default class InstagramRunner {
       await InstagramScrapped.insertMany(IG_docs_scraped, { ordered: false });
 
       await InstagramScrapped.insertMany(IG_docs_notforsale, { ordered: false });
-
-      return;
     } catch (error) {
       console.error(JOBNAMES.IG_SCRAPPING);
       console.error(error);
-      // reject(error)
       throw error;
     }
-    // })
   }
 
   /**
