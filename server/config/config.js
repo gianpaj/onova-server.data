@@ -158,7 +158,7 @@ export default {
 
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
 
-    minPrice: 50,
+    minPrice: 10,
     instagramScraper: {
       enabled: false,
       numImagesToUploadParallel: 1,
