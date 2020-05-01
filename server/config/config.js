@@ -159,7 +159,7 @@ export default {
     MAX_DAYS_TRACKING_NUMBER_VALID_FOR: 7, // calendar days (included)
 
     minPrice: 50,
-    instagramScraperEnabled: true,
+    instagramScraperEnabled: false,
   },
   DEFAULT_FOLLOW: true,
 };
