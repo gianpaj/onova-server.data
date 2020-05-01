@@ -28,7 +28,7 @@ pipelines:
                 cd /var/www/server.data &&
                 git fetch &&
                 git reset --hard origin/master &&
-                yarn --production &&
+                yarn &&
                 pm2 reload server.data --silent --no-color;
               EOF
       - step:
