@@ -78,7 +78,8 @@
     "shortid": "^2.2.13",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^4.1.0",
-    "winston-transport-rollbar-3": "3.1.0"
+    "winston-transport-rollbar-3": "3.1.0",
+    "throat": "^5.0.0"
   },
   "devDependencies": {
     "axios": "^0.18.0",
@@ -99,8 +100,7 @@
     "prettier-eslint-cli": "4.7.1",
     "rimraf": "^2.6.0",
     "superagent-mock": "3.7.0",
-    "supertest": "^3.4.0",
-    "throat": "^5.0.0"
+    "supertest": "^3.4.0"
   },
   "engineStrict": true,
   "engines": {

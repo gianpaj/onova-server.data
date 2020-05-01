@@ -160,7 +160,7 @@ export default {
 
     minPrice: 50,
     instagramScraper: {
-      enabled: true,
+      enabled: false,
       numImagesToUploadParallel: 1,
       // userTypes: ['designer', 'reseller'] // Drop and Onova users
       userTypes: ['reseller'], // Drop users,
