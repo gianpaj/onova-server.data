@@ -15,7 +15,7 @@ const tag = Joi.string().regex(hashtag).min(1).max(30);
 export default {
   objectId: Joi.string().hex().length(24),
   hashtag,
-  categoriesOrTypes: Joi.array().unique().min(1).max(5).items(Joi.number().min(0).max(39)).single(),
+  categoriesOrTypes: Joi.array().unique().min(1).max(5).items(Joi.number().min(0).max(99)).single(),
   description: Joi.string().min(7).max(900),
   photos: Joi.array().unique().min(1).max(6).items(Joi.string().uri()).single(),
   price: Joi.string().regex(price).invalid('0').invalid('0.00'),
