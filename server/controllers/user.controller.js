@@ -1,9 +1,9 @@
 // @flow
 
 import httpStatus from 'http-status';
-// import Chatkit from '@pusher/chatkit-server';
+import Sendbird from 'sendbird-platform-api';
 import bs58 from 'bs58';
-import _ from 'lodash';
+import pick from 'lodash/pick';
 const debug = require('debug')('server-data:index');
 
 import APIError from '../helpers/APIError';
@@ -14,15 +14,12 @@ import authCtrl from './auth.controller';
 import mailCtrl from './mail.controller';
 import followController from './follow.controller';
 
-// let ckInst;
-// if (config.env == 'production') {
-//   ckInst = new Chatkit({
-//     instanceLocator: config.chatkit.instanceLocator,
-//     key: config.chatkit.key,
-//   });
-// } else {
-//   console.warn('not running in production. Chatkit account creation disabled');
-// }
+let sb;
+if (config.env == 'production') {
+  sb = new Sendbird(config.apikey);
+} else {
+  console.warn('not running in production. Sendbird account creation disabled');
+}
 
 declare class session$Request extends express$Request {
   user: UserDoc;
@@ -188,20 +185,7 @@ async function create(req: session$Request, res: express$Response, next: express
         .catch(e => console.error(e));
     }
 
-    // if (config.env !== 'production') {
-    //   debug('skipping pusher createUser()');
-    // } else {
-    //   try {
-    //     await ckInst.createUser({
-    //       id: savedUser._id,
-    //       name: savedUser.username,
-    //     });
-    //     console.log('chatkit user created');
-    //   } catch (err) {
-    //     console.error(err);
-    //     throw err;
-    //   }
-    // }
+    await createChatUser(savedUser);
 
     // do not send verification email
     if (!body.emailAddress.startsWith('onovaapp'))
@@ -234,24 +218,34 @@ async function createWithInstagram(profile) {
       .catch(e => console.error(e));
   }
 
-  // if (config.env !== 'production') {
-  //   debug('skipping pusher createUser()');
-  // } else {
-  //   try {
-  //     await ckInst.createUser({
-  //       id: savedUser._id,
-  //       name: savedUser.username,
-  //     });
-  //     console.log('chatkit user created');
-  //   } catch (err) {
-  //     console.error(err);
-  //     throw err;
-  //   }
-  // }
-
-  // TODO: upload profile pic to GCS
+  await createChatUser(savedUser);
 
   return savedUser;
+}
+
+async function createChatUser(user: UserDoc) {
+  if (config.env !== 'production') {
+    debug('skipping sendbird users.create()');
+    return Promise.resolve();
+  }
+  debug('sendbird user created');
+  return sb.users.create({
+    user_id: user._id,
+    nickname: user.username,
+    metadata: pick(user, 'types', 'emailAddress', 'createdAt'),
+  });
+}
+
+async function updateChatUser(userId, profileUrl) {
+  if (config.env !== 'production') {
+    debug('skipping sendbird users.update()');
+    return Promise.resolve();
+  }
+  debug('sendbird user updated');
+  return sb.users.update({
+    user_id: userId,
+    profile_url: profileUrl,
+  });
 }
 
 function findUniqueUsername(username, suffix) {
@@ -439,12 +433,8 @@ function update(req: session$Request, res: express$Response, next: express$NextF
         .then(cloudStoragePublicUrl => {
           user.profilePic = cloudStoragePublicUrl;
           debug('profilePic updated for user:', user._id);
-          // if (config.env === 'production') {
-          //   return ckInst.updateUser({
-          //     id: user._id,
-          //     avatarURL: cloudStoragePublicUrl,
-          //   });
-          // }
+
+          return updateChatUser(user._id, cloudStoragePublicUrl);
         })
         .catch(err => {
           console.error('Error saving user profilePic', err);
@@ -554,10 +544,19 @@ function list(req: session$Request, res: express$Response, next: express$NextFun
  * @property {*} req.params - Express params parameters
  * @property {string} req.params.userId
  */
-function remove(req: session$Request, res: express$Response, next: express$NextFunction) {
-  User.findOneAndUpdate({ _id: req.user._id }, { accountStatus: 'deleted', deletedAt: new Date() }, { new: true })
-    .then(updatedUser => res.json(updatedUser))
-    .catch(e => next(e));
+async function remove(req: session$Request, res: express$Response, next: express$NextFunction) {
+  try {
+    // await deleteChatUser(req.user._id);
+
+    const updatedUser = await User.findOneAndUpdate(
+      { _id: req.user._id },
+      { accountStatus: 'deleted', deletedAt: new Date() },
+      { new: true }
+    );
+    res.json(updatedUser);
+  } catch (error) {
+    next(error);
+  }
 }
 
 export const userPublicFields = [
@@ -583,7 +582,7 @@ export const userPublicFields = [
  * Limit number of fields send back for a user - Un-protected data / no auth
  */
 function prepareUserJson(user: UserDoc): Object {
-  return _.pick(user, userPublicFields);
+  return pick(user, userPublicFields);
 }
 
 /**

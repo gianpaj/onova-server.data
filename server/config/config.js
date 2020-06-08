@@ -49,10 +49,9 @@ const envVarsSchema = Joi.object({
   CLOUD_BUCKET: Joi.string()
     .required()
     .description('Google Cloud Storage bucket'),
-  CHATKIT_INSTANCE: Joi.string()
-    .description('Chatkit instanceLocator')
+  SENDBIRD_KEY: Joi.string()
+    .description('Sendbird api key')
     .when('NODE_ENV', requiredForDevAndProd),
-  CHATKIT_KEY: Joi.string().when('NODE_ENV', requiredForDevAndProd),
   SLACK_WEBHOOK_URL: Joi.string().when('NODE_ENV', requiredForDevAndProd),
   // FACEBOOK_APP_ID: Joi.string().description("Facebook APP ID for Posting item on sellers' walls [not using]"),
   // FACEBOOK_APP_SECRET: Joi.string().description('Facebook APP Secret [not using]'),
@@ -118,9 +117,8 @@ export default {
     apikeyPublic: envVars.MJ_APIKEY_PUBLIC,
     apikeyPrivate: envVars.MJ_APIKEY_PRIVATE,
   },
-  chatkit: {
-    instanceLocator: envVars.CHATKIT_INSTANCE,
-    key: envVars.CHATKIT_KEY,
+  sendbird: {
+    apikey: envVars.SENDBIRD_KEY,
   },
   rollbarAccessToken: envVars.ROLLBAR_ACCESSTOKEN,
   JOBNAMES: {

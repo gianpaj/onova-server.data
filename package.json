@@ -25,7 +25,6 @@
     "@babel/preset-flow": "^7.0.0",
     "@google-cloud/automl": "^1.7.0",
     "@google-cloud/storage": "1.7.0",
-    "@pusher/chatkit-server": "^1.0.4",
     "@sentry/node": "4.6.4",
     "@slack/webhook": "^5.0.2",
     "@timberio/node": "^0.35.0",
@@ -66,7 +65,6 @@
     "nock": "11.3.3",
     "node-fetch": "2.1.2",
     "node-mailjet": "^3.2.1",
-
     "offline-geocoder": "^1.0.0",
     "passport": "^0.4.0",
     "passport-instagram": "^1.0.0",
@@ -74,12 +72,13 @@
     "passport-local": "^1.0.0",
     "pug": "^2.0.3",
     "request": "^2.88.0",
+    "sendbird-platform-api": "1.2.0",
     "sharp": "^0.22",
     "shortid": "^2.2.13",
+    "throat": "^5.0.0",
     "winston": "^3.2.1",
     "winston-daily-rotate-file": "^4.1.0",
-    "winston-transport-rollbar-3": "3.1.0",
-    "throat": "^5.0.0"
+    "winston-transport-rollbar-3": "3.1.0"
   },
   "devDependencies": {
     "axios": "^0.18.0",

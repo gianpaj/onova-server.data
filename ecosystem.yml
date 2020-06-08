@@ -21,14 +21,6 @@ apps:
     # autorestart: true
     env:
       NODE_ENV: production
-      PORT: 8142
-  - script: npm
-    args: 'run start-push'
-    cwd: ./server.chat
-    name: 'server.chat-push'
-    # autorestart: true
-    env:
-      NODE_ENV: production
   - script: ./server.js
     cwd: ./webapp-onova
     name: webapp-onova
