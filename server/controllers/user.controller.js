@@ -229,11 +229,12 @@ async function createChatUser(user: UserDoc) {
     return Promise.resolve();
   }
   debug('sendbird user created');
+  const metadata = pick(user, 'types', 'emailAddress', 'createdAt');
   return sb.users.create({
     user_id: user._id,
     nickname: user.username,
     profile_url: '',
-    metadata: pick(user, 'types', 'emailAddress', 'createdAt'),
+    metadata: { ...metadata, types: metadata.types.toString() },
   });
 }
 
@@ -243,9 +244,11 @@ async function updateChatUser(userId, profileUrl) {
     return Promise.resolve();
   }
   debug('sendbird user updated');
+  const metadata = pick(user, 'types', 'emailAddress', 'createdAt');
   return sb.users.update({
     user_id: userId,
     profile_url: profileUrl,
+    metadata: { ...metadata, types: metadata.types.toString() },
   });
 }
 
