@@ -232,6 +232,7 @@ async function createChatUser(user: UserDoc) {
   return sb.users.create({
     user_id: user._id,
     nickname: user.username,
+    profile_url: '',
     metadata: pick(user, 'types', 'emailAddress', 'createdAt'),
   });
 }
