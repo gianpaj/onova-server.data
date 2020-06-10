@@ -261,7 +261,7 @@ function resetFormSubmit(req, res) {
  *
  * Send email via Mailjet to reset the account's password
  */
-function requestPassReset(req, res) {
+function requestPassReset(req, res, next) {
   User.findOne({ emailAddress: req.body.emailAddress }, (err, existingUser) => {
     if (err) return next(err);
     if (!existingUser) {

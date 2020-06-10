@@ -22,7 +22,7 @@ if (config.env == 'production') {
 }
 
 declare class session$Request extends express$Request {
-  user: UserDoc;
+  user?: UserDoc;
   file: File;
 }
 
