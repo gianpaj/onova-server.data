@@ -31,7 +31,6 @@ declare class session$Request extends express$Request {
  */
 function load(req: session$Request, res: express$Response, next: express$NextFunction, id: string) {
   // use static method from UserSchema
-  // flow-disable-next-line
   User.get(id)
     .then((user: UserDoc) => {
       req.user = user;
@@ -238,7 +237,7 @@ async function createChatUser(user: UserDoc) {
   });
 }
 
-async function updateChatUser(userId, profileUrl) {
+async function updateChatUser(user: UserDoc, profileUrl) {
   if (config.env !== 'production') {
     debug('skipping sendbird users.update()');
     return Promise.resolve();
@@ -246,7 +245,7 @@ async function updateChatUser(userId, profileUrl) {
   debug('sendbird user updated');
   const metadata = pick(user, 'types', 'emailAddress', 'createdAt');
   return sb.users.update({
-    user_id: userId,
+    user_id: user._id,
     profile_url: profileUrl,
     metadata: { ...metadata, types: metadata.types.toString() },
   });
@@ -438,7 +437,7 @@ function update(req: session$Request, res: express$Response, next: express$NextF
           user.profilePic = cloudStoragePublicUrl;
           debug('profilePic updated for user:', user._id);
 
-          return updateChatUser(user._id, cloudStoragePublicUrl);
+          return updateChatUser(user, cloudStoragePublicUrl);
         })
         .catch(err => {
           console.error('Error saving user profilePic', err);

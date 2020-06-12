@@ -24,6 +24,7 @@ const OrderSchema = new Schema(
       required: true,
       enum: ['User', 'UserWeb'],
     },
+    channelUrl: String,
     cityRecipient: String,
     citySender: String,
     currency: {
@@ -185,6 +186,7 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   archivedBySeller: boolean;
   buyer: MongoId;
   buyerType: string;
+  channelUrl: string;
   cityRecipient: string;
   citySender: string;
   currency: string;

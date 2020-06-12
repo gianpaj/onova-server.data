@@ -5,6 +5,7 @@ const debug = require('debug')('server-data:index');
 import axios from 'axios';
 import httpStatus from 'http-status';
 import * as Sentry from '@sentry/node';
+import Sendbird from 'sendbird-platform-api';
 
 import APIError from '../helpers/APIError';
 import { Block, Cities, Notification, Order, OrderDoc, Product, ProductDoc, User, UserDoc, UserWeb } from '../models';
@@ -18,13 +19,17 @@ import type { NotifPayload } from '../controllers/notification.controller';
 import config from '../config/config';
 
 axios.defaults.baseURL = config.UAPAY_BASE_URL;
-
-const axiosConfig = {
-  auth: {
-    username: config.UAPAY_CLIENTID_ESCROW,
-    password: config.UAPAY_KEY_ESCROW,
-  },
+axios.defaults.auth = {
+  username: config.UAPAY_CLIENTID_ESCROW,
+  password: config.UAPAY_KEY_ESCROW,
 };
+
+let sb;
+sb = new Sendbird(config.sendbird.apikey);
+if (config.env == 'production') {
+} else {
+  console.warn('not running in production. Sendbird account creation disabled');
+}
 
 function buyerCanTransact(user) {
   const { paymentInfo, shippingAddress } = user;
@@ -115,7 +120,6 @@ const UAPAY_EXTRA = 10; // UAH
  */
 function load(req: express$Request, res: express$Response, next: express$NextFunction, id: string) {
   // use static method from OrderSchema
-  // flow-disable-next-line
   Order.get(id)
     .then((order: OrderDoc) => {
       req.order = order;
@@ -315,9 +319,12 @@ async function update(req: session$Request, res: express$Response, next: express
 
       // Schedule a msg with tracking number to notify both parties via chat (orderConfirmed)
 
+      const channelUrl = await createChannel(foundOrder);
+
       // development
       // foundOrder.shippingStatus = NP.generated;
 
+      foundOrder.channelUrl = channelUrl;
       foundOrder.status = 'confirmed';
       foundOrder.dateConfirmed = new Date();
 
@@ -382,6 +389,18 @@ async function update(req: session$Request, res: express$Response, next: express
   });
 }
 
+async function createChannel(order: Order): Promise<string> {
+  return sb.groupChannels
+    .create({
+      name: getRoomName(order),
+      channel_url: getRoomName(order),
+      is_distinct: true,
+      user_ids: getRoomName(order).split('-'),
+      // data: order,
+    })
+    .then(channel => channel.channel_url);
+}
+
 /**
  * Get list of my orders.
  *
@@ -395,7 +414,6 @@ async function update(req: session$Request, res: express$Response, next: express
 function list(req: session$Request, res: express$Response, next: express$NextFunction) {
   const { limit = 50, skip = 0 } = req.query;
   // use static method from orderSchema
-  // flow-disable-next-line
   Order.list({ myid: req.user._id, limit, skip })
     .then(orders => res.json({ data: orders }))
     .catch(e => next(e));
@@ -739,8 +757,7 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
 
           order.transactionStatus = 'ua-rejected';
           throw new APIError(errorMsg, httpStatus.INTERNAL_SERVER_ERROR);
-          // TODO: 074 = Invalid confirmation code or details of your card.
-          break;
+        // TODO: 074 = Invalid confirmation code or details of your card.
 
         // The payment was returned to the sender's card
         case 'REVERSED':
@@ -914,6 +931,16 @@ function removeProductFromCheckout(productId: string, orderId: string) {
 const sleep = ms => {
   return new Promise(resolve => setTimeout(resolve, ms));
 };
+
+function getRoomName(o: Order): string {
+  let ids;
+  if (o.buyer._id && o.seller._id) {
+    ids = [o.buyer._id, o.seller._id];
+  } else {
+    ids = [o.buyer, o.seller];
+  }
+  return ids.sort().join('-');
+}
 
 export default {
   load,
