@@ -505,106 +505,111 @@ function createPaymentUAPAY(order: OrderDoc, product: ProductDoc, cvc: string, r
       // Step 1 - Create cart
       const {
         data: { data: cart },
-      } = await axios.post('/carts', null, axiosConfig); // Note: externalId must be unique every time
+      } = await axios.post('/carts', null); // Note: externalId must be unique every time
 
+      debug('step 2');
       // Step 2 - Create Deal
       const {
         data: { data: deal },
-      } = await axios.post(
-        '/deals',
-        {
-          cartId: cart.id,
-          // TODO: if existing order, get deal instead of creating a new one
-          // externalId: order._id,
-          productTitle: product.description.slice(0, 20),
-          productWeight: product.weight,
-          productPrice: product.price.toString().replace('.', ''), // to number in cents
-          sellerFirstName: Sship.firstName,
-          sellerLastName: Sship.lastName,
-          sellerPatronymic: '', // Sship.fathersName
-          sellerPhone: '38' + seller.mobileNumber, // needs to start with 380 e,g. 380 97 741 4301 (no spaces)
-          sellerEmail: seller.emailAddress,
-          buyerFirstName: Bship.firstName,
-          buyerLastName: Bship.lastName,
-          buyerPatronymic: '', // Bship.fathersName
-          buyerPhone: '38' + buyer.mobileNumber,
-          buyerEmail: buyer.emailAddress,
-          lg: 'uk',
-          payment: {
-            type: 'P2P_ONOVA',
-            cardToId: seller.paymentInfo.short.card_token || seller.paymentInfo.full.card_token,
-          },
-          handler: {
-            type: 'NovaPoshta',
-            senderFirstName: Sship.firstName,
-            senderLastName: Sship.lastName,
-            senderPatronymic: '',
-            senderPhone: '38' + seller.mobileNumber,
-            senderEmail: seller.emailAddress,
-            senderCityId: Sship.city,
-            senderOfficeId: Sship.departmentNovaposhta,
-            recipientFirstName: Bship.firstName,
-            recipientLastName: Bship.lastName,
-            recipientPatronymic: '', // Bship.fathersName
-            recipientPhone: '38' + buyer.mobileNumber,
-            recipientEmail: buyer.emailAddress,
-            recipientCityId: Bship.city,
-            recipientOfficeId: Bship.departmentNovaposhta,
-          },
+      } = await axios.post('/deals', {
+        cartId: cart.id,
+        // TODO: if existing order, get deal instead of creating a new one
+        // externalId: order._id,
+        productTitle: product.description.slice(0, 20),
+        productWeight: product.weight,
+        productPrice: product.price.toString().replace('.', ''), // to number in cents
+        sellerFirstName: Sship.firstName,
+        sellerLastName: Sship.lastName,
+        sellerPatronymic: '', // Sship.fathersName
+        sellerPhone: '38' + seller.mobileNumber, // needs to start with 380 e,g. 380 97 741 4301 (no spaces)
+        sellerEmail: seller.emailAddress,
+        buyerFirstName: Bship.firstName,
+        buyerLastName: Bship.lastName,
+        buyerPatronymic: '', // Bship.fathersName
+        buyerPhone: '38' + buyer.mobileNumber,
+        buyerEmail: buyer.emailAddress,
+        lg: 'uk',
+        payment: {
+          type: 'P2P_ONOVA',
+          cardToId: seller.paymentInfo.short.card_token || seller.paymentInfo.full.card_token,
         },
-        axiosConfig
-      );
+        handler: {
+          type: 'NovaPoshta',
+          senderFirstName: Sship.firstName,
+          senderLastName: Sship.lastName,
+          senderPatronymic: '',
+          senderPhone: '38' + seller.mobileNumber,
+          senderEmail: seller.emailAddress,
+          senderCityId: Sship.city,
+          senderOfficeId: Sship.departmentNovaposhta,
+          recipientFirstName: Bship.firstName,
+          recipientLastName: Bship.lastName,
+          recipientPatronymic: '', // Bship.fathersName
+          recipientPhone: '38' + buyer.mobileNumber,
+          recipientEmail: buyer.emailAddress,
+          recipientCityId: Bship.city,
+          recipientOfficeId: Bship.departmentNovaposhta,
+        },
+      });
 
       order.transactionId = deal.id;
       await order.save();
 
+      debug('step 3');
       // Step 3 - Start payment
-      await axios.post(
-        `/deals/${deal.id}/payments`,
-        {
-          remoteIP,
-          card: {
-            id: buyer.paymentInfo.full.card_token,
-            securityCode: cvc,
-          },
+      await axios.post(`/deals/${deal.id}/payments`, {
+        remoteIP,
+        card: {
+          id: buyer.paymentInfo.full.card_token,
+          securityCode: cvc,
         },
-        axiosConfig
-      );
+      });
       //TODO: confirm /payments returns waitingFor: 'PAY_PROCESSING'
+      //   data: { data: { id: 2698, type: 'P2P_ONOVA' } }
 
       // Step 4 - Get deal info to send form details to client
       let retryNum = 0;
       let newDeal;
       do {
         retryNum++;
-        const body = await axios.get(`/deals/${deal.id}`, axiosConfig);
+        debug('step 4:' + retryNum);
+        const body = await axios.get(`/deals/${deal.id}`);
         newDeal = body.data.data;
-        // console.log(deal.id, newDeal.productPayment.waitingFor);
+        debug(deal.id, newDeal.productPayment.waitingFor);
         await sleep(500);
       } while (newDeal.productPayment.waitingFor !== 'CONFIRMATION' && retryNum < (config.env === 'test' ? 1 : 15));
 
-      const { productPayment: paym } = newDeal;
+      let { productPayment: paym } = newDeal;
 
-      // TODO: test with demo UAPAY API
-      if (config.env === 'DISABLED') {
-        // validate deal
-        if (newDeal.productWeight !== product.weight) {
-          throw new Error('Error with productWeight');
-        }
-        if (newDeal.productPrice.toString() !== product.price.toString().replace('.', '')) {
-          throw new Error('Error with productPrice');
-        }
-      }
+      // debug(newDeal);
+      debug(paym);
 
-      // console.log(newDeal);
-      // TODO: check commissionAmount is equal to agreed
-      if (
-        // paym.amount == product.product.toString().replace('.', '') &&
-        paym.type === 'P2P_ONOVA' &&
-        paym.statusCode === 'NEEDS_CONFIRMATION' &&
-        paym.details.confirmation.type === '3DS'
-      ) {
-        const { confirmation } = paym.details;
+      if (paymentIsValid(paym)) {
+        let { confirmation } = paym.details;
+
+        debug(confirmation.type);
+        // if demo using a virtual card, and ??
+        if (confirmation.type == 'LOOKUP') {
+          await axios.post(`/payments/${paym.id}/confirmations`, {
+            code: '111111',
+          });
+          //   data: { data: { waitingFor: 'PAY_PROCESSING' } }
+
+          let lookupDeal;
+          let retryNumA = 0;
+          do {
+            retryNumA++;
+            debug('step 4a:' + retryNumA);
+            const { data } = await axios.get(`/deals/${deal.id}`);
+            lookupDeal = data.data;
+            debug(deal.id, lookupDeal.productPayment.statusCode);
+            await sleep(500);
+          } while (lookupDeal.productPayment.statusCode !== 'FINISHED' && retryNumA < (config.env === 'test' ? 1 : 15));
+
+          return resolve({
+            type: confirmation.type,
+          });
+        }
         resolve({
           redirectUrl: confirmation.redirectUrl,
           PaReq: confirmation.form.PaReq,
@@ -708,7 +713,7 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
     try {
       const {
         data: { data },
-      } = await axios.get(`/deals/${order.transactionId}`, axiosConfig);
+      } = await axios.get(`/deals/${order.transactionId}`);
 
       const { handler } = data;
 
@@ -740,6 +745,7 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
             if (!order.datePaid) order.datePaid = new Date();
             await Product.updateOne({ _id: order.product._id }, { $pull: { carted: { orderId: order._id } } });
             await createOrderNotification(order);
+
             debug('notification(s) created for order:', 'paid');
           }
           break;
@@ -756,8 +762,8 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
           }
 
           order.transactionStatus = 'ua-rejected';
+          // TODO: 074 = Invalid confirmation code or details of your card.
           throw new APIError(errorMsg, httpStatus.INTERNAL_SERVER_ERROR);
-        // TODO: 074 = Invalid confirmation code or details of your card.
 
         // The payment was returned to the sender's card
         case 'REVERSED':
@@ -781,13 +787,9 @@ export async function checkPaymentStatusAndUpdateOrder(order: OrderDoc) {
 export function rejectPayment(order: OrderDoc): Promise<any> {
   return Promise.all([
     Order.updateOne({ _id: order.id }, { transactionStatus: 'ua-reversed' }),
-    axios.post(
-      `/deals/${order.transactionId}/rejections`,
-      {
-        reasonBy: 'SELLER',
-      },
-      axiosConfig
-    ),
+    axios.post(`/deals/${order.transactionId}/rejections`, {
+      reasonBy: 'SELLER',
+    }),
   ]);
 }
 
