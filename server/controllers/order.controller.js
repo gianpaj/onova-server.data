@@ -621,6 +621,24 @@ function createPaymentUAPAY(order: OrderDoc, product: ProductDoc, cvc: string, r
   });
 }
 
+function paymentIsValid(paym) {
+  // TODO: check commissionAmount is equal to agreed
+  // TODO: test with demo UAPAY API
+  // if (config.env === 'DISABLED') {
+  //   // validate deal
+  //   if (newDeal.productWeight !== product.weight) {
+  //     throw new Error('Error with productWeight');
+  //   }
+  //   if (newDeal.productPrice.toString() !== product.price.toString().replace('.', '')) {
+  //     throw new Error('Error with productPrice');
+  //   }
+  // }
+  // paym.amount == product.product.toString().replace('.', '') &&
+  return paym.type === 'P2P_ONOVA' && paym.statusCode === 'NEEDS_CONFIRMATION' && config.UAPAY_BASE_URL.includes('demo')
+    ? true
+    : paym.details.confirmation.type === '3DS';
+}
+
 /**
  * Get payment from UAPAY. Used after client makes payment with UAPAY
  *

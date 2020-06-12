@@ -24,9 +24,11 @@ module.file_ext=.json
 
 suppress_type=$FlowIssue
 suppress_type=$FlowFixMe
+suppress_type=$FlowFixMeProps
+suppress_type=$FlowFixMeState
 
 suppress_comment= \\(.\\|\n\\)*\\flow-disable-next-line
 suppress_comment= \\(.\\|\n\\)*\\$FlowFixMe
 
 [version]
-0.82.0
+^0.92.0
