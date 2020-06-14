@@ -25,8 +25,8 @@ axios.defaults.auth = {
 };
 
 let sb;
-sb = new Sendbird(config.sendbird.apikey);
 if (config.env == 'production') {
+  sb = new Sendbird(config.sendbird.apikey);
 } else {
   console.warn('not running in production. Sendbird account creation disabled');
 }
