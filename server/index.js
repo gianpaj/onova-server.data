@@ -18,6 +18,7 @@ const options = {
   keepAlive: true,
   useNewUrlParser: true,
   useCreateIndex: true,
+  useUnifiedTopology: true,
   // socketTimeoutMS: 1000
 };
 mongoose.set('useFindAndModify', false);

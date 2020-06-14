@@ -392,6 +392,10 @@ async function update(req: session$Request, res: express$Response, next: express
 }
 
 async function createChannel(order: Order): Promise<string> {
+  if (config.env !== 'production') {
+    debug('skipping sendbird createChannel(order)');
+    return Promise.resolve();
+  }
   return sb.groupChannels
     .create({
       name: getRoomName(order),
