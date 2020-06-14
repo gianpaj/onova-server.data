@@ -8,7 +8,7 @@ import * as Sentry from '@sentry/node';
 import Sendbird from 'sendbird-platform-api';
 
 import APIError from '../helpers/APIError';
-import { Block, Cities, Notification, Order, OrderDoc, Product, ProductDoc, User, UserDoc, UserWeb } from '../models';
+import { Block, Cities, Notification, Order, OrderDoc, Product, ProductDoc, User, UserWeb } from '../models';
 import notifCtrl from '../controllers/notification.controller';
 import { getShippingCost } from '../controllers/shipping.controller';
 import { NP } from '../helpers/shipping';
@@ -660,7 +660,7 @@ function paymentIsValid(paym) {
   // paym.amount == product.product.toString().replace('.', '') &&
   return paym.type === 'P2P_ONOVA' && paym.statusCode === 'NEEDS_CONFIRMATION' && config.UAPAY_BASE_URL.includes('demo')
     ? true
-    : paym.details.confirmation.type === '3DS';
+    : paym.details && paym.details.confirmation.type === '3DS';
 }
 
 /**
