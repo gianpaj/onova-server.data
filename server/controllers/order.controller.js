@@ -338,7 +338,8 @@ async function update(req: session$Request, res: express$Response, next: express
         },
         config.env === 'test' ? 0 : 5000
       );
-      await Product.updateOne({ _id: foundOrder.product }, { status: 'sold' });
+
+      await removeFromCart(foundOrder.product, foundOrder._id);
     }
   } catch (err) {
     return next(err);
@@ -929,6 +930,10 @@ function addProductToCheckout(productId, orderId) {
 function removeProductFromCheckout(productId: string, orderId: string) {
   // TODO: if seller doesn't want to sell an item the quantity should not increase
   return Product.updateOne({ _id: productId }, { $inc: { quantity: 1 }, $pull: { carted: { orderId } } });
+}
+
+function removeFromCart(productId: string, orderId: string) {
+  return Product.updateOne({ _id: productId }, { $pull: { carted: { orderId } } });
 }
 
 const sleep = ms => {

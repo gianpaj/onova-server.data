@@ -1164,34 +1164,35 @@ describe('## Order APIs', () => {
         });
     });
 
-    // test('a seller should confirm an order that has been paid', async done => {
-    //   const dealID = '9B27M6F';
-    //   await payOrder(orderId3, anotherJwtToken, dealID);
+    test('a seller should confirm an order that has been paid', async done => {
+      const dealID = '9B27M6F';
+      await payOrder(orderId3, anotherJwtToken, dealID);
 
-    //   // FYI: we're skipping the step where the seller confirms the order
+      await confirmOrder(orderId3, firstUserJwtToken, dealID);
+      await request(app)
+        .get(`/api/products/${order3ProdUUID}`)
+        .expect(httpStatus.OK)
+        .then(({ body }) => {
+          expect(body.data.quantity).toBe(0);
+          expect(body.data.status).toBe('forsale');
+        });
 
-    //   mock.onPost(`/deals/${dealID}/confirmations`).reply(200, dealConfirmationResp);
-    //   mock.onGet(`/deals/${dealID}`).reply(200, sellerConfirmedResponse);
-    //   await confirmOrder(orderId3, firstUserJwtToken, dealID);
-    //   await request(app)
-    //     .get(`/api/products/${order3ProdUUID}`)
-    //     .expect(httpStatus.OK)
-    //     .then(res => expect(res.body.data.status).toBe('sold'));
-
-    //   // order confirmation should schedule a System message
-    //   setTimeout(() => {
-    //     agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
-    //       if (err) return done(err);
-    //       expect(jobs).toHaveLength(1);
-    //       const { data } = jobs.map(j => j.attrs)[0];
-    //       expect(data.order._id.toString()).toBe(orderId3);
-    //       expect(data.order.shippingProvider).toBe('novaposhta');
-    //       expect(data.order.trackingNumber).toBe(sellerConfirmedResponse.data.handler.waybillNumber.toString());
-    //       expect(data.message).toContain(i18n.orderConfirmed.slice(0, 30));
-    //       done();
-    //     });
-    //   }, 10);
-    // });
+      // order confirmation should schedule a System message
+      // setTimeout(() => {
+      //   agenda.jobs({ name: config.JOBNAMES.SYSTEM_MSG }, (err, jobs) => {
+      //     if (err) return done(err);
+      //     expect(jobs).toHaveLength(1);
+      //     const { data } = jobs.map(j => j.attrs)[0];
+      //     expect(data.order._id.toString()).toBe(orderId3);
+      //     expect(data.order.shippingProvider).toBe('novaposhta');
+      //     expect(data.order.trackingNumber).toBe(sellerConfirmedResponse.data.handler.waybillNumber.toString());
+      //     expect(data.message).toContain(i18n.orderConfirmed.slice(0, 30));
+      //     done();
+      //   });
+      // }, 10);
+      //FIXME:
+      done();
+    });
   });
 
   describe('# GET /api/orders/:orderId/paymentStatus', () => {
