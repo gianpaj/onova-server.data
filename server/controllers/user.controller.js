@@ -244,8 +244,7 @@ async function updateChatUser(user: UserDoc, profileUrl) {
   }
   debug('sendbird user updated');
   const metadata = pick(user, 'types', 'emailAddress', 'createdAt');
-  return sb.users.update({
-    user_id: user._id,
+  return sb.users.update(user_id, {
     profile_url: profileUrl,
     metadata: { ...metadata, types: metadata.types.toString() },
   });

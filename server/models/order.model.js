@@ -211,7 +211,16 @@ export class OrderDoc /*:: extends Mongoose$Document */ {
   shippingProvider: ?string;
   shippingStatus: string;
   shippingUpdatedAt: string;
-  status: string;
+  status:
+    | 'pending'
+    | 'paid'
+    | 'confirmed'
+    | 'shipped'
+    | 'cancelled'
+    | 'delivered'
+    | 'completed'
+    | 'failed_by_buyer'
+    | 'failed_by_seller';
   taxAmount: ?number;
   total: string;
   trackingNumber: ?string;
