@@ -4,6 +4,9 @@ import request from 'supertest';
 import httpStatus from 'http-status';
 import path from 'path';
 
+import config from '../config/config';
+const { minPrice } = config.settings;
+
 import app from '../index';
 
 import { Product, User } from '../models';
@@ -136,7 +139,7 @@ describe('## Product APIs', () => {
       return request(app)
         .post('/api/products')
         .set('Authorization', jwtToken1)
-        .send({ ...product, price: '99' })
+        .send({ ...product, price: (minPrice - 1).toString() })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid product price. The minimum'));
     });
@@ -673,7 +676,7 @@ describe('## Product APIs', () => {
       return request(app)
         .put(`/api/products/${productUuid}`)
         .set('Authorization', jwtToken1)
-        .send({ ...product, price: '99' })
+        .send({ ...product, price: (minPrice - 1).toString() })
         .expect(httpStatus.BAD_REQUEST)
         .then(({ body }) => expect(body.message).toContain('Invalid product price. The minimum'));
     });
