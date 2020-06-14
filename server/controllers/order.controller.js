@@ -170,7 +170,8 @@ function create(req: express$Request, res: express$Response, next: express$NextF
         throw new APIError('You cannot buy your own items', httpStatus.BAD_REQUEST);
       }
 
-      const order = await Order.findOne({
+      // FIXME: allow to buy multiple times from the same seller
+      const order: OrderDoc = await Order.findOne({
         buyer: req.user._id,
         product: product._id,
       });
@@ -306,7 +307,7 @@ async function update(req: session$Request, res: express$Response, next: express
       }
 
       try {
-        await axios.post(`/deals/${foundOrder.transactionId}/confirmations`, null, axiosConfig);
+        await axios.post(`/deals/${foundOrder.transactionId}/confirmations`, null);
       } catch (error) {
         if (error.response && error.response.data) console.error(error.response.data);
         else console.error(error);
