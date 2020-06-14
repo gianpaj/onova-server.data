@@ -383,22 +383,22 @@ describe('## Product APIs', () => {
       return request(app)
         .get('/api/products/stats')
         .expect(httpStatus.OK)
-        .then(({ body }) => {
-          expect(body.data.total).toBe(productsCount);
-        });
+        .then(({ body }) => expect(body.data.total).toBe(productsCount));
     });
   });
 
   describe('# GET /api/products/', () => {
+    let productsOfSellerUser = 0;
     beforeAll(async () => {
-      const p1 = await createProduct(productUser2, jwtToken1);
-      expect(typeof p1).toBe('object');
+      await createProduct(productUser2, jwtToken1);
       const p2 = await createProduct(thirdProduct, jwtToken1);
       expect(p2.tags).toEqual(expect.arrayContaining(thirdProduct.tags));
       expect(p2.tags).toHaveLength(1);
-      expect(typeof p2).toBe('object');
+      const p3 = await createProduct(thirdProduct, jwtToken1);
+      await Product.updateOne({ uuid: p3.uuid }, { $set: { quantity: 0 } });
       productsCount++;
       productsCount++;
+      productsOfSellerUser++;
     });
 
     it('should get all products (default from designers)', () => {
@@ -458,6 +458,21 @@ describe('## Product APIs', () => {
           expect(p).toHaveLength(productsCount);
           expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
         });
+    });
+
+    it('should get my products by userid (incl. with quantity 0)', () => {
+      return (
+        request(app)
+          .get(`/api/products/?userid=${user1._id}`)
+          .set('Authorization', jwtToken1)
+          // .set('x-test-req', '')
+          .expect(httpStatus.OK)
+          .then(res => {
+            const p = res.body.data;
+            expect(p).toHaveLength(productsCount + productsOfSellerUser);
+            expect(Object.keys(p[0]).sort()).toEqual(productFields.sort());
+          })
+      );
     });
 
     it('should get all the products by username', () => {

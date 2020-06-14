@@ -250,22 +250,28 @@ async function list(req: session$Request, res: express$Response, next: express$N
 
   if (categoryIds) query = { ...query, categoryIds: { $in: categoryIds } };
 
+  if (req.headers['x-test-req']) console.log('test');
+
   if (userid) {
+    query = { ...query, seller: new mongoose.Types.ObjectId(userid) };
     if (req.user) {
-      const usersIamBlocking = await Block.find({
-        sourceUser: req.user._id,
-        targetUser: userid,
-      });
+      if (req.user._id.toString() == userid) {
+        // get all my the products
+        delete query.quantity;
+      } else {
+        const usersIamBlocking = await Block.find({
+          sourceUser: req.user._id,
+          targetUser: userid,
+        });
 
-      const idsB = usersIamBlocking.map(u => new mongoose.Types.ObjectId(u.targetUser));
+        const idsB = usersIamBlocking.map(u => new mongoose.Types.ObjectId(u.targetUser));
 
-      // limit by seller and exclude those blocked
-      query = {
-        ...query,
-        seller: { $nin: idsB, $in: [new mongoose.Types.ObjectId(userid)] },
-      };
-    } else {
-      query = { ...query, seller: new mongoose.Types.ObjectId(userid) };
+        // limit by seller and exclude those blocked
+        query = {
+          ...query,
+          seller: { $nin: idsB, $in: [new mongoose.Types.ObjectId(userid)] },
+        };
+      }
     }
     sellerTypes = ['reseller', 'designer', 'admin'];
   } else if (username) {
