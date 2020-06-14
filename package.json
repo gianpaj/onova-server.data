@@ -14,7 +14,8 @@
     "test:watch": "yarn test --watch",
     "test:coverage": "yarn jest --coverage",
     "format": "prettier-eslint \"server/**/*.js\"",
-    "load-instagram-users": "babel-node --presets @babel/preset-env scripts/loadUsersWithInstagram.js"
+    "load-instagram-users": "babel-node --presets @babel/preset-env scripts/loadUsersWithInstagram.js",
+    "create-sendbid-users": "babel-node --presets @babel/preset-env scripts/createSendbirdUsers.js"
   },
   "dependencies": {
     "@babel/cli": "^7.2.0",
