@@ -17,6 +17,7 @@ async function main() {
 
   const usersToCreate = await User.find({
     accountStatus: 'verified',
+    // createdAt: { $gt: new Date('2020-06-01') },
   }); //.limit(5);
   console.log('usersToCreate:', usersToCreate.length);
 
@@ -35,7 +36,7 @@ async function main() {
             console.error('user already created: %j (%j)', user.id, user.username);
             return Promise.resolve();
           } else {
-            console.error(error);
+            console.error(error.error || error);
           }
           console.error('error with user: %j (%j)', user.id, user.username);
           throw error;
