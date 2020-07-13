@@ -52,6 +52,9 @@ const envVarsSchema = Joi.object({
   SENDBIRD_KEY: Joi.string()
     .description('Sendbird api key')
     .when('NODE_ENV', requiredForDevAndProd),
+  SENDBIRD_URL: Joi.string()
+    .description('Sendbird api url')
+    .when('NODE_ENV', requiredForDevAndProd),
   SLACK_WEBHOOK_URL: Joi.string().when('NODE_ENV', requiredForDevAndProd),
   // FACEBOOK_APP_ID: Joi.string().description("Facebook APP ID for Posting item on sellers' walls [not using]"),
   // FACEBOOK_APP_SECRET: Joi.string().description('Facebook APP Secret [not using]'),
@@ -119,6 +122,7 @@ export default {
   },
   sendbird: {
     apikey: envVars.SENDBIRD_KEY,
+    apiurl: envVars.SENDBIRD_URL,
   },
   rollbarAccessToken: envVars.ROLLBAR_ACCESSTOKEN,
   JOBNAMES: {

@@ -16,7 +16,7 @@ import followController from './follow.controller';
 
 let sb;
 if (config.env == 'production') {
-  sb = new Sendbird(config.sendbird.apikey);
+  sb = new Sendbird(config.sendbird.apikey, config.sendbird.apiurl);
 } else {
   console.warn('not running in production. Sendbird account creation disabled');
 }

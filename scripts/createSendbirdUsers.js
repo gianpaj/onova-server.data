@@ -10,7 +10,7 @@ const User = require('../server/models/user.model').default;
 
 const config = require('../server/config/config').default;
 
-const sb = Sendbird(config.sendbird.apikey);
+const sb = Sendbird(config.sendbird.apikey, config.sendbird.apiurl);
 
 async function main() {
   console.log('loading users');
