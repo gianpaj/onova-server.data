@@ -1,4 +1,36 @@
-# Onova API server
+# Onova API server (`server.data`)
+
+> Part of [Onova](https://www.onova.co/), a mobile marketplace for second-hand and sustainable clothing that [Gianfranco Palumbo](https://github.com/gianpaj) and Alex Kostinskyi built in Lviv, Ukraine. The company ran until September 2019. This repository is an archive and is not maintained.
+
+The REST API behind the Onova and Drop apps and web apps. It is an Express and Mongoose server on MongoDB with JWT auth and image uploads to Google Cloud Storage.
+
+It handles the full order flow. A buyer pays through UAPay, which holds the money in escrow. The seller confirms and ships with Nova Poshta, and the buyer collects the package and leaves a review. Each step has a deadline, enforced by [Agenda](https://github.com/agenda/agenda) jobs; see [ORDER_PROCESS.md](ORDER_PROCESS.md). The API also serves the social side of the app: follows, the personal feed, comments, search and drops (batches of items that go on sale at a set time).
+
+It ran on an AWS Lightsail instance (Ubuntu 16.04, Node.js 10) under pm2, deployed through Bitbucket Pipelines. [SERVER.md](SERVER.md) describes the server setup.
+
+| | |
+|---|---|
+| First Onova commit | 2017-10-20, on top of [express-mongoose-es6-rest-api](https://github.com/kunalkapadia/express-mongoose-es6-rest-api), whose history starts 2016-01-25 |
+| Last commit | 2020-07-13 |
+| Commits | 2,700 by Gianfranco (1,905 of them in 2018) |
+| Code | about 24,300 lines of JavaScript (Flow types) |
+| Tests | 22 test files, about 400 test cases (Jest, Supertest) |
+| Releases | 14 tags, from v0.2.0 to v5.0.0 |
+
+### Onova repositories
+
+- [onova-mobileapp](https://github.com/gianpaj/onova-mobileapp): the Onova and Drop iOS and Android apps
+- [onova-server.data](https://github.com/gianpaj/onova-server.data): the REST API
+- [onova-server.data.global](https://github.com/gianpaj/onova-server.data.global): the API fork for an international version
+- [onova-server.push](https://github.com/gianpaj/onova-server.push): push notifications
+- [onova-server.chat](https://github.com/gianpaj/onova-server.chat): order messages in buyer–seller chats
+- [onova-webapp-drop](https://github.com/gianpaj/onova-webapp-drop): the Drop web app
+- [onova-forest-admin](https://github.com/gianpaj/onova-forest-admin): the back office
+- [onova-automl-server](https://github.com/gianpaj/onova-automl-server): an image classifier prototype
+
+---
+
+## Original README
 
 Functionality:
 
